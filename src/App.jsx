@@ -37,7 +37,6 @@ function App() {
   const svgRef = useRef(null);
   const welcomeRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isHudOpen, setIsHudOpen] = useState(window.innerWidth > 768);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-app-theme', appTheme);
@@ -634,8 +633,6 @@ function App() {
         appTheme={appTheme}
         toggleAppTheme={toggleAppTheme}
         diagramTitle={diagramTitle}
-        isHudOpen={isHudOpen}
-        setIsHudOpen={setIsHudOpen}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         handleDownloadSVG={handleDownloadSVG}

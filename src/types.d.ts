@@ -162,8 +162,6 @@ export interface AppHeaderProps {
   appTheme: string;
   toggleAppTheme: () => void;
   diagramTitle: string;
-  isHudOpen: boolean;
-  setIsHudOpen: (open: boolean) => void;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
   handleDownloadSVG: () => void;

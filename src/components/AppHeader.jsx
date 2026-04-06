@@ -4,8 +4,6 @@ export default function AppHeader({
   appTheme,
   toggleAppTheme,
   diagramTitle,
-  isHudOpen,
-  setIsHudOpen,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   handleDownloadSVG,
@@ -45,9 +43,6 @@ export default function AppHeader({
       <div className="mobile-header-menu" style={{ gap: '8px' }}>
         <button className="app-header-btn no-hover-override" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ color: 'var(--color-text-main)' }}>
           <Icon name="hamburger" size={24} strokeWidth={1.5} />
-        </button>
-        <button className={`app-header-btn no-hover-override ${isHudOpen ? 'active' : ''}`} data-tooltip="Toggle Properties" onClick={() => setIsHudOpen(!isHudOpen)} style={{ color: 'var(--color-text-main)' }}>
-          <Icon name="sidebar" size={24} strokeWidth={1.5} />
         </button>
         {isMobileMenuOpen && (
           <div className="mobile-dropdown">

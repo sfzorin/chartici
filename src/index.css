@@ -1221,3 +1221,10 @@ input[type="color"].hud-color-picker::-webkit-color-swatch {
 .touch-port-hitbox {
     display: none;
 }
+
+@media (max-width: 768px) {
+  .zoom-controls {
+    bottom: 80px !important;
+    right: 12px !important;
+  }
+}

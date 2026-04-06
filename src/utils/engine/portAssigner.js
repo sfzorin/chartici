@@ -90,7 +90,9 @@ function applyTreePenalties(ports, goldenDir, box, node) {
   for (const p of ports) {
     const sizeD = Math.max(20, p.axis === 'V' ? (box.right - box.left) : (box.bottom - box.top));
     p.sizeD = sizeD;
-    const isCenter = (!p.penalty || p.penalty === 0) && !p.anchorPt; 
+    
+    // A center port is any primary cardinal port explicitly spawned with 0 initial penalty
+    const isCenter = (!p.penalty || p.penalty === 0) && !!p.dir; 
     
     if (p.dir === goldenDir && isCenter) {
       p.penalty = 0;
