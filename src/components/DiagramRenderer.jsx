@@ -25,7 +25,8 @@ export default function DiagramRenderer({
   diagramTitle,
   diagramType,
   onConnect,
-  onAddNode
+  onAddNode,
+  panToNodeId
 }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -99,6 +100,19 @@ export default function DiagramRenderer({
       }
     }
   }, [initialData, diagramTitle]);
+
+  useEffect(() => {
+    if (panToNodeId) {
+      const node = nodes.find(n => n.id === panToNodeId);
+      if (node && svgRef.current) {
+        const rect = svgRef.current.getBoundingClientRect();
+        setPan({
+           x: (rect.width / 2) - node.x * zoom,
+           y: (rect.height / 2) - node.y * zoom
+        });
+      }
+    }
+  }, [panToNodeId]);
 
   const prevLayoutTrigger = useRef(null);
   useEffect(() => {
@@ -1177,17 +1191,19 @@ export default function DiagramRenderer({
             <button className="canvas-panel-btn" style={{ width: '32px', height: '32px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleZoomCenter(Math.max(0.1, Math.round((zoom - 0.1)*10)/10))} data-tooltip="Zoom Out">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
-            <div className="zoom-text" onClick={() => { 
-                if (svgRef.current) {
-                   const rect = svgRef.current.getBoundingClientRect();
-                   setPan({ x: (rect.width/2)-800, y: (rect.height/2)-450 }); 
-                } else {
-                   setPan({x:0, y:0});
-                }
-                setZoom(1); 
-            }} data-tooltip="Reset Zoom">
-               {Math.round(zoom * 100)}%
-            </div>
+            <button className="canvas-panel-btn" onClick={() => {
+                if (!svgRef.current) return;
+                const rect = svgRef.current.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+                const paddingMultiplier = 0.95;
+                const newZoom = Math.min((rect.width * paddingMultiplier) / vW, (rect.height * paddingMultiplier) / vH, 4);
+                const boxCx = vMinX + vW / 2;
+                const boxCy = vMinY + vH / 2;
+                setZoom(newZoom);
+                setPan({ x: rect.width / 2 - boxCx * newZoom, y: rect.height / 2 - boxCy * newZoom });
+            }} style={{ width: '36px', height: '32px', fontWeight: 600, fontSize: '13px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-neutral-text)' }} data-tooltip="Fit to Screen">
+               FIT
+            </button>
             <button className="canvas-panel-btn" style={{ width: '32px', height: '32px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleZoomCenter(Math.min(4, Math.round((zoom + 0.1)*10)/10))} data-tooltip="Zoom In">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>

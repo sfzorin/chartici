@@ -5,7 +5,7 @@ import AppHeader from './components/AppHeader';
 import HelpModal from './components/HelpModal';
 import LoadModal from './components/LoadModal';
 import DialogModal from './components/DialogModal';
-import HUD from './components/HUD';
+import LeftToolbox from './components/LeftToolbox';
 import WelcomeScreenModal from './components/WelcomeScreenModal';
 
 import { downloadCharticiFile, parseCharticiFile } from './utils/charticiFormat';
@@ -28,6 +28,7 @@ function App() {
   const [bgColor, setBgColor] = useState('transparent-dark');
   const [diagramTitle, setDiagramTitle] = useState('Untitled Project');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [panToNodeId, setPanToNodeId] = useState(null);
   const [helpTab, setHelpTab] = useState('about');
   const [dialogConfig, setDialogConfig] = useState(null);
   
@@ -331,6 +332,7 @@ function App() {
         };
     });
     setSelectedNodeId(newNode.id);
+    setPanToNodeId(newNode.id);
     setSelectedEdgeId(null);
   };
   
@@ -683,50 +685,35 @@ function App() {
                 }
               });
             }}
+            panToNodeId={panToNodeId}
           />
 
         </section>
 
-        {/* Right Sidebar */}
-        <div className={`hud-backdrop ${isHudOpen ? 'open' : ''}`} onClick={() => setIsHudOpen(false)}></div>
-        <aside className={`hud-sidebar ${isHudOpen ? 'open' : 'closed'}`}>
-          <HUD 
-            selectedNode={selectedNode} 
-            selectedEdge={selectedEdge} 
-            updateSelectedNode={updateSelectedNode}
-            updateSelectedEdge={updateSelectedEdge}
-            reverseSelectedEdge={reverseSelectedEdge}
-            updateGroupFromSelection={updateGroupFromSelection}
-            connectToNode={connectToNode}
-            deleteSelectedElement={deleteSelectedElement}
-            nodesList={diagramData.nodes}
-            edgesList={diagramData.edges}
-            groupsList={diagramData.groups}
-            removeEdge={removeEdge}
-            currentPaletteInfo={PALETTES[paletteTheme]}
-            diagramTitle={diagramTitle}
-            setDiagramTitle={setDiagramTitle}
-            aspect={aspect}
-            setAspect={setAspect}
-            bgColor={bgColor}
-            setBgColor={setBgColor}
-            paletteTheme={paletteTheme}
-            setPaletteTheme={setPaletteTheme}
-            appTheme={appTheme}
-            toggleAppTheme={toggleAppTheme}
-            diagramType={diagramType}
-            setDiagramType={(newType) => {
-              setDiagramType(newType);
-              setDiagramData(prev => ({
-                ...prev,
-                nodes: layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType: newType }),
-                layoutTrigger: Date.now()
-              }));
-            }}
-          />
-        </aside>
+        {/* Left Toolbox */}
+        <LeftToolbox 
+          selectedNode={selectedNode} 
+          selectedEdge={selectedEdge} 
+          updateSelectedNode={updateSelectedNode}
+          updateSelectedEdge={updateSelectedEdge}
+          reverseSelectedEdge={reverseSelectedEdge}
+          updateGroupFromSelection={updateGroupFromSelection}
+          connectToNode={connectToNode}
+          deleteSelectedElement={deleteSelectedElement}
+          nodesList={diagramData.nodes}
+          edgesList={diagramData.edges}
+          groupsList={diagramData.groups}
+          removeEdge={removeEdge}
+          currentPaletteInfo={PALETTES[paletteTheme]}
+          diagramTitle={diagramTitle}
+          setDiagramTitle={setDiagramTitle}
+          diagramType={diagramType}
+          onAddNode={(type) => addNewNode(type)}
+        />
 
       </div>
+
+
 
       {/* Modals */}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} initialTab={helpTab} />}
