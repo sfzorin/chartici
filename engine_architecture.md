@@ -82,8 +82,8 @@ Checks all 4 faces (ports) of the node.
 ### Specific Modifiers
 - **Bifurcation logic:** Nodes dynamically scale their port availability based on dimensions:
   - **Vertical (Top/Bottom):** If `w >= 80px` (Sizes XS and up), 2 backup ports are added (offset ±20px from the center) alongside the main center port. Heavily penalized `+2 × D` so they are only used when the central port is saturated or buses branch out.
-  - **Lateral (Left/Right):** If `h >= 80px` (Sizes M, L, XL), the single center port is REMOVED and REPLACED by exactly 2 grid-snapped ports to prevent a middle port from falling off the 20px grid. 
-  - **Exceptions:** Ovals, Circles, and Rhombuses do not bifurcate laterally to prevent lines from geometrically piercing their curved/slanted edges. Small rectangular sizes (XS/S) maintain exactly one central lateral port.
+  - **Lateral (Left/Right):** If `h >= 80px` (Sizes M, L, XL), the single center port is REMOVED and REPLACED by exactly 2 equidistant grid-snapped ports (never three) to visually distribute lines and prevent central overcrowding. 
+  - **Exceptions:** Ovals, Circles, and Rhombuses never bifurcate on their curved/slanted lateral (Left/Right) edges. However, Ovals **are** permitted to bifurcate up to 3 ports vertically (Top/Bottom) due to their flat caps. Small rectangular sizes (XS/S) maintain exactly one central lateral port.
 - **Circle Diagonal Ports:** Circles (`circle`) receive diagonal 45° escape routes placed 20px outside boundaries. Penalty = diameter.
 - **Port Saturation Rule:** Two edges with distinct visual styles (e.g. solid vs dashed) cannot share the same port to prevent visual merging. If `edgeType` mismatches, the occupied port receives a blocking `+10 × D` penalty, forcing A* to divert the dashed line into a bifurcation port.
 - **Tree _stackEntry Override:** For vertically collapsed list nodes (Tree depth 2+), `_stackEntry = 'Left'` is intercepted, obligating the line to enter from the side instead of penetrating the block from the top.

@@ -38,37 +38,50 @@ export function getNodePorts(node, box) {
   const w = box.right - box.left;
   const h = box.bottom - box.top;
 
+  // Universal Off-Grid Snapper
+  const gyTop = Math.floor(box.top / 20) * 20;
+  const gyBottom = Math.ceil(box.bottom / 20) * 20;
+  const gxLeft = Math.floor(box.left / 20) * 20;
+  const gxRight = Math.ceil(box.right / 20) * 20;
+
+  // 4 Primary cardinal ports (always present, penalty 0)
   let ports = [
-    { pt: { x: box.cx, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: 0 },
-    { pt: { x: box.cx, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: 0 }
+    { pt: { x: box.cx, y: gyTop }, anchorPt: { x: box.cx, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: 0 },
+    { pt: { x: box.cx, y: gyBottom }, anchorPt: { x: box.cx, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: 0 },
+    { pt: { x: gxRight, y: box.cy }, anchorPt: { x: box.right, y: box.cy }, axis: 'H', sign: 1, dir: 'Right', penalty: 0 },
+    { pt: { x: gxLeft, y: box.cy }, anchorPt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 }
   ];
 
-  if (h >= 80 && node.type !== 'oval' && node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
-      let y1 = Math.floor(box.cy / 20) * 20;
-      let y2 = Math.ceil(box.cy / 20) * 20;
-      if (y1 === y2) { Math.round(h) > 80 ? (y1 -= 40, y2 += 40) : (y1 -= 20, y2 += 20); }
-      
+  const isCurved = node.type === 'oval' || node.type === 'circle' || node.type === 'decision' || node.type === 'rhombus';
+
+  // Lateral Bifurcation ("Where it fits" h >= 80px) -> Add 2 outer ports
+  if (h >= 80 && !isCurved) {
       const sidePenalty = h * 2;
-      ports.push({ pt: { x: box.right, y: y1 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
-      ports.push({ pt: { x: box.right, y: y2 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
-      ports.push({ pt: { x: box.left, y: y1 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
-      ports.push({ pt: { x: box.left, y: y2 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
-  } else {
-      ports.push({ pt: { x: box.right, y: box.cy }, axis: 'H', sign: 1, dir: 'Right', penalty: 0 });
-      ports.push({ pt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 });
+      let y1 = box.cy - 20;
+      let y2 = box.cy + 20;
+      // If cy were perfectly offset somehow, we ensure we don't fall off
+      y1 = Math.floor(y1 / 20) * 20;
+      y2 = Math.ceil(y2 / 20) * 20;
+      
+      ports.push({ pt: { x: gxRight, y: y1 }, anchorPt: { x: box.right, y: y1 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
+      ports.push({ pt: { x: gxRight, y: y2 }, anchorPt: { x: box.right, y: y2 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
+      ports.push({ pt: { x: gxLeft, y: y1 }, anchorPt: { x: box.left, y: y1 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
+      ports.push({ pt: { x: gxLeft, y: y2 }, anchorPt: { x: box.left, y: y2 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
   }
 
-  // Extended ports for bus bifurcation (rectangles and ovals, skip pure circles and rhombuses)
-  if (node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
-      if (w >= 50) {
-          const bifPenaltyX = w * 2;
-          ports.push({ pt: { x: box.cx - 20, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
-          ports.push({ pt: { x: box.cx + 20, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
-          ports.push({ pt: { x: box.cx - 20, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
-          ports.push({ pt: { x: box.cx + 20, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
-      }
-      
-      // Height-based side bifurcation is entirely handled above natively preventing triplets!
+  // Vertical Bifurcation ("Where it fits" w >= 80px) -> Add 2 outer ports
+  if (w >= 80 && node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
+      const bifPenaltyX = w * 2;
+      let x1 = box.cx - 20;
+      let x2 = box.cx + 20;
+      x1 = Math.floor(x1 / 20) * 20;
+      x2 = Math.ceil(x2 / 20) * 20;
+
+      ports.push({ pt: { x: x1, y: gyTop }, anchorPt: { x: x1, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
+      ports.push({ pt: { x: x2, y: gyTop }, anchorPt: { x: x2, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
+      ports.push({ pt: { x: x1, y: gyBottom }, anchorPt: { x: x1, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
+      ports.push({ pt: { x: x2, y: gyBottom }, anchorPt: { x: x2, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
+
   }
 
   // Circle diagonal ports: 4 exits at 45°/135°/225°/315°
