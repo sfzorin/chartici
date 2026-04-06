@@ -1,0 +1,206 @@
+import { getGroupId } from './groupUtils';
+
+export async function downloadCharticiFile(projectName, diagramData, config) {
+  // Group nodes by groupId
+  const exportGroups = [];
+  const gMap = {};
+
+  (diagramData.groups || []).forEach(g => {
+    // Clone group properties except nodes to avoid circulars
+    const safeLabel = g.label || g.groupLabel || g.text;
+    gMap[g.id] = { ...g, nodes: [] };
+    if (safeLabel) gMap[g.id].label = safeLabel;
+    else delete gMap[g.id].label;
+    delete gMap[g.id].text;
+    delete gMap[g.id].groupLabel;
+    exportGroups.push(gMap[g.id]);
+  });
+
+  (diagramData.nodes || []).forEach(n => {
+    const parentId = n.groupId || `g_${n.id}`; // Give it a group if it lacks one
+    if (!gMap[parentId]) {
+      gMap[parentId] = { 
+         id: parentId, 
+         color: n.color, 
+         type: n.type, 
+         size: n.size, 
+         nodes: [] 
+      };
+      exportGroups.push(gMap[parentId]);
+    }
+    const nodeExport = { id: n.id };
+    const safeNodeLabel = n.label || n.nodeLabel || n.text;
+    if (safeNodeLabel) nodeExport.label = safeNodeLabel;
+    if (n.lockPos) { nodeExport.x = n.x; nodeExport.y = n.y; nodeExport.lockPos = true; }
+    gMap[parentId].nodes.push(nodeExport);
+  });
+
+  const { ...configRoot } = (config || {});
+  
+  const payload = {
+    type: 'cci_project',
+    version: 2,
+    ...configRoot,
+    data: {
+      groups: exportGroups,
+      edges: (diagramData.edges || []).map(e => {
+        const edgeExport = { ...e, label: e.label || e.edgeLabel || e.text };
+        delete edgeExport.edgeLabel;
+        delete edgeExport.text;
+        if (!edgeExport.label) delete edgeExport.label;
+        if (edgeExport.sourcelabel) delete edgeExport.sourcelabel;
+        if (edgeExport.targetlabel) delete edgeExport.targetlabel;
+        if (edgeExport.from) { edgeExport.sourceId = edgeExport.sourceId || edgeExport.from; delete edgeExport.from; }
+        if (edgeExport.to) { edgeExport.targetId = edgeExport.targetId || edgeExport.to; delete edgeExport.to; }
+        return edgeExport;
+      })
+    }
+  };
+
+  const jsonStr = JSON.stringify(payload, null, 2);
+
+  try {
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: projectName ? `${projectName}.cci` : 'diagram.cci',
+        types: [{
+          description: 'Chartici Document',
+          accept: { 'application/json': ['.cci', '.json'] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(jsonStr);
+      await writable.close();
+      return handle.name.replace(/\.cci$/, '');
+    } else {
+      // Fallback
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      link.download = `${safeName || 'diagram'}.cci`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      return safeName || 'diagram';
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error('Save failed:', err);
+    }
+    return null;
+  }
+}
+
+export function parseCharticiFile(fileContent) {
+  try {
+    const data = JSON.parse(fileContent);
+    
+    // Helper function to resolve nested nodes from groups or legacy flat nodes
+    const resolveNodesAndGroups = (rawNodes, rawGroups) => {
+      const flatNodes = [];
+      const cleanGroups = [];
+      
+      // 1. Process nested groups (New schema)
+      (rawGroups || []).forEach(g => {
+        const { nodes: childNodes, ...groupStyles } = g;
+        cleanGroups.push(groupStyles);
+        
+        if (Array.isArray(childNodes)) {
+           childNodes.forEach(n => {
+             flatNodes.push({
+               ...n,
+               label: n.label || n.nodeLabel || n.text,
+               groupId: groupStyles.id,
+               type: groupStyles.type,
+               size: (n.size !== undefined) ? n.size : groupStyles.size,
+               lockPos: n.lockPos,
+               x: n.x,
+               y: n.y
+             });
+           });
+        }
+      });
+
+      // 2. Process legacy flat nodes (Fallback for old files)
+      if (Array.isArray(rawNodes)) {
+          rawNodes.forEach(n => {
+            const gId = getGroupId(n) || `g_${n.id}`;
+            let g = cleanGroups.find(cg => cg.id === gId);
+            
+            // Migrate legacy node color to group level
+            if (!g) {
+               g = { id: gId, color: n.color || 1, lockColor: !!n.lockColor };
+               cleanGroups.push(g);
+            } else if (n.lockColor && n.color) {
+               g.color = n.color;
+               g.lockColor = true;
+            }
+
+            flatNodes.push({
+               ...n,
+               label: n.label || n.nodeLabel || n.text,
+               groupId: gId,
+               type: g.type,
+               size: (n.size !== undefined) ? n.size : g.size,
+               lockPos: n.lockPos,
+               x: n.x,
+               y: n.y
+            });
+            
+            // Clean purely visual traits from the node record so it behaves statelessly
+            delete flatNodes[flatNodes.length - 1].color;
+            delete flatNodes[flatNodes.length - 1].lockColor;
+         });
+      }
+
+      return { flatNodes, cleanGroups };
+    };
+
+    // Helper function to resolve and deduplicate edges
+    const resolveEdges = (rawEdges) => {
+      const edges = (rawEdges || []).map(e => {
+        const source = e.sourceId || e.from || e.sourcelabel || e.sourceLabel;
+        const target = e.targetId || e.to || e.targetlabel || e.targetLabel;
+        return { 
+          ...e, 
+          label: e.label || e.edgeLabel || e.text,
+          from: String(source), 
+          to: String(target) 
+        };
+      });
+      const seen = new Set();
+      return edges.filter(e => {
+        if (!e.from || !e.to || e.from === e.to) return false;
+        const min = e.from < e.to ? e.from : e.to;
+        const max = e.from > e.to ? e.from : e.to;
+        const key = `${min}::${max}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    if (data.type === 'cci_project' || data.type === 'chartici_project') {
+      // Handle old format with data.config wrapper
+      const coreData = data.data || {};
+      const configFromData = coreData.config || {};
+      const { flatNodes, cleanGroups } = resolveNodesAndGroups(coreData.nodes, coreData.groups);
+      const { type, data: _d, version, ...restConfig } = data;
+      // Old format uses 'header' instead of 'title'
+      if (data.header && !restConfig.title) restConfig.title = data.header;
+      return {
+        groups: cleanGroups,
+        nodes: flatNodes,
+        edges: resolveEdges(coreData.edges),
+        config: { ...configFromData, ...restConfig }
+      };
+    } else {
+      throw new Error("Invalid file format. Not a recognized Chartici project.");
+    }
+  } catch (error) {
+    throw new Error(`Failed to parse .cci file: ${error.message}`);
+  }
+}

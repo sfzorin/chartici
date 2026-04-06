@@ -1,0 +1,103 @@
+{
+  "type": "cci_project",
+  "aspect": "16:9",
+  "diagramType": "tree",
+  "theme": "vibrant-rainbow",
+  "bgColor": "white",
+  "title": "Startup Org Chart",
+  "data": {
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "nodes": [
+          {
+            "id": "ceo",
+            "text": "CEO",
+            "groupId": "g_layer_0"
+          }
+        ],
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "nodes": [
+          {
+            "id": "cto",
+            "text": "Head of Engineering",
+            "groupId": "g_layer_1"
+          },
+          {
+            "id": "cmo",
+            "text": "Head of Marketing",
+            "groupId": "g_layer_1"
+          },
+          {
+            "id": "cro",
+            "text": "Head of Sales",
+            "groupId": "g_layer_1"
+          }
+        ],
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "nodes": [
+          {
+            "id": "eng_team",
+            "text": "Engineers",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "mkt_team",
+            "text": "Marketers",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "sales_team",
+            "text": "Sales Reps",
+            "groupId": "g_layer_2"
+          }
+        ],
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "ceo",
+        "targetId": "cto"
+      },
+      {
+        "id": "e2",
+        "sourceId": "ceo",
+        "targetId": "cmo"
+      },
+      {
+        "id": "e3",
+        "sourceId": "ceo",
+        "targetId": "cro"
+      },
+      {
+        "id": "e4",
+        "sourceId": "cto",
+        "targetId": "eng_team"
+      },
+      {
+        "id": "e5",
+        "sourceId": "cmo",
+        "targetId": "mkt_team"
+      },
+      {
+        "id": "e6",
+        "sourceId": "cro",
+        "targetId": "sales_team"
+      }
+    ]
+  }
+}

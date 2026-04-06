@@ -1,0 +1,178 @@
+{
+  "type": "cci_project",
+  "title": "CI/CD Pipeline",
+  "aspect": "16:9",
+  "diagramType": "flowchart",
+  "theme": "indigo-green-red",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "build",
+            "label": "Git Push",
+            "id": "git_push_1"
+          },
+          {
+            "groupId": "build",
+            "label": "CI Trigger",
+            "id": "ci_trigger_2"
+          },
+          {
+            "groupId": "build",
+            "label": "Lint",
+            "id": "lint_3"
+          },
+          {
+            "groupId": "build",
+            "label": "Unit Tests",
+            "id": "unit_tests_4"
+          }
+        ],
+        "label": "build",
+        "id": "g_1"
+      },
+      {
+        "color": 3,
+        "type": "diamond",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "gate",
+            "label": "Tests OK?",
+            "id": "tests_ok_5"
+          }
+        ],
+        "label": "gate",
+        "id": "g_2"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "deploy",
+            "label": "Build Image",
+            "id": "build_image_6"
+          },
+          {
+            "groupId": "deploy",
+            "label": "Deploy Stage",
+            "id": "deploy_stage_7"
+          },
+          {
+            "groupId": "deploy",
+            "label": "E2E Tests",
+            "id": "e2e_tests_8"
+          }
+        ],
+        "label": "deploy",
+        "id": "g_3"
+      },
+      {
+        "color": 7,
+        "type": "diamond",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "gate2",
+            "label": "Approved?",
+            "id": "approved_9"
+          }
+        ],
+        "label": "gate2",
+        "id": "g_4"
+      },
+      {
+        "color": 9,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "prod",
+            "label": "Production",
+            "id": "production_10"
+          },
+          {
+            "groupId": "prod",
+            "label": "Rollback",
+            "id": "rollback_11"
+          },
+          {
+            "groupId": "prod",
+            "label": "Notify Team",
+            "id": "notify_team_12"
+          }
+        ],
+        "label": "prod",
+        "id": "g_5"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "git_push_1",
+        "targetId": "ci_trigger_2"
+      },
+      {
+        "id": "e2",
+        "sourceId": "ci_trigger_2",
+        "targetId": "lint_3"
+      },
+      {
+        "id": "e3",
+        "sourceId": "lint_3",
+        "targetId": "unit_tests_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "unit_tests_4",
+        "targetId": "tests_ok_5"
+      },
+      {
+        "id": "e5",
+        "sourceId": "tests_ok_5",
+        "targetId": "build_image_6"
+      },
+      {
+        "id": "e6",
+        "sourceId": "tests_ok_5",
+        "targetId": "notify_team_12"
+      },
+      {
+        "id": "e7",
+        "sourceId": "build_image_6",
+        "targetId": "deploy_stage_7"
+      },
+      {
+        "id": "e8",
+        "sourceId": "deploy_stage_7",
+        "targetId": "e2e_tests_8"
+      },
+      {
+        "id": "e9",
+        "sourceId": "e2e_tests_8",
+        "targetId": "approved_9"
+      },
+      {
+        "id": "e10",
+        "sourceId": "approved_9",
+        "targetId": "production_10"
+      },
+      {
+        "id": "e11",
+        "sourceId": "approved_9",
+        "targetId": "rollback_11"
+      },
+      {
+        "id": "e12",
+        "sourceId": "production_10",
+        "targetId": "notify_team_12"
+      }
+    ]
+  }
+}

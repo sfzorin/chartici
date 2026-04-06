@@ -1,0 +1,57 @@
+{
+  "type": "cci_project",
+  "title": "Sprint Plan",
+  "aspect": "16:9",
+  "diagramType": "timeline",
+  "theme": "muted-rainbow",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "milestones",
+            "label": "Kickoff",
+            "id": "kickoff_1"
+          },
+          {
+            "groupId": "milestones",
+            "label": "MVP Ready",
+            "id": "mvp_ready_2"
+          },
+          {
+            "groupId": "milestones",
+            "label": "Beta Launch",
+            "id": "beta_launch_3"
+          },
+          {
+            "groupId": "milestones",
+            "label": "GA Release",
+            "id": "ga_release_4"
+          }
+        ],
+        "label": "milestones",
+        "id": "g_1"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "kickoff_1",
+        "targetId": "mvp_ready_2"
+      },
+      {
+        "id": "e2",
+        "sourceId": "mvp_ready_2",
+        "targetId": "beta_launch_3"
+      },
+      {
+        "id": "e3",
+        "sourceId": "beta_launch_3",
+        "targetId": "ga_release_4"
+      }
+    ]
+  }
+}

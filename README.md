@@ -1,0 +1,52 @@
+# Chartici - AI-Assisted Diagram Maker
+
+<p align="center">
+  <em>An advanced visual node editor natively built for generating high-quality, print-ready SVG diagrams and architectures via AI (ChatGPT, Claude, DeepSeek).</em>
+</p>
+
+CHARTICI is a specialized, React-based visual node engine explicitly built for generating professional illustrations with smart AI assistance. 
+
+Unlike generic flowchart tools (like draw.io or Miro) which rely on HTML overlays or complex canvas abstractions, this application generates **pure SVG out-of-the-box**. This guarantees that all layouts, text wrappings, and lines are cleanly imported into professional software like Adobe Illustrator, inDesign, or PDF processors.
+
+## 🚀 Features & Keywords
+- **AI-Assisted Generation**: Feed plain text requirements to an LLM, and instantly render complex architectures using Chartici logic.
+- **Topologies Supported**: Flowcharts, Organizational Trees, Sequence Diagrams, ERD (Entity-Relationship), Matrices, Radial/Mind Maps, and Timelines.
+- **Pure SVG Export**: Production-ready vector graphics ready for print or web.
+- **A* Orthogonal Routing**: Advanced heuristic routing engine avoiding nodes and elegantly bridging line crossings.
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+
+### Installation
+1. Clone the repository.
+2. Run `npm install` to install dependencies.
+3. Run `npm run dev` to start the local Vite development server.
+
+## Architecture & Features
+
+This project was intentionally built from scratch without massive flowcharting libraries (e.g., React Flow) to maintain pixel-perfect control over SVG generation.
+
+### 1. State Management (`App.jsx`)
+- The main `App.jsx` handles global state via a centralized `diagramData` object (`nodes` and `edges`).
+- It controls the properties panel, theme togglers, and imports/exports XML payloads.
+- **Node Bindings**: We implemented a `bindTo` attribute where nodes can be mathematically anchored to strings ("top", "bottom", "left", "right") of other nodes. When you drag a parent, all children compute their relative offset and move seamlessly.
+
+### 2. SVG Rendering Engine (`DiagramRenderer.jsx`)
+- Computes `computedNodes` on the fly to process bindings *before* rendering.
+- **Text Wrapping (`getFittedText`)**: Native SVG does not support CSS word wrapping. We implemented an invisible HTML5 canvas measurement engine that pre-calculates the exact point text should wrap, limiting to 3 lines before naturally shrinking the `font-size`.
+- **Bezier Edge Routing (`calculatePath`)**: Instead of relying on Dagre or external routing plugins, we calculate adaptive cubic bezier curves between elements. The system evaluates the bounding boxes of the source and target node and snaps the wire to the most logical face dynamically depending on whether the node is placed above, below, left, or right.
+
+### 3. Smart Grid Alignment (`layout.js`)
+- Standard DAG routing algorithms (like dagre/graphviz) destroy the user's intended layout by forcing hierarchical layouts. 
+- `applyGridSmartAlign` implements an algorithmic compromise:
+  1. It preserves user intent by sorting nodes topologically using their manual X/Y coordinates via clustering.
+  2. It snaps nodes into "Levels" and "Tracks" (a rigid 2D matrix) ensuring strict visual uniformity required by print book standards without completely scrambling the user's visual narrative.
+
+### 4. Print Book Theme (`index.css`)
+- A strict design mode converting the application to a Grayscale, 1pt line-width constraint removing all decorative drop-shadows and gradients. This enables artists to design for the monitor and seamlessly export flat illustrations for monochrome printing.
+
+## XML Schema Configuration
+The editor allows users to construct diagrams dynamically via XML. To view the supported nodes, edges, color mappings, and structure, launch the application and click **Help & Docs -> XML Schema Reference** to download the schema `.md`.

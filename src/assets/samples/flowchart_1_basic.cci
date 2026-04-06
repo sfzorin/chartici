@@ -1,0 +1,106 @@
+{
+  "type": "cci_project",
+  "aspect": "16:9",
+  "diagramType": "flowchart",
+  "theme": "indigo-green-red",
+  "bgColor": "white",
+  "title": "Basic Process Flowchart",
+  "data": {
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "nodes": [
+          {
+            "id": "start",
+            "text": "Start Process",
+            "groupId": "g_layer_0"
+          }
+        ],
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "nodes": [
+          {
+            "id": "task1",
+            "text": "Perform Task",
+            "groupId": "g_layer_1"
+          }
+        ],
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "nodes": [
+          {
+            "id": "decision1",
+            "text": "Is it valid?",
+            "groupId": "g_layer_2"
+          }
+        ],
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_3",
+        "nodes": [
+          {
+            "id": "task2",
+            "text": "Process Data",
+            "groupId": "g_layer_3"
+          }
+        ],
+        "color": 4,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_4",
+        "nodes": [
+          {
+            "id": "end",
+            "text": "End",
+            "groupId": "g_layer_4"
+          }
+        ],
+        "color": 5,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "start",
+        "targetId": "task1"
+      },
+      {
+        "id": "e2",
+        "sourceId": "task1",
+        "targetId": "decision1"
+      },
+      {
+        "id": "e3",
+        "sourceId": "decision1",
+        "targetId": "task2",
+        "label": "Yes"
+      },
+      {
+        "id": "e4",
+        "sourceId": "decision1",
+        "targetId": "start",
+        "label": "No"
+      },
+      {
+        "id": "e5",
+        "sourceId": "task2",
+        "targetId": "end"
+      }
+    ]
+  }
+}

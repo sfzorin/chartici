@@ -1,0 +1,292 @@
+import { getDiagramRules } from '../diagramRules.js';
+import { RoutingContext } from './RoutingContext.js';
+import { getTrueBox, isBlockedPointCheck, getNodePorts } from './geometry.js';
+import { runAStar } from './astar.js';
+import { generateSVGPaths } from './svgPaths.js';
+import { assignPorts } from './portAssigner.js';
+
+export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
+  const result = {};
+  if (!edges || edges.length === 0) return result;
+
+  // Radial: straight lines clipped to node borders (no routing)
+  if (config.diagramType === 'radial') {
+
+    edges.forEach(edge => {
+      const fromId = edge.from || edge.sourceId;
+      const toId = edge.to || edge.targetId;
+      const startNode = allNodes.find(n => n.id === fromId);
+      const endNode = allNodes.find(n => n.id === toId);
+      if (!startNode || !endNode) return;
+      if (edge.style === 'invisible' || edge.logical || edge.isBlank) return;
+      const scx = startNode.x;
+      const scy = startNode.y;
+      const ecx = endNode.x;
+      const ecy = endNode.y;
+      
+      const dx = ecx - scx, dy = ecy - scy;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      if (len < 1) return;
+      const ux = dx/len, uy = dy/len;
+      
+      // Accurately clip to exact geometric node borders
+      const clipDist = (node, cx, cy, dirX, dirY) => {
+        const box = getTrueBox(node);
+        const w = (box.right - box.left) / 2, h = (box.bottom - box.top) / 2;
+        
+        if (node.type === 'circle') {
+          return Math.max(w, h);
+        }
+        
+        if (node.type === 'decision') {
+           // Boundary of diamond/rhombus: |x|/w + |y|/h = 1
+           return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
+        }
+        
+        // Rectangle: find exit distance along direction
+        if (Math.abs(dirX) < 0.001) return h;
+        if (Math.abs(dirY) < 0.001) return w;
+        
+        const tx = w / Math.abs(dirX), ty = h / Math.abs(dirY);
+        return Math.min(tx, ty);
+      };
+      
+      const startDist = clipDist(startNode, scx, scy, ux, uy);
+      const endDist = clipDist(endNode, ecx, ecy, -ux, -uy);
+      
+      const sp = { x: scx + ux * startDist, y: scy + uy * startDist };
+      const ep = { x: ecx - ux * endDist, y: ecy - uy * endDist };
+      const pathD = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
+      // Ensure text always reads left-to-right (or top-to-bottom for vertical)
+      let textPathD;
+      const isNearVertical = Math.abs(sp.x - ep.x) < Math.abs(sp.y - ep.y);
+      if (isNearVertical) {
+        // Vertical: top-to-bottom
+        textPathD = sp.y <= ep.y ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
+      } else {
+        // Horizontal: left-to-right
+        textPathD = sp.x <= ep.x ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
+      }
+      result[edge.id] = { pathD, textPathD, pts: [sp, ep] };
+    });
+    return result;
+  }
+  // Normalize diagram type: org_chart → tree
+  const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
+  const { layout: layoutRules, routing: routingRules } = getDiagramRules(diagramType);
+  const PADDING = routingRules.PADDING;
+  const ctx = new RoutingContext(edges, allNodes, false, draggedNodeId, routingRules, diagramType);
+  ctx.usedEndPorts = new Map();
+  ctx.usedStartPorts = new Map();
+
+  // 1. Convert all nodes to bounding boxes (obstacles)
+  allNodes.forEach(n => {
+    const b = getTrueBox(n);
+    ctx.nodeBoxes.set(n.id, b);
+    if (n.type !== 'text' && n.type !== 'title') {
+      ctx.obstacles.push({
+        id: n.id,
+        left: b.left - PADDING,
+        right: b.right + PADDING,
+        top: b.top - PADDING,
+        bottom: b.bottom + PADDING,
+        vLeft: b.left,
+        vRight: b.right,
+        vTop: b.top,
+        vBottom: b.bottom
+      });
+    }
+  });
+
+  const edgeInfos = edges.map(edge => {
+    const startNode = allNodes.find(n => n.id === edge.from);
+    const endNode = allNodes.find(n => n.id === edge.to);
+    if (!startNode || !endNode) return null;
+    
+    // Ignore logical (invisible) links
+    if (edge.style === 'invisible' || edge.logical || edge.isBlank) return null;
+
+    const startBox = ctx.nodeBoxes.get(startNode.id);
+    const endBox = ctx.nodeBoxes.get(endNode.id);
+
+    const dx = endBox.cx - startBox.cx;
+    const dy = endBox.cy - startBox.cy;
+    const dist = Math.abs(dx) + Math.abs(dy);
+    
+    let textSpaceReq = 0;
+    if (edge.label && edge.label.length > 0) {
+        textSpaceReq = edge.label.length * 8.4 + 40; // Approx 8.4px per char + 40px for arrows/padding buffer
+    }
+
+    return { edge, startNode, endNode, startBox, endBox, dist, textSpaceReq };
+  }).filter(Boolean);
+
+  edgeInfos.sort((a, b) => {
+      if (a.dist !== b.dist) return a.dist - b.dist;
+      // Group siblings (same from) together, but sort geometrically by target Y to prevent overlapping diagonals
+      if (a.edge.from === b.edge.from) return a.endBox.cy - b.endBox.cy;
+      if (a.edge.to === b.edge.to) return 0;
+      return a.edge.from < b.edge.from ? -1 : 1;
+  });
+
+  // ─── Port Assignment (Phase 1) ─────────────────────────────
+  let isHorizontalFlow = false;
+  if (['tree', 'radial'].includes(config.diagramType)) {
+      isHorizontalFlow = false;
+  } else {
+      isHorizontalFlow = true;
+  }
+
+  const portMap = assignPorts(
+    edgeInfos.map(i => i.edge),
+    allNodes,
+    diagramType,
+    isHorizontalFlow,
+    ctx
+  );
+
+  // Global time budget: 1s total, fair split with carry-over
+  const TOTAL_BUDGET_MS = 1000;
+  const routingStartTime = performance.now();
+  const perEdgeBudget = TOTAL_BUDGET_MS / Math.max(edgeInfos.length, 1);
+
+  // ─── A* Routing (Phase 2) ─────────────────────────────────
+  edgeInfos.forEach((info, idx) => {
+    const { startBox, endBox, edge, startNode, endNode, textSpaceReq } = info;
+
+    if (draggedNodeId) {
+      if (edge.from === draggedNodeId || edge.to === draggedNodeId) {
+        const pathD = `M ${startBox.cx} ${startBox.cy} L ${endBox.cx} ${endBox.cy}`;
+        result[edge.id] = { pathD, textPathD: pathD };
+        return;
+      } else if (prevPaths && prevPaths[edge.id]) {
+        result[edge.id] = prevPaths[edge.id];
+        return;
+      }
+    }
+
+    // Use pre-assigned ports from Phase 1
+    const assigned = portMap.get(edge.id);
+    let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox);
+    let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox);
+
+    const fallbackTiers = [
+      { gridStep: 20, allowOverlap: false, allowCrossing: false, ignorePadding: false },
+      { gridStep: 20, allowOverlap: false, allowCrossing: true, ignorePadding: false },
+      { gridStep: 10, allowOverlap: false, allowCrossing: true, ignorePadding: false },
+      { gridStep: 10, allowOverlap: true, allowCrossing: true, ignorePadding: false },
+      { gridStep: 10, allowOverlap: true, allowCrossing: true, ignorePadding: true }
+    ];
+
+    let finalPts = null;
+    let fallbackPts = null;
+    let chosenStartPt = null;
+    let chosenEndPt = null;
+    let usedTier = -1;
+    let timedOut = false;
+    const edgeT0 = performance.now();
+
+    // Compute deadline for this edge
+    const fairDeadline = routingStartTime + perEdgeBudget * (idx + 1);
+    const absoluteDeadline = Math.max(fairDeadline, performance.now() + 20);
+    const globalDeadline = routingStartTime + TOTAL_BUDGET_MS;
+    const deadlineMs = Math.min(absoluteDeadline, globalDeadline);
+
+    for (let tierIdx = 0; tierIdx < fallbackTiers.length; tierIdx++) {
+       const tier = fallbackTiers[tierIdx];
+       const fullEdgeType = `${edge.lineStyle || 'solid'}-${edge.connectionType || 'target'}`;
+       const res = runAStar(startPorts, endPorts, startNode.id, endNode.id, textSpaceReq, fullEdgeType, tier.gridStep, tier.allowOverlap, tier.allowCrossing, 0, ctx, deadlineMs, tier.ignorePadding);
+       if (res && res.pts.length > 0) {
+           if (res.timedOut) timedOut = true;
+           if (res.isFallback) {
+               fallbackPts = res.pts;
+               if (usedTier < 0) usedTier = tierIdx;
+           } else {
+               finalPts = res.pts;
+               chosenStartPt = res.trueStartPt;
+               chosenEndPt = res.trueEndPt;
+               usedTier = tierIdx;
+               break;
+           }
+       }
+    }
+
+    if (!finalPts) {
+       finalPts = fallbackPts || [ { x: startBox.cx, y: startBox.cy }, { x: endBox.cx, y: endBox.cy } ];
+       if (!fallbackPts) result[edge.id] = { isFallback: true };
+       chosenStartPt = finalPts[0];
+       chosenEndPt = finalPts[finalPts.length - 1];
+    }
+
+    const rawPts = finalPts;
+    const cleanPts = [rawPts[0]];
+    for (let i = 1; i < rawPts.length - 1; i++) {
+      const prev = cleanPts[cleanPts.length - 1];
+      const curr = rawPts[i];
+      const next = rawPts[i+1];
+      if ((prev.x === curr.x && curr.x === next.x) || (prev.y === curr.y && curr.y === next.y)) continue;
+      cleanPts.push(curr);
+    }
+    cleanPts.push(rawPts[rawPts.length - 1]);
+
+    for (let i = 0; i < cleanPts.length - 1; i++) {
+       ctx.occupiedLines.push({ 
+         x1: cleanPts[i].x, y1: cleanPts[i].y, 
+         x2: cleanPts[i+1].x, y2: cleanPts[i+1].y,
+         startNodeId: startNode.id,
+         endNodeId: endNode.id,
+         edgeId: edge.id,
+         edgeType: `${edge.lineStyle || 'solid'}-${edge.connectionType || 'target'}`,
+         routeOrder: idx,
+         startPortKey: chosenStartPt ? `${chosenStartPt.x},${chosenStartPt.y}` : null
+       });
+       if (i > 0) {
+           ctx.addTurn({
+             x: cleanPts[i].x, y: cleanPts[i].y,
+             edgeId: edge.id, startNodeId: startNode.id, endNodeId: endNode.id
+          });
+       }
+    }
+
+    let totalLength = 0;
+    const segments = [];
+    for (let i = 0; i < cleanPts.length - 1; i++) {
+      const p1 = cleanPts[i];
+      const p2 = cleanPts[i+1];
+      const len = Math.abs(p2.x - p1.x) + Math.abs(p2.y - p1.y);
+      segments.push({ p1, p2, len });
+      totalLength += len;
+    }
+
+    const edgeMs = performance.now() - edgeT0;
+    result[edge.id] = { 
+        ...result[edge.id], 
+        pts: cleanPts,
+        usedTier,
+        timedOut,
+        routeMs: Math.round(edgeMs * 10) / 10,
+        _genInfo: { cleanPts, chosenStartPt, chosenEndPt, totalLength, segments, routeOrder: idx }
+    };
+  });
+
+  // Pass 2: Generate SVG Paths strictly after all occupiedLines are globally known
+  ctx.edgePaths = result;
+  edgeInfos.forEach(info => {
+      const edge = info.edge;
+      const data = result[edge.id];
+      if (data && data._genInfo) {
+          const { cleanPts, chosenStartPt, chosenEndPt, totalLength, segments, routeOrder } = data._genInfo;
+          const paths = generateSVGPaths(cleanPts, edge.id, totalLength, segments, ctx, routeOrder);
+          data.pathD = paths.pathD;
+          data.textPathD = paths.textPathD;
+          data.textPathLen = paths.textPathLen;
+      }
+  });
+
+  edgeInfos.forEach(info => {
+      const data = result[info.edge.id];
+      if (data && data._genInfo) delete data._genInfo;
+  });
+
+  return result;
+}

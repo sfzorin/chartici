@@ -1,0 +1,712 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useDiagramHistory } from './hooks/useDiagramHistory';
+import DiagramRenderer from './components/DiagramRenderer';
+import AppHeader from './components/AppHeader';
+import HelpModal from './components/HelpModal';
+import LoadModal from './components/LoadModal';
+import DialogModal from './components/DialogModal';
+import HUD from './components/HUD';
+import WelcomeScreenModal from './components/WelcomeScreenModal';
+
+import { downloadCharticiFile, parseCharticiFile } from './utils/charticiFormat';
+import { downloadSVG } from './utils/exportSVG';
+
+import { SIZES, PALETTES, DIAGRAM_TYPES, getNodeDim } from './utils/constants';
+import { smartAlign } from './utils/layout';
+import { layoutNodesHeuristically } from './utils/nodeLayouter';
+import { getTrueBox, checkCollision } from './utils/engine/geometry';
+import { getGroupId } from './utils/groupUtils';
+import { sanitizeColors } from './utils/sanitizeColors';
+import LogoUrl from './assets/chartici-logo.svg';
+
+function App() {
+  const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
+  const [paletteTheme, setPaletteTheme] = useState('muted-rainbow');
+  const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory({ nodes: [], edges: [], groups: [] });
+  const [aspect, setAspect] = useState('16:9');
+  const [diagramType, setDiagramType] = useState('flowchart');
+  const [bgColor, setBgColor] = useState('transparent-dark');
+  const [diagramTitle, setDiagramTitle] = useState('Untitled Project');
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [helpTab, setHelpTab] = useState('about');
+  const [dialogConfig, setDialogConfig] = useState(null);
+  
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const svgRef = useRef(null);
+  const welcomeRef = useRef(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHudOpen, setIsHudOpen] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-app-theme', appTheme);
+    localStorage.setItem('appTheme', appTheme);
+  }, [appTheme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', paletteTheme);
+    const themeObj = PALETTES[paletteTheme] || PALETTES['muted-rainbow'];
+    
+    document.documentElement.style.setProperty('--unfilled-text-color', themeObj.unfilledText);
+    
+    themeObj.colors.forEach((c, idx) => {
+      document.documentElement.style.setProperty(`--color-${idx}`, c.bg);
+      document.documentElement.style.setProperty(`--text-color-${idx}`, c.text);
+      if (c.border) {
+         document.documentElement.style.setProperty(`--border-color-${idx}`, c.border);
+      } else {
+         document.documentElement.style.setProperty(`--border-color-${idx}`, 'transparent');
+      }
+    });
+  }, [paletteTheme]);
+
+
+
+
+
+  const handleSmartAlign = () => {
+    const alignedNodes = smartAlign(diagramData.nodes);
+    setDiagramData(prev => ({ 
+      ...prev, 
+      nodes: alignedNodes
+    }));
+  };
+
+  const handleDownloadChartici = async () => {
+    const savedName = await downloadCharticiFile(diagramTitle, diagramData, { 
+      aspect, bgColor, theme: paletteTheme, diagramType, title: diagramTitle 
+    });
+    if (savedName) {
+      setDiagramTitle(savedName);
+    }
+  };
+
+  
+  const loadParsedData = (parsed, fallbackName = 'Imported Project') => {
+    const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, parsed.config || {});
+    const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
+      ? parsed.config.theme : 'muted-rainbow';
+      
+    let totalElements = 0;
+    if (parsed.groups && parsed.groups.length > 0) {
+      totalElements = parsed.groups.length;
+    } else {
+      totalElements = layedOutNodes.length;
+    }
+    
+    const safeIndices = PALETTES[activeTheme].rules[totalElements] || [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    
+    const sharedColorMap = {};
+    setDiagramData({
+      groups: parsed.groups || [],
+      nodes: sanitizeColors(layedOutNodes, true, parsed.groups || [], safeIndices, sharedColorMap),
+      edges: sanitizeColors(parsed.edges, false, parsed.groups || [], safeIndices, sharedColorMap),
+      layoutTrigger: Date.now()
+    });
+    
+    if (parsed.config && Object.keys(parsed.config).length > 0) {
+      if (parsed.config.aspect) setAspect(parsed.config.aspect);
+      if (parsed.config.diagramType) setDiagramType(parsed.config.diagramType);
+      
+      let incomingBg = parsed.config.bgColor || 'transparent-dark';
+      if (incomingBg === 'transparent' || incomingBg === 'white') incomingBg = 'transparent-dark';
+      if (incomingBg === 'black') incomingBg = 'solid-dark';
+      setBgColor(incomingBg);
+    } else {
+      setAspect('16:9');
+      setDiagramType('flowchart');
+      setBgColor('transparent-dark');
+    }
+
+    const resolvedTitle = parsed.config?.title || parsed.header || '';
+    setDiagramTitle(resolvedTitle !== 'Untitled Project' ? resolvedTitle : '');
+    setPaletteTheme(activeTheme);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+  };
+
+  const handleCharticiUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const fileNameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = parseCharticiFile(e.target.result);
+        loadParsedData(parsed, fileNameWithoutExtension);
+      } catch (err) {
+        setDialogConfig({
+          type: 'alert',
+          title: 'Error loading file',
+          message: err.message,
+          onConfirm: () => setDialogConfig(null),
+          onCancel: () => setDialogConfig(null)
+        });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleHeuristicLayout = () => {
+    setDiagramData(prev => {
+      const nextConfig = { ...prev.config };
+      const newNodes = layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType });
+      
+      if (!nextConfig.titleLock) {
+         nextConfig.titleX = undefined;
+         nextConfig.titleY = undefined;
+      } else if (nextConfig.titleX !== undefined && nextConfig.titleY !== undefined && prev.nodes.length > 0 && newNodes.length > 0) {
+         const getCenterPoint = (arr) => {
+             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+             arr.forEach(n => {
+                 if (n.type === 'text' || n.type === 'title') return;
+                 if (n.x < minX) minX = n.x;
+                 if (n.y < minY) minY = n.y;
+                 if (n.x > maxX) maxX = n.x;
+                 if (n.y > maxY) maxY = n.y;
+             });
+             return { cx: (minX + maxX)/2, cy: (minY + maxY)/2 };
+         };
+         const oldC = getCenterPoint(prev.nodes);
+         const newC = getCenterPoint(newNodes);
+         if (isFinite(oldC.cx) && isFinite(newC.cx)) {
+             nextConfig.titleX += (newC.cx - oldC.cx);
+             nextConfig.titleY += (newC.cy - oldC.cy);
+         }
+      }
+
+      return {
+        ...prev,
+        nodes: newNodes,
+        layoutTrigger: Date.now(),
+        config: nextConfig
+      };
+    });
+  };
+
+  const updateGroupFromSelection = (key, value) => {
+    if (!selectedNodeId) return;
+    setDiagramData(prev => {
+       const node = prev.nodes.find(n => n.id === selectedNodeId);
+       if (!node) return prev;
+       let gId = getGroupId(node);
+       let nextNodes = prev.nodes;
+       let nextGroups = prev.groups || [];
+       
+       if (!gId) {
+          gId = `g_${node.id}`;
+          nextNodes = nextNodes.map(n => n.id === selectedNodeId ? { ...n, groupId: gId } : n);
+       }
+       
+       const groupIndex = nextGroups.findIndex(g => g.id === gId);
+       if (groupIndex >= 0) {
+          nextGroups = nextGroups.map(g => g.id === gId ? { ...g, [key]: value } : g);
+       } else {
+          nextGroups = [...nextGroups, { id: gId, [key]: value }];
+       }
+       
+       return { ...prev, nodes: nextNodes, groups: nextGroups };
+    });
+  };
+
+  const handleDownloadSVG = () => {
+    if (!svgRef.current) return;
+    const oldSelection = selectedNodeId;
+    const oldEdgeSelection = selectedEdgeId;
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setTimeout(() => {
+      downloadSVG(svgRef.current, paletteTheme, diagramTitle);
+      setSelectedNodeId(oldSelection);
+      setSelectedEdgeId(oldEdgeSelection);
+    }, 0);
+  };
+
+  const generateSimpleId = (items) => {
+    let max = 0;
+    items.forEach(item => {
+      const num = parseInt(item.id, 10);
+      if (!isNaN(num) && num > max) max = num;
+    });
+    return String(max + 1);
+  };
+
+  const addNewNode = (type) => {
+    let cx = 100, cy = 100;
+    
+    if (diagramData.nodes.length === 0) {
+      // The default DiagramRenderer empty 16:9 viewBox is 0 0 1600 900.
+      cx = 800; // true center
+      cy = 450; // true center
+    }
+
+    let inheritedSize = 'M';
+    let inheritedColor = 1;
+
+    if (diagramData.nodes.length > 0) {
+      const templateNode = selectedNodeId ? diagramData.nodes.find(n => n.id === selectedNodeId) : diagramData.nodes[diagramData.nodes.length - 1];
+      if (templateNode) {
+          inheritedSize = templateNode.size || 'M';
+          let gId = templateNode.groupId;
+          let g = diagramData.groups?.find(gx => gx.id === gId);
+          inheritedColor = g?.color !== undefined ? g.color : (templateNode.color || 1);
+      }
+    }
+
+    const newNode = {
+      id: generateSimpleId(diagramData.nodes),
+      type: type,
+      label: type === 'text' ? 'Text' : 'New Node',
+      size: inheritedSize,
+      color: inheritedColor,
+      x: Math.round(cx / 20) * 20,
+      y: Math.round(cy / 20) * 20
+    };
+    
+    if (diagramData.nodes.length > 0) {
+      const [wRatio, hRatio] = aspect.split(':').map(Number);
+      const targetAspect = (wRatio / hRatio) || 1.77;
+      
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      
+      diagramData.nodes.forEach(n => {
+        const nx = n.x || 0;
+        const ny = n.y || 0;
+        const dim = getNodeDim(n);
+        if (nx - dim.width / 2 < minX) minX = nx - dim.width / 2;
+        if (ny - dim.height / 2 < minY) minY = ny - dim.height / 2;
+        if (nx + dim.width / 2 > maxX) maxX = nx + dim.width / 2;
+        if (ny + dim.height / 2 > maxY) maxY = ny + dim.height / 2;
+      });
+
+      if (minX === Infinity) { minX = 0; minY = 0; maxX = 160; maxY = 80; }
+      
+      const currentWidth = maxX - minX;
+      const currentHeight = Math.max(1, maxY - minY);
+      const currentAspect = currentWidth / currentHeight;
+
+      // Auto-collision resolver: shift until free
+      let attempts = 0;
+      while (checkCollision(newNode, diagramData.nodes) && attempts < 100) {
+          if (currentAspect < targetAspect) {
+              newNode.x += 40;
+          } else {
+              newNode.y += 40;
+          }
+          attempts++;
+      }
+    }
+    
+    setDiagramData(prev => {
+        const gId = `g_${newNode.id}`;
+        const nextGroups = [...(prev.groups || [])];
+        if (!nextGroups.find(g => g.id === gId)) {
+            nextGroups.push({ id: gId, color: newNode.color });
+        }
+
+        return { 
+            ...prev, 
+            groups: nextGroups,
+            nodes: [...prev.nodes, { ...newNode, groupId: gId }] 
+        };
+    });
+    setSelectedNodeId(newNode.id);
+    setSelectedEdgeId(null);
+  };
+  
+  const connectToNode = (targetId) => {
+    if (!selectedNodeId || !targetId || selectedNodeId === targetId) return;
+    handleConnectionDrag(selectedNodeId, targetId);
+  };
+
+  const handleConnectionDrag = (sourceId, targetId) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+    
+    const duplicateExists = diagramData.edges.some(e => 
+      (e.from === sourceId && e.to === targetId) || 
+      (e.from === targetId && e.to === sourceId)
+    );
+    if (duplicateExists) return;
+
+    // --- TEXT NODE BINDING INTERCEPT ---
+    const sourceNode = diagramData.nodes.find(n => n.id === sourceId);
+    const targetNode = diagramData.nodes.find(n => n.id === targetId);
+    if (!sourceNode || !targetNode) return;
+
+    if (sourceNode.type === 'text' || targetNode.type === 'text') {
+        const textNodeId = sourceNode.type === 'text' ? sourceId : targetId;
+        const parentNodeId = sourceNode.type === 'text' ? targetId : sourceId;
+        const txtNode = sourceNode.type === 'text' ? sourceNode : targetNode;
+        const prtNode = sourceNode.type === 'text' ? targetNode : sourceNode;
+
+        setDiagramData(prev => {
+            const nextNodes = prev.nodes.map(n => {
+                if (n.id === textNodeId) {
+                    const obj = { ...n, bindTo: parentNodeId };
+                    // We need to calculate static offset based on their absolute coordinates
+                    // x, y is center of node. offset is center-to-center.
+                    obj.offsetX = (txtNode.x || 0) - (prtNode.x || 0);
+                    obj.offsetY = (txtNode.y || 0) - (prtNode.y || 0);
+                    return obj;
+                }
+                return n;
+            });
+            return { ...prev, nodes: nextNodes, layoutTrigger: Date.now() };
+        });
+        return; // Do NOT create an edge
+    }
+    // -----------------------------------
+    
+    // Attempt to inherit style from the very last edge in the graph
+    let inheritedStyles = {};
+    if (diagramData.edges.length > 0) {
+       let template = diagramData.edges.find(e => e.id === selectedEdgeId);
+       if (!template) template = diagramData.edges[diagramData.edges.length - 1];
+       
+       if (template.type) inheritedStyles.type = template.type;
+       if (template.color) inheritedStyles.color = template.color;
+       if (template.strokeType) inheritedStyles.strokeType = template.strokeType;
+       if (template.thickness) inheritedStyles.thickness = template.thickness;
+       if (template.animated !== undefined) inheritedStyles.animated = template.animated;
+    }
+    
+    const newEdgeId = generateSimpleId(diagramData.edges);
+    const newEdge = { id: newEdgeId, from: sourceId, to: targetId, label: '', ...inheritedStyles };
+    
+    setDiagramData(prev => ({
+      ...prev,
+      edges: [...prev.edges, newEdge],
+      layoutTrigger: Date.now() // Trigger auto-layout update for A* router
+    }));
+  };
+
+  const updateSelectedNode = (field, value) => {
+    if (!selectedNodeId) return;
+    
+    // Intercept updates for the special system title node
+    if (selectedNodeId === '__SYSTEM_TITLE__') {
+      if (field === 'lockPos') {
+          if (value === false) {
+              // Unlocking should not clear current position coordinates.
+              // Auto-centering is now strictly bound to the 'Auto Layout' button.
+              setDiagramData(prev => ({...prev, config: { ...prev.config, titleLock: false }}));
+          } else {
+              // Locking
+              setDiagramData(prev => {
+                  let curX = prev.config?.titleX;
+                  let curY = prev.config?.titleY;
+                  
+                  // Use visual DOM position only if it was never dragged
+                  if (curX === undefined || curY === undefined) {
+                      const domNode = document.querySelector('[data-node-id="__SYSTEM_TITLE__"]');
+                      if (domNode) {
+                          const logicalX = domNode.getAttribute('data-logical-x');
+                          const logicalY = domNode.getAttribute('data-logical-y');
+                          if (logicalX && logicalY) {
+                             curX = parseFloat(logicalX);
+                             curY = parseFloat(logicalY);
+                          }
+                      }
+                  }
+                  return {...prev, config: { ...prev.config, titleLock: true, titleX: curX, titleY: curY }};
+              });
+          }
+          return;
+      }
+      if (field === 'label') {
+          setDiagramTitle(value);
+          if (value === '') {
+              setSelectedNodeId(null); // Deselect if it vanishes
+          }
+      } else {
+          setDiagramData(prev => ({
+            ...prev,
+            config: {
+              ...prev.config,
+              [field === 'size' ? 'titleSize' : field]: value
+            }
+          }));
+      }
+      if (field === 'bindTo' && value === null) {
+          // Unbinding the title (legacy support)
+          setDiagramData(prev => ({...prev, config: { ...prev.config, titleX: undefined, titleY: undefined, titleLock: false }}));
+      }
+      return;
+    }
+    setDiagramData(prev => {
+      let newNodes = [...(prev.nodes || [])];
+      let newGroups = [...(prev.groups || [])];
+      const targetIndex = newNodes.findIndex(n => n.id === selectedNodeId);
+      if (targetIndex === -1) return prev;
+      
+      let targetNode = { ...newNodes[targetIndex] };
+      const gId = getGroupId(targetNode);
+
+      if (field === 'size') {
+         const applySize = (n, newVal) => {
+             return { ...n, size: newVal };
+         };
+         
+         if (gId) {
+             const groupNodesOrig = newNodes.filter(n => getGroupId(n) === gId);
+             const groupNodesNew = groupNodesOrig.map(n => applySize(n, value));
+             const outsideNodes = newNodes.filter(n => getGroupId(n) !== gId);
+             
+             // Check if any updated group node collides with outside nodes (or internal collisions within the group)
+             const isInvalid = groupNodesNew.some(gn => checkCollision(gn, [...outsideNodes, ...groupNodesNew.filter(x => x.id !== gn.id)]));
+             if (isInvalid) return prev; // Abort size change
+             
+             newNodes = newNodes.map(n => groupNodesNew.find(x => x.id === n.id) || n);
+             const gIdx = newGroups.findIndex(g => g.id === gId);
+             if (gIdx > -1) newGroups[gIdx] = { ...newGroups[gIdx], size: value };
+             else newGroups.push({ id: gId, size: value });
+             
+         } else {
+             const proposedNode = applySize(targetNode, value);
+             if (checkCollision(proposedNode, newNodes.filter(n => n.id !== proposedNode.id))) return prev; // Abort size change
+             newNodes[targetIndex] = proposedNode;
+         }
+         return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
+      }
+
+      targetNode[field] = value;
+      newNodes[targetIndex] = targetNode;
+
+      if (field === 'groupId' && value) {
+        const existingGroup = newGroups.find(g => g.id === value);
+        if (existingGroup) {
+          if (existingGroup.color !== undefined) targetNode.color = existingGroup.color;
+          if (existingGroup.type !== undefined) targetNode.type = existingGroup.type;
+          if (existingGroup.size !== undefined) targetNode.size = existingGroup.size;
+        } else {
+          newGroups.push({ id: value, color: targetNode.color, type: targetNode.type, size: targetNode.size });
+        }
+      } else if (gId && ['color', 'type', 'fillStyle'].includes(field)) {
+         newNodes = newNodes.map(n => getGroupId(n) === gId ? { ...n, [field]: value } : n);
+         const gIdx = newGroups.findIndex(g => g.id === gId);
+         if (gIdx > -1) newGroups[gIdx] = { ...newGroups[gIdx], [field]: value };
+         else newGroups.push({ id: gId, [field]: value });
+      }
+
+      return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
+    });
+  };
+
+  const updateSelectedEdge = (field, value) => {
+    if (!selectedEdgeId) return;
+    setDiagramData(prev => ({
+      ...prev,
+      edges: prev.edges.map(e => e.id === selectedEdgeId ? { ...e, [field]: value } : e)
+    }));
+  };
+
+  const reverseSelectedEdge = () => {
+    if (!selectedEdgeId) return;
+    setDiagramData(prev => ({
+      ...prev,
+      edges: prev.edges.map(e => {
+        if (e.id !== selectedEdgeId) return e;
+        return { ...e, from: e.to, to: e.from, sourceId: e.targetId, targetId: e.sourceId };
+      })
+    }));
+  };
+  
+  const removeEdge = (edgeId) => {
+    setDiagramData(prev => ({
+      ...prev,
+      edges: prev.edges.filter(e => e.id !== edgeId)
+    }));
+    if (selectedEdgeId === edgeId) setSelectedEdgeId(null);
+  };
+
+  const deleteSelectedElement = useCallback(() => {
+    if (selectedNodeId) {
+      setDiagramData(prev => ({
+        ...prev,
+        nodes: prev.nodes.filter(n => n.id !== selectedNodeId),
+        edges: prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId)
+      }));
+      setSelectedNodeId(null);
+    } else if (selectedEdgeId) {
+      setDiagramData(prev => ({
+        ...prev,
+        edges: prev.edges.filter(e => e.id !== selectedEdgeId)
+      }));
+      setSelectedEdgeId(null);
+    }
+  }, [selectedNodeId, selectedEdgeId]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT') {
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        redo();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        deleteSelectedElement();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteSelectedElement, undo, redo]);
+
+  const handleSelectNode = useCallback((id) => {
+    setSelectedNodeId(id);
+    if(id) setSelectedEdgeId(null);
+  }, []);
+  
+  const handleSelectEdge = useCallback((id) => {
+    setSelectedEdgeId(id);
+    if(id) setSelectedNodeId(null);
+  }, []);
+
+  let selectedNode = diagramData.nodes.find(n => n.id === selectedNodeId);
+  if (selectedNodeId === '__SYSTEM_TITLE__') {
+     selectedNode = {
+        id: '__SYSTEM_TITLE__',
+        type: 'title',
+        label: diagramTitle,
+        size: diagramData.config?.titleSize || 'AUTO',
+        x: diagramData.config?.titleX,
+        y: diagramData.config?.titleY,
+        lockPos: diagramData.config?.titleLock || false
+     };
+  }
+  
+  const selectedEdge = diagramData.edges.find(e => e.id === selectedEdgeId);
+
+  const toggleAppTheme = () => {
+    setAppTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      
+      {/* 1. Unified Single-Line Header */}
+      <AppHeader
+        appTheme={appTheme}
+        toggleAppTheme={toggleAppTheme}
+        diagramTitle={diagramTitle}
+        isHudOpen={isHudOpen}
+        setIsHudOpen={setIsHudOpen}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        handleDownloadSVG={handleDownloadSVG}
+        handleDownloadChartici={handleDownloadChartici}
+        setDiagramData={setDiagramData}
+        setDiagramTitle={setDiagramTitle}
+        setDialogConfig={setDialogConfig}
+        setHelpTab={setHelpTab}
+        setIsHelpOpen={setIsHelpOpen}
+        LogoUrl={LogoUrl}
+        onLogoClick={() => welcomeRef.current?.show()}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+      />
+      <input id="native-file-upload" type="file" accept=".cci,.json" style={{display: 'none'}} onChange={handleCharticiUpload} />
+
+      {/* 2. Main Area: Workspace + Sidebar */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        
+        {/* Canvas Area */}
+        <section className="app-canvas-area" style={{ flex: 1, position: 'relative' }}>
+          <DiagramRenderer 
+            initialData={diagramData} 
+            theme={paletteTheme}
+            svgRef={svgRef} 
+            aspectRatio={aspect} 
+            bgColor={bgColor} 
+            selectedNodeId={selectedNodeId}
+            onNodeSelect={handleSelectNode}
+            selectedEdgeId={selectedEdgeId}
+            onEdgeSelect={handleSelectEdge}
+            onNodesChange={(nodes) => {
+                const sysTitleIndex = nodes.findIndex(n => n.id === '__SYSTEM_TITLE__');
+                let nextNodes = [...nodes];
+                let nextConfig = { ...diagramData.config };
+                if (sysTitleIndex > -1) {
+                    const sysTitle = nextNodes.splice(sysTitleIndex, 1)[0];
+                    // Always preserve manual drag, but let Auto Layout reset it if not locked
+                    nextConfig.titleX = sysTitle.x;
+                    nextConfig.titleY = sysTitle.y;
+                    nextConfig.titleSize = sysTitle.size;
+                    nextConfig.title = sysTitle.label;
+                    setDiagramTitle(sysTitle.label || '');
+                }
+                setDiagramData({ ...diagramData, nodes: nextNodes, config: nextConfig });
+            }}
+            onEdgesChange={(newEdges) => setDiagramData(prev => ({ ...prev, edges: newEdges, layoutTrigger: Date.now() }))}
+            onSmartAlign={handleSmartAlign}
+            onAutoLayout={handleHeuristicLayout}
+            diagramTitle={diagramTitle}
+            diagramType={diagramType}
+            onConnect={handleConnectionDrag}
+            onAddNode={addNewNode}
+          />
+
+        </section>
+
+        {/* Right Sidebar */}
+        <div className={`hud-backdrop ${isHudOpen ? 'open' : ''}`} onClick={() => setIsHudOpen(false)}></div>
+        <aside className={`hud-sidebar ${isHudOpen ? 'open' : 'closed'}`}>
+          <HUD 
+            selectedNode={selectedNode} 
+            selectedEdge={selectedEdge} 
+            updateSelectedNode={updateSelectedNode}
+            updateSelectedEdge={updateSelectedEdge}
+            reverseSelectedEdge={reverseSelectedEdge}
+            updateGroupFromSelection={updateGroupFromSelection}
+            connectToNode={connectToNode}
+            deleteSelectedElement={deleteSelectedElement}
+            nodesList={diagramData.nodes}
+            edgesList={diagramData.edges}
+            groupsList={diagramData.groups}
+            removeEdge={removeEdge}
+            currentPaletteInfo={PALETTES[paletteTheme]}
+            diagramTitle={diagramTitle}
+            setDiagramTitle={setDiagramTitle}
+            aspect={aspect}
+            setAspect={setAspect}
+            bgColor={bgColor}
+            setBgColor={setBgColor}
+            paletteTheme={paletteTheme}
+            setPaletteTheme={setPaletteTheme}
+            appTheme={appTheme}
+            toggleAppTheme={toggleAppTheme}
+            diagramType={diagramType}
+            setDiagramType={(newType) => {
+              setDiagramType(newType);
+              setDiagramData(prev => ({
+                ...prev,
+                nodes: layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType: newType }),
+                layoutTrigger: Date.now()
+              }));
+            }}
+          />
+        </aside>
+
+      </div>
+
+      {/* Modals */}
+      {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} initialTab={helpTab} />}
+      {dialogConfig && <DialogModal {...dialogConfig} />}
+      <WelcomeScreenModal ref={welcomeRef} onDataLoaded={(data) => loadParsedData(data)} />
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,174 @@
+{
+  "type": "cci_project",
+  "title": "Enterprise Org Chart",
+  "aspect": "16:9",
+  "diagramType": "tree",
+  "theme": "slate-rose",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "exec",
+            "label": "CEO",
+            "id": "ceo_1"
+          }
+        ],
+        "label": "exec",
+        "id": "g_1"
+      },
+      {
+        "color": 2,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "c_suite",
+            "label": "CTO",
+            "id": "cto_2"
+          },
+          {
+            "groupId": "c_suite",
+            "label": "CFO",
+            "id": "cfo_3"
+          },
+          {
+            "groupId": "c_suite",
+            "label": "COO",
+            "id": "coo_4"
+          },
+          {
+            "groupId": "c_suite",
+            "label": "CMO",
+            "id": "cmo_5"
+          }
+        ],
+        "label": "c_suite",
+        "id": "g_2"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "eng",
+            "label": "Frontend",
+            "id": "frontend_6"
+          },
+          {
+            "groupId": "eng",
+            "label": "Backend",
+            "id": "backend_7"
+          },
+          {
+            "groupId": "eng",
+            "label": "DevOps",
+            "id": "devops_8"
+          },
+          {
+            "groupId": "eng",
+            "label": "QA",
+            "id": "qa_9"
+          }
+        ],
+        "label": "eng",
+        "id": "g_3"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "biz",
+            "label": "Sales",
+            "id": "sales_10"
+          },
+          {
+            "groupId": "biz",
+            "label": "Support",
+            "id": "support_11"
+          },
+          {
+            "groupId": "biz",
+            "label": "HR",
+            "id": "hr_12"
+          },
+          {
+            "groupId": "biz",
+            "label": "Finance",
+            "id": "finance_13"
+          }
+        ],
+        "label": "biz",
+        "id": "g_4"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "ceo_1",
+        "targetId": "cto_2"
+      },
+      {
+        "id": "e2",
+        "sourceId": "ceo_1",
+        "targetId": "cfo_3"
+      },
+      {
+        "id": "e3",
+        "sourceId": "ceo_1",
+        "targetId": "coo_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "ceo_1",
+        "targetId": "cmo_5"
+      },
+      {
+        "id": "e5",
+        "sourceId": "cto_2",
+        "targetId": "frontend_6"
+      },
+      {
+        "id": "e6",
+        "sourceId": "cto_2",
+        "targetId": "backend_7"
+      },
+      {
+        "id": "e7",
+        "sourceId": "cto_2",
+        "targetId": "devops_8"
+      },
+      {
+        "id": "e8",
+        "sourceId": "cto_2",
+        "targetId": "qa_9"
+      },
+      {
+        "id": "e9",
+        "sourceId": "coo_4",
+        "targetId": "sales_10"
+      },
+      {
+        "id": "e10",
+        "sourceId": "coo_4",
+        "targetId": "support_11"
+      },
+      {
+        "id": "e11",
+        "sourceId": "cfo_3",
+        "targetId": "hr_12"
+      },
+      {
+        "id": "e12",
+        "sourceId": "cfo_3",
+        "targetId": "finance_13"
+      }
+    ]
+  }
+}

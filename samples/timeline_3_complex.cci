@@ -1,0 +1,154 @@
+{
+  "type": "cci_project",
+  "title": "Company History",
+  "aspect": "16:9",
+  "diagramType": "timeline",
+  "theme": "slate-rose",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "early",
+            "label": "Founded",
+            "id": "founded_1"
+          },
+          {
+            "groupId": "early",
+            "label": "Seed Round",
+            "id": "seed_round_2"
+          }
+        ],
+        "label": "early",
+        "id": "g_1"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "growth",
+            "label": "First Product",
+            "id": "first_product_3"
+          },
+          {
+            "groupId": "growth",
+            "label": "1K Users",
+            "id": "1k_users_4"
+          },
+          {
+            "groupId": "growth",
+            "label": "Series A",
+            "id": "series_a_5"
+          }
+        ],
+        "label": "growth",
+        "id": "g_2"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "scale",
+            "label": "International",
+            "id": "international_6"
+          },
+          {
+            "groupId": "scale",
+            "label": "100K Users",
+            "id": "100k_users_7"
+          },
+          {
+            "groupId": "scale",
+            "label": "Series B",
+            "id": "series_b_8"
+          }
+        ],
+        "label": "scale",
+        "id": "g_3"
+      },
+      {
+        "color": 7,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "groupId": "mature",
+            "label": "Profitable",
+            "id": "profitable_9"
+          },
+          {
+            "groupId": "mature",
+            "label": "1M Users",
+            "id": "1m_users_10"
+          },
+          {
+            "groupId": "mature",
+            "label": "IPO",
+            "id": "ipo_11"
+          }
+        ],
+        "label": "mature",
+        "id": "g_4"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "founded_1",
+        "targetId": "seed_round_2"
+      },
+      {
+        "id": "e2",
+        "sourceId": "seed_round_2",
+        "targetId": "first_product_3"
+      },
+      {
+        "id": "e3",
+        "sourceId": "first_product_3",
+        "targetId": "1k_users_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "1k_users_4",
+        "targetId": "series_a_5"
+      },
+      {
+        "id": "e5",
+        "sourceId": "series_a_5",
+        "targetId": "international_6"
+      },
+      {
+        "id": "e6",
+        "sourceId": "international_6",
+        "targetId": "100k_users_7"
+      },
+      {
+        "id": "e7",
+        "sourceId": "100k_users_7",
+        "targetId": "series_b_8"
+      },
+      {
+        "id": "e8",
+        "sourceId": "series_b_8",
+        "targetId": "profitable_9"
+      },
+      {
+        "id": "e9",
+        "sourceId": "profitable_9",
+        "targetId": "1m_users_10"
+      },
+      {
+        "id": "e10",
+        "sourceId": "1m_users_10",
+        "targetId": "ipo_11"
+      }
+    ]
+  }
+}

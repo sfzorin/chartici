@@ -1,0 +1,252 @@
+{
+  "type": "cci_project",
+  "title": "Структура Организации Объединённых Наций (ООН)",
+  "aspect": "16:9",
+  "diagramType": "tree",
+  "theme": "blue-teal-slate",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "label": "Организация Объединённых Наций\n(ООН)",
+            "id": "_1"
+          }
+        ],
+        "label": "un_main",
+        "id": "g_1"
+      },
+      {
+        "color": 2,
+        "type": "rect",
+        "size": "M",
+        "nodes": [
+          {
+            "label": "Генеральная Ассамблея (ГА)",
+            "id": "_2"
+          },
+          {
+            "label": "Совет Безопасности (СБ)",
+            "id": "_3"
+          },
+          {
+            "label": "ЭКОСОС",
+            "id": "_4"
+          },
+          {
+            "label": "Секретариат ООН",
+            "id": "_5"
+          },
+          {
+            "label": "Международный Суд (МС)",
+            "id": "_6"
+          },
+          {
+            "label": "Совет по Опеке",
+            "id": "_7"
+          }
+        ],
+        "label": "principal_organs",
+        "id": "g_2"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "S",
+        "nodes": [
+          {
+            "label": "Первый комитет",
+            "id": "_8"
+          },
+          {
+            "label": "Пятый комитет",
+            "id": "_9"
+          },
+          {
+            "label": "Совет по правам человека",
+            "id": "_10"
+          }
+        ],
+        "label": "ga_committees",
+        "id": "g_3"
+      },
+      {
+        "color": 4,
+        "type": "rect",
+        "size": "S",
+        "nodes": [
+          {
+            "label": "Контртеррористический комитет",
+            "id": "_11"
+          },
+          {
+            "label": "Комитет 1718 (КНДР)",
+            "id": "1718_12"
+          }
+        ],
+        "label": "sc_committees",
+        "id": "g_4"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "S",
+        "nodes": [
+          {
+            "label": "ЮНИСЕФ",
+            "id": "_13"
+          },
+          {
+            "label": "ВОЗ",
+            "id": "_14"
+          },
+          {
+            "label": "МОТ",
+            "id": "_15"
+          },
+          {
+            "label": "ПРООН",
+            "id": "_16"
+          }
+        ],
+        "label": "ecosoc_bodies",
+        "id": "g_5"
+      },
+      {
+        "color": 6,
+        "type": "rect",
+        "size": "S",
+        "nodes": [
+          {
+            "label": "ДОМ (операции)",
+            "id": "_17"
+          },
+          {
+            "label": "ДПВП (политика)",
+            "id": "_18"
+          },
+          {
+            "label": "УВКПЧ",
+            "id": "_19"
+          }
+        ],
+        "label": "secretariat_depts",
+        "id": "g_6"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "label": "главный орган",
+        "sourceId": "_1",
+        "targetId": "_2"
+      },
+      {
+        "id": "e2",
+        "label": "главный орган",
+        "sourceId": "_1",
+        "targetId": "_3"
+      },
+      {
+        "id": "e3",
+        "label": "главный орган",
+        "sourceId": "_1",
+        "targetId": "_4"
+      },
+      {
+        "id": "e4",
+        "label": "главный орган",
+        "sourceId": "_1",
+        "targetId": "_5"
+      },
+      {
+        "id": "e5",
+        "label": "главный орган",
+        "sourceId": "_1",
+        "targetId": "_6"
+      },
+      {
+        "id": "e6",
+        "lineStyle": "dotted",
+        "label": "неактивный",
+        "sourceId": "_1",
+        "targetId": "_7"
+      },
+      {
+        "id": "e7",
+        "label": "подотчёт",
+        "sourceId": "_2",
+        "targetId": "_8"
+      },
+      {
+        "id": "e8",
+        "label": "подотчёт",
+        "sourceId": "_2",
+        "targetId": "_9"
+      },
+      {
+        "id": "e9",
+        "label": "учреждает",
+        "sourceId": "_2",
+        "targetId": "_10"
+      },
+      {
+        "id": "e10",
+        "label": "контроль",
+        "sourceId": "_3",
+        "targetId": "_11"
+      },
+      {
+        "id": "e11",
+        "label": "санкции",
+        "sourceId": "_3",
+        "targetId": "1718_12"
+      },
+      {
+        "id": "e12",
+        "label": "координирует",
+        "sourceId": "_4",
+        "targetId": "_13"
+      },
+      {
+        "id": "e13",
+        "label": "координирует",
+        "sourceId": "_4",
+        "targetId": "_14"
+      },
+      {
+        "id": "e14",
+        "label": "координирует",
+        "sourceId": "_4",
+        "targetId": "_15"
+      },
+      {
+        "id": "e15",
+        "label": "координирует",
+        "sourceId": "_4",
+        "targetId": "_16"
+      },
+      {
+        "id": "e16",
+        "label": "руководит",
+        "sourceId": "_5",
+        "targetId": "_17"
+      },
+      {
+        "id": "e17",
+        "label": "руководит",
+        "sourceId": "_5",
+        "targetId": "_18"
+      },
+      {
+        "id": "e18",
+        "label": "руководит",
+        "sourceId": "_5",
+        "targetId": "_19"
+      }
+    ]
+  }
+}

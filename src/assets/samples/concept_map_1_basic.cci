@@ -1,0 +1,103 @@
+{
+  "type": "cci_project",
+  "aspect": "16:9",
+  "diagramType": "tree",
+  "theme": "blue-teal-slate",
+  "bgColor": "white",
+  "title": "Concept Map: Global Warming",
+  "data": {
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "nodes": [
+          {
+            "id": "fossil",
+            "text": "Fossil Fuels",
+            "groupId": "g_layer_0"
+          }
+        ],
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "nodes": [
+          {
+            "id": "ghg",
+            "text": "Greenhouse Gases",
+            "groupId": "g_layer_1"
+          }
+        ],
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "nodes": [
+          {
+            "id": "gw",
+            "text": "Global Warming",
+            "groupId": "g_layer_2"
+          }
+        ],
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_3",
+        "nodes": [
+          {
+            "id": "temp",
+            "text": "Rise in Temp",
+            "groupId": "g_layer_3"
+          }
+        ],
+        "color": 4,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_4",
+        "nodes": [
+          {
+            "id": "ice",
+            "text": "Melting Ice",
+            "groupId": "g_layer_4"
+          }
+        ],
+        "color": 5,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "gw",
+        "targetId": "temp",
+        "label": "Causes"
+      },
+      {
+        "id": "e2",
+        "sourceId": "ghg",
+        "targetId": "gw",
+        "label": "Increases"
+      },
+      {
+        "id": "e3",
+        "sourceId": "fossil",
+        "targetId": "ghg",
+        "label": "Emits"
+      },
+      {
+        "id": "e4",
+        "sourceId": "temp",
+        "targetId": "ice",
+        "label": "Results In"
+      }
+    ]
+  }
+}

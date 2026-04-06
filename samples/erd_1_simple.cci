@@ -1,0 +1,58 @@
+{
+  "type": "cci_project",
+  "title": "Blog Platform",
+  "aspect": "16:9",
+  "diagramType": "erd",
+  "theme": "muted-rainbow",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "core",
+            "label": "User",
+            "id": "user_1"
+          },
+          {
+            "groupId": "core",
+            "label": "Post",
+            "id": "post_2"
+          },
+          {
+            "groupId": "core",
+            "label": "Comment",
+            "id": "comment_3"
+          }
+        ],
+        "label": "core",
+        "id": "g_1"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "arrowType": "target",
+        "label": "writes",
+        "sourceId": "user_1",
+        "targetId": "post_2"
+      },
+      {
+        "id": "e2",
+        "arrowType": "target",
+        "label": "posts",
+        "sourceId": "user_1",
+        "targetId": "comment_3"
+      },
+      {
+        "id": "e3",
+        "arrowType": "target",
+        "label": "has",
+        "sourceId": "post_2",
+        "targetId": "comment_3"
+      }
+    ]
+  }
+}

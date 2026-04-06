@@ -1,0 +1,61 @@
+{
+  "type": "cci_project",
+  "title": "API Call",
+  "aspect": "16:9",
+  "diagramType": "sequence",
+  "theme": "vibrant-rainbow",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "actors",
+            "label": "Client",
+            "id": "client_1"
+          },
+          {
+            "groupId": "actors",
+            "label": "Server",
+            "id": "server_2"
+          },
+          {
+            "groupId": "actors",
+            "label": "Database",
+            "id": "database_3"
+          }
+        ],
+        "label": "actors",
+        "id": "g_1"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "label": "Request",
+        "sourceId": "client_1",
+        "targetId": "server_2"
+      },
+      {
+        "id": "e2",
+        "label": "Query",
+        "sourceId": "server_2",
+        "targetId": "database_3"
+      },
+      {
+        "id": "e3",
+        "label": "Result",
+        "sourceId": "database_3",
+        "targetId": "server_2"
+      },
+      {
+        "id": "e4",
+        "label": "Response",
+        "sourceId": "server_2",
+        "targetId": "client_1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "type": "cci_project",
+  "title": "User Login",
+  "aspect": "16:9",
+  "diagramType": "flowchart",
+  "theme": "muted-rainbow",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "g1",
+            "label": "User Opens App",
+            "id": "user_opens_app_1"
+          }
+        ],
+        "label": "g1",
+        "id": "g_1"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "g2",
+            "label": "Valid Credentials?",
+            "id": "valid_credentials_2"
+          }
+        ],
+        "label": "g2",
+        "id": "g_2"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "g3",
+            "label": "Show Dashboard",
+            "id": "show_dashboard_3"
+          }
+        ],
+        "label": "g3",
+        "id": "g_3"
+      },
+      {
+        "color": 7,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "g4",
+            "label": "Show Error",
+            "id": "show_error_4"
+          }
+        ],
+        "label": "g4",
+        "id": "g_4"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "user_opens_app_1",
+        "targetId": "valid_credentials_2"
+      },
+      {
+        "id": "e2",
+        "label": "Yes",
+        "sourceId": "valid_credentials_2",
+        "targetId": "show_dashboard_3"
+      },
+      {
+        "id": "e3",
+        "label": "No",
+        "sourceId": "valid_credentials_2",
+        "targetId": "show_error_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "show_error_4",
+        "targetId": "user_opens_app_1"
+      }
+    ]
+  }
+}
