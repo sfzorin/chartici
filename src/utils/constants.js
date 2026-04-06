@@ -117,7 +117,8 @@ export function getNodeDim(node) {
   if (node.type === 'oval') {
     dim.width = Math.round((dim.width + dim.height / 4) / 40) * 40; // Add half a radius
   } else if (node.type === 'title') {
-    if (node.size === 'S') dim.fontSize = 24;
+    if (node.size === 'XS') dim.fontSize = 18;
+    else if (node.size === 'S') dim.fontSize = 24;
     else if (node.size === 'M') dim.fontSize = 36;
     else if (node.size === 'L') dim.fontSize = 56;
     else if (node.size === 'XL') dim.fontSize = 80;
