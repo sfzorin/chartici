@@ -48,7 +48,6 @@ Chartici is fundamentally built around grouping. Instead of a flat list of nodes
 
 ```json
 {
-  "id": "backend_grp",
   "label": "Backend Services",
   "color": 3,
   "type": "rect",
@@ -66,7 +65,6 @@ Chartici is fundamentally built around grouping. Instead of a flat list of nodes
 }
 ```
 
-- **`id`**: (Required) Unique string identifier strictly used for routing edges.
 - **`label`**: (Optional) The string name displayed at the top of the group visually.
 - **`type`**: The graphical shape of the item. Valid options: `"rect"` (default rectangle), `"circle"`, `"rhombus"`, `"oval"` (pill shape).
 - **`color`**: Styling for the group itself. These styles **cascade** down and bind the `nodes` inside it. A node inside a group cannot have a uniquely different color or type than the group!

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PALETTES } from '../utils/constants';
+import { PALETTES, DIAGRAM_TYPES } from '../utils/constants';
 import { useNodeGroup } from '../hooks/useNodeGroup';
 import { getGroupId } from '../utils/groupUtils';
 import Icon from './Icons';
@@ -7,11 +7,29 @@ import Icon from './Icons';
 // --- Popover helper component ---
 function PopoverMenu({ isOpen, onClose, anchorRef, children, side = 'right' }) {
   const popoverRef = useRef(null);
+  const [topPos, setTopPos] = useState(0);
 
   useEffect(() => {
+    if (isOpen && anchorRef.current) {
+      let top = anchorRef.current.offsetTop;
+      setTopPos(top);
+
+      setTimeout(() => {
+         if (popoverRef.current) {
+             const rect = popoverRef.current.getBoundingClientRect();
+             const overflow = rect.bottom - window.innerHeight;
+             if (overflow > 0) {
+                 setTopPos(prev => prev - overflow - 12);
+             }
+         }
+      }, 0);
+    }
+  }, [isOpen]);
+  
+  useEffect(() => {
+    if (!isOpen) return;
     function handleClickOutside(e) {
       if (
-        isOpen && 
         popoverRef.current && 
         !popoverRef.current.contains(e.target) &&
         anchorRef.current && 
@@ -30,6 +48,7 @@ function PopoverMenu({ isOpen, onClose, anchorRef, children, side = 'right' }) {
     <div
       ref={popoverRef}
       className={`toolbox-popover popover-${side}`}
+      style={{ top: topPos + 'px' }}
     >
       {children}
     </div>
@@ -53,7 +72,20 @@ export default function LeftToolbox({
   diagramTitle,
   setDiagramTitle,
   diagramType,
-  onAddNode
+  bgColor,
+  onChangeBgColor,
+  aspect,
+  onChangeAspect,
+  onAddNode,
+  paletteTheme,
+  onChangeTheme,
+  zoomIn,
+  zoomOut,
+  zoomFit,
+  onAutoLayout,
+  activeLinkSource,
+  toggleConnectionMode,
+  setDiagramType
 }) {
   const { groupId: nodeGroupId, group: nodeGroup } = useNodeGroup(selectedNode, groupsList);
 
@@ -64,10 +96,13 @@ export default function LeftToolbox({
   const shapeBtnRef = useRef(null);
   const sizeBtnRef = useRef(null);
   const colorBtnRef = useRef(null);
+  const groupBtnRef = useRef(null);
   const labelBtnRef = useRef(null);
   const lockBtnRef = useRef(null);
   const edgeStyleBtnRef = useRef(null);
   const edgeArrowBtnRef = useRef(null);
+  const layoutBtnRef = useRef(null);
+  const bgBtnRef = useRef(null);
 
   const togglePopover = (id) => {
     setActivePopover(prev => prev === id ? null : id);
@@ -78,19 +113,39 @@ export default function LeftToolbox({
       case 'circle': return 'shape-circle';
       case 'oval': return 'shape-oval';
       case 'rhombus': return 'shape-diamond';
-      case 'text': return 'layers'; // Or something corresponding to text
+      case 'text': return 'text-shape'; 
       default: return 'shape-rect'; // includes 'process'
     }
   };
 
+  const mockNode = { type: 'process', size: 'M', color: 1, lockPos: false, id: '' };
+  const mockEdge = { lineStyle: 'solid', connectionType: 'target', label: '' };
+  const nContext = selectedNode || mockNode;
+  const eContext = selectedEdge || mockEdge;
+  
+  const currentCt = eContext.connectionType || eContext.cardinality || eContext.arrowType || 'target';
+
+  const isNodeToolActive = !!selectedNode && diagramType !== 'radial' && selectedNode.id !== '__SYSTEM_TITLE__';
+  const isEdgeToolActive = !!selectedEdge;
+  const isLabelActive = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
+  const isLockActive = !!selectedNode && selectedNode.type !== 'text';
+  const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
+  const isTrashActive = !!(selectedNode || selectedEdge);
+
+  const matchedGroup = groupsList?.find(g => g.id === getGroupId(nContext));
+  const isOutlined = matchedGroup?.outlined || false;
+
+  const getStyle = (isActive) => ({ opacity: isActive ? 1 : 0.3, pointerEvents: isActive ? 'auto' : 'none' });
+
   return (
-    <div className="left-toolbox">
-      
-      {/* Global Actions */}
-      <div className="toolbox-section">
+    <div className="left-toolbox-container">
+      <div className="toolbox-panel" style={{ gap: 8 }}>
+        
+        {/* --- 0. CREATE NODE --- */}
         <button 
           ref={addBtnRef}
-          className="toolbox-btn primary" 
+          className="toolbox-btn" 
+          style={{ background: '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none' }}
           onClick={() => togglePopover('add')}
           data-tooltip="Add New Element"
         >
@@ -104,178 +159,445 @@ export default function LeftToolbox({
              <button onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>
              <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
              <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
-             <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="layers" /> Text</button>
+             <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
           </div>
         </PopoverMenu>
-      </div>
 
-      <div className="toolbox-divider" />
-
-      {/* Selected Element Context */}
-      {selectedNode && (
+        {/* --- 1. TOP: Context Tools --- */}
         <div className="toolbox-section">
-          {diagramType !== 'radial' && selectedNode.id !== '__SYSTEM_TITLE__' && (
-            <>
-              {/* Shape Selection */}
-              <button ref={shapeBtnRef} className="toolbox-btn" onClick={() => togglePopover('shape')} data-tooltip="Change Shape">
-                <Icon name={getShapeIcon(selectedNode.type)} size={24} />
-              </button>
-              
-              <PopoverMenu isOpen={activePopover === 'shape'} onClose={() => setActivePopover(null)} anchorRef={shapeBtnRef}>
-                <div className="popover-title">Shape Type</div>
-                <div className="popover-list">
-                   <button className={selectedNode.type === 'process' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>
-                   <button className={selectedNode.type === 'circle' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>
-                   <button className={selectedNode.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
-                   <button className={selectedNode.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
-                   <button className={selectedNode.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="layers" /> Text</button>
-                </div>
-              </PopoverMenu>
+          
+          {/* NODE TOOLS (Shape, Size, Color) */}
+          <div className="toolbox-section" style={getStyle(isNodeToolActive)}>
+            {/* Shape Selection */}
+            <button ref={shapeBtnRef} className="toolbox-btn" onClick={() => togglePopover('shape')} data-tooltip="Change Shape">
+              <Icon name={getShapeIcon(nContext.type)} size={24} />
+            </button>
+            <PopoverMenu isOpen={activePopover === 'shape'} onClose={() => setActivePopover(null)} anchorRef={shapeBtnRef}>
+              <div className="popover-title">Shape Type</div>
+              <div className="popover-list">
+                 <button className={nContext.type === 'process' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>
+                 <button className={nContext.type === 'circle' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>
+                 <button className={nContext.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
+                 <button className={nContext.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
+                 <button className={nContext.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
+              </div>
+            </PopoverMenu>
 
-              {/* Size Selection */}
-              <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
-                <span className="text-icon">{selectedNode.size || 'M'}</span>
-              </button>
-              
-              <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
-                <div className="popover-title">Wait</div>
-                <div className="popover-list">
-                  {['S', 'M', 'L', 'XL', 'AUTO'].map(s => (
-                    <button key={s} className={selectedNode.size === s ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
-                      {s === 'AUTO' ? 'Auto Size' : `Size: ${s}`}
+
+            {/* Size Selection */}
+            <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
+              <Icon name="size" size={20} />
+            </button>
+            <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
+              <div className="popover-title">Node Size</div>
+              <div className="popover-list">
+                {['S', 'M', 'L', 'XL'].map(s => {
+                  const labels = { S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra Large' };
+                  return (
+                    <button key={s} className={nContext.size === s ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
+                      {labels[s]}
                     </button>
-                  ))}
-                </div>
-              </PopoverMenu>
+                  );
+                })}
+              </div>
+            </PopoverMenu>
 
-              {/* Color Selection */}
-              <button ref={colorBtnRef} className="toolbox-btn" onClick={() => togglePopover('color')} data-tooltip="Change Color">
-                <div className="color-indicator" style={{ background: currentPaletteInfo?.colors[selectedNode.color - 1 || 0] }} />
-              </button>
+            {/* Color Selection */}
+            <button ref={colorBtnRef} className="toolbox-btn" onClick={() => togglePopover('color')} data-tooltip="Change Color / Style">
+              <div>
+                <Icon name="palette" size={24} />
+              </div>
+            </button>
+            <PopoverMenu isOpen={activePopover === 'color'} onClose={() => setActivePopover(null)} anchorRef={colorBtnRef}>
+              <div className="popover-title">Color Palette</div>
+              <div className="popover-color-grid">
+                {[1,2,3,4,5,6,7,8,9].map(t => (
+                    <button 
+                       key={`color-${t}`}
+                       className={`color-swatch ${nContext.color === t ? 'selected' : ''}`}
+                       style={{ 
+                          background: isOutlined ? 'transparent' : (currentPaletteInfo?.colors?.[t]?.bg || '#ccc'),
+                          border: `2px solid ${currentPaletteInfo?.colors?.[t]?.bg || '#ccc'}`
+                       }}
+                       onClick={() => updateSelectedNode('color', t)}
+                    />
+                ))}
+              </div>
+              <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+              
+              {/* Custom hex color */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', marginTop: '4px' }}>
+                 <input 
+                    type="color" 
+                    value={typeof nContext.color === 'string' && nContext.color.startsWith('#') ? nContext.color : (currentPaletteInfo?.colors?.[nContext.color]?.bg || '#333333')} 
+                    onChange={(e) => updateSelectedNode('color', e.target.value)}
+                    style={{ width: '32px', height: '32px', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: 0, outline: 'none', background: 'transparent' }}
+                 />
+                 <input
+                     type="text"
+                     value={typeof nContext.color === 'string' ? nContext.color : (currentPaletteInfo?.colors?.[nContext.color]?.bg || '#333333')}
+                     onChange={(e) => updateSelectedNode('color', e.target.value)}
+                     style={{ 
+                         flex: 1, height: '32px', fontSize: '13px', fontFamily: 'monospace', padding: '0 8px', 
+                         border: '1px solid var(--border-color-soft)', borderRadius: '6px', 
+                         outline: 'none', background: 'var(--bg-panel)', color: 'var(--color-text-main)' 
+                     }}
+                 />
+              </div>
 
-              <PopoverMenu isOpen={activePopover === 'color'} onClose={() => setActivePopover(null)} anchorRef={colorBtnRef}>
-                <div className="popover-title">Color Palette</div>
-                <div className="popover-color-grid">
-                  {[1,2,3,4,5,6,7,8,9].map(t => (
-                      <button 
-                         key={`color-${t}`}
-                         className={`color-swatch ${selectedNode.color === t ? 'selected' : ''}`}
-                         style={{ background: currentPaletteInfo?.colors[t-1] }}
-                         onClick={() => { updateSelectedNode('color', t); setActivePopover(null); }}
-                      />
-                  ))}
-                </div>
-              </PopoverMenu>
-            </>
-          )}
+              {/* Outline Style toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginBottom: '12px', gap: '8px' }} onClick={() => updateGroupFromSelection('outlined', !isOutlined)}>
+                 <span style={{ fontSize: '12px', fontWeight: 600, color: isOutlined ? 'var(--color-text-main)' : 'var(--color-secondary)' }}>Outlined</span >
+                 <div 
+                   style={{
+                      width: '36px', height: '20px', borderRadius: '10px', 
+                      background: 'transparent',
+                      border: '2px solid var(--border-color-soft)',
+                      position: 'relative', transition: '0.2s', boxSizing: 'border-box'
+                   }}
+                 >
+                   <div style={{
+                      width: '12px', height: '12px', borderRadius: '50%', background: 'var(--color-secondary)',
+                      position: 'absolute', top: '2px', left: isOutlined ? '2px' : '18px',
+                      transition: '0.2s'
+                   }} />
+                 </div>
+                 <span style={{ fontSize: '12px', fontWeight: 600, color: !isOutlined ? 'var(--color-text-main)' : 'var(--color-secondary)' }}>Filled</span >
+              </div>
+
+              <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+              
+              {/* Theme Selector */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                 <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-secondary)', textTransform: 'uppercase' }}>Color Theme</label>
+                 <select 
+                    value={paletteTheme} 
+                    onChange={e => onChangeTheme(e.target.value)}
+                    className="popover-input"
+                    style={{ fontSize: '13px', cursor: 'pointer' }}
+                 >
+                    {Object.keys(PALETTES).map(pKey => (
+                       <option key={pKey} value={pKey}>{PALETTES[pKey].name}</option>
+                    ))}
+                 </select>
+              </div>
+            </PopoverMenu>
+
+            {/* Group Selection */}
+            <button ref={groupBtnRef} className="toolbox-btn" onClick={() => togglePopover('group')} data-tooltip="Manage Group">
+              <Icon name="layers" size={24} />
+            </button>
+            <PopoverMenu isOpen={activePopover === 'group'} onClose={() => setActivePopover(null)} anchorRef={groupBtnRef}>
+              <div className="popover-title">Group Label</div>
+              <div className="popover-list" style={{ width: '220px' }}>
+                 
+                 {/* Input for Current Group Label */}
+                 <div style={{ padding: '0 4px 8px 4px' }}>
+                    <input 
+                       className="popover-input"
+                       type="text" 
+                       placeholder="Group Label..."
+                       value={nodeGroup?.label || ''} 
+                       onChange={(e) => updateGroupFromSelection('label', e.target.value)}
+                       style={{ fontSize: '13px', padding: '6px', width: '100%', boxSizing: 'border-box' }}
+                    />
+                 </div>
+                 
+                 <div className="toolbox-divider" style={{ margin: '0 0 4px 0' }} />
+
+                 <button onClick={() => { 
+                    updateSelectedNode('groupId', `g_${Date.now()}`); 
+                    // Do not close popover, so user can immediately type the name in the input above
+                 }}>
+                    <Icon name="plus" size={14} /> <span style={{fontWeight: 600}}>Detach (New Group)</span>
+                 </button>
+                 {groupsList.length > 0 && <div className="toolbox-divider" />}
+                 
+                 <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                     {groupsList.map(g => {
+                        const isCurrent = nContext.groupId === g.id;
+                        const colorValue = currentPaletteInfo?.colors?.[g.color || 1]?.bg || '#ccc';
+                        
+                        if (g.type === 'text') {
+                           return (
+                             <button key={g.id} className={isCurrent ? 'active' : ''} onClick={() => { 
+                                 if (!isCurrent) updateSelectedNode('groupId', g.id); 
+                                 setActivePopover(null); 
+                             }}>
+                                <div style={{ width: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                   <span style={{ 
+                                      color: 'var(--color-text-main)', fontWeight: 900, fontSize: '14px', lineHeight: 1
+                                   }}>T</span>
+                                </div>
+                                {g.label || 'Unnamed Group'}
+                             </button>
+                           );
+                        }
+
+                        let shapeStyle = { 
+                           flexShrink: 0, 
+                           display: 'inline-block',
+                           boxSizing: 'border-box'
+                        };
+
+                        switch (g.type) {
+                           case 'circle':
+                              shapeStyle.width = '12px'; shapeStyle.height = '12px'; shapeStyle.borderRadius = '50%';
+                              break;
+                           case 'oval':
+                              shapeStyle.width = '16px'; shapeStyle.height = '10px'; shapeStyle.borderRadius = '10px';
+                              break;
+                           case 'rhombus':
+                              shapeStyle.width = '10px'; shapeStyle.height = '10px'; shapeStyle.transform = 'rotate(45deg)'; shapeStyle.margin = '0 2px'; shapeStyle.borderRadius = '2px';
+                              break;
+                           case 'process':
+                           default:
+                              shapeStyle.width = '16px'; shapeStyle.height = '12px'; shapeStyle.borderRadius = '2px';
+                              break;
+                        }
+
+                        if (g.outlined) {
+                           shapeStyle.border = `3px solid ${colorValue}`;
+                           shapeStyle.background = 'transparent';
+                        } else {
+                           shapeStyle.background = colorValue;
+                           shapeStyle.border = '1px solid var(--color-text-dim)'; // High contrast border adapting to light/dark themes
+                        }
+
+                        return (
+                          <button key={g.id} className={isCurrent ? 'active' : ''} onClick={() => { 
+                              if (!isCurrent) updateSelectedNode('groupId', g.id); 
+                              setActivePopover(null); 
+                          }}>
+                             <div style={{ width: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span className="color-indicator" style={shapeStyle} />
+                             </div>
+                             {g.label || 'Unnamed Group'}
+                          </button>
+                        );
+                     })}
+                 </div>
+              </div>
+            </PopoverMenu>
+          </div>
+
+          {/* EDGE TOOLS (Style & Arrows) */}
+          <div className="toolbox-section" style={getStyle(isEdgeToolActive)}>
+            <button ref={edgeStyleBtnRef} className="toolbox-btn" onClick={() => togglePopover('edgestyle')} data-tooltip="Line Style & Arrows">
+              <Icon name="edge-style" size={24} />
+            </button>
+            <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
+              <div className="popover-title">Line Style</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+                 {['solid', 'bold', 'dashed', 'none'].map(style => {
+                    let dash = "none";
+                    let sw = 2;
+                    if (style.includes('dashed')) dash = "6 6";
+                    if (style.includes('bold')) sw = 4;
+                    return (
+                       <button 
+                         key={style} 
+                         className={`toolbox-btn ${eContext.lineStyle === style ? 'active' : ''}`}
+                         style={{ 
+                            width: '100%', height: '32px', padding: 0,
+                            background: eContext.lineStyle === style ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                            border: `1px solid ${eContext.lineStyle === style ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                         }}
+                         onClick={() => {
+                            updateSelectedEdge('lineStyle', style);
+                            if (style === 'none' && (
+                                currentCt === 'none' ||
+                                currentCt === 'both' ||
+                                currentCt.includes(':')
+                            )) {
+                               updateSelectedEdge('connectionType', 'target');
+                               if (eContext.cardinality) updateSelectedEdge('cardinality', null);
+                               if (eContext.arrowType) updateSelectedEdge('arrowType', null);
+                            }
+                         }}
+                       >
+                          {style === 'none' ? <span style={{fontSize: '11px', fontWeight: 600}}>None</span> : (
+                             <svg width="40" height="12" viewBox="0 0 40 12">
+                               <line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth={sw} strokeDasharray={dash} strokeLinecap="square" />
+                             </svg>
+                          )}
+                       </button>
+                    )
+                 })}
+              </div>
+              <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+              <div className="popover-title">Arrows</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+                 {[
+                   {val: 'target', render: <svg width="40" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                   {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                   {val: 'both', render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                   {val: 'none', render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
+                   ...(diagramType === 'erd' ? [
+                      {val: '1:1', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : 1</div>},
+                      {val: '1:N', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : N</div>},
+                      {val: 'N:1', render: <div style={{fontSize:'12px', fontWeight:600}}>N : 1</div>},
+                      {val: 'N:M', render: <div style={{fontSize:'12px', fontWeight:600}}>N : M</div>}
+                   ] : [])
+                 ].map(arrow => {
+                   const isHiddenLine = eContext.lineStyle === 'none';
+                   const isErdType = arrow.val.includes(':');
+                   const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both' || isErdType);
+
+                   return (
+                   <button 
+                      key={arrow.val} 
+                      className={`toolbox-btn ${currentCt === arrow.val ? 'active' : ''}`} 
+                      style={{ 
+                         width: '100%', height: '32px', padding: 0,
+                         opacity: isArrowDisabled ? 0.3 : 1,
+                         pointerEvents: isArrowDisabled ? 'none' : 'auto',
+                         background: currentCt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                         border: `1px solid ${currentCt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                      }}
+                      onClick={() => { 
+                         if (arrow.val === 'reverse') reverseSelectedEdge();
+                         else updateSelectedEdge('connectionType', arrow.val); 
+                      }}
+                   >
+                      {arrow.render}
+                   </button>
+                 )})}
+              </div>
+            </PopoverMenu>
+          </div>
 
           {/* Label Editing */}
-          <button ref={labelBtnRef} className="toolbox-btn" onClick={() => togglePopover('label')} data-tooltip="Edit Label">
-            <span className="text-icon">A</span>
-          </button>
-          
-          <PopoverMenu isOpen={activePopover === 'label'} onClose={() => setActivePopover(null)} anchorRef={labelBtnRef}>
-            <div className="popover-title">Label</div>
-            <div className="popover-content">
-              <input 
-                  autoFocus
-                  className="popover-input" 
-                  type="text" 
-                  placeholder={selectedNode.id === '__SYSTEM_TITLE__' ? "Diagram Header" : "Node Name"} 
-                  value={selectedNode.id === '__SYSTEM_TITLE__' ? diagramTitle : (selectedNode.label || '')} 
-                  onChange={e => {
-                     if (selectedNode.id === '__SYSTEM_TITLE__') setDiagramTitle(e.target.value);
-                     else updateSelectedNode('label', e.target.value);
-                  }}
-                  onKeyDown={e => { if (e.key === 'Enter') setActivePopover(null); }}
-               />
-            </div>
-          </PopoverMenu>
-
-          {/* Lock Positioning */}
-          {selectedNode.type !== 'text' && selectedNode.id !== '__SYSTEM_TITLE__' && (
-            <button 
-               className={`toolbox-btn ${selectedNode.lockPos ? 'locked' : ''}`} 
-               onClick={() => updateSelectedNode('lockPos', !selectedNode.lockPos)}
-               data-tooltip={selectedNode.lockPos ? "Unlock Position" : "Lock Auto-Layout"}
-            >
-              <Icon name={selectedNode.lockPos ? 'lock' : 'unlock'} size={20} />
-            </button>
-          )}
-          
-          <div className="toolbox-divider" />
-          
-          {/* Delete Element */}
-          <button className="toolbox-btn danger" onClick={deleteSelectedElement} data-tooltip="Delete Node">
-            <Icon name="trash" size={20} />
-          </button>
-        </div>
-      )}
-
-      {selectedEdge && (
-         <div className="toolbox-section">
-            {/* Label Editing */}
-            <button ref={labelBtnRef} className="toolbox-btn" onClick={() => togglePopover('label')} data-tooltip="Edit Edge Label">
-              <span className="text-icon">A</span>
+          <div className="toolbox-section" style={getStyle(isLabelActive)}>
+            <button ref={labelBtnRef} className="toolbox-btn" onClick={() => togglePopover('label')} data-tooltip="Edit Label">
+              <Icon name="tag" size={20} />
             </button>
             <PopoverMenu isOpen={activePopover === 'label'} onClose={() => setActivePopover(null)} anchorRef={labelBtnRef}>
-              <div className="popover-title">Edge Label</div>
+              <div className="popover-title">Label</div>
               <div className="popover-content">
                 <input 
                     autoFocus
                     className="popover-input" 
                     type="text" 
-                    placeholder="Label..." 
-                    value={selectedEdge.label || ''} 
-                    onChange={e => updateSelectedEdge('label', e.target.value)} 
+                    placeholder={selectedNode && selectedNode.id === '__SYSTEM_TITLE__' ? "Diagram Header" : "Label..."} 
+                    value={selectedNode ? (selectedNode.id === '__SYSTEM_TITLE__' ? diagramTitle : (selectedNode.label || '')) : (eContext.label || '')} 
+                    onChange={e => {
+                       if (selectedNode) {
+                         if (selectedNode.id === '__SYSTEM_TITLE__') setDiagramTitle(e.target.value);
+                         else updateSelectedNode('label', e.target.value);
+                       } else if (selectedEdge) {
+                         updateSelectedEdge('label', e.target.value);
+                       }
+                    }}
                     onKeyDown={e => { if (e.key === 'Enter') setActivePopover(null); }}
                  />
               </div>
             </PopoverMenu>
-            
-            <button ref={edgeStyleBtnRef} className="toolbox-btn" onClick={() => togglePopover('edgestyle')} data-tooltip="Line Style">
-              <Icon name="hamburger" size={24} />
-            </button>
-            <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
-              <div className="popover-title">Line Style</div>
-              <div className="popover-list">
-                 {['solid', 'bold', 'dashed', 'bold-dashed', 'none'].map(style => (
-                   <button key={style} className={selectedEdge.lineStyle === style ? 'active' : ''} onClick={() => { updateSelectedEdge('lineStyle', style); setActivePopover(null); }}>
-                      {style}
-                   </button>
-                 ))}
-              </div>
-            </PopoverMenu>
+          </div>
 
-            <button ref={edgeArrowBtnRef} className="toolbox-btn" onClick={() => togglePopover('edgearrow')} data-tooltip="Connection Arrows">
-              <span className="text-icon">{'→'}</span>
+          {/* Lock Pos */}
+          <div style={getStyle(isLockActive)}>
+            <button 
+               className={`toolbox-btn ${nContext.lockPos ? 'locked' : ''}`} 
+               onClick={() => updateSelectedNode('lockPos', !nContext.lockPos)}
+               data-tooltip={nContext.lockPos ? "Unlock Position" : "Lock Auto-Layout"}
+            >
+              <Icon name={nContext.lockPos ? 'lock' : 'unlock'} size={20} />
             </button>
-            <PopoverMenu isOpen={activePopover === 'edgearrow'} onClose={() => setActivePopover(null)} anchorRef={edgeArrowBtnRef}>
-              <div className="popover-title">Arrows</div>
-              <div className="popover-list">
-                 {[
-                   {val: 'target', label: '→ Arrow'},
-                   {val: 'reverse', label: '← Reverse'},
-                   {val: 'both', label: '↔ Both'},
-                   {val: 'none', label: '— No Arrow'},
-                 ].map(arrow => (
-                   <button key={arrow.val} className={(selectedEdge.connectionType || 'target') === arrow.val ? 'active' : ''} onClick={() => { 
-                      if(arrow.val === 'reverse') reverseSelectedEdge();
-                      else updateSelectedEdge('connectionType', arrow.val); 
-                      setActivePopover(null); 
-                   }}>
-                      {arrow.label}
-                   </button>
-                 ))}
-              </div>
-            </PopoverMenu>
+          </div>
 
-            <div className="toolbox-divider" />
-            <button className="toolbox-btn danger" onClick={deleteSelectedElement} data-tooltip="Delete Edge">
+          {/* Connect */}
+          <div style={getStyle(isConnectActive)}>
+             <button 
+                className={`toolbox-btn ${activeLinkSource ? 'locked' : ''}`} 
+                style={{ color: activeLinkSource ? 'var(--color-brand)' : '' }}
+                onClick={toggleConnectionMode} 
+                data-tooltip={activeLinkSource ? "Cancel Connection" : "Connect To..."}
+             >
+                <Icon name="connect" size={20} />
+             </button>
+          </div>
+          
+          {/* Delete Element */}
+          <div style={getStyle(isTrashActive)}>
+            <button className="toolbox-btn danger" onClick={deleteSelectedElement} data-tooltip="Delete Selection">
               <Icon name="trash" size={20} />
             </button>
-         </div>
-      )}
+          </div>
+        </div>
+
+        {/* --- 2. DIAGRAM ACTIONS --- */}
+        <div className="toolbox-divider" />
+
+        <button ref={bgBtnRef} className="toolbox-btn" onClick={() => togglePopover('bg')} data-tooltip="Canvas Settings">
+           <Icon name="frame" size={24} />
+        </button>
+        <PopoverMenu isOpen={activePopover === 'bg'} onClose={() => setActivePopover(null)} anchorRef={bgBtnRef}>
+          <div className="popover-title">Background</div>
+          <div className="popover-list">
+             {[
+               {id: 'transparent-dark', label: 'Transparent (Dark Ink)'},
+               {id: 'transparent-light', label: 'Transparent (Light Ink)'},
+               {id: 'black', label: 'Solid Black'},
+               {id: 'white', label: 'Solid White'},
+             ].map(bg => (
+                <button key={bg.id} className={bgColor === bg.id ? 'active' : ''} onClick={() => {
+                   if (onChangeBgColor) onChangeBgColor(bg.id);
+                }}>
+                  {bg.label}
+                </button>
+             ))}
+          </div>
+          
+          <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+          <div className="popover-title">Aspect Ratio</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+             {[
+               {id: '16:9', label: '16:9'},
+               {id: '4:3',  label: '4:3'},
+               {id: '1:1',  label: '1:1'}
+             ].map(ar => (
+                <button 
+                  key={ar.id} 
+                  className={`toolbox-btn ${aspect === ar.id ? 'active' : ''}`}
+                  style={{ 
+                     width: '100%', height: '32px', padding: 0, fontSize: '12px', fontWeight: 600,
+                     background: aspect === ar.id ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                     border: `1px solid ${aspect === ar.id ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                  }}
+                  onClick={() => {
+                     if (onChangeAspect) onChangeAspect(ar.id);
+                  }}
+                >
+                  {ar.label}
+                </button>
+             ))}
+          </div>
+        </PopoverMenu>
+
+        <button ref={layoutBtnRef} className="toolbox-btn" onClick={() => togglePopover('layout')} data-tooltip="Layout Type">
+           <Icon name="layout-type" size={24} />
+        </button>
+        <PopoverMenu isOpen={activePopover === 'layout'} onClose={() => setActivePopover(null)} anchorRef={layoutBtnRef}>
+          <div className="popover-title">Auto Layout</div>
+          <div className="popover-list">
+             {DIAGRAM_TYPES.map(layout => (
+                <button key={layout.id} className={diagramType === layout.id ? 'active' : ''} onClick={() => {
+                   if (setDiagramType) setDiagramType(layout.id);
+                   setActivePopover(null);
+                   setTimeout(onAutoLayout, 50);
+                }}>
+                  {layout.name}
+                </button>
+             ))}
+          </div>
+        </PopoverMenu>
+
+        <button className="toolbox-btn" onClick={onAutoLayout} data-tooltip="Auto Layout (Wand)">
+           <Icon name="wand" size={20} />
+        </button>
+
+      </div>
     </div>
   );
 }

@@ -74,6 +74,31 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
       return out;
   });
 
-  // 4. Merge back text nodes
-  return [...laidOutResult, ...textNodes];
+  // 4. Merge back text nodes and dynamically restore relative logical offsets
+  const newPositions = {};
+  laidOutResult.forEach(rn => newPositions[rn.id] = {x: rn.x, y: rn.y});
+  
+  const updatedTextNodes = textNodes.map(tn => {
+      const edge = edges.find(e => 
+         (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+         (e.from === tn.id || e.to === tn.id)
+      );
+      if (edge) {
+         const parentId = edge.from === tn.id ? edge.to : edge.from;
+         const originalParent = nodes.find(pn => pn.id === parentId);
+         if (originalParent && newPositions[parentId]) {
+             const dx = (tn.x || 0) - (originalParent.x || 0);
+             const dy = (tn.y || 0) - (originalParent.y || 0);
+             const np = newPositions[parentId];
+             return {
+                 ...tn,
+                 x: Math.round((np.x + dx)/20) * 20,
+                 y: Math.round((np.y + dy)/20) * 20
+             };
+         }
+      }
+      return tn;
+  });
+
+  return [...laidOutResult, ...updatedTextNodes];
 }

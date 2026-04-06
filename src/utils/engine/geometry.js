@@ -21,6 +21,19 @@ export function getTrueBox(node) {
   return { left, right, top, bottom, cx, cy };
 }
 
+export function getClipDist(node, cx, cy, dirX, dirY) {
+  const box = getTrueBox(node);
+  const w = (box.right - box.left) / 2, h = (box.bottom - box.top) / 2;
+  if (node.type === 'circle') return Math.max(w, h);
+  if (node.type === 'decision' || node.type === 'rhombus') {
+     return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
+  }
+  if (Math.abs(dirX) < 0.001) return h;
+  if (Math.abs(dirY) < 0.001) return w;
+  const tx = w / Math.abs(dirX), ty = h / Math.abs(dirY);
+  return Math.min(tx, ty);
+}
+
 export function getNodePorts(node, box) {
   const w = box.right - box.left;
   const h = box.bottom - box.top;

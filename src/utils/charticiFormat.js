@@ -13,6 +13,7 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
     else delete gMap[g.id].label;
     delete gMap[g.id].text;
     delete gMap[g.id].groupLabel;
+    delete gMap[g.id].id;
     exportGroups.push(gMap[g.id]);
   });
 
@@ -20,7 +21,6 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
     const parentId = n.groupId || `g_${n.id}`; // Give it a group if it lacks one
     if (!gMap[parentId]) {
       gMap[parentId] = { 
-         id: parentId, 
          color: n.color, 
          type: n.type, 
          size: n.size, 
@@ -47,6 +47,7 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
         const edgeExport = { ...e, label: e.label || e.edgeLabel || e.text };
         delete edgeExport.edgeLabel;
         delete edgeExport.text;
+        delete edgeExport.id;
         if (!edgeExport.label) delete edgeExport.label;
         if (edgeExport.sourcelabel) delete edgeExport.sourcelabel;
         if (edgeExport.targetlabel) delete edgeExport.targetlabel;
@@ -106,6 +107,7 @@ export function parseCharticiFile(fileContent) {
       // 1. Process nested groups (New schema)
       (rawGroups || []).forEach(g => {
         const { nodes: childNodes, ...groupStyles } = g;
+        groupStyles.id = groupStyles.id || `group_${Math.random().toString(36).substr(2, 9)}`;
         cleanGroups.push(groupStyles);
         
         if (Array.isArray(childNodes)) {
@@ -165,7 +167,8 @@ export function parseCharticiFile(fileContent) {
         const source = e.sourceId || e.from || e.sourcelabel || e.sourceLabel;
         const target = e.targetId || e.to || e.targetlabel || e.targetLabel;
         return { 
-          ...e, 
+          ...e,
+          id: e.id || `edge_${Math.random().toString(36).substr(2, 9)}`,
           label: e.label || e.edgeLabel || e.text,
           from: String(source), 
           to: String(target) 

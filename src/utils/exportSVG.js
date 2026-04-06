@@ -35,8 +35,8 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle) {
     const deskBackgrounds = svgClone.querySelectorAll('rect[width="100%"]');
     deskBackgrounds.forEach(r => r.remove());
 
-    // Remove editor-only checkerboard preview rectangles inside the canvas
-    const previewRects = svgClone.querySelectorAll('.preview-bg-rect');
+    // Remove editor-only checkerboard preview rectangles and grids inside the canvas
+    const previewRects = svgClone.querySelectorAll('.preview-bg-rect, .canvas-grid-rect');
     previewRects.forEach(r => r.remove());
 
     // Remove UI handles and selection boxes

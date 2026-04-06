@@ -12,6 +12,70 @@ const iconPaths = {
   'folder-open': (
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
   ),
+  'edge-style': (
+    <>
+      <line x1="4" y1="8" x2="20" y2="8" strokeWidth="2" strokeLinecap="round" />
+      <line x1="4" y1="16" x2="10" y2="16" strokeWidth="2" strokeLinecap="round" />
+      <line x1="14" y1="16" x2="20" y2="16" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  'wand': (
+    <>
+      <path d="M15 4V2" />
+      <path d="M15 16v-2" />
+      <path d="M8 9h2" />
+      <path d="M20 9h2" />
+      <path d="M17.8 11.8L19 13" />
+      <path d="M15 9h0" />
+      <path d="M17.8 6.2L19 5" />
+      <path d="M3 21l9-9" />
+      <path d="M12.2 6.2L11 5" />
+    </>
+  ),
+  'connect': (
+    <>
+      <circle cx="6" cy="6" r="2.5" fill="none" />
+      <path d="M6 8.5v9.5h12" fill="none" strokeDasharray="3 3" />
+      <polyline points="15 15 19 18 15 21" />
+    </>
+  ),
+  'fit': (
+    <>
+      <circle cx="10.5" cy="10.5" r="7.5" />
+      <line x1="21" y1="21" x2="15.8" y2="15.8" />
+      <rect x="7.5" y="8.5" width="6" height="4" />
+    </>
+  ),
+  'text-shape': (
+    <>
+      <polyline points="5 20 12 4 19 20" strokeWidth="1.5" strokeLinejoin="miter" />
+      <line x1="8" y1="14" x2="16" y2="14" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-type': (
+    <>
+      <rect x="4" y="4" width="6" height="6" rx="1.5" strokeWidth="1.5" />
+      <rect x="14" y="14" width="6" height="6" rx="1.5" strokeWidth="1.5" />
+      <line x1="10" y1="10" x2="14" y2="14" strokeWidth="1.5" />
+    </>
+  ),
+  'size': (
+    <>
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </>
+  ),
+  'palette': (
+    <>
+      <circle cx="13.5" cy="6.5" r=".5" strokeWidth="1.5" />
+      <circle cx="17.5" cy="10.5" r=".5" strokeWidth="1.5" />
+      <circle cx="8.5" cy="7.5" r=".5" strokeWidth="1.5" />
+      <circle cx="6.5" cy="12.5" r=".5" strokeWidth="1.5" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" strokeWidth="1.5" />
+    </>
+  ),
   'save': (
     <>
       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -77,6 +141,14 @@ const iconPaths = {
       <line x1="6" y1="6" x2="18" y2="18" />
     </>
   ),
+  'frame': (
+    <>
+      <line x1="6" y1="3" x2="6" y2="21" strokeWidth="1.5" />
+      <line x1="18" y1="3" x2="18" y2="21" strokeWidth="1.5" />
+      <line x1="3" y1="6" x2="21" y2="6" strokeWidth="1.5" />
+      <line x1="3" y1="18" x2="21" y2="18" strokeWidth="1.5" />
+    </>
+  ),
   'lock': (
     <>
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="currentColor" />
@@ -90,15 +162,21 @@ const iconPaths = {
     </>
   ),
   // Canvas toolbar shapes
-  'shape-rect': <rect x="3" y="6" width="18" height="12" rx="0" />,
-  'shape-oval': <rect x="1" y="6" width="22" height="12" rx="6" />,
-  'shape-circle': <circle cx="12" cy="12" r="8" />,
-  'shape-diamond': <polygon points="12 3 21 12 12 21 3 12" />,
+  'shape-rect': <rect x="3" y="6" width="18" height="12" rx="0" strokeWidth="1.5" />,
+  'shape-oval': <rect x="1" y="6" width="22" height="12" rx="6" strokeWidth="1.5" />,
+  'shape-circle': <circle cx="12" cy="12" r="8" strokeWidth="1.5" />,
+  'shape-diamond': <polygon points="12 3 21 12 12 21 3 12" strokeWidth="1.5" />,
+  'tag': (
+    <>
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" strokeWidth="2" />
+      <line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="2.5" strokeLinecap="round" />
+    </>
+  ),
   'layers': (
     <>
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
+      <polygon points="12 2 2 7 12 12 22 7 12 2" strokeWidth="1.5" />
+      <polyline points="2 17 12 22 22 17" strokeWidth="1.5" />
+      <polyline points="2 12 12 17 22 12" strokeWidth="1.5" />
     </>
   ),
   'plus': (

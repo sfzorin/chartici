@@ -126,9 +126,6 @@ export default function AppHeader({
         <button className="app-header-btn" data-tooltip="Documentation" onClick={() => { setHelpTab('about'); setIsHelpOpen(true); }} style={{ color: 'var(--color-text-main)' }}>
           <Icon name="help-circle" size={20} strokeWidth={1.5} />
         </button>
-        <button className={`app-header-btn ${isHudOpen ? 'active' : ''}`} data-tooltip="Toggle Properties" onClick={() => setIsHudOpen(!isHudOpen)} style={{ color: 'var(--color-text-main)' }}>
-          <Icon name="sidebar" size={20} strokeWidth={1.5} />
-        </button>
       </div>
     </header>
   );

@@ -5,6 +5,8 @@ import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
+import LeftToolbox from './LeftToolbox';
+import Icon from './Icons';
 
 import { computeBindings, getAxisDir } from '../utils/layout';
 
@@ -24,9 +26,11 @@ export default function DiagramRenderer({
   onAutoLayout,
   diagramTitle,
   diagramType,
+  setDiagramType,
   onConnect,
   onAddNode,
-  panToNodeId
+  panToNodeId,
+  toolboxProps
 }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -114,55 +118,7 @@ export default function DiagramRenderer({
     }
   }, [panToNodeId]);
 
-  const prevLayoutTrigger = useRef(null);
-  useEffect(() => {
-    const trigger = initialData?.layoutTrigger;
-    if (trigger && trigger !== prevLayoutTrigger.current) {
-      prevLayoutTrigger.current = trigger;
-      const newNodes = initialData.nodes || [];
-      
-      // Auto-centering
-      if (newNodes.length > 0 && svgRef.current) {
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        newNodes.forEach(n => {
-          const dim = getNodeDim(n);
-          if (n.x - dim.width / 2 < minX) minX = n.x - dim.width / 2;
-          if (n.y - dim.height / 2 < minY) minY = n.y - dim.height / 2;
-          if ((n.x + dim.width / 2) > maxX) maxX = n.x + dim.width / 2;
-          if ((n.y + dim.height / 2) > maxY) maxY = n.y + dim.height / 2;
-        });
-        
-        if (diagramTitle) {
-          minY -= 80; // Offset for diagram title
-        }
-        
-        const boundsW = maxX - minX;
-        const boundsH = maxY - minY;
-        
-        setTimeout(() => {
-          if (!svgRef.current) return;
-          const rect = svgRef.current.getBoundingClientRect();
-          const pad = 100;
-          
-          if (rect.width > 0 && boundsW > 0) {
-            const scaleX = (rect.width - pad*2) / boundsW;
-            const scaleY = (rect.height - pad*2) / boundsH;
-            let bestZoom = Math.min(scaleX, scaleY, 1);
-            if (!isFinite(bestZoom) || bestZoom <= 0) bestZoom = 1;
 
-            const cx = minX + boundsW / 2;
-            const cy = minY + boundsH / 2;
-            
-            setZoom(bestZoom);
-            setPan({
-              x: (rect.width / 2) - (cx * bestZoom),
-              y: (rect.height / 2) - (cy * bestZoom)
-            });
-          }
-        }, 10);
-      }
-    }
-  }, [initialData?.layoutTrigger, initialData?.nodes, svgRef, diagramTitle]);
 
   const computedNodes = useMemo(() => computeBindings(nodes), [nodes]);
   const nodesRef = useRef(nodes);
@@ -411,8 +367,25 @@ export default function DiagramRenderer({
       const draggedNode = dragState.initialNodes.find(n => n.id === dragState.id);
       if (!draggedNode) return;
 
-      const movingXIds = getAxisGroup(dragState.id, dragState.initialNodes, 'vertical');
-      const movingYIds = getAxisGroup(dragState.id, dragState.initialNodes, 'horizontal');
+      const movingXIds = [...getAxisGroup(dragState.id, dragState.initialNodes, 'vertical')];
+      const movingYIds = [...getAxisGroup(dragState.id, dragState.initialNodes, 'horizontal')];
+      
+      // Cascade movement to logically connected text nodes
+      dragState.initialNodes.filter(n => n.type === 'text').forEach(tn => {
+          const isConnectedToX = edges.some(e => 
+             (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+             ((e.from === tn.id && movingXIds.includes(e.to)) ||
+              (e.to === tn.id && movingXIds.includes(e.from)))
+          );
+          if (isConnectedToX && !movingXIds.includes(tn.id)) movingXIds.push(tn.id);
+          
+          const isConnectedToY = edges.some(e => 
+             (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+             ((e.from === tn.id && movingYIds.includes(e.to)) ||
+              (e.to === tn.id && movingYIds.includes(e.from)))
+          );
+          if (isConnectedToY && !movingYIds.includes(tn.id)) movingYIds.push(tn.id);
+      });
       
       setNodes(dragState.initialNodes.map(n => {
         // Enforce strong 20px grid lock on final coordinates!
@@ -423,10 +396,6 @@ export default function DiagramRenderer({
 
         if (movingXIds.includes(n.id)) nx += dxSnap;
         if (movingYIds.includes(n.id)) ny += dySnap;
-        
-        if (n.id === dragState.id && n.type === 'text' && n.bindTo) {
-           return { ...n, offsetX: (n.offsetX || 0) + dxSnap, offsetY: (n.offsetY || 0) + dySnap };
-        }
         
         return { ...n, x: nx, y: ny };
       }));
@@ -673,6 +642,41 @@ export default function DiagramRenderer({
      };
    }, [computedNodes, aspectRatio, diagramTitle, computedPaths, initialData]);
 
+  const handleZoomFit = useCallback(() => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const paddingMultiplier = 0.95;
+    const newZoom = Math.min((rect.width * paddingMultiplier) / vW, (rect.height * paddingMultiplier) / vH, 4);
+    const boxCx = vMinX + vW / 2;
+    const boxCy = vMinY + vH / 2;
+    setZoom(newZoom);
+    setPan({ x: rect.width / 2 - boxCx * newZoom, y: rect.height / 2 - boxCy * newZoom });
+  }, [vW, vH, vMinX, vMinY, setZoom, setPan]);
+
+  const [pendingZoom, setPendingZoom] = useState(null);
+  const prevLayoutTrigger = useRef(null);
+
+  useEffect(() => {
+    const trigger = initialData?.layoutTrigger;
+    if (trigger && trigger !== prevLayoutTrigger.current) {
+      prevLayoutTrigger.current = trigger;
+      if (initialData?.nodes?.length > 0) {
+        setPendingZoom(trigger);
+      }
+    }
+  }, [initialData?.layoutTrigger, initialData?.nodes]);
+
+  useEffect(() => {
+    if (pendingZoom && vW > 0 && vH > 0 && svgRef.current) {
+      const timer = setTimeout(() => {
+        handleZoomFit();
+        setPendingZoom(null);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingZoom, vW, vH, handleZoomFit]);
+
   let fillStr = 'var(--canvas-bg)';
   let gridColorStr = 'var(--grid-line-color)';
   let dEdge = 'var(--edge-color)';
@@ -689,19 +693,21 @@ export default function DiagramRenderer({
     dGroup = '#94a3b8'; // Slate 400 (lighter than edge on white)
   } else if (bgColor === 'black') {
     fillStr = '#000000';
-    gridColorStr = 'rgba(255, 255, 255, 0.03)';
+    gridColorStr = 'rgba(255, 255, 255, 0.08)';
     dEdge = '#cbd5e1';
     dText = '#f8fafc';
     dGroup = '#64748b'; // Slate 500 (darker than edge on black)
   } else if (bgColor === 'transparent-dark') {
     fillStr = 'transparent';
     previewFillStr = 'url(#checkerboard-light)';
+    gridColorStr = 'rgba(0, 0, 0, 0.05)';
     dEdge = '#111827';
     dText = '#111827';
     dGroup = '#64748b';
   } else if (bgColor === 'transparent-light') {
     fillStr = 'transparent';
     previewFillStr = 'url(#checkerboard-dark)';
+    gridColorStr = 'rgba(255, 255, 255, 0.08)';
     dEdge = '#f8fafc';
     dText = '#f8fafc';
     dGroup = '#94a3b8';
@@ -710,9 +716,29 @@ export default function DiagramRenderer({
     gridColorStr = 'var(--grid-line-color)';
   }
 
-
   return (
     <>
+      {toolboxProps && (
+        <LeftToolbox 
+          {...toolboxProps}
+          setDiagramType={setDiagramType}
+          onAutoLayout={() => {
+            if (onAutoLayout) onAutoLayout();
+          }}
+          activeLinkSource={activeLinkSource}
+          toggleConnectionMode={() => {
+             if (activeLinkSource) setActiveLinkSource(null);
+             else if (selectedNodeId) setActiveLinkSource(selectedNodeId);
+          }}
+        />
+      )}
+
+      <div className="zoom-controls">
+         <button className="toolbox-btn" onClick={() => handleZoomCenter(Math.max(0.1, Math.round((zoom - 0.1)*10)/10))}><Icon name="minus" size={18} /></button>
+         <button className="toolbox-btn" onClick={handleZoomFit}><Icon name="fit" size={20} /></button>
+         <button className="toolbox-btn" onClick={() => handleZoomCenter(Math.min(4, Math.round((zoom + 0.1)*10)/10))}><Icon name="plus" size={18} /></button>
+      </div>
+
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <svg 
         ref={svgRef}
@@ -1128,87 +1154,7 @@ export default function DiagramRenderer({
       })()}
       </div>
 
-      {/* Unified Canvas Toolbar */}
-      <div className="canvas-unified-toolbar">
-         {/* Add Node Group */}
-         <div className="toolbar-group">
-            <button className="canvas-panel-btn" style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)' }} onClick={() => onAddNode('process')} data-tooltip="Rectangle">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="0"/></svg>
-            </button>
-            <button className="canvas-panel-btn" style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)' }} onClick={() => onAddNode('oval')} data-tooltip="Oval">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="6" width="22" height="12" rx="6"/></svg>
-            </button>
-            <button className="canvas-panel-btn" style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)' }} onClick={() => onAddNode('circle')} data-tooltip="Circle">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="8"/></svg>
-            </button>
-            <button className="canvas-panel-btn" style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)' }} onClick={() => onAddNode('rhombus')} data-tooltip="Rhombus">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 3 21 12 12 21 3 12"/></svg>
-            </button>
-            <button className="canvas-panel-btn" style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)' }} onClick={() => onAddNode('text')} data-tooltip="Text Only">
-               <span style={{ fontWeight: '500', fontSize: '16px', fontFamily: 'Inter, -apple-system, sans-serif', letterSpacing: '-0.5px' }}>Тт</span>
-            </button>
-         </div>
 
-         <div className="toolbar-separator" />
-
-         {/* Tools Group */}
-         <div className="toolbar-group">
-            <button
-                className={`canvas-panel-btn ${activeLinkSource ? 'tool-btn-active' : ''}`}
-                onPointerDown={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (activeLinkSource) setActiveLinkSource(null);
-                    else if (selectedNodeId) setActiveLinkSource(selectedNodeId);
-                }}
-                style={{ 
-                    width: '40px', height: '40px', padding: 0, 
-                    background: 'transparent', 
-                    border: 'none', borderRadius: 'var(--radius-sm)', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    opacity: (!selectedNodeId && !activeLinkSource) ? 0.3 : 1,
-                    pointerEvents: (!selectedNodeId && !activeLinkSource) ? 'none' : 'all'
-                }}
-                data-tooltip={activeLinkSource ? "Cancel Connection" : "Connect (Select a node first)"}
-            >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </button>
-
-            <button 
-                className="canvas-panel-btn"
-                onClick={onAutoLayout}
-                style={{ width: '40px', height: '40px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                data-tooltip="Auto Layout"
-            >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-            </button>
-         </div>
-         
-         <div className="toolbar-separator" />
-         
-         {/* Zoom Group */}
-         <div className="toolbar-group">
-            <button className="canvas-panel-btn" style={{ width: '32px', height: '32px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleZoomCenter(Math.max(0.1, Math.round((zoom - 0.1)*10)/10))} data-tooltip="Zoom Out">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button className="canvas-panel-btn" onClick={() => {
-                if (!svgRef.current) return;
-                const rect = svgRef.current.getBoundingClientRect();
-                if (rect.width === 0 || rect.height === 0) return;
-                const paddingMultiplier = 0.95;
-                const newZoom = Math.min((rect.width * paddingMultiplier) / vW, (rect.height * paddingMultiplier) / vH, 4);
-                const boxCx = vMinX + vW / 2;
-                const boxCy = vMinY + vH / 2;
-                setZoom(newZoom);
-                setPan({ x: rect.width / 2 - boxCx * newZoom, y: rect.height / 2 - boxCy * newZoom });
-            }} style={{ width: '36px', height: '32px', fontWeight: 600, fontSize: '13px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-neutral-text)' }} data-tooltip="Fit to Screen">
-               FIT
-            </button>
-            <button className="canvas-panel-btn" style={{ width: '32px', height: '32px', padding: 0, background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleZoomCenter(Math.min(4, Math.round((zoom + 0.1)*10)/10))} data-tooltip="Zoom In">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-         </div>
-      </div>
     </>
   );
 }

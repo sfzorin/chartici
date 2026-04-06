@@ -116,6 +116,7 @@ function App() {
       groups: parsed.groups || [],
       nodes: sanitizeColors(layedOutNodes, true, parsed.groups || [], safeIndices, sharedColorMap),
       edges: sanitizeColors(parsed.edges, false, parsed.groups || [], safeIndices, sharedColorMap),
+      config: parsed.config || {},
       layoutTrigger: Date.now()
     });
     
@@ -322,7 +323,13 @@ function App() {
     setDiagramData(prev => {
         const nextGroups = [...(prev.groups || [])];
         if (!nextGroups.find(g => g.id === newNode.groupId)) {
-            nextGroups.push({ id: newNode.groupId, label: newNode.groupId, color: newNode.color });
+            nextGroups.push({ 
+                id: newNode.groupId, 
+                label: newNode.groupId, 
+                color: newNode.color,
+                type: newNode.type,
+                size: newNode.size
+            });
         }
 
         return { 
@@ -358,24 +365,22 @@ function App() {
     if (sourceNode.type === 'text' || targetNode.type === 'text') {
         const textNodeId = sourceNode.type === 'text' ? sourceId : targetId;
         const parentNodeId = sourceNode.type === 'text' ? targetId : sourceId;
-        const txtNode = sourceNode.type === 'text' ? sourceNode : targetNode;
-        const prtNode = sourceNode.type === 'text' ? targetNode : sourceNode;
 
         setDiagramData(prev => {
-            const nextNodes = prev.nodes.map(n => {
-                if (n.id === textNodeId) {
-                    const obj = { ...n, bindTo: parentNodeId };
-                    // We need to calculate static offset based on their absolute coordinates
-                    // x, y is center of node. offset is center-to-center.
-                    obj.offsetX = (txtNode.x || 0) - (prtNode.x || 0);
-                    obj.offsetY = (txtNode.y || 0) - (prtNode.y || 0);
-                    return obj;
-                }
-                return n;
-            });
-            return { ...prev, nodes: nextNodes, layoutTrigger: Date.now() };
+            // Remove any old edges connected to this text node (ensure 1-to-1 cardinality)
+            const filteredEdges = prev.edges.filter(e => e.from !== textNodeId && e.to !== textNodeId);
+            const newEdgeId = generateSimpleId(filteredEdges);
+            const newEdge = { 
+                id: newEdgeId, 
+                from: textNodeId, 
+                to: parentNodeId, 
+                label: '', 
+                lineStyle: 'none',
+                connectionType: 'target'
+            };
+            return { ...prev, edges: [...filteredEdges, newEdge], layoutTrigger: Date.now() };
         });
-        return; // Do NOT create an edge
+        return; // Edge created, stop propagation
     }
     // -----------------------------------
     
@@ -501,7 +506,9 @@ function App() {
           if (existingGroup.type !== undefined) targetNode.type = existingGroup.type;
           if (existingGroup.size !== undefined) targetNode.size = existingGroup.size;
         } else {
-          newGroups.push({ id: value, color: targetNode.color, type: targetNode.type, size: targetNode.size });
+          let newNameCount = 1;
+          while(newGroups.some(g => g.label === `New Group ${newNameCount}`)) newNameCount++;
+          newGroups.push({ id: value, color: targetNode.color, type: targetNode.type, size: targetNode.size, label: `New Group ${newNameCount}` });
         }
       } else if (gId && ['color', 'type', 'fillStyle'].includes(field)) {
          newNodes = newNodes.map(n => getGroupId(n) === gId ? { ...n, [field]: value } : n);
@@ -509,6 +516,10 @@ function App() {
          if (gIdx > -1) newGroups[gIdx] = { ...newGroups[gIdx], [field]: value };
          else newGroups.push({ id: gId, [field]: value });
       }
+
+      // Garbage collect empty groups
+      const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
+      newGroups = newGroups.filter(g => usedGroupIds.has(g.id));
 
       return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
     });
@@ -543,11 +554,17 @@ function App() {
 
   const deleteSelectedElement = useCallback(() => {
     if (selectedNodeId) {
-      setDiagramData(prev => ({
-        ...prev,
-        nodes: prev.nodes.filter(n => n.id !== selectedNodeId),
-        edges: prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId)
-      }));
+      setDiagramData(prev => {
+        const newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);
+        const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
+        
+        return {
+          ...prev,
+          nodes: newNodes,
+          edges: prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId),
+          groups: (prev.groups || []).filter(g => usedGroupIds.has(g.id))
+        };
+      });
       setSelectedNodeId(null);
     } else if (selectedEdgeId) {
       setDiagramData(prev => ({
@@ -673,6 +690,7 @@ function App() {
             onAutoLayout={handleHeuristicLayout}
             diagramTitle={diagramTitle}
             diagramType={diagramType}
+            setDiagramType={setDiagramType}
             onConnect={handleConnectionDrag}
             onAddNode={addNewNode}
             onGroupLabelChange={(groupId, newLabel) => {
@@ -686,31 +704,46 @@ function App() {
               });
             }}
             panToNodeId={panToNodeId}
+            toolboxProps={{
+              selectedNode,
+              selectedEdge,
+              updateSelectedNode,
+              updateSelectedEdge,
+              reverseSelectedEdge,
+              updateGroupFromSelection,
+              connectToNode,
+              deleteSelectedElement,
+              nodesList: diagramData.nodes,
+              edgesList: diagramData.edges,
+              groupsList: diagramData.groups,
+              removeEdge,
+              currentPaletteInfo: PALETTES[paletteTheme],
+              diagramTitle,
+              setDiagramTitle,
+              diagramType,
+              setDiagramType: (newType) => {
+                 setDiagramData(prev => ({...prev, config: {...prev.config, layoutType: newType}}));
+              },
+              bgColor,
+              onChangeBgColor: (newBg) => {
+                 setBgColor(newBg);
+                 setDiagramData(prev => ({...prev, config: {...prev.config, bgColor: newBg}}));
+              },
+              aspect,
+              onChangeAspect: (newAspect) => {
+                 setAspect(newAspect);
+                 setDiagramData(prev => ({...prev, config: {...prev.config, aspect: newAspect}}));
+              },
+              onAddNode: (type) => addNewNode(type),
+              paletteTheme,
+              onChangeTheme: (newTheme) => {
+                 setPaletteTheme(newTheme);
+                 setDiagramData(prev => ({...prev, config: {...prev.config, theme: newTheme}}));
+              }
+            }}
           />
 
         </section>
-
-        {/* Left Toolbox */}
-        <LeftToolbox 
-          selectedNode={selectedNode} 
-          selectedEdge={selectedEdge} 
-          updateSelectedNode={updateSelectedNode}
-          updateSelectedEdge={updateSelectedEdge}
-          reverseSelectedEdge={reverseSelectedEdge}
-          updateGroupFromSelection={updateGroupFromSelection}
-          connectToNode={connectToNode}
-          deleteSelectedElement={deleteSelectedElement}
-          nodesList={diagramData.nodes}
-          edgesList={diagramData.edges}
-          groupsList={diagramData.groups}
-          removeEdge={removeEdge}
-          currentPaletteInfo={PALETTES[paletteTheme]}
-          diagramTitle={diagramTitle}
-          setDiagramTitle={setDiagramTitle}
-          diagramType={diagramType}
-          onAddNode={(type) => addNewNode(type)}
-        />
-
       </div>
 
 

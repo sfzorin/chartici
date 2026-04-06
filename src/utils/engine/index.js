@@ -1,6 +1,6 @@
 import { getDiagramRules } from '../diagramRules.js';
 import { RoutingContext } from './RoutingContext.js';
-import { getTrueBox, isBlockedPointCheck, getNodePorts } from './geometry.js';
+import { getTrueBox, isBlockedPointCheck, getNodePorts, getClipDist } from './geometry.js';
 import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
 import { assignPorts } from './portAssigner.js';
@@ -29,27 +29,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       if (len < 1) return;
       const ux = dx/len, uy = dy/len;
       
-      // Accurately clip to exact geometric node borders
-      const clipDist = (node, cx, cy, dirX, dirY) => {
-        const box = getTrueBox(node);
-        const w = (box.right - box.left) / 2, h = (box.bottom - box.top) / 2;
-        
-        if (node.type === 'circle') {
-          return Math.max(w, h);
-        }
-        
-        if (node.type === 'decision' || node.type === 'rhombus') {
-           // Boundary of diamond/rhombus: |x|/w + |y|/h = 1
-           return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
-        }
-        
-        // Rectangle: find exit distance along direction
-        if (Math.abs(dirX) < 0.001) return h;
-        if (Math.abs(dirY) < 0.001) return w;
-        
-        const tx = w / Math.abs(dirX), ty = h / Math.abs(dirY);
-        return Math.min(tx, ty);
-      };
+      const clipDist = getClipDist;
       
       const startDist = clipDist(startNode, scx, scy, ux, uy);
       const endDist = clipDist(endNode, ecx, ecy, -ux, -uy);
@@ -169,6 +149,37 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     const assigned = portMap.get(edge.id);
     let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox);
     let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox);
+
+    if (edge.lineStyle === 'none' || edge.lineStyle === 'hidden') {
+        const scx = startBox.cx;
+        const scy = startBox.cy;
+        const ecx = endBox.cx;
+        const ecy = endBox.cy;
+        
+        const dx = ecx - scx, dy = ecy - scy;
+        const len = Math.hypot(dx, dy);
+        
+        if (len < 1) {
+            result[edge.id] = { pathD: '', textPathD: '', pts: [] };
+            return;
+        }
+        
+        const ux = dx/len, uy = dy/len;
+        const startDist = getClipDist(startNode, scx, scy, ux, uy);
+        const endDist = getClipDist(endNode, ecx, ecy, -ux, -uy);
+        
+        const sp = { x: scx + ux * startDist, y: scy + uy * startDist };
+        const ep = { x: ecx - ux * endDist, y: ecy - uy * endDist };
+        
+        const straightPath = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
+        result[edge.id] = { 
+            pathD: straightPath, 
+            textPathD: straightPath,
+            textPathLen: Math.hypot(ep.x - sp.x, ep.y - sp.y),
+            pts: [sp, ep]
+        };
+        return; // Bypass A* and avoid registering as obstacle
+    }
 
     const fallbackTiers = [
       { gridStep: 20, allowOverlap: false, allowCrossing: false, ignorePadding: false },

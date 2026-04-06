@@ -28,7 +28,6 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   let mStart = "none";
   let mEnd = "none";
   let isLogical = style === "none" || style === "hidden";
-  const allowArrows = !isLogical || isSelected;
   
   // Unified connectionType (fallback: legacy cardinality/arrowType)
   const ct = edge.connectionType || edge.cardinality || edge.arrowType || "target";
@@ -45,7 +44,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       mStart = cfMarker(parts[0]);
       mEnd = cfMarker(parts[1]);
     }
-  } else if (allowArrows) {
+  } else {
      if (ct === "target") mEnd = markerId;
      else if (ct === "source") mStart = markerId;
      else if (ct === "both") { mStart = markerId; mEnd = markerId; }
@@ -91,7 +90,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
         markerStart={mStart}
         markerEnd={mEnd}
       />
-      {edge.label && (
+      {edge.label && !isLogical && (
         <text 
             fontSize="16" 
             fill={edgeColorStr} 
@@ -106,7 +105,11 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       <path id={`${edge.id}_path`} d={textPathD} fill="none" stroke="none" />
       <defs>
         <marker id={`arrow-${edge.id}`} markerWidth="10" markerHeight="6.4" refX="8" refY="3.2" orient="auto-start-reverse">
-          <path d="M 0 0 L 8 3.2 L 0 6.4 z" fill={isSelected ? "#3b82f6" : edgeColorStr} stroke="none" />
+          {isLogical ? (
+              <path d="M 0 0 L 8 3.2 L 0 6.4 z" fill="none" stroke={isSelected ? "#3b82f6" : edgeColorStr} strokeWidth="1" strokeDasharray="1,1" strokeLinecap="round" strokeLinejoin="round" />
+          ) : (
+              <path d="M 0 0 L 8 3.2 L 0 6.4 z" fill={isSelected ? "#3b82f6" : edgeColorStr} stroke="none" />
+          )}
         </marker>
         {/* ERD crow's foot markers */}
         <marker id={`cf-one-${edge.id}`} markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto-start-reverse">
