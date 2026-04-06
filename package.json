@@ -1,8 +1,10 @@
 {
-  "name": "diagram",
-  "private": true,
-  "version": "0.0.0",
+  "name": "chartici",
+  "version": "1.0.0",
   "type": "module",
+  "bin": {
+    "chartici-mcp": "./mcp-server.mjs"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

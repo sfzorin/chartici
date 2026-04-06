@@ -5,7 +5,7 @@ Your AI draws diagrams for you. No copy-paste.
 ## 1. Install
 
 ```bash
-npx -y chartici-mcp@latest
+npx -y github:sfzorin/chartici
 ```
 
 > Requires [Node.js 18+](https://nodejs.org)
@@ -21,7 +21,7 @@ Settings → Developer → Edit Config:
   "mcpServers": {
     "chartici": {
       "command": "npx",
-      "args": ["-y", "chartici-mcp@latest"]
+      "args": ["-y", "github:sfzorin/chartici"]
     }
   }
 }
@@ -32,7 +32,7 @@ Settings → Developer → Edit Config:
 Use any MCP bridge for ChatGPT (e.g. [MCP Bridge](https://github.com/nicobailey/mcp-bridge-chatgpt)):
 
 ```bash
-npx -y chartici-mcp@latest
+npx -y github:sfzorin/chartici
 ```
 
 ### Gemini / Google AI Studio
@@ -40,7 +40,7 @@ npx -y chartici-mcp@latest
 Add as an MCP tool source in your Gemini integration settings. Command:
 
 ```
-npx -y chartici-mcp@latest
+npx -y github:sfzorin/chartici
 ```
 
 ### DeepSeek
@@ -50,7 +50,7 @@ Use with any MCP-compatible client (Cursor, Continue, Cline). Same config:
 ```json
 {
   "command": "npx",
-  "args": ["-y", "chartici-mcp@latest"]
+  "args": ["-y", "github:sfzorin/chartici"]
 }
 ```
 
