@@ -1,5 +1,6 @@
 export const SIZES = {
-  S: { width: 80, height: 40, fontSize: 11 },
+  XS: { width: 80, height: 40, fontSize: 11 },
+  S: { width: 120, height: 60, fontSize: 14 },
   M: { width: 160, height: 80, fontSize: 16 },
   L: { width: 240, height: 120, fontSize: 22 },
   XL: { width: 320, height: 160, fontSize: 28 }
@@ -114,7 +115,7 @@ export function getNodeDim(node) {
   const dim = { ...(SIZES[node?.size] || SIZES.M) };
   
   if (node.type === 'oval') {
-    dim.width = Math.round((dim.width + dim.height / 2) / 40) * 40; // Add half height (1 radius) instead of 2.
+    dim.width = Math.round((dim.width + dim.height / 4) / 40) * 40; // Add half a radius
   } else if (node.type === 'title') {
     if (node.size === 'S') dim.fontSize = 24;
     else if (node.size === 'M') dim.fontSize = 36;
@@ -133,7 +134,8 @@ export function getNodeDim(node) {
     dim.height = Math.max(Math.ceil(estHeight / 40) * 40, 40);
   } else if (node.type === 'text') {
     // Override font size specifically for text annotations to have a wider scale
-    if (node.size === 'S') dim.fontSize = 12;
+    if (node.size === 'XS') dim.fontSize = 12;
+    else if (node.size === 'S') dim.fontSize = 14;
     else if (node.size === 'M') dim.fontSize = 18;
     else if (node.size === 'L') dim.fontSize = 28;
     else if (node.size === 'XL') dim.fontSize = 40;

@@ -251,12 +251,11 @@ function App() {
   };
 
   const addNewNode = (type) => {
-    let cx = 100, cy = 100;
-    
-    if (diagramData.nodes.length === 0) {
-      // The default DiagramRenderer empty 16:9 viewBox is 0 0 1600 900.
-      cx = 800; // true center
-      cy = 450; // true center
+    let cx = 800, cy = 450;
+    if (diagramData.nodes.length > 0) {
+      const lastNode = diagramData.nodes[diagramData.nodes.length - 1];
+      cx = lastNode.x || 800;
+      cy = lastNode.y || 450;
     }
 
     let inheritedSize = 'M';

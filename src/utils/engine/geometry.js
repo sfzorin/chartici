@@ -40,13 +40,26 @@ export function getNodePorts(node, box) {
 
   let ports = [
     { pt: { x: box.cx, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: 0 },
-    { pt: { x: box.right, y: box.cy }, axis: 'H', sign: 1, dir: 'Right', penalty: 0 },
-    { pt: { x: box.cx, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: 0 },
-    { pt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 }
+    { pt: { x: box.cx, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: 0 }
   ];
 
-  // Extended ports for bus bifurcation (rectangles and ovals, skip pure circles)
-  if (node.type !== 'circle') {
+  if (h >= 80 && node.type !== 'oval' && node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
+      let y1 = Math.floor(box.cy / 20) * 20;
+      let y2 = Math.ceil(box.cy / 20) * 20;
+      if (y1 === y2) { Math.round(h) > 80 ? (y1 -= 40, y2 += 40) : (y1 -= 20, y2 += 20); }
+      
+      const sidePenalty = h * 2;
+      ports.push({ pt: { x: box.right, y: y1 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
+      ports.push({ pt: { x: box.right, y: y2 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
+      ports.push({ pt: { x: box.left, y: y1 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
+      ports.push({ pt: { x: box.left, y: y2 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
+  } else {
+      ports.push({ pt: { x: box.right, y: box.cy }, axis: 'H', sign: 1, dir: 'Right', penalty: 0 });
+      ports.push({ pt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 });
+  }
+
+  // Extended ports for bus bifurcation (rectangles and ovals, skip pure circles and rhombuses)
+  if (node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
       if (w >= 50) {
           const bifPenaltyX = w * 2;
           ports.push({ pt: { x: box.cx - 20, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
@@ -55,13 +68,7 @@ export function getNodePorts(node, box) {
           ports.push({ pt: { x: box.cx + 20, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
       }
       
-      if (h >= 50) {
-          const bifPenaltyY = h * 2;
-          ports.push({ pt: { x: box.left, y: box.cy - 20 }, axis: 'H', sign: -1, dir: 'Left', penalty: bifPenaltyY });
-          ports.push({ pt: { x: box.left, y: box.cy + 20 }, axis: 'H', sign: -1, dir: 'Left', penalty: bifPenaltyY });
-          ports.push({ pt: { x: box.right, y: box.cy - 20 }, axis: 'H', sign: 1, dir: 'Right', penalty: bifPenaltyY });
-          ports.push({ pt: { x: box.right, y: box.cy + 20 }, axis: 'H', sign: 1, dir: 'Right', penalty: bifPenaltyY });
-      }
+      // Height-based side bifurcation is entirely handled above natively preventing triplets!
   }
 
   // Circle diagonal ports: 4 exits at 45°/135°/225°/315°
