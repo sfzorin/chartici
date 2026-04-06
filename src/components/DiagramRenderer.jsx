@@ -20,6 +20,7 @@ export default function DiagramRenderer({
   selectedEdgeId,
   onNodesChange,
   onEdgesChange,
+  onGroupLabelChange,
   onAutoLayout,
   diagramTitle,
   diagramType,
@@ -40,6 +41,7 @@ export default function DiagramRenderer({
   // Inline editing state
   const [editingNodeId, setEditingNodeId] = useState(null);
   const [editingEdgeId, setEditingEdgeId] = useState(null);
+  const [editingGroupId, setEditingGroupId] = useState(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -230,6 +232,12 @@ export default function DiagramRenderer({
       return updated;
     });
   }, [onEdgesChange]);
+
+  const handleGroupEditComplete = useCallback((groupId, newLabel) => {
+    setEditingGroupId(null);
+    if (newLabel === null) return; // Cancelled
+    if (onGroupLabelChange) onGroupLabelChange(groupId, newLabel);
+  }, [onGroupLabelChange]);
 
   const handleHoverChange = useCallback((nodeId, isHovered) => {
     if (isHovered) {
@@ -749,7 +757,7 @@ export default function DiagramRenderer({
                style={{ filter: !previewFillStr ? 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' : 'none' }}
              />
              {!previewFillStr && (
-               <rect x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
+               <rect className="canvas-grid-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
              )}
           </g>
 
@@ -787,11 +795,12 @@ export default function DiagramRenderer({
               const dims = gNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
               const pad = 30;
               groupBoxes[g.id] = {
+                id: String(g.id || ''),
                 left: Math.min(...dims.map(d => d.x - d.w/2)) - pad,
                 right: Math.max(...dims.map(d => d.x + d.w/2)) + pad,
                 top: Math.min(...dims.map(d => d.y - d.h/2)) - pad,
                 bottom: Math.max(...dims.map(d => d.y + d.h/2)) + pad,
-                label: g.label || g.id,
+                label: String(g.label || g.id || ''),
                 color: g.color
               };
             });
@@ -808,9 +817,12 @@ export default function DiagramRenderer({
                     />
                     {(!box.label.toLowerCase().startsWith('void')) && (
                       <text
+                        id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
                         x={(box.left + box.right) / 2} y={box.top + 6}
                         fontSize="20" fill="var(--diagram-group)" opacity="0.85"
-                        fontWeight="700" style={{ pointerEvents: 'none' }} textAnchor="middle"
+                        fontWeight="700" textAnchor="middle"
+                        style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
+                        onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
                       >
                         {box.label.replace(/_/g, ' ')}
                       </text>
@@ -1021,6 +1033,79 @@ export default function DiagramRenderer({
               } else if (e.key === 'Escape') {
                 e.preventDefault();
                 handleEdgeEditComplete(editingEdgeId, null);
+              }
+              e.stopPropagation();
+            }}
+          />
+        );
+      })()}
+
+      {/* Inline text editing overlay for groups */}
+      {editingGroupId && (() => {
+        const group = initialData?.groups?.find(g => g.id === editingGroupId);
+        if (!group) return null;
+        const svg = svgRef.current;
+        if (!svg) return null;
+        
+        // Reconstruct the bounding box mathematically instead of querying DOM
+        const groupNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title' && getGroupId(n) === editingGroupId);
+        if (groupNodes.length === 0) return null;
+        
+        const dims = groupNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
+        const pad = 30;
+        const leftBox = Math.min(...dims.map(d => d.x - d.w/2)) - pad;
+        const rightBox = Math.max(...dims.map(d => d.x + d.w/2)) + pad;
+        const topBox = Math.min(...dims.map(d => d.y - d.h/2)) - pad;
+        
+        let pt = svg.createSVGPoint();
+        pt.x = (leftBox + rightBox) / 2;
+        pt.y = topBox - 4; // Equivalent to top + 6 - 10
+        const viewport = viewportRef.current;
+        if (!viewport) return null;
+        const ctm = viewport.getScreenCTM();
+        if (!ctm) return null;
+        const svgRect = svg.getBoundingClientRect();
+        pt = pt.matrixTransform(ctm);
+        const left = pt.x - svgRect.left;
+        const top = pt.y - svgRect.top;
+        const w = 200;
+        const h = 40;
+        return (
+          <textarea
+            autoFocus
+            defaultValue={group.label || group.id}
+            style={{
+              position: 'absolute',
+              left: `${left - w/2}px`,
+              top: `${top - h/2}px`,
+              width: `${w}px`,
+              height: `${h}px`,
+              border: '2px solid #3b82f6',
+              borderRadius: '4px',
+              background: 'rgba(255,255,255,0.95)',
+              color: '#1a1a1a',
+              fontSize: `${20 * zoom}px`,
+              fontFamily: "'Inter', sans-serif",
+              textAlign: 'center',
+              fontWeight: '700',
+              padding: '4px',
+              resize: 'none',
+              outline: 'none',
+              zIndex: 9999,
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            onFocus={(e) => e.target.select()}
+            onBlur={(e) => handleGroupEditComplete(editingGroupId, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleGroupEditComplete(editingGroupId, e.target.value);
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleGroupEditComplete(editingGroupId, null);
               }
               e.stopPropagation();
             }}

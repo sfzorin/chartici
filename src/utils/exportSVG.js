@@ -14,8 +14,7 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle) {
     const viewportGroup = svgClone.querySelector('#diagram-viewport');
     if (viewportGroup) viewportGroup.removeAttribute('transform');
 
-    // Export only the canvas paper area
-    const canvasPaperRect = svgClone.querySelector('#canvas-paper rect');
+    const canvasPaperRect = svgClone.querySelector('#canvas-paper rect:not(.preview-bg-rect)') || svgClone.querySelector('#canvas-paper rect');
     if (canvasPaperRect) {
        const x = canvasPaperRect.getAttribute('x');
        const y = canvasPaperRect.getAttribute('y');
@@ -29,9 +28,16 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle) {
        canvasPaperRect.removeAttribute('style');
     }
 
+    // Strip out the root style to wipe React runtime variables like background-color: var(--desk-bg)
+    svgClone.removeAttribute('style');
+
     // Remove the infinite gray desk backgrounds from the export
     const deskBackgrounds = svgClone.querySelectorAll('rect[width="100%"]');
     deskBackgrounds.forEach(r => r.remove());
+
+    // Remove editor-only checkerboard preview rectangles inside the canvas
+    const previewRects = svgClone.querySelectorAll('.preview-bg-rect');
+    previewRects.forEach(r => r.remove());
 
     // Remove UI handles and selection boxes
     const selectedBoxes = svgClone.querySelectorAll('.diagram-node.selected rect[stroke-dasharray], .diagram-node.selected ellipse[stroke-dasharray]');
@@ -50,8 +56,9 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle) {
         '--color-text-main': rootStyles.getPropertyValue('--color-text-main').trim() || '#1A1A1A',
         '--color-secondary': rootStyles.getPropertyValue('--color-secondary').trim() || '#000000',
         '--grid-line-color': rootStyles.getPropertyValue('--grid-line-color').trim() || 'rgba(0,0,0,0.05)',
-        '--diagram-text': svgClone.style.getPropertyValue('--diagram-text').trim() || '#1a1a1a',
-        '--diagram-edge': svgClone.style.getPropertyValue('--diagram-edge').trim() || '#475569',
+        '--diagram-text': svgElement.style.getPropertyValue('--diagram-text').trim() || '#1a1a1a',
+        '--diagram-edge': svgElement.style.getPropertyValue('--diagram-edge').trim() || '#475569',
+        '--diagram-group': svgElement.style.getPropertyValue('--diagram-group').trim() || '#64748b',
         '--unfilled-text-color': PALETTES[paletteTheme].unfilledText
     };
 

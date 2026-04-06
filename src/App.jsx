@@ -60,6 +60,20 @@ function App() {
     });
   }, [paletteTheme]);
 
+  const groupSignature = diagramData.nodes.map(n => n.groupId).join(',');
+  useEffect(() => {
+    setDiagramData(prev => {
+      const gIds = new Set(prev.nodes.map(n => n.groupId).filter(Boolean));
+      if (!prev.groups) return prev;
+      
+      const nextGroups = prev.groups.filter(g => gIds.has(g.id));
+      if (nextGroups.length !== prev.groups.length) {
+         return { ...prev, groups: nextGroups };
+      }
+      return prev;
+    });
+  }, [groupSignature]);
+
 
 
 
@@ -245,19 +259,23 @@ function App() {
 
     let inheritedSize = 'M';
     let inheritedColor = 1;
-
-    if (diagramData.nodes.length > 0) {
-      const templateNode = selectedNodeId ? diagramData.nodes.find(n => n.id === selectedNodeId) : diagramData.nodes[diagramData.nodes.length - 1];
-      if (templateNode) {
-          inheritedSize = templateNode.size || 'M';
-          let gId = templateNode.groupId;
-          let g = diagramData.groups?.find(gx => gx.id === gId);
-          inheritedColor = g?.color !== undefined ? g.color : (templateNode.color || 1);
-      }
+    
+    // Find highest 'New Group N' to increment, or just create a unique one
+    let maxNewGroupNum = 0;
+    if (diagramData.groups) {
+      diagramData.groups.forEach(g => {
+        const match = g.id.match(/^New Group (\d+)$/i);
+        if (match) {
+           const num = parseInt(match[1], 10);
+           if (num > maxNewGroupNum) maxNewGroupNum = num;
+        }
+      });
     }
+    const newGroupId = `New Group ${maxNewGroupNum + 1}`;
 
     const newNode = {
       id: generateSimpleId(diagramData.nodes),
+      groupId: newGroupId,
       type: type,
       label: type === 'text' ? 'Text' : 'New Node',
       size: inheritedSize,
@@ -301,16 +319,15 @@ function App() {
     }
     
     setDiagramData(prev => {
-        const gId = `g_${newNode.id}`;
         const nextGroups = [...(prev.groups || [])];
-        if (!nextGroups.find(g => g.id === gId)) {
-            nextGroups.push({ id: gId, color: newNode.color });
+        if (!nextGroups.find(g => g.id === newNode.groupId)) {
+            nextGroups.push({ id: newNode.groupId, label: newNode.groupId, color: newNode.color });
         }
 
         return { 
             ...prev, 
             groups: nextGroups,
-            nodes: [...prev.nodes, { ...newNode, groupId: gId }] 
+            nodes: [...prev.nodes, newNode] 
         };
     });
     setSelectedNodeId(newNode.id);
@@ -656,6 +673,16 @@ function App() {
             diagramType={diagramType}
             onConnect={handleConnectionDrag}
             onAddNode={addNewNode}
+            onGroupLabelChange={(groupId, newLabel) => {
+              setDiagramData(prev => {
+                const groupIndex = prev.groups.findIndex(g => g.id === groupId);
+                if (groupIndex >= 0) {
+                  return { ...prev, groups: prev.groups.map(g => g.id === groupId ? { ...g, label: newLabel } : g) };
+                } else {
+                  return { ...prev, groups: [...prev.groups, { id: groupId, label: newLabel }] };
+                }
+              });
+            }}
           />
 
         </section>

@@ -38,7 +38,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
           return Math.max(w, h);
         }
         
-        if (node.type === 'decision') {
+        if (node.type === 'decision' || node.type === 'rhombus') {
            // Boundary of diamond/rhombus: |x|/w + |y|/h = 1
            return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
         }

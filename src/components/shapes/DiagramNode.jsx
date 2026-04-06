@@ -213,7 +213,7 @@ const DiagramNode = React.memo(({
         
         shape = (
           <g>
-            <rect x={cx - realW / 2} y={cy - realH / 2} width={realW} height={realH} fill="transparent" stroke="none" />
+            <rect x={cx - realW / 2} y={cy - realH / 2} width={realW} height={realH} fill="none" pointerEvents="all" stroke="none" />
             {renderLabel(wrap)}
           </g>
         );
@@ -287,9 +287,9 @@ const DiagramNode = React.memo(({
           }}
         >
          {/* Desktop hit area (32px diameter) */}
-         <circle cx={p.cx} cy={p.cy} r="16" fill="transparent" stroke="none" />
+         <circle cx={p.cx} cy={p.cy} r="16" fill="none" pointerEvents="all" stroke="none" />
          {/* Touch hit area (72px diameter, shown only on mobile via CSS) */}
-         <circle cx={p.cx} cy={p.cy} r="36" fill="transparent" stroke="none" className="touch-port-hitbox" />
+         <circle cx={p.cx} cy={p.cy} r="36" fill="none" pointerEvents="all" stroke="none" className="touch-port-hitbox" />
          {/* Visual dot */}
          <circle cx={p.cx} cy={p.cy} r="5" fill="#007BFF" stroke="#fff" strokeWidth="2" />
        </g>

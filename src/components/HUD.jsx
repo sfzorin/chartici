@@ -166,7 +166,7 @@ export default function HUD({
 
           <div className="properties-section">
             <span className="properties-section-title">
-               {selectedNode.id === '__SYSTEM_TITLE__' ? 'Diagram Header' : 'Identity'}
+               {selectedNode.id === '__SYSTEM_TITLE__' ? 'Diagram Header' : 'Label'}
             </span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input 
@@ -321,43 +321,32 @@ export default function HUD({
           <div className="properties-section">
             <span className="properties-section-title">Group</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {nodeGroupId ? (
-                <div className="edge-list-item">
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-                    {nodeGroupId}
-                  </span>
-                  <button 
-                    style={{ background: 'transparent', border: 'none', color: '#ff3b30', cursor: 'pointer', padding: '4px', display: 'flex' }}
-                    onClick={() => {
-                        updateSelectedNode('groupId', '');
-                        setTimeout(() => updateSelectedNode('group', ''), 0);
-                    }}
-                    data-tooltip="Remove from Group"
-                  >
-                    <Icon name="x" size={16} />
-                  </button>
-                </div>
-              ) : (
-                <select 
-                  className="form-select" 
-                  value=""
-                  onChange={(e) => {
-                    if (e.target.value === '___NEW___') {
-                       const newId = prompt("Enter new Group ID:");
-                       if (newId) updateSelectedNode('groupId', newId.trim());
-                    } else {
-                       updateSelectedNode('groupId', e.target.value);
-                    }
-                  }}
-                  style={{ width: '100%' }}
-                >
-                   <option value="" disabled>Set Group...</option>
-                   {Array.from(new Set(nodesList.map(n => getGroupId(n)).filter(Boolean))).map(g => (
-                      <option key={g} value={g}>{g}</option>
-                   ))}
-                   <option value="___NEW___">+ Create New Group...</option>
-                </select>
-              )}
+              <select 
+                className="form-select" 
+                value={nodeGroupId || ""}
+                onChange={(e) => {
+                  if (e.target.value === '___NEW___') {
+                     const newId = prompt("New group Label:");
+                     if (newId) {
+                         const trimmedId = newId.trim();
+                         updateSelectedNode('groupId', trimmedId);
+                         setTimeout(() => updateSelectedNode('group', trimmedId), 0);
+                     }
+                  } else {
+                     updateSelectedNode('groupId', e.target.value);
+                     setTimeout(() => updateSelectedNode('group', e.target.value), 0);
+                  }
+                }}
+                style={{ width: '100%' }}
+              >
+                 <option value="" disabled>Select Group...</option>
+                 {Array.from(new Set([...groupsList.map(g => g.id), ...nodesList.map(n => getGroupId(n)).filter(Boolean)])).map(g => {
+                     const gObj = groupsList.find(gx => gx.id === g);
+                     const gLabel = gObj?.label || g;
+                     return <option key={g} value={g}>{gLabel}</option>;
+                 })}
+                 <option value="___NEW___">+ Create New Group...</option>
+              </select>
             </div>
           </div>
           )}
@@ -427,7 +416,8 @@ export default function HUD({
           </div>
 
           <div className="properties-section">
-            <span className="properties-section-title">Identity</span>
+            <span className="properties-section-title">Label</span>
+            {diagramType !== 'radial' && (
             <input 
               className="properties-input" 
               type="text" 
@@ -435,6 +425,7 @@ export default function HUD({
               value={selectedEdge.label || ''} 
               onChange={e => updateSelectedEdge('label', e.target.value)} 
             />
+            )}
             <select className="form-select" value={selectedEdge.lineStyle || 'solid'} onChange={(e) => updateSelectedEdge('lineStyle', e.target.value)}>
               <option value="solid">Thin Line</option>
               <option value="bold">Thick Line</option>
