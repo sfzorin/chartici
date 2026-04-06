@@ -76,6 +76,21 @@
         ],
         "label": "q4",
         "id": "g_4"
+      },
+      {
+        "color": 8,
+        "type": "circle",
+        "size": "M",
+        "nodes": [
+          { "groupId": "docs", "label": "Competitor Analysis", "id": "comp_analysis" },
+          { "groupId": "docs", "label": "Budget Approval", "id": "budget" },
+          { "groupId": "docs", "label": "A/B Testing", "id": "ab_testing" },
+          { "groupId": "docs", "label": "Bug Reports", "id": "bug_reports" },
+          { "groupId": "docs", "label": "Marketing", "id": "marketing" },
+          { "groupId": "docs", "label": "Press Release", "id": "press" }
+        ],
+        "label": "docs",
+        "id": "g_5"
       }
     ],
     "edges": [
@@ -108,6 +123,39 @@
         "id": "e6",
         "sourceId": "iterate_6",
         "targetId": "launch_7"
+      },
+      {
+        "id": "b1",
+        "sourceId": "research_1",
+        "targetId": "comp_analysis"
+      },
+      {
+        "id": "b2",
+        "sourceId": "research_1",
+        "targetId": "budget",
+        "lineStyle": "dashed"
+      },
+      {
+        "id": "b3",
+        "sourceId": "user_testing_4",
+        "targetId": "ab_testing"
+      },
+      {
+        "id": "b4",
+        "sourceId": "public_beta_5",
+        "targetId": "bug_reports"
+      },
+      {
+        "id": "b5",
+        "sourceId": "launch_7",
+        "targetId": "marketing",
+        "lineStyle": "dashed"
+      },
+      {
+        "id": "b6",
+        "sourceId": "launch_7",
+        "targetId": "press",
+        "lineStyle": "dashed"
       }
     ]
   }

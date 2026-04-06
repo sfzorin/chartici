@@ -61,10 +61,10 @@ const iconPaths = {
   ),
   'size': (
     <>
-      <polyline points="15 3 21 3 21 9" />
-      <polyline points="9 21 3 21 3 15" />
-      <line x1="21" y1="3" x2="14" y2="10" />
-      <line x1="3" y1="21" x2="10" y2="14" />
+      <polyline points="19 3 23 3 23 7" />
+      <polyline points="5 21 1 21 1 17" />
+      <line x1="23" y1="3" x2="19" y2="7" />
+      <line x1="1" y1="21" x2="5" y2="17" />
     </>
   ),
   'palette': (
@@ -202,7 +202,7 @@ const iconPaths = {
   ),
 };
 
-export default function Icon({ name, size = 18, strokeWidth = 2, className = '', style = {}, ...rest }) {
+export default function Icon({ name, size = 18, strokeWidth = 2, className = '', style = {}, textValue, ...rest }) {
   const paths = iconPaths[name];
   if (!paths) return null;
 
@@ -221,6 +221,21 @@ export default function Icon({ name, size = 18, strokeWidth = 2, className = '',
       {...rest}
     >
       {paths}
+      {textValue !== undefined && (
+        <text 
+          x="12" 
+          y="13" 
+          textAnchor="middle" 
+          dominantBaseline="middle" 
+          fontSize="9" 
+          fontWeight="bold" 
+          fontFamily="system-ui, sans-serif" 
+          fill="currentColor" 
+          stroke="none"
+        >
+          {textValue}
+        </text>
+      )}
     </svg>
   );
 }

@@ -85,6 +85,9 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     
     // Ignore logical (invisible) links
     if (edge.style === 'invisible' || edge.logical || edge.isBlank) return null;
+    
+    // Hide implicit spines between chevrons on Timeline
+    if (diagramType === 'timeline' && startNode.type === 'chevron' && endNode.type === 'chevron') return null;
 
     const startBox = ctx.nodeBoxes.get(startNode.id);
     const endBox = ctx.nodeBoxes.get(endNode.id);

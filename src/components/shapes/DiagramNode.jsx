@@ -16,8 +16,8 @@ const DiagramNode = React.memo(({
   isActiveLinkSource
 }) => {
   const dim = getNodeDim(node);
-  const NODE_WIDTH = dim.width;
-  const NODE_HEIGHT = dim.height;
+  const NODE_WIDTH = node.w || dim.width;
+  const NODE_HEIGHT = node.h || dim.height;
   const FONT_SIZE = dim.fontSize;
   
   const isDraggingNode = dragStateId === node.id;
@@ -161,6 +161,20 @@ const DiagramNode = React.memo(({
         shape = (
           <g>
             <circle cx={NODE_WIDTH/2} cy={NODE_HEIGHT/2} r={r} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
+            {renderLabel()}
+          </g>
+        );
+      }
+      break;
+    case 'chevron':
+      {
+        const w = NODE_WIDTH;
+        const h = NODE_HEIGHT;
+        const cut = h * 0.25; // 25% height exactly locks angle across all scaled sizes
+        const d = `M 0 0 L ${w - cut} 0 L ${w} ${h/2} L ${w - cut} ${h} L 0 ${h} L ${cut} ${h/2} Z`;
+        shape = (
+          <g>
+            <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
             {renderLabel()}
           </g>
         );

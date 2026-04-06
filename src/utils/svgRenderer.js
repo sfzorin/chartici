@@ -177,7 +177,8 @@ export function renderToSVG(cciJson) {
     const dim = getNodeDim(node);
     const cx = node.x + offsetX;
     const cy = node.y + offsetY;
-    const w = dim.width, h = dim.height;
+    const w = node.w || dim.width;
+    const h = node.h || dim.height;
     
     // Resolve color from group (matches interactive renderer logic)
     const gId = getGroupId(node);

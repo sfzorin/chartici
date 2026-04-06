@@ -28,6 +28,27 @@ export function getClipDist(node, cx, cy, dirX, dirY) {
   if (node.type === 'decision' || node.type === 'rhombus') {
      return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
   }
+  if (node.type === 'oval' || node.type === 'element') {
+     const dx = Math.abs(dirX);
+     const dy = Math.abs(dirY);
+     if (Math.abs(w - h) < 1) return Math.max(w, h);
+     
+     if (w > h) {
+         const cx = w - h;
+         if (dy > 0.00001) {
+             const t_rect = h / dy;
+             if (t_rect * dx <= cx) return t_rect;
+         }
+         return cx * dx + Math.sqrt(Math.max(0, h * h - cx * cx * dy * dy));
+     } else {
+         const cy = h - w;
+         if (dx > 0.00001) {
+             const t_rect = w / dx;
+             if (t_rect * dy <= cy) return t_rect;
+         }
+         return cy * dy + Math.sqrt(Math.max(0, w * w - cy * cy * dx * dx));
+     }
+  }
   if (Math.abs(dirX) < 0.001) return h;
   if (Math.abs(dirY) < 0.001) return w;
   const tx = w / Math.abs(dirX), ty = h / Math.abs(dirY);

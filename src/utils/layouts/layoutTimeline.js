@@ -33,31 +33,145 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     }
   }
 
-  // Add any missed nodes (cycles or disconnected)
-  nodes.forEach(n => {
-    const id = String(n.id);
-    if (!visited.has(id)) sorted.push(id);
+  // 1. DAG Depth & Parent Calculation (for Longest Path / Spine)
+  const depth = {};
+  const parent = {};
+  nodes.forEach(n => { depth[String(n.id)] = 0; parent[String(n.id)] = null; });
+
+  sorted.forEach(u => {
+    (adj[u] || []).forEach(v => {
+      if (depth[u] + 1 > depth[v]) {
+        depth[v] = depth[u] + 1;
+        parent[v] = u;
+      }
+    });
   });
 
+  // 2. Identify the Spine
+  let maxDepth = -1;
+  let tail = null;
+  sorted.forEach(u => {
+    if (depth[u] > maxDepth) { maxDepth = depth[u]; tail = u; }
+  });
+
+  const spineSet = new Set();
+  let curr = tail;
+  while (curr !== null) {
+    spineSet.add(curr);
+    curr = parent[curr];
+  }
+  
+  // Sort spine nodes strictly by depth
+  const spineNodesTemp = [];
+  sorted.forEach(u => {
+    if (spineSet.has(u)) spineNodesTemp.push(u);
+  });
+  spineNodesTemp.sort((a, b) => depth[a] - depth[b]);
+
   const nodeMap = new Map(nodes.map(n => [String(n.id), n]));
-  const maxDim = Math.max(...nodes.map(n => isHorizontal ? n.w : n.h));
-  const maxCrossDim = Math.max(...nodes.map(n => isHorizontal ? n.h : n.w));
-  const step = maxDim + GAP_MAIN;
-  const crossOffset = maxCrossDim / 2 + GAP_CROSS;
+  const result = [];
+  const spineXMap = {};
+  
+  let currentLeftEdge = 0;
+  const getGroupId = (n) => n.groupId || n.group || null;
 
-  return sorted.map((id, i) => {
-    const n = nodeMap.get(id);
-    if (!n) return null;
-
-    // Alternate above/below the baseline
-    const sign = (i % 2 === 0) ? -1 : 1;
-
-    if (isHorizontal) {
-      return { ...n, x: i * step, y: sign * crossOffset };
-    } else {
-      return { ...n, x: sign * crossOffset, y: i * step };
+  // 3. Place Spine Nodes (Force to Chevron)
+  spineNodesTemp.forEach((u, i) => {
+    const n = nodeMap.get(u);
+    if (!n) return;
+    
+    // 1. Maintain absolute angles across all sizes. 
+    // An identical angle means distance/height ratio must be constant.
+    const rawDim = getNodeDim(n);
+    const hBase = isHorizontal ? rawDim.height : rawDim.width;
+    const wBase = isHorizontal ? rawDim.width : rawDim.height;
+    
+    // Proportional Cut guarantees angle is identical for S, M, L, XL!
+    const cut = hBase * 0.25; 
+    const nWidth = wBase + cut; // Extrude
+    
+    const centerX = currentLeftEdge + nWidth / 2;
+    spineXMap[u] = centerX;
+    
+    result.push({
+      ...n,
+      type: 'chevron', // Automagically convert timeline spine to chevrons
+      w: nWidth,
+      h: hBase,
+      x: isHorizontal ? centerX : 0,
+      y: isHorizontal ? 0 : centerX
+    });
+    
+    // The user requested micro-gaps to be 1.5x smaller (20 / 1.5 = 13.3)
+    let gap = 12 - cut; // Visually 12px daylight
+    
+    if (i < spineNodesTemp.length - 1) {
+       const nextId = spineNodesTemp[i+1];
+       const nextN = nodeMap.get(nextId);
+       if (nextN) {
+           const g1 = getGroupId(n);
+           const g2 = getGroupId(nextN);
+           // If they belong to different groups, use macro gap
+           if (g1 !== g2 || !g1 || !g2) {
+               gap = 40 - cut; // Visually 40px daylight
+           }
+       }
     }
-  }).filter(Boolean);
+    
+    currentLeftEdge += nWidth + gap;
+  });
+
+  // 4. Place Bubble Nodes
+  const spineRef = {};
+  nodes.forEach(n => {
+    if (spineSet.has(String(n.id))) spineRef[String(n.id)] = String(n.id);
+  });
+
+  // Inherit spine reference top-down
+  sorted.forEach(u => {
+    if (!spineRef[u] && parent[u]) {
+      spineRef[u] = spineRef[parent[u]];
+    }
+  });
+
+  const topBubblesCounts = {};
+  const bottomBubblesCounts = {};
+  const BUBBLE_GAP_Y = layoutRules.MIN_GAP_Y * 3.5; // Longer legs: e.g. ~180px
+
+  sorted.forEach(u => {
+    if (spineSet.has(u)) return;
+    const n = nodeMap.get(u);
+    if (!n) return;
+
+    const ref = spineRef[u] || spineNodesTemp[0]; // fallback to first spine node
+    const baseX = spineXMap[ref] || 0;
+
+    if (!topBubblesCounts[ref]) topBubblesCounts[ref] = 0;
+    if (!bottomBubblesCounts[ref]) bottomBubblesCounts[ref] = 0;
+
+    // Alternate popouts Top and Bottom
+    const isTop = topBubblesCounts[ref] <= bottomBubblesCounts[ref];
+    let yOffset = 0;
+
+    if (isTop) {
+      topBubblesCounts[ref]++;
+      yOffset = -BUBBLE_GAP_Y * topBubblesCounts[ref];
+    } else {
+      bottomBubblesCounts[ref]++;
+      yOffset = BUBBLE_GAP_Y * bottomBubblesCounts[ref];
+    }
+
+    // Strictly vertical! No advanceX used.
+    const bX = baseX;
+
+    result.push({
+      ...n,
+      x: isHorizontal ? bX : yOffset,
+      y: isHorizontal ? yOffset : bX
+    });
+  });
+
+  return result;
 }
 
 

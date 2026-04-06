@@ -125,7 +125,7 @@ export default function LeftToolbox({
   
   const currentCt = eContext.connectionType || eContext.cardinality || eContext.arrowType || 'target';
 
-  const isNodeToolActive = !!selectedNode && diagramType !== 'radial' && selectedNode.id !== '__SYSTEM_TITLE__';
+  const isNodeToolActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
   const isEdgeToolActive = !!selectedEdge;
   const isLabelActive = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
   const isLockActive = !!selectedNode && selectedNode.type !== 'text';
@@ -186,15 +186,15 @@ export default function LeftToolbox({
 
             {/* Size Selection */}
             <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
-              <Icon name="size" size={20} />
+              <Icon name="size" size={20} textValue={(!nContext.size || nContext.size === 'AUTO') ? '' : nContext.size} />
             </button>
             <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
               <div className="popover-title">Node Size</div>
               <div className="popover-list">
-                {['XS', 'S', 'M', 'L', 'XL'].map(s => {
-                  const labels = { XS: 'Extra Small', S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra Large' };
+                {['AUTO', 'XS', 'S', 'M', 'L', 'XL'].map(s => {
+                  const labels = { AUTO: 'Auto Sizing', XS: 'Extra Small', S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra Large' };
                   return (
-                    <button key={s} className={nContext.size === s ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
+                    <button key={s} className={(nContext.size === s || (s === 'AUTO' && !nContext.size)) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s === 'AUTO' ? undefined : s); setActivePopover(null); }}>
                       {labels[s]}
                     </button>
                   );

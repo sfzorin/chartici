@@ -34,6 +34,30 @@
         ],
         "label": "milestones",
         "id": "g_1"
+      },
+      {
+        "color": 2,
+        "type": "circle",
+        "size": "S",
+        "nodes": [
+          {
+            "groupId": "bubbles",
+            "label": "Initial Docs",
+            "id": "docs_bubble"
+          },
+          {
+            "groupId": "bubbles",
+            "label": "Team Formed",
+            "id": "team_bubble"
+          },
+          {
+            "groupId": "bubbles",
+            "label": "100 Users",
+            "id": "users_bubble"
+          }
+        ],
+        "label": "bubbles",
+        "id": "g_2"
       }
     ],
     "edges": [
@@ -51,6 +75,27 @@
         "id": "e3",
         "sourceId": "beta_launch_3",
         "targetId": "ga_release_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "kickoff_1",
+        "targetId": "docs_bubble",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "id": "e5",
+        "sourceId": "kickoff_1",
+        "targetId": "team_bubble",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "id": "e6",
+        "sourceId": "beta_launch_3",
+        "targetId": "users_bubble",
+        "lineStyle": "dashed",
+        "connectionType": "none"
       }
     ]
   }
