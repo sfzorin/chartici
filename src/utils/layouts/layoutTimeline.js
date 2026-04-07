@@ -61,14 +61,33 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     curr = parent[curr];
   }
   
-  // Sort spine nodes strictly by depth
+  // Sort spine nodes strictly by depth, and FILTER out non-rectangular nodes!
+  // Only rectangular nodes (type === 'process' or undefined) can form the chevron timeline axis.
   const spineNodesTemp = [];
+  const nodeMap = new Map(nodes.map(n => [String(n.id), n]));
+  
+  // Create a restricted spine set containing ONLY the valid rigid spine nodes
+  // We use a blacklist (isCurved) rather than a whitelist, to ensure default nodes don't vanish!
+  let rectSpineSet = new Set();
+  spineSet.forEach(u => {
+    const n = nodeMap.get(u);
+    if (!n) return;
+    const isCurved = n.type === 'oval' || n.type === 'circle' || n.type === 'decision' || n.type === 'rhombus' || n.type === 'text' || n.type === 'title';
+    if (!isCurved) {
+        rectSpineSet.add(u);
+    }
+  });
+  
+  // Fallback: if the user's graph consisted entirely of curved nodes on the longest path, we don't want to collapse!
+  if (rectSpineSet.size === 0 && spineSet.size > 0) {
+      rectSpineSet = new Set(spineSet);
+  }
+
   sorted.forEach(u => {
-    if (spineSet.has(u)) spineNodesTemp.push(u);
+    if (rectSpineSet.has(u)) spineNodesTemp.push(u);
   });
   spineNodesTemp.sort((a, b) => depth[a] - depth[b]);
 
-  const nodeMap = new Map(nodes.map(n => [String(n.id), n]));
   const result = [];
   const spineXMap = {};
   
@@ -80,85 +99,144 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     const n = nodeMap.get(u);
     if (!n) return;
     
-    // 1. Maintain absolute angles across all sizes. 
-    // An identical angle means distance/height ratio must be constant.
+    const size = n.size || 'M';
+    const deltaMap = {
+        'XS': 15,
+        'S': 12,
+        'M': 10,
+        'L': 25,
+        'XL': 20
+    };
+    const delta = deltaMap[size] || 10;
+    
     const rawDim = getNodeDim(n);
     const hBase = isHorizontal ? rawDim.height : rawDim.width;
     const wBase = isHorizontal ? rawDim.width : rawDim.height;
     
-    // Proportional Cut guarantees angle is identical for S, M, L, XL!
-    const cut = hBase * 0.25; 
-    const nWidth = wBase + cut; // Extrude
+    // Центр привязан строго к базовой расчетной ширине, в то время как DiagramNode будет "свешивать" шеврон за пределы ширины
+    const centerX = currentLeftEdge + wBase / 2;
     
-    const centerX = currentLeftEdge + nWidth / 2;
+    // Передаем реальный сдвиг левого края дальше 
+    currentLeftEdge = centerX - wBase / 2;
     spineXMap[u] = centerX;
     
     result.push({
       ...n,
-      type: 'chevron', // Automagically convert timeline spine to chevrons
-      w: nWidth,
+      isTimelineSpine: true, // Automagically flag timeline spine, renderer will show as chevron
+      timelineDelta: delta, // Inject exact delta for daylight calculation in DiagramNode!
+      w: wBase,
       h: hBase,
       x: isHorizontal ? centerX : 0,
       y: isHorizontal ? 0 : centerX
     });
     
-    // The user requested micro-gaps to be 1.5x smaller (20 / 1.5 = 13.3)
-    let gap = 12 - cut; // Visually 12px daylight
+    let gapForStep = 20; // Default for Micro step XS/S/M
     
+    let isSameGroup = false;
     if (i < spineNodesTemp.length - 1) {
        const nextId = spineNodesTemp[i+1];
        const nextN = nodeMap.get(nextId);
        if (nextN) {
            const g1 = getGroupId(n);
            const g2 = getGroupId(nextN);
-           // If they belong to different groups, use macro gap
-           if (g1 !== g2 || !g1 || !g2) {
-               gap = 40 - cut; // Visually 40px daylight
+           if (g1 && g2 && g1 === g2) {
+               isSameGroup = true;
            }
        }
     }
     
-    currentLeftEdge += nWidth + gap;
+    // Подгоняем микро и макро зазоры так, чтобы (wBase + cut + gap) всегда давало кратное 20!
+    // XS: 80 + 10 = 90.   +30 = 120 (Micro), +50 = 140 (Macro)
+    // S:  120 + 15 = 135. +25 = 160 (Micro), +45 = 180 (Macro)
+    // M:  160 + 20 = 180. +20 = 200 (Micro), +40 = 220 (Macro)
+    // L:  240 + 30 = 270. +50 = 320 (Micro), +90 = 360 (Macro)
+    // XL: 320 + 40 = 360. +40 = 400 (Micro), +80 = 440 (Macro)
+    const microGapMap = { 'XS': 30, 'S': 25, 'M': 20, 'L': 50, 'XL': 40 };
+    const macroGapMap = { 'XS': 50, 'S': 45, 'M': 40, 'L': 90, 'XL': 80 };
+    
+    if (isSameGroup) {
+        gapForStep = microGapMap[size] || 20;
+    } else {
+        gapForStep = macroGapMap[size] || 40;
+    }
+
+    // Шаг до следующего узла...
+    const cut = hBase * 0.25;
+    currentLeftEdge += wBase + cut + gapForStep;
   });
 
   // 4. Place Bubble Nodes
   const spineRef = {};
   nodes.forEach(n => {
-    if (spineSet.has(String(n.id))) spineRef[String(n.id)] = String(n.id);
+    if (rectSpineSet.has(String(n.id))) spineRef[String(n.id)] = String(n.id);
   });
 
-  // Inherit spine reference top-down
+  // Inherit spine reference top-down (for outgoing events)
   sorted.forEach(u => {
     if (!spineRef[u] && parent[u]) {
       spineRef[u] = spineRef[parent[u]];
     }
   });
+  
+  // Inherit spine reference bottom-up (for incoming events pointing into the timeline)
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const u = sorted[i];
+    if (!spineRef[u]) {
+      for (const v of (adj[u] || [])) {
+        if (spineRef[v]) {
+          spineRef[u] = spineRef[v];
+          break;
+        }
+      }
+    }
+  }
 
   const topBubblesCounts = {};
   const bottomBubblesCounts = {};
-  const BUBBLE_GAP_Y = layoutRules.MIN_GAP_Y * 3.5; // Longer legs: e.g. ~180px
+  let nextGlobalSide = 'top';
 
   sorted.forEach(u => {
-    if (spineSet.has(u)) return;
+    if (rectSpineSet.has(u)) return;
     const n = nodeMap.get(u);
     if (!n) return;
 
     const ref = spineRef[u] || spineNodesTemp[0]; // fallback to first spine node
     const baseX = spineXMap[ref] || 0;
+    
+    // Calculate bubble gap based on specific chevron size
+    const refNode = nodeMap.get(ref);
+    const refDim = getNodeDim(refNode);
+    const spineH = isHorizontal ? refDim.height : refDim.width;
+    const spineW = isHorizontal ? refDim.width : refDim.height;
+    // Exact mathematical formula derived from optical balance:
+    // The user visually perfectly aligned M size at exactly 140px (spineW - 20).
+    const nDim = getNodeDim(n);
+    const evH = isHorizontal ? nDim.height : nDim.width;
+    
+    // User rule: "Расстояние от событий до шеврона".
+    // Пользователь уточнил, что длина коннектора (Daylight) должна быть равна высоте шеврона (spineH - ширине самой ленты).
+    // Значит расстояние между центрами (baseGap) должно компенсировать собственные половины высот объектов:
+    const baseGap = (spineH / 2) + spineH + (evH / 2); 
+    
+    // User rule: "нарастают по своим законам". Normal layout distance between stacked events is MIN_GAP_Y
+    // Distance between centers for stacked events = event height + layoutRules.MIN_GAP_Y
+    const stackGap = evH + layoutRules.MIN_GAP_Y;
 
     if (!topBubblesCounts[ref]) topBubblesCounts[ref] = 0;
     if (!bottomBubblesCounts[ref]) bottomBubblesCounts[ref] = 0;
 
-    // Alternate popouts Top and Bottom
-    const isTop = topBubblesCounts[ref] <= bottomBubblesCounts[ref];
+    // Alternate popouts globally: Top -> Bottom -> Top -> Bottom
+    const isTop = nextGlobalSide === 'top';
+    nextGlobalSide = isTop ? 'bottom' : 'top'; // Toggle for the next event!
+    
     let yOffset = 0;
 
     if (isTop) {
       topBubblesCounts[ref]++;
-      yOffset = -BUBBLE_GAP_Y * topBubblesCounts[ref];
+      yOffset = -(baseGap + stackGap * (topBubblesCounts[ref] - 1));
     } else {
       bottomBubblesCounts[ref]++;
-      yOffset = BUBBLE_GAP_Y * bottomBubblesCounts[ref];
+      yOffset = (baseGap + stackGap * (bottomBubblesCounts[ref] - 1));
     }
 
     // Strictly vertical! No advanceX used.
