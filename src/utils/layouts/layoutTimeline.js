@@ -191,8 +191,8 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     }
   }
 
-  const topBubblesCounts = {};
-  const bottomBubblesCounts = {};
+  const topEdgesMap = {};
+  const bottomEdgesMap = {};
   let nextGlobalSide = 'top';
 
   sorted.forEach(u => {
@@ -215,15 +215,14 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     
     // User rule: "Расстояние от событий до шеврона".
     // Пользователь уточнил, что длина коннектора (Daylight) должна быть равна высоте шеврона (spineH - ширине самой ленты).
-    // Значит расстояние между центрами (baseGap) должно компенсировать собственные половины высот объектов:
-    const baseGap = (spineH / 2) + spineH + (evH / 2); 
+    const daylight = spineH;
+    const initialEdge = (spineH / 2) + daylight;
     
-    // User rule: "нарастают по своим законам". Normal layout distance between stacked events is MIN_GAP_Y
-    // Distance between centers for stacked events = event height + layoutRules.MIN_GAP_Y
-    const stackGap = evH + layoutRules.MIN_GAP_Y;
+    // Пользователь запросил жестко зафиксировать этот зазор на 40 пикселей между событиями всегда
+    const stackGap = 40; 
 
-    if (!topBubblesCounts[ref]) topBubblesCounts[ref] = 0;
-    if (!bottomBubblesCounts[ref]) bottomBubblesCounts[ref] = 0;
+    if (topEdgesMap[ref] === undefined) topEdgesMap[ref] = initialEdge;
+    if (bottomEdgesMap[ref] === undefined) bottomEdgesMap[ref] = initialEdge;
 
     // Alternate popouts globally: Top -> Bottom -> Top -> Bottom
     const isTop = nextGlobalSide === 'top';
@@ -232,11 +231,17 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     let yOffset = 0;
 
     if (isTop) {
-      topBubblesCounts[ref]++;
-      yOffset = -(baseGap + stackGap * (topBubblesCounts[ref] - 1));
+      if (topEdgesMap[ref] > initialEdge) {
+        topEdgesMap[ref] += stackGap; // Add 40px gap for the second+ row
+      }
+      yOffset = -(topEdgesMap[ref] + (evH / 2));
+      topEdgesMap[ref] += evH; // Advance the graphical outer edge
     } else {
-      bottomBubblesCounts[ref]++;
-      yOffset = (baseGap + stackGap * (bottomBubblesCounts[ref] - 1));
+      if (bottomEdgesMap[ref] > initialEdge) {
+        bottomEdgesMap[ref] += stackGap;
+      }
+      yOffset = (bottomEdgesMap[ref] + (evH / 2));
+      bottomEdgesMap[ref] += evH;
     }
 
     // Strictly vertical! No advanceX used.

@@ -11,16 +11,8 @@
         "type": "rect",
         "size": "L",
         "nodes": [
-          {
-            "groupId": "q1",
-            "label": "Research",
-            "id": "research_1"
-          },
-          {
-            "groupId": "q1",
-            "label": "Prototype",
-            "id": "prototype_2"
-          }
+          { "groupId": "q1", "label": "Research", "id": "research_1" },
+          { "groupId": "q1", "label": "Prototype", "id": "prototype_2" }
         ],
         "label": "q1",
         "id": "g_1"
@@ -30,16 +22,8 @@
         "type": "rect",
         "size": "L",
         "nodes": [
-          {
-            "groupId": "q2",
-            "label": "Alpha Build",
-            "id": "alpha_build_3"
-          },
-          {
-            "groupId": "q2",
-            "label": "User Testing",
-            "id": "user_testing_4"
-          }
+          { "groupId": "q2", "label": "Alpha Build", "id": "alpha_build_3" },
+          { "groupId": "q2", "label": "User Testing", "id": "user_testing_4" }
         ],
         "label": "q2",
         "id": "g_2"
@@ -49,16 +33,8 @@
         "type": "rect",
         "size": "L",
         "nodes": [
-          {
-            "groupId": "q3",
-            "label": "Public Beta",
-            "id": "public_beta_5"
-          },
-          {
-            "groupId": "q3",
-            "label": "Iterate",
-            "id": "iterate_6"
-          }
+          { "groupId": "q3", "label": "Public Beta", "id": "public_beta_5" },
+          { "groupId": "q3", "label": "Iterate", "id": "iterate_6" }
         ],
         "label": "q3",
         "id": "g_3"
@@ -68,11 +44,7 @@
         "type": "rect",
         "size": "L",
         "nodes": [
-          {
-            "groupId": "q4",
-            "label": "Launch",
-            "id": "launch_7"
-          }
+          { "groupId": "q4", "label": "Launch", "id": "launch_7" }
         ],
         "label": "q4",
         "id": "g_4"
@@ -84,8 +56,13 @@
         "nodes": [
           { "groupId": "docs", "label": "Competitor Analysis", "id": "comp_analysis" },
           { "groupId": "docs", "label": "Budget Approval", "id": "budget" },
+          { "groupId": "docs", "label": "UI/UX Review", "id": "ui_ux_review" },
+          { "groupId": "docs", "label": "Tech Stack", "id": "tech_stack_choice" },
+          { "groupId": "docs", "label": "Security Audit", "id": "security_audit" },
           { "groupId": "docs", "label": "A/B Testing", "id": "ab_testing" },
           { "groupId": "docs", "label": "Bug Reports", "id": "bug_reports" },
+          { "groupId": "docs", "label": "Feedback Loop", "id": "feedback_loop" },
+          { "groupId": "docs", "label": "Feature Cut", "id": "feature_cut" },
           { "groupId": "docs", "label": "Marketing", "id": "marketing" },
           { "groupId": "docs", "label": "Press Release", "id": "press" }
         ],
@@ -94,69 +71,24 @@
       }
     ],
     "edges": [
-      {
-        "id": "e1",
-        "sourceId": "research_1",
-        "targetId": "prototype_2"
-      },
-      {
-        "id": "e2",
-        "sourceId": "prototype_2",
-        "targetId": "alpha_build_3"
-      },
-      {
-        "id": "e3",
-        "sourceId": "alpha_build_3",
-        "targetId": "user_testing_4"
-      },
-      {
-        "id": "e4",
-        "sourceId": "user_testing_4",
-        "targetId": "public_beta_5"
-      },
-      {
-        "id": "e5",
-        "sourceId": "public_beta_5",
-        "targetId": "iterate_6"
-      },
-      {
-        "id": "e6",
-        "sourceId": "iterate_6",
-        "targetId": "launch_7"
-      },
-      {
-        "id": "b1",
-        "sourceId": "research_1",
-        "targetId": "comp_analysis"
-      },
-      {
-        "id": "b2",
-        "sourceId": "research_1",
-        "targetId": "budget",
-        "lineStyle": "dashed"
-      },
-      {
-        "id": "b3",
-        "sourceId": "user_testing_4",
-        "targetId": "ab_testing"
-      },
-      {
-        "id": "b4",
-        "sourceId": "public_beta_5",
-        "targetId": "bug_reports"
-      },
-      {
-        "id": "b5",
-        "sourceId": "launch_7",
-        "targetId": "marketing",
-        "lineStyle": "dashed"
-      },
-      {
-        "id": "b6",
-        "sourceId": "launch_7",
-        "targetId": "press",
-        "lineStyle": "dashed"
-      }
+      { "id": "e1", "sourceId": "research_1", "targetId": "prototype_2" },
+      { "id": "e2", "sourceId": "prototype_2", "targetId": "alpha_build_3" },
+      { "id": "e3", "sourceId": "alpha_build_3", "targetId": "user_testing_4" },
+      { "id": "e4", "sourceId": "user_testing_4", "targetId": "public_beta_5" },
+      { "id": "e5", "sourceId": "public_beta_5", "targetId": "iterate_6" },
+      { "id": "e6", "sourceId": "iterate_6", "targetId": "launch_7" },
+      
+      { "id": "b1", "sourceId": "research_1", "targetId": "comp_analysis" },
+      { "id": "b2", "sourceId": "research_1", "targetId": "budget", "lineStyle": "dashed" },
+      { "id": "b_new1", "sourceId": "prototype_2", "targetId": "ui_ux_review" },
+      { "id": "b_new2", "sourceId": "prototype_2", "targetId": "tech_stack_choice" },
+      { "id": "b_new3", "sourceId": "alpha_build_3", "targetId": "security_audit", "lineStyle": "dashed" },
+      { "id": "b3", "sourceId": "user_testing_4", "targetId": "ab_testing" },
+      { "id": "b4", "sourceId": "public_beta_5", "targetId": "bug_reports" },
+      { "id": "b_new4", "sourceId": "iterate_6", "targetId": "feedback_loop" },
+      { "id": "b_new5", "sourceId": "iterate_6", "targetId": "feature_cut" },
+      { "id": "b5", "sourceId": "launch_7", "targetId": "marketing", "lineStyle": "dashed" },
+      { "id": "b6", "sourceId": "launch_7", "targetId": "press", "lineStyle": "dashed" }
     ]
   }
 }

@@ -543,8 +543,6 @@ export default function LeftToolbox({
           <div className="popover-title">Background</div>
           <div className="popover-list">
              {[
-               {id: 'transparent-dark', label: 'Transparent (Dark Ink)'},
-               {id: 'transparent-light', label: 'Transparent (Light Ink)'},
                {id: 'black', label: 'Solid Black'},
                {id: 'white', label: 'Solid White'},
              ].map(bg => (

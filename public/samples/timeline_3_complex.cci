@@ -9,7 +9,7 @@
       {
         "color": 1,
         "type": "rect",
-        "size": "M",
+        "size": "L",
         "nodes": [
           { "groupId": "early", "label": "Founded", "id": "founded_1" },
           { "groupId": "early", "label": "Seed Round", "id": "seed_round_2" }
@@ -20,7 +20,7 @@
       {
         "color": 3,
         "type": "rect",
-        "size": "M",
+        "size": "L",
         "nodes": [
           { "groupId": "growth", "label": "First Product", "id": "first_product_3" },
           { "groupId": "growth", "label": "1K Users", "id": "1k_users_4" },
@@ -32,7 +32,7 @@
       {
         "color": 5,
         "type": "rect",
-        "size": "M",
+        "size": "L",
         "nodes": [
           { "groupId": "scale", "label": "International", "id": "international_6" },
           { "groupId": "scale", "label": "100K Users", "id": "100k_users_7" },
@@ -44,7 +44,7 @@
       {
         "color": 7,
         "type": "rect",
-        "size": "M",
+        "size": "L",
         "nodes": [
           { "groupId": "mature", "label": "Profitable", "id": "profitable_9" },
           { "groupId": "mature", "label": "1M Users", "id": "1m_users_10" },
@@ -56,7 +56,7 @@
       {
         "color": 8,
         "type": "circle",
-        "size": "S",
+        "size": "M",
         "nodes": [
           { "groupId": "docs", "label": "Incorporation", "id": "incorp" },
           { "groupId": "docs", "label": "Hiring First 5", "id": "hiring_5" },

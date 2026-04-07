@@ -34,8 +34,11 @@ function App() {
   
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const [fitTrigger, setFitTrigger] = useState(0);
   const svgRef = useRef(null);
   const welcomeRef = useRef(null);
+  const sessionStartTime = useRef(Date.now());
+  const lastGenerationTimeMs = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -123,14 +126,14 @@ function App() {
       if (parsed.config.aspect) setAspect(parsed.config.aspect);
       if (parsed.config.diagramType) setDiagramType(parsed.config.diagramType);
       
-      let incomingBg = parsed.config.bgColor || 'transparent-dark';
-      if (incomingBg === 'transparent' || incomingBg === 'white') incomingBg = 'transparent-dark';
-      if (incomingBg === 'black') incomingBg = 'solid-dark';
+      let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
+      if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
+      if (incomingBg === 'transparent-light' || incomingBg === 'solid-light') incomingBg = 'white';
       setBgColor(incomingBg);
     } else {
       setAspect('16:9');
       setDiagramType('flowchart');
-      setBgColor('transparent-dark');
+      setBgColor(appTheme === 'dark' ? 'black' : 'white');
     }
 
     const resolvedTitle = parsed.config?.title || parsed.header || '';
@@ -138,6 +141,8 @@ function App() {
     setPaletteTheme(activeTheme);
     setSelectedNodeId(null);
     setSelectedEdgeId(null);
+    setFitTrigger(Date.now());
+    sessionStartTime.current = Date.now();
   };
 
   const handleCharticiUpload = (e) => {
@@ -167,6 +172,7 @@ function App() {
 
   const handleHeuristicLayout = () => {
     setDiagramData(prev => {
+      const startT = performance.now();
       const nextConfig = { ...prev.config };
       const newNodes = layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType });
       
@@ -192,6 +198,9 @@ function App() {
              nextConfig.titleY += (newC.cy - oldC.cy);
          }
       }
+
+      const endT = performance.now();
+      lastGenerationTimeMs.current = Math.round(endT - startT);
 
       return {
         ...prev,
@@ -234,7 +243,7 @@ function App() {
     setSelectedNodeId(null);
     setSelectedEdgeId(null);
     setTimeout(() => {
-      downloadSVG(svgRef.current, paletteTheme, diagramTitle);
+      downloadSVG(svgRef.current, paletteTheme, diagramTitle, lastGenerationTimeMs.current);
       setSelectedNodeId(oldSelection);
       setSelectedEdgeId(oldEdgeSelection);
     }, 0);
@@ -475,11 +484,8 @@ function App() {
          if (gId) {
              const groupNodesOrig = newNodes.filter(n => getGroupId(n) === gId);
              const groupNodesNew = groupNodesOrig.map(n => applySize(n, value));
-             const outsideNodes = newNodes.filter(n => getGroupId(n) !== gId);
-             
-             // Check if any updated group node collides with outside nodes (or internal collisions within the group)
-             const isInvalid = groupNodesNew.some(gn => checkCollision(gn, [...outsideNodes, ...groupNodesNew.filter(x => x.id !== gn.id)]));
-             if (isInvalid) return prev; // Abort size change
+             // Allow overlapping sizes by default without blocking user
+
              
              newNodes = newNodes.map(n => groupNodesNew.find(x => x.id === n.id) || n);
              const gIdx = newGroups.findIndex(g => g.id === gId);
@@ -488,7 +494,6 @@ function App() {
              
          } else {
              const proposedNode = applySize(targetNode, value);
-             if (checkCollision(proposedNode, newNodes.filter(n => n.id !== proposedNode.id))) return prev; // Abort size change
              newNodes[targetIndex] = proposedNode;
          }
          return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
@@ -639,6 +644,7 @@ function App() {
         handleDownloadChartici={handleDownloadChartici}
         setDiagramData={setDiagramData}
         setDiagramTitle={setDiagramTitle}
+        setBgColor={setBgColor}
         setDialogConfig={setDialogConfig}
         setHelpTab={setHelpTab}
         setIsHelpOpen={setIsHelpOpen}
@@ -648,6 +654,7 @@ function App() {
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        resetSessionTimer={() => { sessionStartTime.current = Date.now(); }}
       />
       <input id="native-file-upload" type="file" accept=".cci,.json" style={{display: 'none'}} onChange={handleCharticiUpload} />
 
@@ -666,6 +673,7 @@ function App() {
             onNodeSelect={handleSelectNode}
             selectedEdgeId={selectedEdgeId}
             onEdgeSelect={handleSelectEdge}
+            fitTrigger={fitTrigger}
             onNodesChange={(nodes) => {
                 const sysTitleIndex = nodes.findIndex(n => n.id === '__SYSTEM_TITLE__');
                 let nextNodes = [...nodes];

@@ -206,19 +206,31 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     const globalDeadline = routingStartTime + TOTAL_BUDGET_MS;
     const deadlineMs = Math.min(absoluteDeadline, globalDeadline);
 
+    // TRICK: On Timeline, "Chevron -> Event" routing often traps A* at the chevron's dense border because it lacks side ports.
+    // The user confirmed "Event -> Chevron" routes fast and perfectly. 
+    // We dynamically swap the A* routing direction and reverse the path returned to get perfect lines instantly!
+    const startIsChevron = startNode.isTimelineSpine || startNode.type === 'chevron';
+    const endIsChevron = endNode.isTimelineSpine || endNode.type === 'chevron';
+    const isChevronToEvent = diagramType === 'timeline' && startIsChevron && !endIsChevron;
+    
+    const rStartPorts = isChevronToEvent ? endPorts : startPorts;
+    const rEndPorts = isChevronToEvent ? startPorts : endPorts;
+    const rStartNodeId = isChevronToEvent ? endNode.id : startNode.id;
+    const rEndNodeId = isChevronToEvent ? startNode.id : endNode.id;
+
     for (let tierIdx = 0; tierIdx < fallbackTiers.length; tierIdx++) {
        const tier = fallbackTiers[tierIdx];
        const fullEdgeType = `${edge.lineStyle || 'solid'}-${edge.connectionType || 'target'}`;
-       const res = runAStar(startPorts, endPorts, startNode.id, endNode.id, textSpaceReq, fullEdgeType, tier.gridStep, tier.allowOverlap, tier.allowCrossing, 0, ctx, deadlineMs, tier.ignorePadding);
+       const res = runAStar(rStartPorts, rEndPorts, rStartNodeId, rEndNodeId, textSpaceReq, fullEdgeType, tier.gridStep, tier.allowOverlap, tier.allowCrossing, 0, ctx, deadlineMs, tier.ignorePadding);
        if (res && res.pts.length > 0) {
            if (res.timedOut) timedOut = true;
            if (res.isFallback) {
-               fallbackPts = res.pts;
+               fallbackPts = isChevronToEvent ? [...res.pts].reverse() : res.pts;
                if (usedTier < 0) usedTier = tierIdx;
            } else {
-               finalPts = res.pts;
-               chosenStartPt = res.trueStartPt;
-               chosenEndPt = res.trueEndPt;
+               finalPts = isChevronToEvent ? [...res.pts].reverse() : res.pts;
+               chosenStartPt = isChevronToEvent ? res.trueEndPt : res.trueStartPt;
+               chosenEndPt = isChevronToEvent ? res.trueStartPt : res.trueEndPt;
                usedTier = tierIdx;
                break;
            }

@@ -8,6 +8,7 @@ import sampleMatrix from '../assets/samples/matrix_2_medium.cci?raw';
 import sampleRadial from '../assets/samples/radial_2_medium.cci?raw';
 import sampleSequence from '../assets/samples/sequence_2_medium.cci?raw';
 import sampleTimeline from '../assets/samples/timeline_2_medium.cci?raw';
+import sampleTimeline3 from '../assets/samples/timeline_3_complex.cci?raw';
 import sampleTree from '../assets/samples/tree_2_medium.cci?raw';
 import charticiLogo from '../assets/chartici-logo.svg';
 import mcpGuideContent from '../assets/mcp_setup_guide.md?raw';
@@ -91,8 +92,8 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
 
     return (
         <>
-        <div className="glass-overlay">
-            <div className="glass-modal" style={{ position: 'relative', maxWidth: '860px' }}>
+        <div className="glass-overlay" onClick={handleClose}>
+            <div className="glass-modal" style={{ position: 'relative', maxWidth: '860px' }} onClick={e => e.stopPropagation()}>
                 {/* Top bar */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

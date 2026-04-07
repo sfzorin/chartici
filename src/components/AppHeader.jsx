@@ -18,7 +18,9 @@ export default function AppHeader({
   onUndo,
   onRedo,
   canUndo,
-  canRedo
+  canRedo,
+  setBgColor,
+  resetSessionTimer
 }) {
   const handleNewBlankProject = () => {
     setDialogConfig({
@@ -28,6 +30,8 @@ export default function AppHeader({
       onConfirm: () => {
         setDiagramData({ nodes: [], edges: [], groups: [] });
         setDiagramTitle('Untitled Project');
+        setBgColor(appTheme === 'dark' ? 'black' : 'white');
+        resetSessionTimer();
         setDialogConfig(null);
       },
       onCancel: () => setDialogConfig(null)

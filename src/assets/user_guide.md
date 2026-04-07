@@ -32,6 +32,7 @@ The system operates exclusively on the `.cci` file format. This is a strict **JS
 
 - **`title`**: The main title of the diagram that will be automatically centered at the top.
 - **`aspect`**: Defines the bounding box of the graphic. Valid options: `"16:9"`, `"4:3"`, `"1:1"`, `"3:4"`, `"9:16"`.
+- **`bgColor`**: Defines the canvas background color. Valid options: `"black"` or `"white"`. If omitted, defaults to `"black"` when the app is in dark mode, and `"white"` in light mode. Transparent backgrounds are intentionally not supported to ensure deterministic SVG exports.
 - **`theme`**: Defines the overall visual color palette. Valid options: `"muted-rainbow"`, `"vibrant-rainbow"`, `"grey"`, `"red"`, `"green"`, `"blue"`, `"brown"`, `"purple"`, `"blue-orange"`, `"green-purple"`, `"slate-rose"`, `"blue-teal-slate"`, `"indigo-green-red"`, `"brown-amber-grey"`.
 - **`diagramType`**: **CRITICAL PARAMETER.** Defines the structural layout. Valid options:
    - `"flowchart"`: For step-by-step processes or algorithms.

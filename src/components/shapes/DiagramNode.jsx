@@ -13,7 +13,8 @@ const DiagramNode = React.memo(({
   isTargetHovered,
   onHoverChange,
   onStartConnection,
-  isActiveLinkSource
+  isActiveLinkSource,
+  diagramType
 }) => {
   const dim = getNodeDim(node);
   const NODE_WIDTH = node.w || dim.width;
@@ -153,8 +154,13 @@ const DiagramNode = React.memo(({
     ));
   };
   
+  let actualType = node.type;
+  if (diagramType === 'timeline' && node.isTimelineSpine) {
+      actualType = 'chevron';
+  }
+  
   let shape;
-  switch(node.type) {
+  switch(actualType) {
     case 'circle':
       {
         const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
@@ -171,7 +177,12 @@ const DiagramNode = React.memo(({
         const w = NODE_WIDTH;
         const h = NODE_HEIGHT;
         const cut = h * 0.25; // 25% height exactly locks angle across all scaled sizes
-        const d = `M 0 0 L ${w - cut} 0 L ${w} ${h/2} L ${w - cut} ${h} L 0 ${h} L ${cut} ${h/2} Z`;
+        const dExt = (node.timelineDelta || 0) / 2; 
+        
+        // Chevron draws OUTSIDE its logical box to interlock beautifully
+        // It stretches left by dExt and right by dExt to consume exactly 'delta' pixels of Daylight!
+        // Text perfectly centered organically!
+        const d = `M -${cut + dExt} 0 L ${w + dExt} 0 L ${w + cut + dExt} ${h/2} L ${w + dExt} ${h} L -${cut + dExt} ${h} L -${dExt} ${h/2} Z`;
         shape = (
           <g>
             <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
@@ -279,12 +290,16 @@ const DiagramNode = React.memo(({
        bottomY = (NODE_HEIGHT / 2) + r;
     }
 
-    const ports = [
+    let ports = [
       { id: 'top', cx: NODE_WIDTH / 2, cy: topY },
       { id: 'right', cx: rightX, cy: NODE_HEIGHT / 2 },
       { id: 'bottom', cx: NODE_WIDTH / 2, cy: bottomY },
       { id: 'left', cx: leftX, cy: NODE_HEIGHT / 2 }
     ];
+    if (actualType === 'chevron' || node.isTimelineSpine) {
+      ports = ports.filter(p => p.id === 'top' || p.id === 'bottom');
+    }
+
     return ports.map(p => (
        <g 
           key={p.id}

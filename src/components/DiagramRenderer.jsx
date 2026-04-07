@@ -30,6 +30,7 @@ export default function DiagramRenderer({
   onConnect,
   onAddNode,
   panToNodeId,
+  fitTrigger,
   toolboxProps
 }) {
   const [nodes, setNodes] = useState([]);
@@ -86,24 +87,25 @@ export default function DiagramRenderer({
 
       const regularNodes = newNodes.filter(n => n.id !== '__SYSTEM_TITLE__');
       if (regularNodes.length === 0) {
-        // Use requestAnimationFrame to ensure DOM is painted and rect has dimensions
-        const centerCanvas = () => {
-          if (!svgRef.current) return;
-          const rect = svgRef.current.getBoundingClientRect();
-          if (rect.width === 0) {
-             requestAnimationFrame(centerCanvas);
-             return;
-          }
-          setZoom(1);
-          setPan({ 
-             x: (rect.width / 2) - 800, 
-             y: (rect.height / 2) - 450 
-          });
-        };
-        requestAnimationFrame(centerCanvas);
+          // Empty sheets will be auto-fitted via fitTrigger
       }
     }
   }, [initialData, diagramTitle]);
+
+  useEffect(() => {
+    if (fitTrigger > 0) {
+       setPendingZoom(Date.now());
+    }
+  }, [fitTrigger]);
+
+  // Initial autofit on mount
+  const hasMounted = useRef(false);
+  useEffect(() => {
+    if (!hasMounted.current) {
+        hasMounted.current = true;
+        setPendingZoom(Date.now());
+    }
+  }, []);
 
   useEffect(() => {
     if (panToNodeId) {
@@ -407,34 +409,9 @@ export default function DiagramRenderer({
       setIsPanning(false);
     }
     if (dragState) {
-      let isInvalid = false;
-      
-      // Compute which nodes were actually moved
-      const movedIds = new Set(nodes.filter((n, i) => n.x !== dragState.initialNodes[i].x || n.y !== dragState.initialNodes[i].y).map(n => n.id));
-      
-      if (movedIds.size > 0) {
-          for (let mNode of nodes) {
-              if (!movedIds.has(mNode.id)) continue;
-              if (mNode.type === 'text' || mNode.type === 'title') continue; // Text annotations NEVER collide
-              // Check this moved node against ALL non-moved nodes
-              const stationaryNodes = nodes.filter(n => !movedIds.has(n.id) && n.type !== 'text' && n.type !== 'title');
-              if (checkCollision(mNode, stationaryNodes)) {
-                  isInvalid = true;
-                  break;
-              }
-          }
-      }
-
+      // Allow completely unrestricted grid-snapped movement
       setDragState(null);
-      
-      if (isInvalid) {
-          // Snap back
-          setNodes(dragState.initialNodes);
-          if (onNodesChange) onNodesChange(dragState.initialNodes);
-      } else {
-          // Commit
-          if (onNodesChange) onNodesChange(nodes);
-      }
+      if (onNodesChange) onNodesChange(nodes);
       
       try { e.target.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
     }
@@ -507,13 +484,24 @@ export default function DiagramRenderer({
   }, [zoom, pan, svgRef]);
   const prevPathsRef = useRef({});
 
+  const engineEdges = useMemo(() => {
+    if (diagramType !== 'timeline') return edges;
+    return edges.filter(edge => {
+       const srcId = String(edge.sourceId || edge.from);
+       const tgtId = String(edge.targetId || edge.to);
+       const src = computedNodes.find(n => String(n.id) === srcId);
+       const tgt = computedNodes.find(n => String(n.id) === tgtId);
+       return !(src?.isTimelineSpine && tgt?.isTimelineSpine);
+    });
+  }, [edges, computedNodes, diagramType]);
+
   const computedPaths = useMemo(() => {
-    const newPaths = calculateAllPaths(edges, computedNodes, { diagramType }, dragState?.id, prevPathsRef.current);
+    const newPaths = calculateAllPaths(engineEdges, computedNodes, { diagramType }, dragState?.id, prevPathsRef.current);
     if (!dragState?.id) {
        prevPathsRef.current = newPaths;
     }
     return newPaths;
-  }, [edges, computedNodes, dragState, diagramType]);
+  }, [engineEdges, computedNodes, dragState, diagramType]);
 
 
   const { vMinX, vMinY, vW, vH, titleCx, titleY } = useMemo(() => {
@@ -683,7 +671,6 @@ export default function DiagramRenderer({
   let dText = 'var(--color-text-main)';
   let dGroup = 'var(--color-neutral-text)'; // Default secondary/neutral color
 
-  let previewFillStr = null;
 
   if (bgColor === 'white') {
     fillStr = '#FFFFFF';
@@ -697,23 +684,6 @@ export default function DiagramRenderer({
     dEdge = '#cbd5e1';
     dText = '#f8fafc';
     dGroup = '#64748b'; // Slate 500 (darker than edge on black)
-  } else if (bgColor === 'transparent-dark') {
-    fillStr = 'transparent';
-    previewFillStr = 'url(#checkerboard-light)';
-    gridColorStr = 'rgba(0, 0, 0, 0.05)';
-    dEdge = '#111827';
-    dText = '#111827';
-    dGroup = '#64748b';
-  } else if (bgColor === 'transparent-light') {
-    fillStr = 'transparent';
-    previewFillStr = 'url(#checkerboard-dark)';
-    gridColorStr = 'rgba(255, 255, 255, 0.08)';
-    dEdge = '#f8fafc';
-    dText = '#f8fafc';
-    dGroup = '#94a3b8';
-  } else if (bgColor === 'theme') {
-    fillStr = 'var(--canvas-bg)';
-    gridColorStr = 'var(--grid-line-color)';
   }
 
   return (
@@ -787,18 +757,13 @@ export default function DiagramRenderer({
           
           {/* Paper Canvas */}
           <g id="canvas-paper">
-             {previewFillStr && (
-               <rect className="preview-bg-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill={previewFillStr} rx="8" ry="8" />
-             )}
              <rect 
                x={vMinX} y={vMinY} width={vW} height={vH} 
                fill={fillStr} 
                rx="8" ry="8"
-               style={{ filter: !previewFillStr ? 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' : 'none' }}
+               style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }}
              />
-             {!previewFillStr && (
-               <rect className="canvas-grid-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
-             )}
+             <rect className="canvas-grid-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
           </g>
 
           {/* ─── Topology Overlays Layer ─────────────────────── */}
@@ -875,17 +840,17 @@ export default function DiagramRenderer({
 
           {/* Edges Layer */}
         <g>
-          {edges.map((edge) => (
-            <DiagramEdge
-              key={edge.id}
-              edge={edge}
-              pathData={computedPaths[edge.id]}
-              isSelected={selectedEdgeId === edge.id}
-              theme={theme}
-              diagramType={diagramType}
-              onEdgeSelect={onEdgeSelect}
-              onEdgeDoubleClick={handleEdgeDoubleClick}
-            />
+          {engineEdges.map((edge) => (
+              <DiagramEdge
+                key={edge.id}
+                edge={edge}
+                pathData={computedPaths[edge.id]}
+                isSelected={selectedEdgeId === edge.id}
+                theme={theme}
+                diagramType={diagramType}
+                onEdgeSelect={onEdgeSelect}
+                onEdgeDoubleClick={handleEdgeDoubleClick}
+              />
           ))}
       </g>
 
@@ -900,6 +865,7 @@ export default function DiagramRenderer({
                   isActiveLinkSource={activeLinkSource === injectedNode.id}
                   isSelected={selectedNodeId === injectedNode.id}
                   theme={theme}
+                  diagramType={diagramType}
                   dragStateId={dragState?.id}
                   onPointerDown={handlePointerDown}
                   onDoubleClick={handleDoubleClick}
@@ -924,6 +890,7 @@ export default function DiagramRenderer({
                   isActiveLinkSource={activeLinkSource === injectedNode.id}
                   isSelected={selectedNodeId === injectedNode.id}
                   theme={theme}
+                  diagramType={diagramType}
                   dragStateId={dragState?.id}
                   onPointerDown={handlePointerDown}
                   onDoubleClick={handleDoubleClick}

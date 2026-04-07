@@ -73,10 +73,15 @@ export function getNodePorts(node, box) {
     { pt: { x: gxLeft, y: box.cy }, anchorPt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 }
   ];
 
+  if (node.isTimelineSpine || node.type === 'chevron') {
+    // Chevron uses only Top and Bottom ports (no side ports)
+    ports = ports.filter(p => p.dir === 'Top' || p.dir === 'Bottom');
+  }
+
   const isCurved = node.type === 'oval' || node.type === 'circle' || node.type === 'decision' || node.type === 'rhombus';
 
   // Lateral Bifurcation ("Where it fits" h >= 80px) -> Add 2 outer ports
-  if (h >= 80 && !isCurved) {
+  if (h >= 80 && !isCurved && !node.isTimelineSpine && node.type !== 'chevron') {
       const sidePenalty = h * 2;
       let y1 = box.cy - 20;
       let y2 = box.cy + 20;
