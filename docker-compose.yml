@@ -9,6 +9,18 @@ services:
     volumes:
       - certbot-conf:/etc/letsencrypt
       - certbot-www:/var/www/certbot
+    networks:
+      - internal
+
+  api:
+    build: ./backend
+    container_name: chartici-api
+    restart: unless-stopped
+    environment:
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+      - PORT=3001
+    networks:
+      - internal
 
   certbot:
     image: certbot/certbot
@@ -21,3 +33,7 @@ services:
 volumes:
   certbot-conf:
   certbot-www:
+
+networks:
+  internal:
+    driver: bridge

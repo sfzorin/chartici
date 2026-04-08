@@ -1,0 +1,17 @@
+{
+  "name": "chartici-api",
+  "version": "1.0.0",
+  "description": "Backend proxy for Chartici — forwards requests to Moonshot (Kimi AI) API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

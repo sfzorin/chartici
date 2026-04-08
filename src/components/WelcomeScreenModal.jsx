@@ -1,24 +1,25 @@
 import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import { parseCharticiFile } from '../utils/charticiFormat';
-import docsContent from '../assets/user_guide.md?raw';
+import { generateDiagram } from '../services/aiGenerate';
+import { promptExamples } from '../assets/prompts';
+import charticiLogo from '../assets/chartici-logo.svg';
+
+// Sample imports for "Examples" row
 import sampleERD from '../assets/samples/erd_2_medium.cci?raw';
 import sampleFlowchart from '../assets/samples/flowchart_2_medium.cci?raw';
 import sampleMatrix from '../assets/samples/matrix_2_medium.cci?raw';
 import sampleRadial from '../assets/samples/radial_2_medium.cci?raw';
 import sampleSequence from '../assets/samples/sequence_2_medium.cci?raw';
 import sampleTimeline from '../assets/samples/timeline_2_medium.cci?raw';
-import sampleTimeline3 from '../assets/samples/timeline_3_complex.cci?raw';
 import sampleTree from '../assets/samples/tree_2_medium.cci?raw';
-import charticiLogo from '../assets/chartici-logo.svg';
-import mcpGuideContent from '../assets/mcp_setup_guide.md?raw';
-import { promptExamples } from '../assets/prompts';
 
 const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
     const [isVisible, setIsVisible] = useState(true);
     const [showPolicy, setShowPolicy] = useState(false);
-    const [jsonInput, setJsonInput] = useState('');
+    const [userInput, setUserInput] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [randomPrompt] = useState(() => promptExamples[Math.floor(Math.random() * promptExamples.length)]);
 
     useImperativeHandle(ref, () => ({
@@ -40,12 +41,32 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
         }
     };
 
-    const handleLoadJson = () => {
-        if (!jsonInput.trim()) {
-            setErrorMsg('Please paste JSON data first.');
+    const handleGenerate = async () => {
+        if (!userInput.trim()) {
+            setErrorMsg('Describe the diagram you want to create.');
             return;
         }
-        processJson(jsonInput);
+        setErrorMsg('');
+        setIsLoading(true);
+        try {
+            const result = await generateDiagram(userInput.trim());
+            if (result.success) {
+                processJson(JSON.stringify(result.cci));
+            } else {
+                setErrorMsg(result.error);
+            }
+        } catch (e) {
+            setErrorMsg('Network error — check your connection.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+            e.preventDefault();
+            handleGenerate();
+        }
     };
 
     const handleClose = () => {
@@ -53,47 +74,15 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
         setIsVisible(false);
     };
 
-    const handleDownloadDocs = (e) => {
-        e.preventDefault();
-        const blob = new Blob([docsContent], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'making-a-chart.md';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
-    const handleDownloadMcpGuide = (e) => {
-        e.preventDefault();
-        const blob = new Blob([mcpGuideContent], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'chartici-mcp-setup.md';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
     if (!isVisible) return null;
 
     const dim = { color: 'var(--color-text-dim)' };
     const bright = { color: 'var(--color-text-main)' };
-    const stepNum = { 
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-        background: 'var(--color-bg-hover)', border: '1px solid var(--border-color-soft)', color: 'var(--color-text-main)', fontSize: '12px', fontWeight: 700
-    };
-    const stepRow = { display: 'flex', gap: '12px', alignItems: 'flex-start' };
 
     return (
         <>
         <div className="glass-overlay" onClick={handleClose}>
-            <div className="glass-modal" style={{ position: 'relative', maxWidth: '860px' }} onClick={e => e.stopPropagation()}>
+            <div className="glass-modal" style={{ position: 'relative', maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
                 {/* Top bar */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -107,73 +96,84 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                 </div>
 
                 {/* Hero */}
-                <div style={{ padding: '28px 32px 20px', textAlign: 'center' }}>
-                    <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800, ...bright, lineHeight: 1.2 }}>
-                        Describe what you need — AI builds the diagram
+                <div style={{ padding: '28px 32px 8px', textAlign: 'center' }}>
+                    <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, ...bright, lineHeight: 1.3 }}>
+                        Describe what you need
                     </h1>
+                    <p style={{ margin: '8px 0 0', fontSize: '14px', ...dim, lineHeight: 1.5 }}>
+                        AI will build the diagram for you
+                    </p>
                 </div>
 
-                {/* Body */}
-                <div className="glass-body welcome-body" style={{ paddingTop: '16px' }}>
-                    
-                    {/* Left: Step by step */}
-                    <div className="welcome-left" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', fontWeight: 700, ...bright }}>Three simple steps</h3>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={stepRow}>
-                                <span style={stepNum}>1</span>
-                                <p style={{ margin: 0, fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                                    <a href="#" onClick={handleDownloadDocs} style={{ color: 'var(--color-primary)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Download this file</a> — it has everything your AI needs to build diagrams.
-                                </p>
-                            </div>
-                            
-                            <div style={stepRow}>
-                                <span style={stepNum}>2</span>
-                                <p style={{ margin: 0, fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                                    Upload this file to ChatGPT, Deepseek, or Gemini chat.
-                                </p>
-                            </div>
-                            
-                            <div style={stepRow}>
-                                <span style={stepNum}>3</span>
-                                <p style={{ margin: 0, fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                                    Ask: <span style={{ fontStyle: 'italic', ...dim }}>"{randomPrompt}"</span>
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                    {/* Right: Paste JSON */}
-                    <div className="welcome-right" style={{ display: 'flex', flexDirection: 'column' }}>
-                        <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', fontWeight: 700, ...bright }}>Paste the result</h3>
-
-
-                        
+                {/* Main input area */}
+                <div style={{ padding: '20px 32px' }}>
+                    <div style={{ position: 'relative' }}>
                         <textarea
                             className="glass-textarea"
-                            value={jsonInput}
-                            onChange={(e) => { setJsonInput(e.target.value); setErrorMsg(''); }}
-                            placeholder='Paste the JSON from your AI chat here...'
-                            style={{ flex: 1, minHeight: '140px' }}
+                            value={userInput}
+                            onChange={(e) => { setUserInput(e.target.value); setErrorMsg(''); }}
+                            onKeyDown={handleKeyDown}
+                            placeholder={randomPrompt}
+                            disabled={isLoading}
+                            style={{ 
+                                width: '100%', 
+                                minHeight: '100px', 
+                                resize: 'vertical',
+                                fontSize: '15px',
+                                lineHeight: 1.6,
+                                fontFamily: 'var(--font-main)',
+                                opacity: isLoading ? 0.5 : 1,
+                                transition: 'opacity 0.2s'
+                            }}
                         />
-                        {errorMsg && <div style={{ color: '#f87171', marginTop: '8px', fontSize: '13px', fontWeight: 500 }}>{errorMsg}</div>}
-                        
-                        <div style={{ marginTop: '14px' }}>
-                            <button onClick={handleLoadJson} className="glass-btn-primary" style={{ 
-                                width: '100%', padding: '14px 24px', fontSize: '16px', fontWeight: 700,
-                                letterSpacing: '0.3px'
-                            }}>
-                                Render Diagram
-                            </button>
-                        </div>
                     </div>
+
+                    {errorMsg && (
+                        <div style={{ 
+                            color: '#f87171', marginTop: '10px', fontSize: '13px', fontWeight: 500,
+                            padding: '8px 12px', background: 'rgba(248, 113, 113, 0.1)', borderRadius: '8px'
+                        }}>
+                            {errorMsg}
+                        </div>
+                    )}
+
+                    <button 
+                        onClick={handleGenerate} 
+                        disabled={isLoading}
+                        className="glass-btn-primary" 
+                        style={{ 
+                            width: '100%', 
+                            padding: '14px 24px', 
+                            fontSize: '16px', 
+                            fontWeight: 700,
+                            marginTop: '14px',
+                            letterSpacing: '0.3px',
+                            opacity: isLoading ? 0.7 : 1,
+                            cursor: isLoading ? 'wait' : 'pointer'
+                        }}
+                    >
+                        {isLoading ? (
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                <span className="spinner" style={{
+                                    display: 'inline-block', width: '16px', height: '16px', 
+                                    border: '2px solid transparent', borderTopColor: 'currentColor',
+                                    borderRadius: '50%', animation: 'spin 0.8s linear infinite'
+                                }} />
+                                Generating…
+                            </span>
+                        ) : (
+                            'Generate Diagram'
+                        )}
+                    </button>
+
+                    {isLoading && (
+                        <p style={{ margin: '10px 0 0', fontSize: '12px', ...dim, textAlign: 'center' }}>
+                            AI is thinking — this may take up to a minute
+                        </p>
+                    )}
                 </div>
 
-                {/* Templates Row */}
+                {/* Examples Row */}
                 <div style={{ padding: '0 32px 14px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <span style={{ fontSize: '11px', ...dim, marginRight: '2px' }}>Examples:</span>
                     {[
@@ -191,9 +191,6 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                             color: 'var(--color-text-main)', cursor: 'pointer', transition: 'all 0.15s'
                         }}>{s.label}</button>
                     ))}
-                    <span style={{ marginLeft: 'auto' }}>
-                        <a href="#" onClick={handleDownloadMcpGuide} style={{ fontSize: '11px', color: 'var(--color-text-dim)', textDecoration: 'underline', opacity: 0.7 }}>Download MCP Setup Guide</a>
-                    </span>
                 </div>
 
                 {/* Footer */}
