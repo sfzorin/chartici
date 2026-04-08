@@ -1,0 +1,34 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "src,public,samples,index.html,package.json,package-lock.json,vite.config.js,Dockerfile,nginx.conf,docker-compose.yml,deploy,.dockerignore"
+          target: /opt/chartici
+
+      - name: Rebuild & restart container
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/chartici
+            docker compose build --no-cache
+            docker compose up -d chartici
+            docker image prune -f
+            echo "✅ Deployed at $(date)"
