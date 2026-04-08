@@ -186,23 +186,23 @@ export function parseCharticiFile(fileContent) {
       });
     };
 
-    if (data.type === 'cci_project' || data.type === 'chartici_project') {
-      // Handle old format with data.config wrapper
-      const coreData = data.data || {};
-      const configFromData = coreData.config || {};
-      const { flatNodes, cleanGroups } = resolveNodesAndGroups(coreData.nodes, coreData.groups);
-      const { type, data: _d, version, ...restConfig } = data;
-      // Old format uses 'header' instead of 'title'
-      if (data.header && !restConfig.title) restConfig.title = data.header;
-      return {
-        groups: cleanGroups,
-        nodes: flatNodes,
-        edges: resolveEdges(coreData.edges),
-        config: { ...configFromData, ...restConfig }
-      };
-    } else {
-      throw new Error("Invalid file format. Not a recognized Chartici project.");
-    }
+    // Handle payload either wrapped in cci_project structure or raw root objects
+    const isProjectWrapped = data.type === 'cci_project' || data.type === 'chartici_project' || data.data;
+    const coreData = isProjectWrapped ? (data.data || {}) : data;
+    const configFromData = coreData.config || {};
+
+    const { flatNodes, cleanGroups } = resolveNodesAndGroups(coreData.nodes, coreData.groups);
+    const { type, data: _d, version, ...restConfig } = data;
+
+    // Old format uses 'header' instead of 'title'
+    if (data.header && !restConfig.title) restConfig.title = data.header;
+
+    return {
+      groups: cleanGroups,
+      nodes: flatNodes,
+      edges: resolveEdges(coreData.edges),
+      config: { ...configFromData, ...restConfig }
+    };
   } catch (error) {
     throw new Error(`Failed to parse .cci file: ${error.message}`);
   }
