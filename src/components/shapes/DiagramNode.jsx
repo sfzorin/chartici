@@ -1,6 +1,7 @@
 import React from 'react';
 import { getNodeDim } from '../../utils/constants';
 import { getFittedText } from '../../utils/textUtils';
+import { ShapeRegistry } from './ShapeRegistry';
 
 const DiagramNode = React.memo(({ 
   node, 
@@ -113,24 +114,21 @@ const DiagramNode = React.memo(({
   }
   const shadowFilter = 'none';
 
-  let textMaxWidth = NODE_WIDTH;
-  let textMaxHeight = NODE_HEIGHT;
-  
-  if (node.type === 'circle') {
-    textMaxWidth = Math.min(NODE_WIDTH, NODE_HEIGHT) * 0.75;
-    textMaxHeight = textMaxWidth;
-  } else if (node.type === 'rhombus') {
-    textMaxWidth = NODE_WIDTH * 0.6;
-    textMaxHeight = NODE_HEIGHT * 0.6;
-  } else if (node.type === 'element') {
-    textMaxWidth = NODE_WIDTH * 0.85; 
-    textMaxHeight = NODE_HEIGHT * 0.85;
-  } else if (node.type === 'oval') {
-    textMaxWidth = NODE_WIDTH - Math.min(NODE_WIDTH, NODE_HEIGHT) * 0.5;
-  } else if (node.type === 'pie_slice') {
-    textMaxWidth = (Math.min(NODE_WIDTH, NODE_HEIGHT) / 2) * 0.6;
-    textMaxHeight = textMaxWidth;
+  let actualType = node.type;
+  if (diagramType === 'timeline' && node.isTimelineSpine) {
+      actualType = 'chevron';
   }
+  if (node.isPieSlice) {
+      actualType = 'pie_slice';
+  }
+  if (!ShapeRegistry[actualType]) {
+      actualType = 'process';
+  }
+
+  const shapePlugins = ShapeRegistry[actualType];
+  const limits = shapePlugins.getTextLimits(NODE_WIDTH, NODE_HEIGHT);
+  const textMaxWidth = limits.maxWidth;
+  const textMaxHeight = limits.maxHeight;
 
   const renderLabel = (precomputedWrap = null) => {
     const rawLabel = String(node.label || '');
@@ -157,228 +155,8 @@ const DiagramNode = React.memo(({
     ));
   };
   
-  let actualType = node.type;
-  if (diagramType === 'timeline' && node.isTimelineSpine) {
-      actualType = 'chevron';
-  }
-  if (node.isPieSlice) {
-      actualType = 'pie_slice';
-  }
-  // If it's a process, fallback
-  if (!['circle','oval','rhombus','element','pie_slice','text','title','chevron'].includes(actualType)) {
-      actualType = 'process';
-  }
-  
-  let shape;
-  switch(actualType) {
-    case 'circle':
-      {
-        const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
-        shape = (
-          <g>
-            <circle cx={NODE_WIDTH/2} cy={NODE_HEIGHT/2} r={r} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
-            {renderLabel()}
-          </g>
-        );
-      }
-      break;
-    case 'chevron':
-      {
-        const w = NODE_WIDTH;
-        const h = NODE_HEIGHT;
-        const cut = h * 0.25; // 25% height exactly locks angle across all scaled sizes
-        const dExt = (node.timelineDelta || 0) / 2; 
-        
-        // Chevron draws OUTSIDE its logical box to interlock beautifully
-        // It stretches left by dExt and right by dExt to consume exactly 'delta' pixels of Daylight!
-        // Text perfectly centered organically!
-        const d = `M -${cut + dExt} 0 L ${w + dExt} 0 L ${w + cut + dExt} ${h/2} L ${w + dExt} ${h} L -${cut + dExt} ${h} L -${dExt} ${h/2} Z`;
-        shape = (
-          <g>
-            <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
-            {renderLabel()}
-          </g>
-        );
-      }
-      break;
-    case 'rhombus':
-      {
-        const r = 3;
-        const w = NODE_WIDTH;
-        const h = NODE_HEIGHT;
-        const ex = 1.5; // Compensate for Q-curve inward shrinkage
-        const pts = [ 
-          {x: -ex, y: h/2}, 
-          {x: w/2, y: -ex}, 
-          {x: w+ex, y: h/2}, 
-          {x: w/2, y: h+ex} 
-        ];
-        let d = '';
-        for (let i = 0; i < 4; i++) {
-          const p1 = pts[(i+3)%4], p2 = pts[i], p3 = pts[(i+1)%4];
-          const d1 = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-          const d2 = Math.hypot(p3.x - p2.x, p3.y - p2.y);
-          const qStartX = p2.x + ((p1.x - p2.x) / d1) * r;
-          const qStartY = p2.y + ((p1.y - p2.y) / d1) * r;
-          const qEndX = p2.x + ((p3.x - p2.x) / d2) * r;
-          const qEndY = p2.y + ((p3.y - p2.y) / d2) * r;
-          if (i === 0) d += `M ${qStartX} ${qStartY}`;
-          else d += ` L ${qStartX} ${qStartY}`;
-          d += ` Q ${p2.x} ${p2.y} ${qEndX} ${qEndY}`;
-        }
-        d += ' Z';
-        
-        shape = (
-          <g>
-            <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
-            {renderLabel()}
-          </g>
-        );
-      }
-      break;
-    case 'pie_slice':
-      {
-        const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
-        const cx = NODE_WIDTH / 2;
-        const cy = NODE_HEIGHT / 2;
-        const startRaw = node.pieStartAngle || 0;
-        const endRaw = node.pieEndAngle || Math.PI * 2;
-        
-        // Shift by -90 deg so the pie starts at 12 o'clock, which is standard
-        const start = startRaw - Math.PI / 2;
-        const end = endRaw - Math.PI / 2;
-        
-        const x1 = cx + r * Math.cos(start);
-        const y1 = cy + r * Math.sin(start);
-        const x2 = cx + r * Math.cos(end);
-        const y2 = cy + r * Math.sin(end);
-        
-        const largeArcFlag = end - start <= Math.PI ? "0" : "1";
-        
-        let d = '';
-        if (endRaw - startRaw >= Math.PI * 2 - 0.001) {
-            // Full 360 circle
-            d = `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
-        } else {
-            // Standard arc
-            d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-        }
 
-        const midAngle = start + (end - start) / 2;
-        const angleDiff = endRaw - startRaw;
-        const isThin = angleDiff < 0.26; // ~15 degrees
-        
-        let calloutLine = null;
-        let labelGroup = null;
-        
-        const rawLabel = String(node.label || '');
-        const valText = (node.value !== undefined && node.value !== null) ? `${node.value}` : '';
-        const hasText = rawLabel || valText;
-        
-        if (hasText && !isTransp) {
-            if (isThin) {
-                // Callout Line
-                const rEdge = r * 0.95; 
-                const rOut = r * 1.08; 
-                const startX = cx + rEdge * Math.cos(midAngle);
-                const startY = cy + rEdge * Math.sin(midAngle);
-                const midX = cx + rOut * Math.cos(midAngle);
-                const midY = cy + rOut * Math.sin(midAngle);
-                
-                const isRight = Math.cos(midAngle) >= 0;
-                const endX = isRight ? midX + 25 : midX - 25;
-                
-                calloutLine = <path d={`M ${startX} ${startY} L ${midX} ${midY} L ${endX} ${midY}`} fill="none" stroke="var(--color-text-main)" strokeWidth="1" strokeOpacity="0.5" />;
-                
-                const combinedStr = rawLabel && valText ? `${rawLabel} (${valText})` : (rawLabel || valText);
-                labelGroup = (
-                   <text 
-                     x={isRight ? endX + 6 : endX - 6}
-                     y={midY}
-                     fill="var(--diagram-text)"
-                     fontSize={12}
-                     fontWeight="600"
-                     textAnchor={isRight ? "start" : "end"}
-                     dominantBaseline="central"
-                   >{combinedStr}</text>
-                );
-            } else {
-                // Render inside
-                const textR = r + 20;
-                const textX = cx + textR * Math.cos(midAngle);
-                const textY = cy + textR * Math.sin(midAngle);
-                
-                labelGroup = (
-                   <g transform={`translate(${textX}, ${textY})`}>
-                       {valText && (
-                           <text 
-                             x="0" y="0" 
-                             textAnchor="middle" dominantBaseline="central"
-                             fill={textColor} fontSize="14" fontWeight="800"
-                             style={{ pointerEvents: 'none', userSelect: 'none' }}
-                           >{valText}</text>
-                       )}
-                   </g>
-                );
-            }
-        }
-
-        shape = (
-          <g>
-            <path d={d} fill={panelFill} stroke="var(--canvas-bg)" strokeWidth={2} strokeLinejoin="round" />
-            {calloutLine}
-            {labelGroup}
-          </g>
-        );
-      }
-      break;
-    case 'title':
-    case 'text':
-      {
-        const wrap = getFittedText(node.label || '', textMaxWidth, textMaxHeight, Number(FONT_SIZE), fontStyle, fontWeight);
-        const pad = 10;
-        const realW = Math.max(wrap.textWidth + pad * 2, 20);
-        const realH = Math.max(wrap.textHeight + pad * 2, 20);
-        const cx = NODE_WIDTH / 2;
-        const cy = NODE_HEIGHT / 2;
-        
-        shape = (
-          <g>
-            <rect x={cx - realW / 2} y={cy - realH / 2} width={realW} height={realH} fill="none" pointerEvents="all" stroke="none" />
-            {renderLabel(wrap)}
-          </g>
-        );
-      }
-      break;
-    case 'element':
-      shape = (
-        <g>
-          <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx={NODE_HEIGHT/2} ry={NODE_HEIGHT/2} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
-          {renderLabel()}
-        </g>
-      );
-      break;
-    case 'oval':
-      shape = (
-        <g>
-          <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx={Math.min(NODE_WIDTH, NODE_HEIGHT)/2} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
-          {renderLabel()}
-        </g>
-      );
-      break;
-    case 'process':
-    default:
-      shape = (
-        <g>
-          <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="4" ry="4" fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
-          {!isPrintTheme && (
-             <rect width={NODE_WIDTH} height="4" rx="4" fill={strokeColor} style={{ clipPath: `inset(0 0 ${NODE_HEIGHT - 4}px 0)` }} />
-          )}
-          {renderLabel()}
-        </g>
-      );
-      break;
-  }
+  let shape = shapePlugins.render(NODE_WIDTH, NODE_HEIGHT, panelFill, strokeColor, strokeW, node.borderStyle === 'dashed' ? '5,5' : 'none', shadowFilter, node);
 
   const renderPorts = () => {
     if (!isHovered && !isTargetHovered) return null;
@@ -462,6 +240,7 @@ const DiagramNode = React.memo(({
        onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, node.id)}
     >
       {shape}
+      {renderLabel()}
       {isSelected && React.cloneElement(selectionBound, { style: { pointerEvents: 'none' } })}
       {renderPorts()}
     </g>

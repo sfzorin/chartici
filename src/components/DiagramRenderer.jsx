@@ -936,9 +936,10 @@ export default function DiagramRenderer({
                 return (
                   <g key={`leg-group-${g.id}`} transform={`translate(${legX}, ${legY})`}>
                      {gNodes.map((n, i) => {
-                        const nColor = g.color || n.color || 1;
-                        const fillC = theme.nodes[nColor]?.bg || nColor || '#ccc';
-                        const strokeC = theme.nodes[nColor]?.stroke || nColor || '#999';
+                        const nColor = n.color || g.color || 1;
+                        const isHex = String(nColor).startsWith('#');
+                        const fillC = isHex ? nColor : `var(--color-${nColor})`;
+                        const strokeC = isHex ? 'transparent' : `var(--border-color-${nColor})`;
                         return (
                             <g key={`leg-${n.id}`} transform={`translate(0, ${i * 24})`}>
                                <rect x="0" y="-10" width="16" height="16" rx="4" fill={fillC} stroke={strokeC} strokeWidth="1.5" />

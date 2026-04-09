@@ -6,7 +6,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps."
+    promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps.",
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'oval', 'rhombus', 'text'] }
   },
   sequence: {
     id: 'sequence',
@@ -15,7 +16,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls."
+    promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls.",
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'text'] }
   },
   erd: {
     id: 'erd',
@@ -24,7 +26,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible."
+    promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible.",
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
   },
   radial: {
     id: 'radial',
@@ -33,7 +36,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described. Place the core concept at the center (or as the main node), and radiating sub-concepts pointing outwards."
+    promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described. Place the core concept at the center (or as the main node), and radiating sub-concepts pointing outwards.",
+    engineManifest: { layout: 'radial', edgeStyle: 'straight_clipped', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'] }
   },
   array: {
     id: 'array',
@@ -42,7 +46,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use 'process' nodes to represent sequential elements, queues, or arrays."
+    promptRule: "4. Use 'process' nodes to represent sequential elements, queues, or arrays.",
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
   },
   matrix: {
     id: 'matrix',
@@ -54,7 +59,8 @@ export const DIAGRAM_SCHEMAS = {
     promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
     connectionRules: [
       "process -> process : Allowed across different groups/cells using 'solid'."
-    ]
+    ],
+    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
   },
   timeline: {
     id: 'timeline',
@@ -68,7 +74,8 @@ export const DIAGRAM_SCHEMAS = {
       "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
       "circle/process -> chevron : Use 'solid' or 'dashed' (visible event links)",
       "text -> any : Use 'none' (invisible text binding)"
-    ]
+    ],
+    engineManifest: { layout: 'timeline', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['chevron', 'process', 'circle', 'text'] }
   },
   tree: {
     id: 'tree',
@@ -77,7 +84,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections."
+    promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections.",
+    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'] }
   },
   piechart: {
     id: 'piechart',
@@ -89,7 +97,8 @@ export const DIAGRAM_SCHEMAS = {
     promptRule: "4. Create a single group with 'type':'piechart'. The nodes represent the items inside it, using 'type':'pie_slice' and providing 'id', 'label', and 'value' fields.",
     connectionRules: [
       "Edges MUST NOT be used in piecharts."
-    ]
+    ],
+    engineManifest: { layout: 'piechart', edgeStyle: 'none', isHorizontalFlow: false, nodeTypes: ['pie_slice'] }
   },
   default: {
     id: 'default',
@@ -98,7 +107,8 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described."
+    promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described.",
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'oval', 'rhombus', 'text'] }
   }
 };
 

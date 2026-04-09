@@ -1,12 +1,7 @@
 import { getDiagramRules } from './diagramRules.js';
 import { getNodeDim } from './constants.js';
-import { layoutSugiyamaDAG } from './layouts/layoutSugiyama.js';
-import { layoutRadial } from './layouts/layoutRadial.js';
-import { layoutTimeline } from './layouts/layoutTimeline.js';
-import { layoutMatrix } from './layouts/layoutMatrix.js';
-import { layoutTree } from './layouts/layoutTree.js';
+import { EngineRegistry } from './layouts/engines/EngineRegistry.js';
 import { layoutPiechart } from './layouts/layoutPiechart.js';
-
 export function layoutNodesHeuristically(nodes, edges, config = {}) {
   if (!nodes || nodes.length === 0) return [];
   if (nodes.length === 1) return [{ ...nodes[0], x: 0, y: 0 }];
@@ -17,13 +12,9 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
 
   if (layoutNodes.length === 0) return textNodes;
 
-  // 1. Identify Flow Direction
-  let isHorizontalFlow = false;
-  if (['tree', 'radial', 'piechart'].includes(config.diagramType)) {
-      isHorizontalFlow = false;
-  } else {
-      isHorizontalFlow = true;
-  }
+  const dt = config.diagramType || 'flowchart';
+  const engine = EngineRegistry[dt] || EngineRegistry.flowchart;
+  const isHorizontalFlow = engine.isHorizontalFlow;
 
   // Pre-calculate physical dimensions
   const processedNodes = layoutNodes.map(n => {
@@ -34,7 +25,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
   const layoutNodeIds = new Set(layoutNodes.map(n => String(n.id)));
   const layoutEdges = edges.filter(e => layoutNodeIds.has(String(e.sourceId || e.from)) && layoutNodeIds.has(String(e.targetId || e.to)));
 
-  const layoutRules = getDiagramRules(config.diagramType).layout;
+  const layoutRules = getDiagramRules(dt).layout;
 
   // X. Pre-process piechart groups: collapse them into proxy nodes
   const piechartGroups = (config.groups || []).filter(g => g.type === 'piechart');
@@ -72,33 +63,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
   }
 
   // 2. Delegate to strategy
-  let result;
-  const dt = config.diagramType === 'org_chart' ? 'tree' : config.diagramType;
-  switch (dt) {
-    case 'flowchart':
-        result = layoutSugiyamaDAG(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules, true, dt);
-        break;
-    case 'piechart':
-        result = layoutPiechart(finalProcessedNodes, layoutEdges, layoutRules);
-        break;
-    case 'radial':
-        result = layoutRadial(finalProcessedNodes, layoutEdges, layoutRules);
-        break;
-    case 'timeline':
-        result = layoutTimeline(finalProcessedNodes, layoutEdges, layoutRules, isHorizontalFlow);
-        break;
-    case 'matrix':
-        result = layoutMatrix(finalProcessedNodes, layoutEdges, layoutRules);
-        break;
-    case 'tree':
-        result = layoutTree(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules);
-        break;
-    case 'sequence':
-    case 'erd':
-    default:
-        result = layoutSugiyamaDAG(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules, false, dt);
-        break;
-  }
+  const result = engine.execute(finalProcessedNodes, layoutEdges, layoutRules, isHorizontalFlow);
 
   // 3. Clean up proxy metrics and restore pie slices
   let laidOutResult = [];

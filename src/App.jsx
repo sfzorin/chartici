@@ -101,7 +101,8 @@ function App() {
 
   
   const loadParsedData = (parsed, fallbackName = 'Imported Project') => {
-    const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: parsed.meta?.type || 'flowchart', groups: parsed.groups });
+    const dt = parsed.meta?.type || parsed.config?.diagramType || 'flowchart';
+    const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: dt, groups: parsed.groups });
     const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
       ? parsed.config.theme : 'muted-rainbow';
       

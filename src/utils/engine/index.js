@@ -4,13 +4,21 @@ import { getTrueBox, isBlockedPointCheck, getNodePorts, getClipDist } from './ge
 import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
 import { assignPorts } from './portAssigner.js';
+import { EdgeRoutingRegistry } from './routingEngines.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
   if (!edges || edges.length === 0) return result;
 
-  // Radial: straight lines clipped to node borders (no routing)
-  if (config.diagramType === 'radial') {
+  const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
+  const routingStyle = EdgeRoutingRegistry.getStyle(diagramType);
+
+  if (routingStyle === 'none') {
+      return result; // Edges are hidden natively (e.g. Pie chart)
+  }
+
+  // straight_clipped: straight lines clipped to node borders (no astar routing)
+  if (routingStyle === 'straight_clipped') {
 
     edges.forEach(edge => {
       const fromId = edge.from || edge.sourceId;
@@ -41,18 +49,15 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       let textPathD;
       const isNearVertical = Math.abs(sp.x - ep.x) < Math.abs(sp.y - ep.y);
       if (isNearVertical) {
-        // Vertical: top-to-bottom
         textPathD = sp.y <= ep.y ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
       } else {
-        // Horizontal: left-to-right
         textPathD = sp.x <= ep.x ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
       }
       result[edge.id] = { pathD, textPathD, pts: [sp, ep] };
     });
     return result;
   }
-  // Normalize diagram type: org_chart → tree
-  const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
+  
   const { layout: layoutRules, routing: routingRules } = getDiagramRules(diagramType);
   const PADDING = routingRules.PADDING;
   const ctx = new RoutingContext(edges, allNodes, false, draggedNodeId, routingRules, diagramType);
