@@ -67,6 +67,18 @@ The objective is to calculate `(x, y)` for all nodes to minimize intersections.
 #### 7. Matrix / Grid
 - **Layout:** Sorted by `groupId`. Modules are clustered into `ceil(√N) × ceil(√M)` cells. Groups receive SVG bounding frames.
 
+#### 8. Array
+- **Layout:** Standard Sugiyama DAG (Dagre) without the constraints of a Happy Path. Nodes naturally flow linearly from left-to-right due to graph connectedness.
+- **Edges:** Orthogonal. Suitable for visualizing tight buffers or sequential access memory logic.
+
+#### 9. Pie Chart
+- **Layout:** A deterministic custom script (`layoutPiechart`). Ignores grid snaps entirely.
+  - Nodes are strictly grouped together into a single center point.
+  - Nodes are sorted by `value` (or `size` mapping) in descending order to render largest slices first at the 12 o'clock position (Math.PI / 2).
+  - Sizes are forcefully globally unified to `size="M"` during layout to ensure label formatting consistency.
+  - Colors are uniformly mathematically assigned (1-9 ranking) via index.
+- **Edges:** No edges or routing allowed. Topology logic operates purely on node properties.
+
 ---
 
 ## STAGE 2. Port Assignment (Port Assigner)
