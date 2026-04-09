@@ -105,10 +105,8 @@ const iconPaths = {
   ),
   'layout-timeline': (
     <>
-      <line x1="3" y1="12" x2="21" y2="12" strokeWidth="1.5" />
-      <polygon points="18 9 21 12 18 15" fill="currentColor" stroke="none" />
-      <circle cx="8" cy="12" r="2" fill="currentColor" />
-      <circle cx="14" cy="12" r="2" fill="currentColor" />
+      <polygon points="2,8 9,8 12,12 9,16 2,16 5,12" strokeWidth="1.5" strokeLinejoin="round" />
+      <polygon points="11,8 18,8 21,12 18,16 11,16 14,12" strokeWidth="1.5" strokeLinejoin="round" />
     </>
   ),
   'layout-tree': (
