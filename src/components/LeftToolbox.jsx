@@ -161,6 +161,12 @@ export default function LeftToolbox({
              <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
              <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
              <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
+             {diagramType === 'timeline' && (
+                 <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>
+             )}
+             {diagramType === 'piechart' && (
+                 <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>
+             )}
           </div>
         </PopoverMenu>
 
@@ -182,6 +188,12 @@ export default function LeftToolbox({
                    <button className={nContext.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
                    <button className={nContext.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
                    <button className={nContext.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
+                   {diagramType === 'timeline' && (
+                       <button className={nContext.type === 'chevron' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>
+                   )}
+                   {diagramType === 'piechart' && (
+                       <button className={nContext.type === 'pie_slice' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>
+                   )}
                 </div>
               </PopoverMenu>
             </div>

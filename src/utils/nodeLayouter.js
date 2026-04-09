@@ -5,6 +5,7 @@ import { layoutRadial } from './layouts/layoutRadial.js';
 import { layoutTimeline } from './layouts/layoutTimeline.js';
 import { layoutMatrix } from './layouts/layoutMatrix.js';
 import { layoutTree } from './layouts/layoutTree.js';
+import { layoutPiechart } from './layouts/layoutPiechart.js';
 
 export function layoutNodesHeuristically(nodes, edges, config = {}) {
   if (!nodes || nodes.length === 0) return [];
@@ -18,7 +19,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
 
   // 1. Identify Flow Direction
   let isHorizontalFlow = false;
-  if (['tree', 'radial'].includes(config.diagramType)) {
+  if (['tree', 'radial', 'piechart'].includes(config.diagramType)) {
       isHorizontalFlow = false;
   } else {
       isHorizontalFlow = true;
@@ -41,6 +42,9 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
   switch (dt) {
     case 'flowchart':
         result = layoutSugiyamaDAG(processedNodes, layoutEdges, isHorizontalFlow, layoutRules, true, dt);
+        break;
+    case 'piechart':
+        result = layoutPiechart(processedNodes, layoutEdges, layoutRules);
         break;
     case 'radial':
         result = layoutRadial(processedNodes, layoutEdges, layoutRules);

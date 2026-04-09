@@ -127,6 +127,9 @@ const DiagramNode = React.memo(({
     textMaxHeight = NODE_HEIGHT * 0.85;
   } else if (node.type === 'oval') {
     textMaxWidth = NODE_WIDTH - Math.min(NODE_WIDTH, NODE_HEIGHT) * 0.5;
+  } else if (node.type === 'pie_slice') {
+    textMaxWidth = (Math.min(NODE_WIDTH, NODE_HEIGHT) / 2) * 0.6;
+    textMaxHeight = textMaxWidth;
   }
 
   const renderLabel = (precomputedWrap = null) => {
@@ -222,6 +225,49 @@ const DiagramNode = React.memo(({
           <g>
             <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} />
             {renderLabel()}
+          </g>
+        );
+      }
+      break;
+    case 'pie_slice':
+      {
+        const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
+        const cx = NODE_WIDTH / 2;
+        const cy = NODE_HEIGHT / 2;
+        const startRaw = node.pieStartAngle || 0;
+        const endRaw = node.pieEndAngle || Math.PI * 2;
+        
+        // Shift by -90 deg so the pie starts at 12 o'clock, which is standard
+        const start = startRaw - Math.PI / 2;
+        const end = endRaw - Math.PI / 2;
+        
+        const x1 = cx + r * Math.cos(start);
+        const y1 = cy + r * Math.sin(start);
+        const x2 = cx + r * Math.cos(end);
+        const y2 = cy + r * Math.sin(end);
+        
+        const largeArcFlag = end - start <= Math.PI ? "0" : "1";
+        
+        let d = '';
+        if (endRaw - startRaw >= Math.PI * 2 - 0.001) {
+            // Full 360 circle
+            d = `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
+        } else {
+            // Standard arc
+            d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        }
+
+        const midAngle = start + (end - start) / 2;
+        const textR = r * 0.65; // Place text inside at 65% of radius
+        const textX = cx + textR * Math.cos(midAngle);
+        const textY = cy + textR * Math.sin(midAngle);
+
+        shape = (
+          <g>
+            <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
+            <g transform={`translate(${textX - cx}, ${textY - cy})`}>
+                {renderLabel()}
+            </g>
           </g>
         );
       }

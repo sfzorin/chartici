@@ -105,7 +105,8 @@ export const DIAGRAM_TYPES = [
   { id: 'erd', name: 'Entity-Relationship', enforceVertical: false },
   { id: 'radial', name: 'Radial / Mind Map', enforceVertical: false },
   { id: 'timeline', name: 'Timeline', enforceVertical: false },
-  { id: 'matrix', name: 'Matrix / Grid', enforceVertical: false }
+  { id: 'matrix', name: 'Matrix / Grid', enforceVertical: false },
+  { id: 'piechart', name: 'Pie Chart', enforceVertical: false }
 ];
 
 export const DEFAULT_SIZE = "M";

@@ -11,6 +11,7 @@ AVAILABLE DIAGRAM TYPES:
 6. matrix: grid-like comparisons, or categorization into distinct cluster zones/cells (e.g. SWOT, Eisenhower, 3x3 grids).
 7. timeline: events plotted on a generic chronological spine.
 8. tree: strict hierarchical org-charts or breakdowns.
+9. piechart: breakdown of items into proportional circular slices.
 
 Output EXACTLY three XML tags:
 <title>Concise title for the diagram</title>
@@ -39,8 +40,8 @@ export function getSystemPromptPhase2(diagramType) {
       specificRules = "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'rect' for regular steps.";
       break;
     case 'timeline':
-      allowedTypes = "rect, circle";
-      specificRules = "4. Use 'rect' node type for the central chronological spine periods. Use 'circle' for specific events attached to the spine.";
+      allowedTypes = "rect, circle, chevron";
+      specificRules = "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'rect' for specific events attached to the spine.";
       break;
     case 'erd':
       allowedTypes = "rect";
@@ -60,6 +61,11 @@ export function getSystemPromptPhase2(diagramType) {
     case 'matrix':
       allowedTypes = "rect";
       specificRules = "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group.";
+      break;
+    case 'piechart':
+      allowedTypes = "pie_slice";
+      specificRules = "4. Use a single group. Nodes represent slices. Use 'size' strictly to indicate relative proportion (e.g., XL for largest slice, XS for smallest). Edges are generally unnecessary.";
+      includeEdgeLabel = false;
       break;
     default:
       allowedTypes = "rect, circle";
