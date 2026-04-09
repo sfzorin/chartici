@@ -326,7 +326,7 @@ const DiagramNode = React.memo(({
 
         shape = (
           <g>
-            <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
+            <path d={d} fill={panelFill} stroke="var(--canvas-bg)" strokeWidth={2} strokeLinejoin="round" />
             {calloutLine}
             {labelGroup}
           </g>
