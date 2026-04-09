@@ -112,7 +112,7 @@ app.post('/api/generate', async (req, res) => {
           model,
           temperature: temperature ?? 0.3,
           messages,
-          response_format: { type: 'json_object' },
+          ...(req.body.response_format ? { response_format: req.body.response_format } : {}),
         }),
         signal: controller.signal,
       });

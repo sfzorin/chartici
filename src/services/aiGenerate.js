@@ -1,64 +1,89 @@
-import userGuideContent from '../assets/user_guide.md?raw';
+import { SYSTEM_PROMPT_PHASE_1, SYSTEM_PROMPT_PHASE_2 } from '../assets/systemPrompts';
 
 /**
- * Builds the full messages array for the Moonshot API.
- * All prompt logic lives here on the frontend — backend is a dumb proxy.
+ * Helper to call the Moonshot API proxy
  */
-
-const SYSTEM_PROMPT = `You are a Chartici diagram generator. The user describes a diagram in natural language, you return ONLY valid JSON in the .cci format. No text, no explanations, no markdown — just pure JSON.
-
-<CCI FORMAT SPECIFICATION>
-${userGuideContent}
-</CCI FORMAT SPECIFICATION>
-
-RULES:
-1. Always return a complete .cci JSON with fields: title, aspect, diagramType, theme, data.groups, data.edges
-2. Choose the correct diagramType based on the user's request
-3. Every node must have a unique id (use snake_case with a numeric suffix, e.g. "api_gateway_1")
-4. Every sourceId and targetId in edges must reference an existing node id
-5. Use color integers from 1 to 9 only
-6. Choose size based on diagram density: XS/S for dense diagrams, L/XL for simple ones
-7. Node labels: short and concise (1-3 words)
-8. Edge labels: even shorter (1-2 words, verb)
-9. Group related nodes into one group with shared color and type
-10. For ERD use connectionType with crow's foot notation (1:N, N:M, etc.)
-11. For timeline use rect for spine nodes and circle for event bubbles
-12. Use a fitting theme from the available list based on the diagram's subject
-13. Default to aspect "16:9" unless the user requests something specific
-14. If the user writes in a non-English language, use that language for all labels and the title`;
-
-export function buildMessages(userPrompt) {
-  return [
-    { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: userPrompt }
-  ];
-}
-
-/**
- * Calls the backend proxy which forwards to Moonshot API.
- * Returns { success, cci } or { success, error }.
- */
-export async function generateDiagram(userPrompt) {
-  const messages = buildMessages(userPrompt);
-
+async function callMoonshot(messages) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages,
       model: 'moonshot-v1-128k',
-      temperature: 0.3
+      temperature: messages[0].content === SYSTEM_PROMPT_PHASE_2 ? 0.1 : 0.3,
+      ...(messages[0].content === SYSTEM_PROMPT_PHASE_2 ? { response_format: { type: 'json_object' } } : {})
     })
   });
+  return res.json();
+}
 
-  const data = await res.json();
+/**
+ * Saves the last 10 Phase 1 results to localStorage for debugging
+ */
+function savePhase1Log(userInput, title, type, promptStr, rawResponse) {
+  try {
+    const logs = JSON.parse(localStorage.getItem('phase1_logs') || '[]');
+    logs.unshift({
+      timestamp: new Date().toISOString(),
+      userInput,
+      title,
+      type,
+      promptStr,
+      rawResponse
+    });
+    if (logs.length > 10) logs.length = 10;
+    localStorage.setItem('phase1_logs', JSON.stringify(logs));
+  } catch (e) {
+    console.error('Failed to save phase1 log', e);
+  }
+}
 
-  if (!data.success) {
-    return { success: false, error: data.error || 'Unknown error' };
+export async function planDiagram(userPrompt) {
+  // ----------------------------------------------------
+  // PHASE 1: Planning and Prompt Expansion
+  // ----------------------------------------------------
+  const phase1Messages = [
+    { role: 'system', content: SYSTEM_PROMPT_PHASE_1 },
+    { role: 'user', content: userPrompt }
+  ];
+
+  const phase1Data = await callMoonshot(phase1Messages);
+  if (!phase1Data.success) {
+    return { success: false, error: phase1Data.error || 'Unknown error in Phase 1' };
   }
 
-  // Parse the raw content from Kimi
-  const rawContent = data.content;
+  const p1Content = phase1Data.content;
+  
+  // Extract XML tags safely
+  const titleMatch = p1Content.match(/<title>([\s\S]*?)<\/title>/i);
+  const typeMatch = p1Content.match(/<type>([\s\S]*?)<\/type>/i);
+  const promptMatch = p1Content.match(/<prompt>([\s\S]*?)<\/prompt>/i);
+
+  const title = titleMatch ? titleMatch[1].trim() : 'Generated Diagram';
+  const diagramType = typeMatch ? typeMatch[1].trim().toLowerCase() : 'flowchart';
+  const extendedPrompt = promptMatch ? promptMatch[1].trim() : p1Content;
+
+  // Log phase 1 output for debugging
+  savePhase1Log(userPrompt, title, diagramType, extendedPrompt, p1Content);
+
+  return { success: true, title, diagramType, extendedPrompt };
+}
+
+export async function buildDiagram(title, diagramType, extendedPrompt) {
+  // ----------------------------------------------------
+  // PHASE 2: JSON Generation
+  // ----------------------------------------------------
+  const phase2Messages = [
+    { role: 'system', content: SYSTEM_PROMPT_PHASE_2 },
+    { role: 'user', content: extendedPrompt }
+  ];
+
+  const phase2Data = await callMoonshot(phase2Messages);
+  if (!phase2Data.success) {
+    return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
+  }
+
+  const rawContent = phase2Data.content;
   let parsed;
 
   try {
@@ -66,21 +91,37 @@ export async function generateDiagram(userPrompt) {
     parsed = JSON.parse(rawContent);
   } catch {
     // Try extracting from markdown code block
-    const match = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const match = rawContent.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/);
     if (match) {
       try {
         parsed = JSON.parse(match[1].trim());
       } catch {
-        return { success: false, error: 'AI returned invalid JSON' };
+        return { success: false, error: 'AI returned invalid JSON in Phase 2' };
       }
     } else {
-      return { success: false, error: 'AI returned invalid JSON' };
+      return { success: false, error: 'AI returned invalid JSON in Phase 2' };
     }
   }
 
   // Basic validation
   if (!parsed.data || !parsed.data.groups || !parsed.data.edges) {
     return { success: false, error: 'AI returned incomplete diagram data' };
+  }
+
+  // Inject the title and diagramType calculated in Phase 1
+  parsed.title = title;
+  parsed.diagramType = diagramType;
+  parsed.aspect = '16:9';
+
+  // Assign a random theme
+  const THEMES = [
+    'muted-rainbow', 'vibrant-rainbow', 'grey', 'red', 'green', 'blue', 
+    'brown', 'purple', 'blue-orange', 'green-purple', 'slate-rose', 'blue-teal-slate'
+  ];
+  if (!parsed.theme) {
+    parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  } else {
+    parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
   }
 
   return { success: true, cci: parsed };
