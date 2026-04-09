@@ -28,50 +28,15 @@ Be highly descriptive about the structure and logic so a code-generator can buil
 You may use a <thinking> section inside the <prompt> to outline the concept first.
 </prompt>`;
 
-export function getSystemPromptPhase2(diagramType) {
-  let specificRules = "";
-  let allowedTypes = "";
-  let allowedConnectionTypes = "target, both, none";
-  let includeEdgeLabel = true;
+import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
-  switch (diagramType.toLowerCase()) {
-    case 'flowchart':
-      allowedTypes = "rect, rhombus, oval";
-      specificRules = "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'rect' for regular steps.";
-      break;
-    case 'timeline':
-      allowedTypes = "rect, circle, chevron";
-      specificRules = "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'rect' for specific events attached to the spine.";
-      break;
-    case 'erd':
-      allowedTypes = "rect";
-      allowedConnectionTypes = "target, both, none, 1:1, 1:N, N:1, N:M";
-      specificRules = "4. Use 'connectionType' selectively. For standard arrows use target/none, but for entity relationships use standard ERD notations: '1:1', '1:N', 'N:1', 'N:M'.";
-      break;
-    case 'tree':
-    case 'radial':
-      allowedTypes = "rect, circle";
-      specificRules = "4. Edges should logically flow parent-to-child. Avoid circular connections where possible.";
-      includeEdgeLabel = false;
-      break;
-    case 'sequence':
-      allowedTypes = "rect";
-      specificRules = "4. Group nodes by actor/system. Edges represent chronological sequential messages between actors.";
-      break;
-    case 'matrix':
-      allowedTypes = "rect";
-      specificRules = "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group.";
-      break;
-    case 'piechart':
-      allowedTypes = "pie_slice";
-      specificRules = "4. Use a single group. Nodes represent slices. Use 'size' strictly to indicate relative proportion (e.g., XL for largest slice, XS for smallest). Edges are generally unnecessary.";
-      includeEdgeLabel = false;
-      break;
-    default:
-      allowedTypes = "rect, circle";
-      specificRules = "4. Choose node 'size' and 'lineStyle' that best represent the logic described.";
-      break;
-  }
+export function getSystemPromptPhase2(diagramType) {
+  const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
+  const allowedTypes = schema.allowedNodes.join(', ');
+  const allowedConnectionTypes = schema.features.allowConnections ? "target, both, reverse, none" + (diagramType.toLowerCase() === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none";
+  const specificRules = schema.promptRule || "";
+  const includeEdgeLabel = schema.features.allowConnections;
+  const hasNodeValue = schema.features.hasNodeValue;
 
   return `You are a strict JSON generator.
 The user will provide a detailed architectural specification for a diagram of type: ${diagramType.toUpperCase()}.
@@ -89,7 +54,7 @@ FORMAT SPECIFICATION:
         "type": "rect",
         "size": "L",
         "nodes": [
-          { "id": "node_1", "label": "Short label" }
+          { "id": "node_1", "label": "Short label"${hasNodeValue ? ', "value": 25' : ''} }
         ]
       }
     ],

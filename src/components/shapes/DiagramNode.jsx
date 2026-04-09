@@ -258,16 +258,77 @@ const DiagramNode = React.memo(({
         }
 
         const midAngle = start + (end - start) / 2;
-        const textR = r * 0.65; // Place text inside at 65% of radius
-        const textX = cx + textR * Math.cos(midAngle);
-        const textY = cy + textR * Math.sin(midAngle);
+        const angleDiff = endRaw - startRaw;
+        const isThin = angleDiff < 0.26; // ~15 degrees
+        
+        let calloutLine = null;
+        let labelGroup = null;
+        
+        const rawLabel = String(node.label || '');
+        const valText = (node.value !== undefined && node.value !== null) ? `${node.value}` : '';
+        const hasText = rawLabel || valText;
+        
+        if (hasText && !isTransp) {
+            if (isThin) {
+                // Callout Line
+                const rEdge = r * 0.95; 
+                const rOut = r * 1.08; 
+                const startX = cx + rEdge * Math.cos(midAngle);
+                const startY = cy + rEdge * Math.sin(midAngle);
+                const midX = cx + rOut * Math.cos(midAngle);
+                const midY = cy + rOut * Math.sin(midAngle);
+                
+                const isRight = Math.cos(midAngle) >= 0;
+                const endX = isRight ? midX + 25 : midX - 25;
+                
+                calloutLine = <path d={`M ${startX} ${startY} L ${midX} ${midY} L ${endX} ${midY}`} fill="none" stroke="var(--color-text-main)" strokeWidth="1" strokeOpacity="0.5" />;
+                
+                const combinedStr = rawLabel && valText ? `${rawLabel} (${valText})` : (rawLabel || valText);
+                labelGroup = (
+                   <text 
+                     x={isRight ? endX + 6 : endX - 6}
+                     y={midY}
+                     fill="var(--diagram-text)"
+                     fontSize={12}
+                     fontWeight="600"
+                     textAnchor={isRight ? "start" : "end"}
+                     dominantBaseline="central"
+                   >{combinedStr}</text>
+                );
+            } else {
+                // Render inside
+                const textR = r * 0.65;
+                const textX = cx + textR * Math.cos(midAngle);
+                const textY = cy + textR * Math.sin(midAngle);
+                
+                labelGroup = (
+                   <g transform={`translate(${textX}, ${textY})`}>
+                       {rawLabel && (
+                           <text 
+                             x="0" y={valText ? "-8" : "0"} 
+                             textAnchor="middle" dominantBaseline="central"
+                             fill={textColor} fontSize="13" fontWeight={fontWeight} fontStyle={fontStyle}
+                             style={{ pointerEvents: 'none', userSelect: 'none' }}
+                           >{rawLabel}</text>
+                       )}
+                       {valText && (
+                           <text 
+                             x="0" y={rawLabel ? "8" : "0"} 
+                             textAnchor="middle" dominantBaseline="central"
+                             fill={textColor} fontSize="14" fontWeight="800"
+                             style={{ pointerEvents: 'none', userSelect: 'none' }}
+                           >{valText}</text>
+                       )}
+                   </g>
+                );
+            }
+        }
 
         shape = (
           <g>
             <path d={d} fill={panelFill} stroke={strokeColor} strokeWidth={strokeW} strokeLinejoin="round" />
-            <g transform={`translate(${textX - cx}, ${textY - cy})`}>
-                {renderLabel()}
-            </g>
+            {calloutLine}
+            {labelGroup}
           </g>
         );
       }

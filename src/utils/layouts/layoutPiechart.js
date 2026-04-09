@@ -4,9 +4,16 @@ export function layoutPiechart(nodes, edges, layoutRules) {
   // Calculate total size to distribute angles
   let totalSize = 0;
   const processedNodes = nodes.map(n => {
-    // Map semantic sizes to relative area weights
-    const sizeMap = { 'XS': 1, 'S': 2, 'M': 4, 'L': 8, 'XL': 12 };
-    const val = sizeMap[n.size] || 4; // Default to M
+    let val = 1; // Default
+    if (n.value !== undefined && n.value !== null && !isNaN(Number(n.value))) {
+        val = Number(n.value);
+    } else {
+        // Fallback to legacy string sizing
+        const sizeMap = { 'XS': 1, 'S': 2, 'M': 4, 'L': 8, 'XL': 12 };
+        val = sizeMap[n.size] || 1;
+    }
+    
+    val = Math.max(val, 0); // prevent negative pie slices
     totalSize += val;
     return { ...n, pieVal: val };
   });

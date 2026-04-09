@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PALETTES, DIAGRAM_TYPES } from '../utils/constants';
 import { useNodeGroup } from '../hooks/useNodeGroup';
 import { getGroupId } from '../utils/groupUtils';
+import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import Icon from './Icons';
 
 // --- Popover helper component ---
@@ -127,10 +128,11 @@ export default function LeftToolbox({
 
   const isShapeToolActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
   const isSizeColorToolActive = !!selectedNode;
-  const isEdgeToolActive = !!selectedEdge;
+  const diagramSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const isEdgeToolActive = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
   const isLockActive = !!selectedNode && selectedNode.type !== 'text' && selectedNode.id !== '__SYSTEM_TITLE__';
-  const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
+  const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.allowConnections;
   const isTrashActive = !!(selectedNode || selectedEdge);
 
   const matchedGroup = groupsList?.find(g => g.id === getGroupId(nContext));
@@ -156,17 +158,13 @@ export default function LeftToolbox({
         <PopoverMenu isOpen={activePopover === 'add'} onClose={() => setActivePopover(null)} anchorRef={addBtnRef}>
           <div className="popover-title">Create Node</div>
           <div className="popover-grid">
-             <button onClick={() => { onAddNode('process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>
-             <button onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>
-             <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
-             <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
-             <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
-             {diagramType === 'timeline' && (
-                 <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>
-             )}
-             {diagramType === 'piechart' && (
-                 <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>
-             )}
+             {diagramSchema.allowedNodes.includes('process') && <button onClick={() => { onAddNode('process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>}
+             {diagramSchema.allowedNodes.includes('circle') && <button onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>}
+             {diagramSchema.allowedNodes.includes('oval') && <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
+             {diagramSchema.allowedNodes.includes('rhombus') && <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
+             {diagramSchema.allowedNodes.includes('text') && <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>}
+             {diagramSchema.allowedNodes.includes('chevron') && <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>}
+             {diagramSchema.allowedNodes.includes('pie_slice') && <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>}
           </div>
         </PopoverMenu>
 
@@ -183,17 +181,13 @@ export default function LeftToolbox({
               <PopoverMenu isOpen={activePopover === 'shape'} onClose={() => setActivePopover(null)} anchorRef={shapeBtnRef}>
                 <div className="popover-title">Shape Type</div>
                 <div className="popover-list">
-                   <button className={nContext.type === 'process' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>
-                   <button className={nContext.type === 'circle' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>
-                   <button className={nContext.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>
-                   <button className={nContext.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>
-                   <button className={nContext.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
-                   {diagramType === 'timeline' && (
-                       <button className={nContext.type === 'chevron' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>
-                   )}
-                   {diagramType === 'piechart' && (
-                       <button className={nContext.type === 'pie_slice' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>
-                   )}
+                   {diagramSchema.allowedNodes.includes('process') && <button className={nContext.type === 'process' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>}
+                   {diagramSchema.allowedNodes.includes('circle') && <button className={nContext.type === 'circle' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>}
+                   {diagramSchema.allowedNodes.includes('oval') && <button className={nContext.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
+                   {diagramSchema.allowedNodes.includes('rhombus') && <button className={nContext.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
+                   {diagramSchema.allowedNodes.includes('text') && <button className={nContext.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>}
+                   {diagramSchema.allowedNodes.includes('chevron') && <button className={nContext.type === 'chevron' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>}
+                   {diagramSchema.allowedNodes.includes('pie_slice') && <button className={nContext.type === 'pie_slice' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>}
                 </div>
               </PopoverMenu>
             </div>
@@ -510,6 +504,18 @@ export default function LeftToolbox({
                     }}
                     onKeyDown={e => { if (e.key === 'Enter') setActivePopover(null); }}
                  />
+                 {selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.hasNodeValue && (
+                    <div style={{ marginTop: '12px' }}>
+                       <div className="popover-title" style={{ padding: '0 0 6px 0' }}>Value (Number)</div>
+                       <input 
+                          className="popover-input" 
+                          type="number" 
+                          placeholder="e.g. 25" 
+                          value={selectedNode.value || ''} 
+                          onChange={e => updateSelectedNode('value', e.target.value ? Number(e.target.value) : undefined)}
+                       />
+                    </div>
+                 )}
               </div>
             </PopoverMenu>
           </div>
