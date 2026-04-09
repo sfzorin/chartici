@@ -52,11 +52,80 @@ const iconPaths = {
       <line x1="8" y1="14" x2="16" y2="14" strokeWidth="1.5" />
     </>
   ),
-  'layout-type': (
+  'layout-flowchart': (
     <>
       <rect x="4" y="4" width="6" height="6" rx="1.5" strokeWidth="1.5" />
       <rect x="14" y="14" width="6" height="6" rx="1.5" strokeWidth="1.5" />
       <line x1="10" y1="10" x2="14" y2="14" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-sequence': (
+    <>
+      <line x1="8" y1="4" x2="8" y2="20" strokeWidth="1.5" />
+      <line x1="16" y1="4" x2="16" y2="20" strokeWidth="1.5" />
+      <line x1="8" y1="12" x2="16" y2="12" strokeWidth="1.5" strokeDasharray="2 2" />
+      <polygon points="14 10 16 12 14 14" fill="currentColor" stroke="none" />
+    </>
+  ),
+  'layout-erd': (
+    <>
+      <rect x="3" y="10" width="4" height="4" strokeWidth="1.5" />
+      <rect x="10" y="4" width="4" height="4" strokeWidth="1.5" />
+      <rect x="17" y="10" width="4" height="4" strokeWidth="1.5" />
+      <line x1="7" y1="12" x2="17" y2="12" strokeWidth="1.5" />
+      <line x1="12" y1="8" x2="12" y2="12" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-radial': (
+    <>
+      <circle cx="12" cy="12" r="3" strokeWidth="1.5" />
+      <circle cx="12" cy="4" r="1.5" strokeWidth="1.5" />
+      <circle cx="12" cy="20" r="1.5" strokeWidth="1.5" />
+      <circle cx="4" cy="12" r="1.5" strokeWidth="1.5" />
+      <circle cx="20" cy="12" r="1.5" strokeWidth="1.5" />
+      <line x1="12" y1="7" x2="12" y2="9" strokeWidth="1.5" />
+      <line x1="12" y1="15" x2="12" y2="17" strokeWidth="1.5" />
+      <line x1="7" y1="12" x2="9" y2="12" strokeWidth="1.5" />
+      <line x1="15" y1="12" x2="17" y2="12" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-array': (
+    <>
+      <rect x="4" y="8" width="16" height="8" rx="1" strokeWidth="1.5" />
+      <line x1="9" y1="8" x2="9" y2="16" strokeWidth="1.5" />
+      <line x1="14" y1="8" x2="14" y2="16" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-matrix': (
+    <>
+      <rect x="4" y="4" width="16" height="16" rx="1" strokeWidth="1.5" />
+      <line x1="12" y1="4" x2="12" y2="20" strokeWidth="1.5" />
+      <line x1="4" y1="12" x2="20" y2="12" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-timeline': (
+    <>
+      <line x1="3" y1="12" x2="21" y2="12" strokeWidth="1.5" />
+      <polygon points="18 9 21 12 18 15" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="12" r="2" fill="currentColor" />
+      <circle cx="14" cy="12" r="2" fill="currentColor" />
+    </>
+  ),
+  'layout-tree': (
+    <>
+      <rect x="10" y="3" width="4" height="4" strokeWidth="1.5" />
+      <rect x="4" y="15" width="4" height="4" strokeWidth="1.5" />
+      <rect x="16" y="15" width="4" height="4" strokeWidth="1.5" />
+      <line x1="12" y1="7" x2="12" y2="11" strokeWidth="1.5" />
+      <line x1="6" y1="11" x2="18" y2="11" strokeWidth="1.5" />
+      <line x1="6" y1="11" x2="6" y2="15" strokeWidth="1.5" />
+      <line x1="18" y1="11" x2="18" y2="15" strokeWidth="1.5" />
+    </>
+  ),
+  'layout-piechart': (
+    <>
+      <circle cx="12" cy="12" r="8" strokeWidth="1.5" />
+      <path d="M12 12 L12 4 A 8 8 0 0 1 19 8 Z" fill="currentColor" stroke="none" />
     </>
   ),
   'size': (

@@ -137,6 +137,8 @@ export default function LeftToolbox({
   const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.allowConnections;
   const isTrashActive = !!(selectedNode || selectedEdge);
 
+  const isAddDisabled = diagramType === 'piechart' && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= 9;
+
   const matchedGroup = groupsList?.find(g => g.id === getGroupId(nContext));
   const isOutlined = matchedGroup?.outlined || false;
 
@@ -150,9 +152,9 @@ export default function LeftToolbox({
         <button 
           ref={addBtnRef}
           className="toolbox-btn" 
-          style={{ background: '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none' }}
+          style={{ background: isAddDisabled ? '#888' : '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none', opacity: isAddDisabled ? 0.3 : 1, pointerEvents: isAddDisabled ? 'none' : 'auto' }}
           onClick={() => togglePopover('add')}
-          data-tooltip="Add New Element"
+          data-tooltip={isAddDisabled ? "Max 9 slices reached" : "Add New Element"}
         >
           <Icon name="plus" size={24} />
         </button>
@@ -506,38 +508,23 @@ export default function LeftToolbox({
                     }}
                     onKeyDown={e => { if (e.key === 'Enter') setActivePopover(null); }}
                  />
+                 
+                 {selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.hasNodeValue && (
+                    <div style={{ marginTop: '12px' }}>
+                       <div className="popover-title" style={{ padding: '0 0 6px 0' }}>Value (Number)</div>
+                       <input 
+                          className="popover-input" 
+                          type="number" 
+                          placeholder="e.g. 25" 
+                          value={selectedNode.value !== undefined ? selectedNode.value : ''} 
+                          onChange={e => updateSelectedNode('value', e.target.value !== '' ? Number(e.target.value) : undefined)}
+                       />
+                    </div>
+                 )}
               </div>
             </PopoverMenu>
           </div>
 
-          {/* Direct Value Input */}
-          {selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.hasNodeValue && (
-            <div className="toolbox-section" style={{ ...getStyle(true), marginTop: '8px' }}>
-              <div 
-                  data-tooltip="Node Value (Number)" 
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-              >
-                  <input 
-                      type="number" 
-                      placeholder="Val"
-                      style={{ 
-                          width: '40px', height: '36px', 
-                          textAlign: 'center', 
-                          background: 'transparent', 
-                          border: '1.5px solid var(--color-text-dim, #64748b)', 
-                          color: 'var(--color-text-main)', 
-                          borderRadius: '8px', 
-                          fontSize: '13px',
-                          fontWeight: 'bold',
-                          padding: '0'
-                      }}
-                      value={selectedNode.value !== undefined ? selectedNode.value : ''}
-                      onChange={e => updateSelectedNode('value', e.target.value !== '' ? Number(e.target.value) : undefined)}
-                  />
-                  <div style={{ fontSize: '9px', color: 'var(--color-text-dim, #64748b)', marginTop: '4px', fontWeight: 'bold', letterSpacing: '0.5px' }}>VALUE</div>
-              </div>
-            </div>
-          )}
 
           {/* Lock Pos */}
           <div style={getStyle(isLockActive)}>
