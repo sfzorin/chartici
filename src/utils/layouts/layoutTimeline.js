@@ -157,23 +157,35 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
        }
     }
     
-    // Подгоняем микро и макро зазоры так, чтобы (wBase + cut + gap) всегда давало кратное 20!
-    // XS: 80 + 10 = 90.   +30 = 120 (Micro), +50 = 140 (Macro)
-    // S:  120 + 15 = 135. +25 = 160 (Micro), +45 = 180 (Macro)
-    // M:  160 + 20 = 180. +20 = 200 (Micro), +40 = 220 (Macro)
-    // L:  240 + 30 = 270. +50 = 320 (Micro), +90 = 360 (Macro)
-    // XL: 320 + 40 = 360. +40 = 400 (Micro), +80 = 440 (Macro)
-    const microGapMap = { 'XS': 30, 'S': 25, 'M': 20, 'L': 50, 'XL': 40 };
-    const macroGapMap = { 'XS': 50, 'S': 45, 'M': 40, 'L': 90, 'XL': 80 };
+    const sizeValues = { 'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5 };
+    const myTier = sizeValues[size] || 3;
+    let nextTier = 0;
     
-    if (isSameGroup) {
-        gapForStep = microGapMap[size] || 20;
-    } else {
-        gapForStep = macroGapMap[size] || 40;
+    if (i < spineNodesTemp.length - 1) {
+       const nextId = spineNodesTemp[i+1];
+       const nextN = nodeMap.get(nextId);
+       if (nextN) {
+           nextTier = sizeValues[nextN.size || 'M'] || 3;
+       }
     }
+    
+    // Rule: gap is based on the rules of the larger of the two adjacent chevrons
+    const effectiveTier = Math.max(myTier, nextTier);
+    const cut = hBase * 0.25;
+    
+    let baseGapLevel;
+    if (effectiveTier >= 4) { // L, XL
+        baseGapLevel = isSameGroup ? 40 : 80;
+    } else { // XS, S, M
+        baseGapLevel = isSameGroup ? 20 : 40;
+    }
+    
+    // Find the next perfect 20px grid snap that satisfies the minimum base gap requirement
+    const requiredTotalStep = wBase + cut + baseGapLevel;
+    const snappedTotalStep = Math.ceil(requiredTotalStep / 20) * 20;
+    gapForStep = snappedTotalStep - (wBase + cut);
 
     // Шаг до следующего узла...
-    const cut = hBase * 0.25;
     currentLeftEdge += wBase + cut + gapForStep;
   });
 
