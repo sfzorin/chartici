@@ -53,8 +53,9 @@ Follow these rules:
 ${specificRules}${connectionRulesStr}
 6. "LineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden.
 7. "ConnectionType" must be one of: ${allowedConnectionTypes}.
-8. Use the exact columns specified below. If a group is not needed, leave the "Group" column empty or write "-".
-9. Use the user's language for all labels.
+8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".
+9. "Size" and "Type" are properties of the GROUP, not the individual node. Specify them in the group heading exactly as shown below: "### Group: [Label] | Size: [size] | Type: [type]".
+10. Use the user's language for all labels.
 
 Use this EXACT format:
 <thinking>
@@ -62,10 +63,17 @@ Use this EXACT format:
 </thinking>
 
 # Nodes
-| Group | ID | Label | Size | Type |${hasNodeValue ? ' Value |' : ''}
-|---|---|---|---|---|${hasNodeValue ? '---|' : ''}
-| Backend | srv_1 | API Server | M | rect |${hasNodeValue ? ' 25 |' : ''}
-| Backend | db_1 | Database | L | cylinder |${hasNodeValue ? ' 50 |' : ''}
+
+### Group: Backend | Size: M | Type: rect
+| ID | Label |${hasNodeValue ? ' Value |' : ''}
+|---|---|${hasNodeValue ? '---|' : ''}
+| srv_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
+| db_1 | Database |${hasNodeValue ? ' 50 |' : ''}
+
+### Group: Orphans | Size: L | Type: oval
+| ID | Label |${hasNodeValue ? ' Value |' : ''}
+|---|---|${hasNodeValue ? '---|' : ''}
+| client | Web App |${hasNodeValue ? ' 10 |' : ''}
 
 # Edges
 | Source ID | Target ID | Label | LineStyle | ConnectionType |

@@ -94,15 +94,18 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   
   const lines = rawContent.split('\n');
   let mode = null;
+  let currentGroupLabel = '';
+  let currentGroupSize = 'M';
+  let currentGroupType = 'rect';
   
   const groupsMap = new Map();
   
-  const getOrCreateGroup = (gLabel) => {
+  const getOrCreateGroup = (gLabel, gSize, gType) => {
     let lbl = gLabel.trim();
     if (!lbl || lbl === '-' || lbl.toLowerCase() === 'orphans') lbl = '';
     
     if (!groupsMap.has(lbl)) {
-      const newGroup = { label: lbl || undefined, type: 'rect', size: 'L', nodes: [] };
+      const newGroup = { label: lbl || undefined, type: gType, size: gSize, nodes: [] };
       parsed.data.groups.push(newGroup);
       groupsMap.set(lbl, newGroup);
     }
@@ -114,24 +117,34 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (t.toLowerCase().startsWith('# nodes')) { mode = 'nodes'; continue; }
     if (t.toLowerCase().startsWith('# edges')) { mode = 'edges'; continue; }
     
+    if (mode === 'nodes' && t.toLowerCase().startsWith('### group:')) {
+      const parts = t.substring(10).split('|').map(s => s.trim());
+      currentGroupLabel = parts[0];
+      currentGroupSize = 'M';
+      currentGroupType = 'rect';
+      
+      parts.slice(1).forEach(p => {
+        if (p.toLowerCase().startsWith('size:')) currentGroupSize = p.substring(5).trim();
+        if (p.toLowerCase().startsWith('type:')) currentGroupType = p.substring(5).trim();
+      });
+      continue;
+    }
+    
     if (t.startsWith('|') && !t.includes('---')) {
       const cols = t.split('|').map(s => s.trim());
       // remove first and last empty elements caused by framing pipes |...|
       if (cols[0] === '') cols.shift();
       if (cols[cols.length - 1] === '') cols.pop();
       
-      if (cols.length === 0 || cols[0].toLowerCase() === 'group' || cols[0].toLowerCase() === 'source id') continue;
+      if (cols.length === 0 || cols[0].toLowerCase() === 'id' || cols[0].toLowerCase() === 'source id') continue;
       
-      if (mode === 'nodes' && cols.length >= 5) {
-        const gLbl = cols[0];
-        const id = cols[1];
-        const label = cols[2];
-        const size = cols[3] || 'M';
-        const type = cols[4] || 'rect';
-        const val = cols[5] ? Number(cols[5]) : undefined;
+      if (mode === 'nodes' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        const val = cols[2] ? Number(cols[2]) : undefined;
         
-        const group = getOrCreateGroup(gLbl);
-        const nodeObj = { id, label, size, type };
+        const group = getOrCreateGroup(currentGroupLabel, currentGroupSize, currentGroupType);
+        const nodeObj = { id, label };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
       }
