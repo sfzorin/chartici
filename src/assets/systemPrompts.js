@@ -38,7 +38,12 @@ export function getSystemPromptPhase2(diagramType) {
   const hasNodeValue = schema.features.hasNodeValue;
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "Size" must be one of: XS, S, M, L, XL.`;
+    : `\n5. "Size" defines the visual scale of the nodes in the group. Must be one of:
+   - XS: Tiny auxiliary elements (icons, badges, micro-steps)
+   - S: Small components, secondary functions
+   - M: Default standard elements
+   - L: Major overarching components, large systems
+   - XL: Massive platforms, environments, or main chronological phases`;
 
   return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.
