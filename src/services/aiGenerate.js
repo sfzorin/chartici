@@ -1,17 +1,17 @@
-import { SYSTEM_PROMPT_PHASE_1, SYSTEM_PROMPT_PHASE_2 } from '../assets/systemPrompts';
+import { SYSTEM_PROMPT_PHASE_1, getSystemPromptPhase2 } from '../assets/systemPrompts';
 
 /**
  * Helper to call the Moonshot API proxy
  */
-async function callMoonshot(messages) {
+async function callMoonshot(messages, phase2 = false) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages,
       model: 'moonshot-v1-128k',
-      temperature: messages[0].content === SYSTEM_PROMPT_PHASE_2 ? 0.1 : 0.3,
-      ...(messages[0].content === SYSTEM_PROMPT_PHASE_2 ? { response_format: { type: 'json_object' } } : {})
+      temperature: phase2 ? 0.1 : 0.3,
+      ...(phase2 ? { response_format: { type: 'json_object' } } : {})
     })
   });
   return res.json();
@@ -47,7 +47,7 @@ export async function planDiagram(userPrompt) {
     { role: 'user', content: userPrompt }
   ];
 
-  const phase1Data = await callMoonshot(phase1Messages);
+  const phase1Data = await callMoonshot(phase1Messages, false);
   if (!phase1Data.success) {
     return { success: false, error: phase1Data.error || 'Unknown error in Phase 1' };
   }
@@ -73,12 +73,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   // ----------------------------------------------------
   // PHASE 2: JSON Generation
   // ----------------------------------------------------
+  const phase2Prompt = getSystemPromptPhase2(diagramType);
   const phase2Messages = [
-    { role: 'system', content: SYSTEM_PROMPT_PHASE_2 },
+    { role: 'system', content: phase2Prompt },
     { role: 'user', content: extendedPrompt }
   ];
 
-  const phase2Data = await callMoonshot(phase2Messages);
+  const phase2Data = await callMoonshot(phase2Messages, true);
   if (!phase2Data.success) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
@@ -107,6 +108,11 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   if (!parsed.data || !parsed.data.groups || !parsed.data.edges) {
     return { success: false, error: 'AI returned incomplete diagram data' };
   }
+
+  // Assign sequential colors to groups
+  parsed.data.groups.forEach((group, index) => {
+    group.color = (index % 9) + 1; // Maps 0-8 to 1-9
+  });
 
   // Inject the title and diagramType calculated in Phase 1
   parsed.title = title;
