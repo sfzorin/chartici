@@ -166,6 +166,8 @@ const iconPaths = {
   'shape-oval': <rect x="1" y="6" width="22" height="12" rx="6" strokeWidth="1.5" />,
   'shape-circle': <circle cx="12" cy="12" r="8" strokeWidth="1.5" />,
   'shape-diamond': <polygon points="12 3 21 12 12 21 3 12" strokeWidth="1.5" />,
+  'shape-slice': <path d="M12 4 L5 16 A 14 14 0 0 0 19 16 Z" strokeWidth="1.5" strokeLinejoin="miter" />,
+  'shape-chevron': <polygon points="6,6 16,6 20,12 16,18 6,18 10,12" strokeWidth="1.5" strokeLinejoin="miter" />,
   'tag': (
     <>
       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" strokeWidth="2" />

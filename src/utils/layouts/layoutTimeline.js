@@ -62,31 +62,43 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
   }
   
   // Sort spine nodes strictly by depth, and FILTER out non-rectangular nodes!
-  // Only rectangular nodes (type === 'process' or undefined) can form the chevron timeline axis.
-  const spineNodesTemp = [];
   const nodeMap = new Map(nodes.map(n => [String(n.id), n]));
   
-  // Create a restricted spine set containing ONLY the valid rigid spine nodes
-  // We use a blacklist (isCurved) rather than a whitelist, to ensure default nodes don't vanish!
   let rectSpineSet = new Set();
-  spineSet.forEach(u => {
-    const n = nodeMap.get(u);
-    if (!n) return;
-    const isCurved = n.type === 'oval' || n.type === 'circle' || n.type === 'decision' || n.type === 'rhombus' || n.type === 'text' || n.type === 'title';
-    if (!isCurved) {
-        rectSpineSet.add(u);
-    }
-  });
   
-  // Fallback: if the user's graph consisted entirely of curved nodes on the longest path, we don't want to collapse!
-  if (rectSpineSet.size === 0 && spineSet.size > 0) {
-      rectSpineSet = new Set(spineSet);
+  // Find forced spine nodes (chevrons)
+  const chevronIds = nodes.filter(n => n.type === 'chevron').map(n => String(n.id));
+  
+  if (chevronIds.length > 0) {
+      // If the user or AI explicitly used chevrons, THEY are the spine!
+      chevronIds.forEach(id => rectSpineSet.add(id));
+  } else {
+      // Fallback to Longest Path calculation for process nodes
+      spineSet.forEach(u => {
+        const n = nodeMap.get(u);
+        if (!n) return;
+        const isCurved = n.type === 'oval' || n.type === 'circle' || n.type === 'decision' || n.type === 'rhombus' || n.type === 'text' || n.type === 'title';
+        if (!isCurved) {
+            rectSpineSet.add(u);
+        }
+      });
+      // Fallback: if totally empty, just use the original set
+      if (rectSpineSet.size === 0 && spineSet.size > 0) rectSpineSet = new Set(spineSet);
   }
 
+  const spineNodesTemp = [];
   sorted.forEach(u => {
     if (rectSpineSet.has(u)) spineNodesTemp.push(u);
   });
-  spineNodesTemp.sort((a, b) => depth[a] - depth[b]);
+  
+  spineNodesTemp.sort((a, b) => {
+      // Sort primarily by depth (topological)
+      if (depth[a] !== depth[b]) return depth[a] - depth[b];
+      // Fallback to visual X coordinate if isolated/no links
+      const na = nodeMap.get(a);
+      const nb = nodeMap.get(b);
+      return (na.x || 0) - (nb.x || 0);
+  });
 
   const result = [];
   const spineXMap = {};

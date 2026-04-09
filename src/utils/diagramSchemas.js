@@ -39,7 +39,7 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['chevron', 'process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'none'],
     features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
-    promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'process' for specific events attached to the spine."
+    promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'process' for specific events attached to the spine. 5. Connect 'chevron' spine nodes sequentially using 'lineStyle': 'none'. This maintains topological order without drawing visible links."
   },
   tree: {
     allowedNodes: ['process', 'circle', 'text'],

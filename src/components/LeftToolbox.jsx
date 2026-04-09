@@ -115,6 +115,8 @@ export default function LeftToolbox({
       case 'oval': return 'shape-oval';
       case 'rhombus': return 'shape-diamond';
       case 'text': return 'text-shape'; 
+      case 'chevron': return 'shape-chevron';
+      case 'pie_slice': return 'shape-slice';
       default: return 'shape-rect'; // includes 'process'
     }
   };
@@ -163,8 +165,8 @@ export default function LeftToolbox({
              {diagramSchema.allowedNodes.includes('oval') && <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
              {diagramSchema.allowedNodes.includes('rhombus') && <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
              {diagramSchema.allowedNodes.includes('text') && <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>}
-             {diagramSchema.allowedNodes.includes('chevron') && <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>}
-             {diagramSchema.allowedNodes.includes('pie_slice') && <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>}
+             {diagramSchema.allowedNodes.includes('chevron') && <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><Icon name="shape-chevron" /> Chevron</button>}
+             {diagramSchema.allowedNodes.includes('pie_slice') && <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><Icon name="shape-slice" /> Slice</button>}
           </div>
         </PopoverMenu>
 
@@ -186,8 +188,8 @@ export default function LeftToolbox({
                    {diagramSchema.allowedNodes.includes('oval') && <button className={nContext.type === 'oval' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
                    {diagramSchema.allowedNodes.includes('rhombus') && <button className={nContext.type === 'rhombus' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
                    {diagramSchema.allowedNodes.includes('text') && <button className={nContext.type === 'text' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>}
-                   {diagramSchema.allowedNodes.includes('chevron') && <button className={nContext.type === 'chevron' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'chevron'); setActivePopover(null); }}><span style={{fontWeight: 900}}>&gt; </span> Chevron</button>}
-                   {diagramSchema.allowedNodes.includes('pie_slice') && <button className={nContext.type === 'pie_slice' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'pie_slice'); setActivePopover(null); }}><span style={{fontWeight: 900}}>V </span> Slice</button>}
+                   {diagramSchema.allowedNodes.includes('chevron') && <button className={nContext.type === 'chevron' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'chevron'); setActivePopover(null); }}><Icon name="shape-chevron" /> Chevron</button>}
+                   {diagramSchema.allowedNodes.includes('pie_slice') && <button className={nContext.type === 'pie_slice' ? 'active' : ''} onClick={() => { updateSelectedNode('type', 'pie_slice'); setActivePopover(null); }}><Icon name="shape-slice" /> Slice</button>}
                 </div>
               </PopoverMenu>
             </div>

@@ -338,11 +338,16 @@ function App() {
                 size: newNode.size
             });
         }
+        
+        let nextNodes = [...prev.nodes, newNode];
+        if (diagramType === 'piechart') {
+            nextNodes = layoutNodesHeuristically(nextNodes, prev.edges, { diagramType });
+        }
 
         return { 
             ...prev, 
             groups: nextGroups,
-            nodes: [...prev.nodes, newNode] 
+            nodes: nextNodes 
         };
     });
     setSelectedNodeId(newNode.id);
@@ -524,6 +529,10 @@ function App() {
       const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
       newGroups = newGroups.filter(g => usedGroupIds.has(g.id));
 
+      if (diagramType === 'piechart' && ['value', 'size'].includes(field)) {
+          newNodes = layoutNodesHeuristically(newNodes, prev.edges, { diagramType });
+      }
+
       return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
     });
   };
@@ -558,13 +567,18 @@ function App() {
   const deleteSelectedElement = useCallback(() => {
     if (selectedNodeId) {
       setDiagramData(prev => {
-        const newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);
+        let newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);
+        let newEdges = prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId);
         const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
+        
+        if (diagramType === 'piechart') {
+           newNodes = layoutNodesHeuristically(newNodes, newEdges, { diagramType });
+        }
         
         return {
           ...prev,
           nodes: newNodes,
-          edges: prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId),
+          edges: newEdges,
           groups: (prev.groups || []).filter(g => usedGroupIds.has(g.id))
         };
       });
@@ -576,7 +590,7 @@ function App() {
       }));
       setSelectedEdgeId(null);
     }
-  }, [selectedNodeId, selectedEdgeId]);
+  }, [selectedNodeId, selectedEdgeId, diagramType]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
