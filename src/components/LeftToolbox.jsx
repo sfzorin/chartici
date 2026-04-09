@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PALETTES, DIAGRAM_TYPES } from '../utils/constants';
+import { PALETTES } from '../utils/constants';
+import { DIAGRAM_TYPES, DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import { useNodeGroup } from '../hooks/useNodeGroup';
 import { getGroupId } from '../utils/groupUtils';
-import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import Icon from './Icons';
 
 // --- Popover helper component ---

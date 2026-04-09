@@ -98,16 +98,7 @@ export const PALETTES = {
   ], triRules)
 };
 
-export const DIAGRAM_TYPES = [
-  { id: 'flowchart', name: 'Flowchart', enforceVertical: false },
-  { id: 'tree', name: 'Tree & Hierarchy', enforceVertical: true },
-  { id: 'sequence', name: 'Sequence Diagram', enforceVertical: true },
-  { id: 'erd', name: 'Entity-Relationship', enforceVertical: false },
-  { id: 'radial', name: 'Radial / Mind Map', enforceVertical: false },
-  { id: 'timeline', name: 'Timeline', enforceVertical: false },
-  { id: 'matrix', name: 'Matrix / Grid', enforceVertical: false },
-  { id: 'piechart', name: 'Pie Chart', enforceVertical: false }
-];
+
 
 export const DEFAULT_SIZE = "M";
 

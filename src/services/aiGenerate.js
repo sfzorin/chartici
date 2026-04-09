@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT_PHASE_1, getSystemPromptPhase2 } from '../assets/systemPrompts';
+import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts';
 
 /**
  * Helper to call the Moonshot API proxy
@@ -43,7 +43,7 @@ export async function planDiagram(userPrompt) {
   // PHASE 1: Planning and Prompt Expansion
   // ----------------------------------------------------
   const phase1Messages = [
-    { role: 'system', content: SYSTEM_PROMPT_PHASE_1 },
+    { role: 'system', content: getSystemPromptPhase1() },
     { role: 'user', content: userPrompt }
   ];
 

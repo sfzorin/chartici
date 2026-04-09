@@ -1,17 +1,18 @@
-export const SYSTEM_PROMPT_PHASE_1 = `You are an expert Diagram Architect.
+import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
+
+const getAvailableTypesText = () => {
+  return Object.keys(DIAGRAM_SCHEMAS)
+    .filter(k => k !== 'default')
+    .map((k, i) => `${i + 1}. ${DIAGRAM_SCHEMAS[k].id}: ${DIAGRAM_SCHEMAS[k].description}`)
+    .join('\n');
+};
+
+export const getSystemPromptPhase1 = () => `You are an expert Diagram Architect.
 Your task is to analyze the user's request and structure a detailed plan for a diagram.
 Respond in the same language the user used.
 
 AVAILABLE DIAGRAM TYPES:
-1. flowchart: logical step-by-step processes or algorithms.
-2. sequence: chronological interactions between systems or actors.
-3. erd: database schemas, entities, and relationships.
-4. radial: mind-maps, concentric layers, or hub-and-spoke architectures.
-5. array: memory buffers, queues, or sequential data structures.
-6. matrix: grid-like comparisons, or categorization into distinct cluster zones/cells (e.g. SWOT, Eisenhower, 3x3 grids).
-7. timeline: events plotted on a generic chronological spine.
-8. tree: strict hierarchical org-charts or breakdowns.
-9. piechart: breakdown of items into proportional circular slices.
+${getAvailableTypesText()}
 
 Output EXACTLY three XML tags:
 <title>Concise title for the diagram</title>
@@ -28,8 +29,6 @@ Be highly descriptive about the structure and logic so a code-generator can buil
 You may use a <thinking> section inside the <prompt> to outline the concept first.
 </prompt>`;
 
-import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
-
 export function getSystemPromptPhase2(diagramType) {
   const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
   const allowedTypes = schema.allowedNodes.join(', ');
@@ -37,9 +36,9 @@ export function getSystemPromptPhase2(diagramType) {
   const specificRules = schema.promptRule || "";
   const includeEdgeLabel = schema.features.allowConnections;
   const hasNodeValue = schema.features.hasNodeValue;
-  const connectionRulesStr = schema.connectionRules 
-     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}` 
-     : `\n5. "size" must be one of: XS, S, M, L, XL.`;
+  const connectionRulesStr = schema.connectionRules
+    ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
+    : `\n5. "size" must be one of: XS, S, M, L, XL.`;
 
   return `You are a strict JSON generator.
 The user will provide a detailed architectural specification for a diagram of type: ${diagramType.toUpperCase()}.
