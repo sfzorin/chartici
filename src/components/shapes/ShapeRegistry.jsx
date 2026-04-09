@@ -97,7 +97,7 @@ export const ShapeRegistry = {
     getTextLimits: (w, h) => ({ maxWidth: w - 24, maxHeight: h }),
     getSelectionBounds: (w, h, padding, color) => {
         let d = `M -15 0 L ${w + 5} 0 L ${w + 20} ${h/2} L ${w + 5} ${h} L -15 ${h} L -5 ${h/2} Z`; // fallback
-        if (h === 40) d = "M -19.5 0 L 89.5 0 L 99.5 20 L 89.5 40 L -19.5 40 L -9.5 20 Z";
+        if (h === 40) d = "M -20 0 L 90 0 L 100 20 L 90 40 L -20 40 L -10 20 Z";
         else if (h === 60) d = "M -22 0 L 127 0 L 142 30 L 127 60 L -22 60 L -7 30 Z";
         else if (h === 80) d = "M -25 0 L 165 0 L 185 40 L 165 80 L -25 80 L -5 40 Z";
         else if (h === 120) d = "M -47.5 0 L 257.5 0 L 287.5 60 L 257.5 120 L -47.5 120 L -17.5 60 Z";
@@ -112,7 +112,7 @@ export const ShapeRegistry = {
     },
     render: (w, h, fill, stroke, strokeW, dash, filter, node) => {
         let d = `M -15 0 L ${w + 5} 0 L ${w + 20} ${h/2} L ${w + 5} ${h} L -15 ${h} L -5 ${h/2} Z`; // fallback
-        if (h === 40) d = "M -19.5 0 L 89.5 0 L 99.5 20 L 89.5 40 L -19.5 40 L -9.5 20 Z";
+        if (h === 40) d = "M -20 0 L 90 0 L 100 20 L 90 40 L -20 40 L -10 20 Z";
         else if (h === 60) d = "M -22 0 L 127 0 L 142 30 L 127 60 L -22 60 L -7 30 Z";
         else if (h === 80) d = "M -25 0 L 165 0 L 185 40 L 165 80 L -25 80 L -5 40 Z";
         else if (h === 120) d = "M -47.5 0 L 257.5 0 L 287.5 60 L 257.5 120 L -47.5 120 L -17.5 60 Z";
