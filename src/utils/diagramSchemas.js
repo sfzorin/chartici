@@ -17,7 +17,7 @@ export const DIAGRAM_SCHEMAS = {
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls.",
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'text'] }
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'text'], lifelineOverlays: true }
   },
   erd: {
     id: 'erd',
@@ -25,7 +25,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'database schemas, entities, and relationships.',
     allowedNodes: ['process', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
+    features: { hasNodeValue: false, allowConnections: true, erdMarkers: true },
     promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible.",
     engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
   },
@@ -37,7 +37,7 @@ export const DIAGRAM_SCHEMAS = {
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described. Place the core concept at the center (or as the main node), and radiating sub-concepts pointing outwards.",
-    engineManifest: { layout: 'radial', edgeStyle: 'straight_clipped', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'] }
+    engineManifest: { layout: 'radial', edgeStyle: 'straight_clipped', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'], suppressEdgeMarkers: true, suppressEdgeLabels: true }
   },
   array: {
     id: 'array',
@@ -60,7 +60,7 @@ export const DIAGRAM_SCHEMAS = {
     connectionRules: [
       "process -> process : Allowed across different groups/cells using 'solid'."
     ],
-    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
+    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'], matrixGridOverlays: true }
   },
   timeline: {
     id: 'timeline',
@@ -75,7 +75,7 @@ export const DIAGRAM_SCHEMAS = {
       "circle/process -> chevron : Use 'solid' or 'dashed' (visible event links)",
       "text -> any : Use 'none' (invisible text binding)"
     ],
-    engineManifest: { layout: 'timeline', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['chevron', 'process', 'circle', 'text'] }
+    engineManifest: { layout: 'timeline', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['chevron', 'process', 'circle', 'text'], suppressSpineEdges: true, spineNodeType: 'chevron' }
   },
   tree: {
     id: 'tree',
@@ -85,7 +85,7 @@ export const DIAGRAM_SCHEMAS = {
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections.",
-    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'] }
+    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'], isTree: true, enableBusRouting: true }
   },
   piechart: {
     id: 'piechart',
@@ -93,7 +93,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'breakdown of items into proportional circular slices.',
     allowedNodes: ['pie_slice'],
     allowedEdges: ['none'],
-    features: { hasNodeValue: true, allowConnections: false },
+    features: { hasNodeValue: true, allowConnections: false, autoIncrementColors: true, recalculateOnEdit: true, enforceMaxNodes: 9 },
     promptRule: "4. Create a single group with 'type':'piechart'. The nodes represent the items inside it, using 'type':'pie_slice' and providing 'id', 'label', and 'value' fields.",
     connectionRules: [
       "Edges MUST NOT be used in piecharts."

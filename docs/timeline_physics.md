@@ -1,49 +1,49 @@
-# Принципы Layout для Timeline (Шевроны)
+# Timeline Layout Principles (Chevrons)
 
-Этот документ описывает текущую логику размещения узлов (шевронов) на центральной оси в режиме "Timeline".
+This document describes the current logic for placing nodes (chevrons) along the central chronological spine in "Timeline" mode.
 
-## 1. Геометрия шеврона (Адаптивность)
+## 1. Chevron Geometry (Responsiveness)
 
-Система полностью адаптивна к размерам (`XS`, `S`, `M`, `L`, `XL`). Геометрия узла выстраивается так:
+The system is fully responsive to standard node sizes (`XS`, `S`, `M`, `L`, `XL`). The node's geometry is structured as follows:
 
-- **Базовые габариты:** Функция `getNodeDim()` задает базовую ширину и высоту в зависимости от выбранного размера узла.
-- **Пропорциональный вырез (Cut):** Глубина "V-образного" выреза (справа у основания хвоста) жестко привязана к высоте текущего шеврона: `Cut = Height × 0.25`.
-- **Расчетная ширина:** `Расчетная_Ширина = Базовая_Ширина + Cut`. Это базовая ширина, чтобы предотвратить "сплющивание" текста внутри стрелки.
-- **Итоговая ширина:** `Итоговая_Ширина = Расчетная_Ширина + Delta`. Где `Delta` — это реальное физическое удлинение ширины шеврона. Оно нужно для того, чтобы компенсировать шаг жесткой сетки (20px). 
-- **Угол обреза:** Поскольку вырез всегда равен `0.25` от высоты, **угол наклона краев остается математически идентичным для всех размеров**. Шевроны разного размера (например, S и L) идеально входят друг в друга без изломов на стыке.
+- **Base Dimensions:** The `getNodeDim()` function determines the base width and height depending on the selected node size.
+- **Proportional Cut:** The depth of the "V-shaped" cutout (on the right at the base of the tail) is strictly tied to the current chevron's height: `Cut = Height × 0.25`.
+- **Calculated Width:** `Calculated_Width = Base_Width + Cut`. This extended base width prevents text from being improperly compressed within the arrow shape.
+- **Final Width:** `Final_Width = Calculated_Width + Delta`. Where `Delta` represents the actual physical extension of the chevron's total width. This compensates for the rigid grid snapping interval (20px) to preserve exact daylighting gaps.
+- **Cut Angle:** Because the cutout is always exactly `0.25` of the height, **the slope angle of the edges remains mathematically identical across all scale factors**. Chevrons of different sizes (e.g., S and L) perfectly interlock into one another without any visual breaks or kinks at the joints.
 
-## 2. Размеры Дельты и управление зазором
+## 2. Delta Sizes and Daylight Control
 
-Поскольку шаг сетки постоянен, варьирование Дельты позволяет гибче настраивать визуальный зазор для узлов разного "калибра". Дельта **не зависит от позиции или принадлежности к группе**. Дельта — это жестко прошитая константа для каждого конкретного размера блока.
+Since the background grid step is constant, varying the Delta allows us to fine-tune the exact visual gap (daylight) for nodes of different "calibers". The Delta **does not depend on the position or group affiliation**. Delta is a hard-coded constant specific to each defined block size.
 
-Например, хорошим правилом хорошего тона в типографике и компоновке является сохранение константного соотношения "пустоты" к масштабу объекта. 
-Если мы хотим визуальный зазор (Daylight) равный примерно 1/8 от высоты блока, чтобы пустота пропорционально росла вместе с блоками:
+For instance, a standard typographic and compositional rule of thumb is to maintain a constant ratio between "empty space" and the object's scale. 
+If we want a visual gap (Daylight) equal to approximately 1/8 of the block's height so that whitespace proportionally scales with the blocks:
 
-- **XS** (Высота 40, Базовый отступ 20): Идеальный Daylight ~5px. Значит **Дельта = 15px** (20 - 5).
-- **S** (Высота 60, Базовый отступ 20): Идеальный Daylight ~8px. Значит **Дельта = 12px** (20 - 8).
-- **M** (Высота 80, Базовый отступ 20): Идеальный Daylight ~10px. Значит **Дельта = 10px** (20 - 10).
-- **L** (Высота 120, Базовый отступ 40): Идеальный Daylight ~15px. Значит **Дельта = 25px** (40 - 15).
-- **XL** (Высота 160, Базовый отступ 40): Идеальный Daylight ~20px. Значит **Дельта = 20px** (40 - 20).
+- **XS** (Height 40, Base offset 20): Ideal Daylight ~5px. Therefore **Delta = 15px** (20 - 5).
+- **S** (Height 60, Base offset 20): Ideal Daylight ~8px. Therefore **Delta = 12px** (20 - 8).
+- **M** (Height 80, Base offset 20): Ideal Daylight ~10px. Therefore **Delta = 10px** (20 - 10).
+- **L** (Height 120, Base offset 40): Ideal Daylight ~15px. Therefore **Delta = 25px** (40 - 15).
+- **XL** (Height 160, Base offset 40): Ideal Daylight ~20px. Therefore **Delta = 20px** (40 - 20).
 
-**Как это работает:**
-Чем больше размер блока, тем длиннее его базовый "хвост", поэтому для сохранения приятных пропорций мы рассчитали Дельты таким образом, чтобы пустой просвет (Daylight) всегда составлял строго ~12.5% (1/8) от высоты шеврона. Мелкие элементы жмутся друг к другу плотнее (5px), огромные плашки раздвигаются шире (20px). Это дает идеальный баланс.
+**How it works:**
+The larger the block, the longer its base "tail", so to preserve pleasing proportions we calculated Deltas such that the empty daylight gap always inherently equals exactly ~12.5% (1/8) of the chevron's height. Tiny elements huddle closer together (5px), while massive blocks push further apart (20px). This provides perfect equilibrium.
 
-## 3. Расстановка нод (Шаг по сетке)
+## 3. Node Positioning (Grid Snapping step)
 
-Поскольку макет подчиняется координатной сетке 20px, само расстояние между узлами отмеряется строго от центров (или левых краев) и всегда кратно 20 пикселям. Шаг расстановки зависит от размера узла и того, принадлежат ли соседние узлы к одной группе или к разным (для визуального разделения).
+Because the layout adheres to a 20px coordinate grid, the actual distance between nodes is measured strictly from their centers (or horizontal origins) and is always a multiple of 20 pixels. The spacing step depends on the node size and whether adjacent nodes belong to the same group or different groups (providing structural visual separation).
 
-### А. Внутри одной группы (Micro Step)
-Расстояние между центрами (икс-координатами) двух соседних шевронов, состоящих в одной и той же группе `groupId`:
-- Для размера **XS**: `Расчетная ширина` + 20px
-- Для размера **S**: `Расчетная ширина` + 20px
-- Для размера **M**: `Расчетная ширина` + 20px
-- Для размера **L**: `Расчетная ширина` + 40px
-- Для размера **XL**: `Расчетная ширина` + 40px
+### A. Intra-group (Micro Step)
+The distance between the centers (X-coordinates) of two adjacent chevrons that belong to the exact same `groupId`:
+- For **XS**: `Calculated Width` + 20px
+- For **S**: `Calculated Width` + 20px
+- For **M**: `Calculated Width` + 20px
+- For **L**: `Calculated Width` + 40px
+- For **XL**: `Calculated Width` + 40px
 
-### Б. Между разными группами (Macro Step)
-Расстояние между центрами (икс-координатами) двух соседних шевронов, состоящих в разных группах (или без группы), увеличенное для визуального промежутка:
-- Для размера **XS**: `Расчетная ширина` + 40px
-- Для размера **S**: `Расчетная ширина` + 40px
-- Для размера **M**: `Расчетная ширина` + 40px
-- Для размера **L**: `Расчетная ширина` + 80px
-- Для размера **XL**: `Расчетная ширина` + 80px
+### B. Inter-group (Macro Step)
+The distance between the centers (X-coordinates) of two adjacent chevrons belonging to different groups (or orphans), expanded to emphasize structural separation:
+- For **XS**: `Calculated Width` + 40px
+- For **S**: `Calculated Width` + 40px
+- For **M**: `Calculated Width` + 40px
+- For **L**: `Calculated Width` + 80px
+- For **XL**: `Calculated Width` + 80px

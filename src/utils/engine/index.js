@@ -5,12 +5,14 @@ import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
 import { assignPorts } from './portAssigner.js';
 import { EdgeRoutingRegistry } from './routingEngines.js';
+import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
   if (!edges || edges.length === 0) return result;
 
   const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
   const routingStyle = EdgeRoutingRegistry.getStyle(diagramType);
 
   if (routingStyle === 'none') {
@@ -92,7 +94,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     if (edge.style === 'invisible' || edge.logical || edge.isBlank) return null;
     
     // Hide implicit spines between chevrons on Timeline
-    if (diagramType === 'timeline' && startNode.type === 'chevron' && endNode.type === 'chevron') return null;
+    if (activeSchema?.engineManifest?.suppressSpineEdges && startNode.type === 'chevron' && endNode.type === 'chevron') return null;
 
     const startBox = ctx.nodeBoxes.get(startNode.id);
     const endBox = ctx.nodeBoxes.get(endNode.id);
@@ -216,7 +218,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     // We dynamically swap the A* routing direction and reverse the path returned to get perfect lines instantly!
     const startIsChevron = startNode.isTimelineSpine || startNode.type === 'chevron';
     const endIsChevron = endNode.isTimelineSpine || endNode.type === 'chevron';
-    const isChevronToEvent = diagramType === 'timeline' && startIsChevron && !endIsChevron;
+    const isChevronToEvent = activeSchema?.engineManifest?.spineNodeType === 'chevron' && startIsChevron && !endIsChevron;
     
     const rStartPorts = isChevronToEvent ? endPorts : startPorts;
     const rEndPorts = isChevronToEvent ? startPorts : endPorts;

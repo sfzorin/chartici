@@ -1,4 +1,5 @@
 import React from 'react';
+import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
 
 const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType, onEdgeSelect, onEdgeDoubleClick }) => {
   if (!pathData) return null;
@@ -50,8 +51,16 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
      else if (ct === "both") { mStart = markerId; mEnd = markerId; }
   }
 
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const manifest = activeSchema.engineManifest || {};
+  
+  if (manifest.suppressEdgeMarkers) {
+      mStart = "none";
+      mEnd = "none";
+  }
+
   let displayLabel = edge.label;
-  if (diagramType === 'radial') {
+  if (manifest.suppressEdgeLabels) {
       displayLabel = null;
   } else if (displayLabel) {
       if (!textPathD) {

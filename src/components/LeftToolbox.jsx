@@ -137,7 +137,8 @@ export default function LeftToolbox({
   const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.allowConnections;
   const isTrashActive = !!(selectedNode || selectedEdge);
 
-  const isAddDisabled = diagramType === 'piechart' && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= 9;
+  const enforceMax = diagramSchema?.features?.enforceMaxNodes;
+  const isAddDisabled = enforceMax && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= enforceMax;
 
   const matchedGroup = groupsList?.find(g => g.id === getGroupId(nContext));
   const isOutlined = matchedGroup?.outlined || false;
@@ -466,7 +467,7 @@ export default function LeftToolbox({
                    {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
                    {val: 'both', render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
                    {val: 'none', render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
-                   ...(diagramType === 'erd' ? [
+                   ...(diagramSchema?.features?.erdMarkers ? [
                       {val: '1:1', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : 1</div>},
                       {val: '1:N', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : N</div>},
                       {val: 'N:1', render: <div style={{fontSize:'12px', fontWeight:600}}>N : 1</div>},

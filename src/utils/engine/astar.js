@@ -1,4 +1,5 @@
 import { isBlockedPointCheck, isSegmentBlockedCheck, checkPathOverlap } from './geometry.js';
+import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 
 // Binary min-heap keyed on f-score for O(log n) extract-min
 class MinHeap {
@@ -249,7 +250,9 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
         const overlapCheck = checkPathOverlap(current.x, current.y, n.x, n.y, ctx);
 
         
-        const allowBusPremium = (ctx.diagramType === 'tree');
+        const manifest = DIAGRAM_SCHEMAS[ctx.diagramType]?.engineManifest || {};
+        const isTree = !!manifest.isTree;
+        const allowBusPremium = !!manifest.enableBusRouting;
         let overlapPenalty = 0;
         let isBusOverlap = false;
 
@@ -258,7 +261,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
             // For tree diagrams, sibling crossings are allowed (T-fork branching from bus trunk)
             // For all other diagrams, ALL crossings are banned
             const isSibling = crossLine.startNodeId === startNodeId || crossLine.endNodeId === endNodeId;
-            if (isSibling && ctx.diagramType === 'tree') continue;
+            if (isSibling && isTree) continue;
             actualCrossings++;
         }
 
@@ -283,7 +286,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                     continue;
                 }
 
-                if (ctx.diagramType !== 'tree') {
+                if (!isTree) {
                     invalidOverlap = true;
                     continue;
                 }

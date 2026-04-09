@@ -42,6 +42,8 @@ function App() {
   const lastGenerationTimeMs = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+
   useEffect(() => {
     document.documentElement.setAttribute('data-app-theme', appTheme);
     localStorage.setItem('appTheme', appTheme);
@@ -270,7 +272,7 @@ function App() {
 
     let inheritedSize = 'M';
     let inheritedColor = 1;
-    if (diagramType === 'piechart' && diagramData.nodes.length > 0) {
+    if (activeSchema?.features?.autoIncrementColors && diagramData.nodes.length > 0) {
         let lastColor = diagramData.nodes[diagramData.nodes.length - 1].color;
         if (typeof lastColor !== 'number') lastColor = 0;
         inheritedColor = (lastColor % 9) + 1;
@@ -347,7 +349,7 @@ function App() {
         }
         
         let nextNodes = [...prev.nodes, newNode];
-        if (diagramType === 'piechart') {
+        if (activeSchema?.features?.recalculateOnEdit) {
             nextNodes = layoutNodesHeuristically(nextNodes, prev.edges, { diagramType, groups: prev.groups });
         }
 
@@ -536,7 +538,7 @@ function App() {
       const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
       newGroups = newGroups.filter(g => usedGroupIds.has(g.id));
 
-      if (diagramType === 'piechart' && ['value', 'size'].includes(field)) {
+      if (activeSchema?.features?.recalculateOnEdit && ['value', 'size'].includes(field)) {
           newNodes = layoutNodesHeuristically(newNodes, prev.edges, { diagramType, groups: prev.groups });
       }
 
@@ -578,7 +580,7 @@ function App() {
         let newEdges = prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId);
         const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
         
-        if (diagramType === 'piechart') {
+        if (activeSchema?.features?.recalculateOnEdit) {
            newNodes = layoutNodesHeuristically(newNodes, newEdges, { diagramType, groups: prev.groups });
         }
         

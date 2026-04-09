@@ -37,6 +37,8 @@ export default function DiagramRenderer({
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  
   // Dragging state
   const [dragState, setDragState] = useState(null);
 
@@ -771,7 +773,7 @@ export default function DiagramRenderer({
           </g>
 
           {/* ─── Topology Overlays Layer ─────────────────────── */}
-          {diagramType === 'sequence' && (
+          {activeSchema?.engineManifest?.lifelineOverlays && (
             <g className="sequence-lifelines" opacity={0.3}>
               {computedNodes.filter(n => n.type !== 'text' && n.type !== 'title').map(node => {
                 const dim = getNodeDim(node);
@@ -791,9 +793,8 @@ export default function DiagramRenderer({
             </g>
           )}
 
-
-
-          {diagramType === 'matrix' && initialData.groups && initialData.groups.length > 1 && (() => {
+            {/* ─── Matrix Grid Backdrop ─────────────────────── */}
+          {activeSchema?.engineManifest?.matrixGridOverlays && initialData.groups && initialData.groups.length > 1 && (() => {
             const realNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
             if (realNodes.length === 0) return null;
             // Compute group bounding boxes

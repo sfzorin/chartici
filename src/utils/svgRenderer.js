@@ -9,6 +9,7 @@ import { calculateAllPaths } from './engine/index.js';
 import { SIZES, PALETTES, getNodeDim } from './constants.js';
 import { parseCharticiFile } from './charticiFormat.js';
 import { getGroupId } from './groupUtils.js';
+import { DIAGRAM_SCHEMAS } from './diagramSchemas.js';
 
 /**
  * Render a .cci JSON string to SVG
@@ -64,8 +65,11 @@ export function renderToSVG(cciJson) {
     }
   }
 
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const manifest = activeSchema.engineManifest || {};
+
   // Groups bounds
-  if (diagramType === 'matrix' && groups && groups.length > 1) {
+  if (manifest.matrixGridOverlays && groups && groups.length > 1) {
     const realNodes = laidOut.filter(n => n.type !== 'text' && n.type !== 'title');
     groups.forEach(g => {
       const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
@@ -109,7 +113,7 @@ export function renderToSVG(cciJson) {
   parts.push(`<rect width="${width}" height="${height}" fill="#ffffff" />`);
 
   // Matrix Groups Layer
-  if (diagramType === 'matrix' && groups && groups.length > 1) {
+  if (manifest.matrixGridOverlays && groups && groups.length > 1) {
     const realNodes = laidOut.filter(n => n.type !== 'text' && n.type !== 'title');
     const groupBoxes = {};
     groups.forEach(g => {

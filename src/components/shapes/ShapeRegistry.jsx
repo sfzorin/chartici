@@ -95,10 +95,34 @@ export const ShapeRegistry = {
   },
   chevron: {
     getTextLimits: (w, h) => ({ maxWidth: w - 24, maxHeight: h }),
-    getSelectionBounds: (w, h, padding, color) => ShapeRegistry.process.getSelectionBounds(w, h, padding, color),
+    getSelectionBounds: (w, h, padding, color) => {
+        let cut = 15;
+        let dExt = 5;
+        if (h === 40) { cut = 10; dExt = 7.5; }
+        else if (h === 60) { cut = 15; dExt = 6; }
+        else if (h === 80) { cut = 20; dExt = 5; }
+        else if (h === 120) { cut = 30; dExt = 12.5; }
+        else if (h === 160) { cut = 40; dExt = 10; }
+        
+        const pd = padding + 2;
+        const d = `M -${cut + dExt + pd} -${pd} L ${w + dExt + pd - cut} -${pd} L ${w + cut + dExt + pd} ${h/2} L ${w + dExt + pd - cut} ${h + pd} L -${cut + dExt + pd} ${h + pd} L -${dExt + pd} ${h/2} Z`;
+        return (
+          <g>
+            <path d={d} fill="none" stroke={color} strokeWidth="6" strokeLinejoin="round" opacity="0.3" />
+            <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+          </g>
+        );
+    },
     render: (w, h, fill, stroke, strokeW, dash, filter, node) => {
-        const cut = h * 0.25; 
-        const dExt = (node?.timelineDelta || 0) / 2; 
+        // Explicit dimensions for each size (cut = arrow depth, dExt = horizontal extra width)
+        let cut = 15;
+        let dExt = 5;
+        if (h === 40) { cut = 10; dExt = 7.5; }        // XS
+        else if (h === 60) { cut = 15; dExt = 6; }     // S
+        else if (h === 80) { cut = 20; dExt = 5; }     // M
+        else if (h === 120) { cut = 30; dExt = 12.5; } // L
+        else if (h === 160) { cut = 40; dExt = 10; }   // XL
+
         const d = `M -${cut + dExt} 0 L ${w + dExt} 0 L ${w + cut + dExt} ${h/2} L ${w + dExt} ${h} L -${cut + dExt} ${h} L -${dExt} ${h/2} Z`;
         return <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} strokeLinejoin="round" filter={filter} />;
     }

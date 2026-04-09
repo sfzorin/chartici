@@ -2,6 +2,7 @@ import React from 'react';
 import { getNodeDim } from '../../utils/constants';
 import { getFittedText } from '../../utils/textUtils';
 import { ShapeRegistry } from './ShapeRegistry';
+import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
 
 const DiagramNode = React.memo(({ 
   node, 
@@ -115,8 +116,9 @@ const DiagramNode = React.memo(({
   const shadowFilter = 'none';
 
   let actualType = node.type;
-  if (diagramType === 'timeline' && node.isTimelineSpine) {
-      actualType = 'chevron';
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  if (node.isTimelineSpine && activeSchema.engineManifest?.spineNodeType) {
+      actualType = activeSchema.engineManifest.spineNodeType;
   }
   if (node.isPieSlice) {
       actualType = 'pie_slice';
