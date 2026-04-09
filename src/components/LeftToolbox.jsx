@@ -144,6 +144,21 @@ export default function LeftToolbox({
 
   const getStyle = (isActive) => ({ opacity: isActive ? 1 : 0.3, pointerEvents: isActive ? 'auto' : 'none' });
 
+  const getDiagramIcon = (type) => {
+    const t = (type || 'flowchart').toLowerCase();
+    switch (t) {
+        case 'timeline': return 'layout-timeline';
+        case 'piechart': return 'layout-piechart';
+        case 'sequence': return 'layout-sequence';
+        case 'tree': return 'layout-tree';
+        case 'radial': return 'layout-radial';
+        case 'matrix': return 'layout-matrix';
+        case 'erd': return 'layout-erd';
+        case 'array': return 'layout-array';
+        default: return 'layout-flowchart';
+    }
+  };
+
   return (
     <div className="left-toolbox-container">
       <div className="toolbox-panel" style={{ gap: 8 }}>
@@ -605,17 +620,22 @@ export default function LeftToolbox({
         </PopoverMenu>
 
         <button ref={layoutBtnRef} className="toolbox-btn" onClick={() => togglePopover('layout')} data-tooltip="Layout Type">
-           <Icon name="layout-type" size={24} />
+           <Icon name={getDiagramIcon(diagramType)} size={24} />
         </button>
         <PopoverMenu isOpen={activePopover === 'layout'} onClose={() => setActivePopover(null)} anchorRef={layoutBtnRef}>
-          <div className="popover-title">Auto Layout</div>
+          <div className="popover-title">Diagram Type</div>
           <div className="popover-list">
              {DIAGRAM_TYPES.map(layout => (
-                <button key={layout.id} className={diagramType === layout.id ? 'active' : ''} onClick={() => {
-                   if (setDiagramType) setDiagramType(layout.id);
-                   setActivePopover(null);
-                   setTimeout(onAutoLayout, 50);
+                <button 
+                  key={layout.id} 
+                  className={diagramType === layout.id ? 'active' : ''} 
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  onClick={() => {
+                    if (setDiagramType) setDiagramType(layout.id);
+                    setActivePopover(null);
+                    setTimeout(onAutoLayout, 50);
                 }}>
+                  <Icon name={getDiagramIcon(layout.id)} size={16} />
                   {layout.name}
                 </button>
              ))}
