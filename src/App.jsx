@@ -268,6 +268,11 @@ function App() {
 
     let inheritedSize = 'M';
     let inheritedColor = 1;
+    if (diagramType === 'piechart' && diagramData.nodes.length > 0) {
+        let lastColor = diagramData.nodes[diagramData.nodes.length - 1].color;
+        if (typeof lastColor !== 'number') lastColor = 0;
+        inheritedColor = (lastColor % 9) + 1;
+    }
     
     // Find highest 'New Group N' to increment, or just create a unique one
     let maxNewGroupNum = 0;
