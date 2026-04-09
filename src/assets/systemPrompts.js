@@ -38,46 +38,38 @@ export function getSystemPromptPhase2(diagramType) {
   const hasNodeValue = schema.features.hasNodeValue;
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "size" must be one of: XS, S, M, L, XL.`;
+    : `\n5. "Size" must be one of: XS, S, M, L, XL.`;
 
-  return `You are a strict JSON generator.
-The user will provide a detailed architectural specification for a diagram of type: ${diagramType.toUpperCase()}.
-Your task is to convert THEIR COMPLETE architecture into the exact JSON structure below.
-- You MUST include EVERY group, node, and edge they requested. Do NOT simplify, merge, or omit elements.
-- Return ONLY valid, raw JSON. Do NOT include any markdown formatting, backticks, or code blocks. Do NOT include // comments in your JSON output.
-- Use the user's language for all labels.
+  return `You are a Diagram Topology Engineer.
+The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+You MUST output EXACTLY two tables: "# Nodes" and "# Edges".
 
-FORMAT SPECIFICATION:
-{
-  "data": {
-    "groups": [
-      {
-        "label": "Optional group label",
-        "type": "rect",
-        "size": "L",
-        "nodes": [
-          { "id": "node_1", "label": "Short label"${hasNodeValue ? ', "value": 25' : ''} }
-        ]
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "node_1",
-        "targetId": "node_2",${includeEdgeLabel ? '\n        "label": "Optional short verb",' : ''}
-        "lineStyle": "solid",
-        "connectionType": "target"
-      }
-    ]
-  }
-}
-
-RULES:
-1. Every node must have a unique id.
-2. Every sourceId and targetId in edges must exactly match an existing node id. This is CRITICAL. A missing ID will crash the renderer.
-3. "type" must be one of: ${allowedTypes}.
+Follow these rules:
+1. Think carefully first in a <thinking> block: which entities belong to which clusters? What are the precise source and target IDs for every edge?
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. Ensure every relationship explicitly specifies the source and target IDs that EXACTLY match the defined nodes.
+4. "Type" must be one of: ${allowedTypes}.
 ${specificRules}${connectionRulesStr}
-6. "lineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden. (Use dashed/dotted for asynchronous/optional paths, bold for the critical main path).
-7. "connectionType" must be one of: ${allowedConnectionTypes}.
-8. Use groups to cluster logically related nodes. A group can contain 1 or more nodes.
-9. ALWAYS return a valid JSON object matching the root structure above.`;
+6. "LineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden.
+7. "ConnectionType" must be one of: ${allowedConnectionTypes}.
+8. Use the exact columns specified below. If a group is not needed, leave the "Group" column empty or write "-".
+9. Use the user's language for all labels.
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
+# Nodes
+| Group | ID | Label | Size | Type |${hasNodeValue ? ' Value |' : ''}
+|---|---|---|---|---|${hasNodeValue ? '---|' : ''}
+| Backend | srv_1 | API Server | M | rect |${hasNodeValue ? ' 25 |' : ''}
+| Backend | db_1 | Database | L | cylinder |${hasNodeValue ? ' 50 |' : ''}
+
+# Edges
+| Source ID | Target ID | Label | LineStyle | ConnectionType |
+|---|---|---|---|---|
+| srv_1 | db_1 | ${includeEdgeLabel ? 'Query' : '-'} | solid | target |
+`;
 }

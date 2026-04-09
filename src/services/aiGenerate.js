@@ -3,15 +3,15 @@ import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPr
 /**
  * Helper to call the Moonshot API proxy
  */
-async function callMoonshot(messages, phase2 = false) {
+async function callMoonshot(messages, temp = 0.3, isJson = false) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages,
       model: 'moonshot-v1-128k',
-      temperature: phase2 ? 0.1 : 0.3,
-      ...(phase2 ? { response_format: { type: 'json_object' } } : {})
+      temperature: temp,
+      ...(isJson ? { response_format: { type: 'json_object' } } : {})
     })
   });
   return res.json();
@@ -47,7 +47,7 @@ export async function planDiagram(userPrompt) {
     { role: 'user', content: userPrompt }
   ];
 
-  const phase1Data = await callMoonshot(phase1Messages, false);
+  const phase1Data = await callMoonshot(phase1Messages, 0.3, false);
   if (!phase1Data.success) {
     return { success: false, error: phase1Data.error || 'Unknown error in Phase 1' };
   }
@@ -71,7 +71,7 @@ export async function planDiagram(userPrompt) {
 
 export async function buildDiagram(title, diagramType, extendedPrompt) {
   // ----------------------------------------------------
-  // PHASE 2: JSON Generation
+  // PHASE 2: Table Parsing Generation
   // ----------------------------------------------------
   const phase2Prompt = getSystemPromptPhase2(diagramType);
   const phase2Messages = [
@@ -79,60 +79,102 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     { role: 'user', content: extendedPrompt }
   ];
 
-  const phase2Data = await callMoonshot(phase2Messages, true);
+  const phase2Data = await callMoonshot(phase2Messages, 0.1, false); // Temp 0.1, No JSON mode
   if (!phase2Data.success) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
 
   const rawContent = phase2Data.content;
-  let parsed;
-
-  try {
-    // Try direct JSON parse first
-    parsed = JSON.parse(rawContent);
-  } catch {
-    // Try extracting from markdown code block
-    const match = rawContent.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/);
-    if (match) {
-      try {
-        parsed = JSON.parse(match[1].trim());
-      } catch {
-        return { success: false, error: 'AI returned invalid JSON in Phase 2' };
+  
+  // PARSING ALGORITHM
+  const parsed = {
+    meta: { type: diagramType, version: "1.0.0" },
+    data: { config: { title, aspect: '16:9' }, groups: [], edges: [] }
+  };
+  
+  const lines = rawContent.split('\n');
+  let mode = null;
+  
+  const groupsMap = new Map();
+  
+  const getOrCreateGroup = (gLabel) => {
+    let lbl = gLabel.trim();
+    if (!lbl || lbl === '-' || lbl.toLowerCase() === 'orphans') lbl = '';
+    
+    if (!groupsMap.has(lbl)) {
+      const newGroup = { label: lbl || undefined, type: 'rect', size: 'L', nodes: [] };
+      parsed.data.groups.push(newGroup);
+      groupsMap.set(lbl, newGroup);
+    }
+    return groupsMap.get(lbl);
+  };
+  
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (t.toLowerCase().startsWith('# nodes')) { mode = 'nodes'; continue; }
+    if (t.toLowerCase().startsWith('# edges')) { mode = 'edges'; continue; }
+    
+    if (t.startsWith('|') && !t.includes('---')) {
+      const cols = t.split('|').map(s => s.trim());
+      // remove first and last empty elements caused by framing pipes |...|
+      if (cols[0] === '') cols.shift();
+      if (cols[cols.length - 1] === '') cols.pop();
+      
+      if (cols.length === 0 || cols[0].toLowerCase() === 'group' || cols[0].toLowerCase() === 'source id') continue;
+      
+      if (mode === 'nodes' && cols.length >= 5) {
+        const gLbl = cols[0];
+        const id = cols[1];
+        const label = cols[2];
+        const size = cols[3] || 'M';
+        const type = cols[4] || 'rect';
+        const val = cols[5] ? Number(cols[5]) : undefined;
+        
+        const group = getOrCreateGroup(gLbl);
+        const nodeObj = { id, label, size, type };
+        if (val !== undefined && !isNaN(val)) nodeObj.value = val;
+        group.nodes.push(nodeObj);
       }
-    } else {
-      return { success: false, error: 'AI returned invalid JSON in Phase 2' };
+      
+      if (mode === 'edges' && cols.length >= 5) {
+        const sourceId = cols[0];
+        const targetId = cols[1];
+        const label = cols[2];
+        const lineStyle = cols[3] || 'solid';
+        const connectionType = cols[4] || 'target';
+        
+        parsed.data.edges.push({
+           sourceId, targetId,
+           label: (label && label !== '-') ? label : undefined,
+           lineStyle, connectionType
+        });
+      }
     }
   }
-
-  // Basic validation
-  if (!parsed.data || !parsed.data.groups || !parsed.data.edges) {
-    return { success: false, error: 'AI returned incomplete diagram data' };
+  
+  if (parsed.data.groups.length === 0) {
+      return { success: false, error: 'AI failed to generate structural graph data' };
   }
+
+  // Debug local log
+  try {
+     const logs = JSON.parse(localStorage.getItem('phase2_md_logs') || '[]');
+     logs.unshift({ timestamp: new Date().toISOString(), rawContent });
+     if (logs.length > 5) logs.length = 5;
+     localStorage.setItem('phase2_md_logs', JSON.stringify(logs));
+  } catch (e) {}
 
   // Assign sequential colors to groups
   parsed.data.groups.forEach((group, index) => {
     group.color = (index % 9) + 1; // Maps 0-8 to 1-9
   });
 
-  // Inject properties into the correct standard locations
-  parsed.meta = parsed.meta || {};
-  parsed.meta.type = diagramType;
-  parsed.meta.version = "1.0.0";
-  
-  parsed.data.config = parsed.data.config || {};
-  parsed.data.config.title = title;
-  parsed.data.config.aspect = '16:9';
-
   // Assign a random theme
   const THEMES = [
     'muted-rainbow', 'vibrant-rainbow', 'grey', 'red', 'green', 'blue', 
     'brown', 'purple', 'blue-orange', 'green-purple', 'slate-rose', 'blue-teal-slate'
   ];
-  if (!parsed.theme) {
-    parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
-  } else {
-    parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
-  }
+  parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
 
   return { success: true, cci: parsed };
 }
