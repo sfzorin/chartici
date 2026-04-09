@@ -1,19 +1,233 @@
 {
-  "type": "cci_project",
-  "title": "Product Roadmap 2026",
-  "aspect": "16:9",
-  "diagramType": "timeline",
-  "theme": "blue-teal-slate",
+  "meta": {
+    "type": "timeline",
+    "version": "1.0.0"
+  },
   "data": {
+    "nodes": [
+      {
+        "groupId": "g_1",
+        "label": "Research",
+        "id": "research_1",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_1",
+        "label": "Prototype",
+        "id": "prototype_2",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Alpha Build",
+        "id": "alpha_build_3",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_2",
+        "label": "User Testing",
+        "id": "user_testing_4",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Public Beta",
+        "id": "public_beta_5",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Iterate",
+        "id": "iterate_6",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Launch",
+        "id": "launch_7",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Competitor Analysis",
+        "id": "comp_analysis",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Budget Approval",
+        "id": "budget",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "UI/UX Review",
+        "id": "ui_ux_review",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Tech Stack",
+        "id": "tech_stack_choice",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Security Audit",
+        "id": "security_audit",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "A/B Testing",
+        "id": "ab_testing",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Bug Reports",
+        "id": "bug_reports",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Feedback Loop",
+        "id": "feedback_loop",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Feature Cut",
+        "id": "feature_cut",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Marketing",
+        "id": "marketing",
+        "type": "circle",
+        "size": "M"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Press Release",
+        "id": "press",
+        "type": "circle",
+        "size": "M"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "from": "research_1",
+        "to": "prototype_2"
+      },
+      {
+        "id": "e2",
+        "from": "prototype_2",
+        "to": "alpha_build_3"
+      },
+      {
+        "id": "e3",
+        "from": "alpha_build_3",
+        "to": "user_testing_4"
+      },
+      {
+        "id": "e4",
+        "from": "user_testing_4",
+        "to": "public_beta_5"
+      },
+      {
+        "id": "e5",
+        "from": "public_beta_5",
+        "to": "iterate_6"
+      },
+      {
+        "id": "e6",
+        "from": "iterate_6",
+        "to": "launch_7"
+      },
+      {
+        "id": "b1",
+        "from": "research_1",
+        "to": "comp_analysis"
+      },
+      {
+        "id": "b2",
+        "lineStyle": "dashed",
+        "from": "research_1",
+        "to": "budget"
+      },
+      {
+        "id": "b_new1",
+        "from": "prototype_2",
+        "to": "ui_ux_review"
+      },
+      {
+        "id": "b_new2",
+        "from": "prototype_2",
+        "to": "tech_stack_choice"
+      },
+      {
+        "id": "b_new3",
+        "lineStyle": "dashed",
+        "from": "alpha_build_3",
+        "to": "security_audit"
+      },
+      {
+        "id": "b3",
+        "from": "user_testing_4",
+        "to": "ab_testing"
+      },
+      {
+        "id": "b4",
+        "from": "public_beta_5",
+        "to": "bug_reports"
+      },
+      {
+        "id": "b_new4",
+        "from": "iterate_6",
+        "to": "feedback_loop"
+      },
+      {
+        "id": "b_new5",
+        "from": "iterate_6",
+        "to": "feature_cut"
+      },
+      {
+        "id": "b5",
+        "lineStyle": "dashed",
+        "from": "launch_7",
+        "to": "marketing"
+      },
+      {
+        "id": "b6",
+        "lineStyle": "dashed",
+        "from": "launch_7",
+        "to": "press"
+      }
+    ],
     "groups": [
       {
         "color": 1,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          { "groupId": "q1", "label": "Research", "id": "research_1" },
-          { "groupId": "q1", "label": "Prototype", "id": "prototype_2" }
-        ],
         "label": "q1",
         "id": "g_1"
       },
@@ -21,10 +235,6 @@
         "color": 3,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          { "groupId": "q2", "label": "Alpha Build", "id": "alpha_build_3" },
-          { "groupId": "q2", "label": "User Testing", "id": "user_testing_4" }
-        ],
         "label": "q2",
         "id": "g_2"
       },
@@ -32,10 +242,6 @@
         "color": 5,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          { "groupId": "q3", "label": "Public Beta", "id": "public_beta_5" },
-          { "groupId": "q3", "label": "Iterate", "id": "iterate_6" }
-        ],
         "label": "q3",
         "id": "g_3"
       },
@@ -43,9 +249,6 @@
         "color": 7,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          { "groupId": "q4", "label": "Launch", "id": "launch_7" }
-        ],
         "label": "q4",
         "id": "g_4"
       },
@@ -53,42 +256,14 @@
         "color": 8,
         "type": "circle",
         "size": "M",
-        "nodes": [
-          { "groupId": "docs", "label": "Competitor Analysis", "id": "comp_analysis" },
-          { "groupId": "docs", "label": "Budget Approval", "id": "budget" },
-          { "groupId": "docs", "label": "UI/UX Review", "id": "ui_ux_review" },
-          { "groupId": "docs", "label": "Tech Stack", "id": "tech_stack_choice" },
-          { "groupId": "docs", "label": "Security Audit", "id": "security_audit" },
-          { "groupId": "docs", "label": "A/B Testing", "id": "ab_testing" },
-          { "groupId": "docs", "label": "Bug Reports", "id": "bug_reports" },
-          { "groupId": "docs", "label": "Feedback Loop", "id": "feedback_loop" },
-          { "groupId": "docs", "label": "Feature Cut", "id": "feature_cut" },
-          { "groupId": "docs", "label": "Marketing", "id": "marketing" },
-          { "groupId": "docs", "label": "Press Release", "id": "press" }
-        ],
         "label": "docs",
         "id": "g_5"
       }
     ],
-    "edges": [
-      { "id": "e1", "sourceId": "research_1", "targetId": "prototype_2" },
-      { "id": "e2", "sourceId": "prototype_2", "targetId": "alpha_build_3" },
-      { "id": "e3", "sourceId": "alpha_build_3", "targetId": "user_testing_4" },
-      { "id": "e4", "sourceId": "user_testing_4", "targetId": "public_beta_5" },
-      { "id": "e5", "sourceId": "public_beta_5", "targetId": "iterate_6" },
-      { "id": "e6", "sourceId": "iterate_6", "targetId": "launch_7" },
-      
-      { "id": "b1", "sourceId": "research_1", "targetId": "comp_analysis" },
-      { "id": "b2", "sourceId": "research_1", "targetId": "budget", "lineStyle": "dashed" },
-      { "id": "b_new1", "sourceId": "prototype_2", "targetId": "ui_ux_review" },
-      { "id": "b_new2", "sourceId": "prototype_2", "targetId": "tech_stack_choice" },
-      { "id": "b_new3", "sourceId": "alpha_build_3", "targetId": "security_audit", "lineStyle": "dashed" },
-      { "id": "b3", "sourceId": "user_testing_4", "targetId": "ab_testing" },
-      { "id": "b4", "sourceId": "public_beta_5", "targetId": "bug_reports" },
-      { "id": "b_new4", "sourceId": "iterate_6", "targetId": "feedback_loop" },
-      { "id": "b_new5", "sourceId": "iterate_6", "targetId": "feature_cut" },
-      { "id": "b5", "sourceId": "launch_7", "targetId": "marketing", "lineStyle": "dashed" },
-      { "id": "b6", "sourceId": "launch_7", "targetId": "press", "lineStyle": "dashed" }
-    ]
+    "config": {
+      "title": "Product Roadmap 2026",
+      "aspect": "16:9",
+      "theme": "blue-teal-slate"
+    }
   }
 }

@@ -32,7 +32,6 @@ export function layoutPiechart(nodes, edges, layoutRules) {
       ...n,
       color: (idx % 9) + 1, // Enforce sequential color by size rank
       type: 'pie_slice', // force type for rendering
-      size: 'M', // enforce unified label/text scaling
       x: 0,              // Snap to center
       y: 0,
       w: 600,            // Overall pie diameter

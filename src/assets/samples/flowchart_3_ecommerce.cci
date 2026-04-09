@@ -1,110 +1,70 @@
 {
-  "type": "cci_project",
-  "aspect": "16:9",
-  "diagramType": "flowchart",
-  "theme": "brown-amber-grey",
-  "bgColor": "white",
-  "title": "E-Commerce Checkout Procedure",
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
   "data": {
-    "groups": [
+    "nodes": [
       {
-        "id": "g_layer_0",
-        "nodes": [
-          {
-            "id": "cart",
-            "text": "Shopping Cart",
-            "groupId": "g_layer_0"
-          }
-        ],
-        "color": 1,
+        "id": "cart",
+        "groupId": "g_layer_0",
+        "label": "Shopping Cart",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_1",
-        "nodes": [
-          {
-            "id": "inventory_check",
-            "text": "Check Stock",
-            "groupId": "g_layer_1"
-          }
-        ],
-        "color": 2,
+        "id": "inventory_check",
+        "groupId": "g_layer_1",
+        "label": "Check Stock",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_2",
-        "nodes": [
-          {
-            "id": "stock_cond",
-            "text": "In Stock?",
-            "groupId": "g_layer_2"
-          }
-        ],
-        "color": 3,
+        "id": "stock_cond",
+        "groupId": "g_layer_2",
+        "label": "In Stock?",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_3",
-        "nodes": [
-          {
-            "id": "out_of_stock",
-            "text": "Notify User",
-            "groupId": "g_layer_3"
-          },
-          {
-            "id": "checkout",
-            "text": "Proceed to Payment",
-            "groupId": "g_layer_3"
-          }
-        ],
-        "color": 4,
+        "id": "out_of_stock",
+        "groupId": "g_layer_3",
+        "label": "Notify User",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_4",
-        "nodes": [
-          {
-            "id": "payment_gateway",
-            "text": "Stripe Gateway",
-            "groupId": "g_layer_4"
-          }
-        ],
-        "color": 5,
+        "id": "checkout",
+        "groupId": "g_layer_3",
+        "label": "Proceed to Payment",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_5",
-        "nodes": [
-          {
-            "id": "payment_success",
-            "text": "Payment Success?",
-            "groupId": "g_layer_5"
-          }
-        ],
-        "color": 6,
+        "id": "payment_gateway",
+        "groupId": "g_layer_4",
+        "label": "Stripe Gateway",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_6",
-        "nodes": [
-          {
-            "id": "order_confirmed",
-            "text": "Order Confirmed",
-            "groupId": "g_layer_6"
-          },
-          {
-            "id": "payment_failed",
-            "text": "Payment Failed",
-            "groupId": "g_layer_6"
-          }
-        ],
-        "color": 7,
+        "id": "payment_success",
+        "groupId": "g_layer_5",
+        "label": "Payment Success?",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "order_confirmed",
+        "groupId": "g_layer_6",
+        "label": "Order Confirmed",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "payment_failed",
+        "groupId": "g_layer_6",
+        "label": "Payment Failed",
         "type": "rect",
         "size": "L"
       }
@@ -112,54 +72,104 @@
     "edges": [
       {
         "id": "e1",
-        "sourceId": "cart",
-        "targetId": "inventory_check"
+        "from": "cart",
+        "to": "inventory_check"
       },
       {
         "id": "e2",
-        "sourceId": "inventory_check",
-        "targetId": "stock_cond"
+        "from": "inventory_check",
+        "to": "stock_cond"
       },
       {
         "id": "e3",
-        "sourceId": "stock_cond",
-        "targetId": "checkout",
-        "label": "Yes"
+        "label": "Yes",
+        "from": "stock_cond",
+        "to": "checkout"
       },
       {
         "id": "e4",
-        "sourceId": "stock_cond",
-        "targetId": "out_of_stock",
-        "label": "No"
+        "label": "No",
+        "from": "stock_cond",
+        "to": "out_of_stock"
       },
       {
         "id": "e5",
-        "sourceId": "checkout",
-        "targetId": "payment_gateway"
+        "from": "checkout",
+        "to": "payment_gateway"
       },
       {
         "id": "e6",
-        "sourceId": "payment_gateway",
-        "targetId": "payment_success"
+        "from": "payment_gateway",
+        "to": "payment_success"
       },
       {
         "id": "e7",
-        "sourceId": "payment_success",
-        "targetId": "order_confirmed",
-        "label": "True"
+        "label": "True",
+        "from": "payment_success",
+        "to": "order_confirmed"
       },
       {
         "id": "e8",
-        "sourceId": "payment_success",
-        "targetId": "payment_failed",
-        "label": "False"
+        "label": "False",
+        "from": "payment_success",
+        "to": "payment_failed"
       },
       {
         "id": "e9",
-        "sourceId": "payment_failed",
-        "targetId": "checkout",
-        "label": "Retry"
+        "label": "Retry",
+        "from": "payment_failed",
+        "to": "checkout"
       }
-    ]
+    ],
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_3",
+        "color": 4,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_4",
+        "color": 5,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_5",
+        "color": 6,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_6",
+        "color": 7,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "config": {
+      "aspect": "16:9",
+      "theme": "brown-amber-grey",
+      "bgColor": "white",
+      "title": "E-Commerce Checkout Procedure"
+    }
   }
 }

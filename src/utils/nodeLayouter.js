@@ -36,46 +36,97 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
 
   const layoutRules = getDiagramRules(config.diagramType).layout;
 
+  // X. Pre-process piechart groups: collapse them into proxy nodes
+  const piechartGroups = (config.groups || []).filter(g => g.type === 'piechart');
+  let finalProcessedNodes = [...processedNodes];
+  const pieProxyMap = {}; // proxyId -> { group, childNodes }
+  
+  if (piechartGroups.length > 0) {
+     const nodesToExtract = new Set();
+     piechartGroups.forEach(g => {
+        const children = finalProcessedNodes.filter(n => n.groupId === g.id);
+        if (children.length === 0) return;
+        
+        children.forEach(c => nodesToExtract.add(c.id));
+        
+        const proxyId = `__pie_proxy_${g.id}`;
+        // approximate pie diameter
+        const sizeMap = { 'XS': 200, 'S': 300, 'M': 450, 'L': 600, 'XL': 800 };
+        const side = sizeMap[g.size] || 450;
+        
+        pieProxyMap[proxyId] = {
+           group: g,
+           childNodes: children
+        };
+        
+        finalProcessedNodes.push({
+           id: proxyId,
+           groupId: g.id,
+           type: 'process',
+           w: side,
+           h: side
+        });
+     });
+     
+     finalProcessedNodes = finalProcessedNodes.filter(n => !nodesToExtract.has(n.id));
+  }
+
   // 2. Delegate to strategy
   let result;
   const dt = config.diagramType === 'org_chart' ? 'tree' : config.diagramType;
   switch (dt) {
     case 'flowchart':
-        result = layoutSugiyamaDAG(processedNodes, layoutEdges, isHorizontalFlow, layoutRules, true, dt);
+        result = layoutSugiyamaDAG(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules, true, dt);
         break;
     case 'piechart':
-        result = layoutPiechart(processedNodes, layoutEdges, layoutRules);
+        result = layoutPiechart(finalProcessedNodes, layoutEdges, layoutRules);
         break;
     case 'radial':
-        result = layoutRadial(processedNodes, layoutEdges, layoutRules);
+        result = layoutRadial(finalProcessedNodes, layoutEdges, layoutRules);
         break;
     case 'timeline':
-        result = layoutTimeline(processedNodes, layoutEdges, layoutRules, isHorizontalFlow);
+        result = layoutTimeline(finalProcessedNodes, layoutEdges, layoutRules, isHorizontalFlow);
         break;
     case 'matrix':
-        result = layoutMatrix(processedNodes, layoutEdges, layoutRules);
+        result = layoutMatrix(finalProcessedNodes, layoutEdges, layoutRules);
         break;
     case 'tree':
-        result = layoutTree(processedNodes, layoutEdges, isHorizontalFlow, layoutRules);
+        result = layoutTree(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules);
         break;
     case 'sequence':
     case 'erd':
     default:
-        result = layoutSugiyamaDAG(processedNodes, layoutEdges, isHorizontalFlow, layoutRules, false, dt);
+        result = layoutSugiyamaDAG(finalProcessedNodes, layoutEdges, isHorizontalFlow, layoutRules, false, dt);
         break;
   }
 
-  // 3. Clean up proxy metrics and snap to strict 20px grid
-  const laidOutResult = result.map(n => {
-      const out = { ...n };
-      delete out.w;
-      delete out.h;
-      delete out.subTreeBreadth;
-      
-      out.x = Math.round(out.x / 20) * 20;
-      out.y = Math.round(out.y / 20) * 20;
-      
-      return out;
+  // 3. Clean up proxy metrics and restore pie slices
+  let laidOutResult = [];
+  result.forEach(n => {
+      if (pieProxyMap[n.id]) {
+          // This is a pie proxy! 
+          const proxy = pieProxyMap[n.id];
+          const cx = Math.round(n.x / 20) * 20;
+          const cy = Math.round(n.y / 20) * 20;
+          
+          // Layout the pie slices using layoutPiechart logic, and assign them cx, cy
+          const slices = layoutPiechart(proxy.childNodes, [], layoutRules);
+          slices.forEach(slice => {
+             slice.x = cx;
+             slice.y = cy;
+             slice.isPieSlice = true; // flag for DiagramNode to render slice
+             laidOutResult.push(slice);
+          });
+      } else {
+          const out = { ...n };
+          delete out.w;
+          delete out.h;
+          delete out.subTreeBreadth;
+          
+          out.x = Math.round(out.x / 20) * 20;
+          out.y = Math.round(out.y / 20) * 20;
+          laidOutResult.push(out);
+      }
   });
 
   // 4. Merge back text nodes and dynamically restore relative logical offsets

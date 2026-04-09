@@ -10,7 +10,7 @@ Unlike generic flowchart tools (like draw.io or Miro) which rely on HTML overlay
 
 ## 🚀 Features & Keywords
 - **AI-Assisted Generation**: Feed plain text requirements to an LLM, and instantly render complex architectures using Chartici logic.
-- **Topologies Supported**: Flowcharts, Organizational Trees, Sequence Diagrams, ERD (Entity-Relationship), Matrices, Radial/Mind Maps, and Timelines.
+- **Topologies Supported**: Flowcharts, Organizational Trees, Sequence Diagrams, ERD (Entity-Relationship), Matrices, Radial/Mind Maps, Pie Charts, and Timelines.
 - **Pure SVG Export**: Production-ready vector graphics ready for print or web.
 - **A* Orthogonal Routing**: Advanced heuristic routing engine avoiding nodes and elegantly bridging line crossings.
 

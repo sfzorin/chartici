@@ -101,7 +101,7 @@ function App() {
 
   
   const loadParsedData = (parsed, fallbackName = 'Imported Project') => {
-    const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, parsed.config || {});
+    const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: parsed.meta?.type || 'flowchart', groups: parsed.groups });
     const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
       ? parsed.config.theme : 'muted-rainbow';
       
@@ -175,7 +175,7 @@ function App() {
     setDiagramData(prev => {
       const startT = performance.now();
       const nextConfig = { ...prev.config };
-      const newNodes = layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType });
+      const newNodes = layoutNodesHeuristically(prev.nodes, prev.edges, { diagramType, groups: prev.groups });
       
       if (!nextConfig.titleLock) {
          nextConfig.titleX = undefined;
@@ -347,7 +347,7 @@ function App() {
         
         let nextNodes = [...prev.nodes, newNode];
         if (diagramType === 'piechart') {
-            nextNodes = layoutNodesHeuristically(nextNodes, prev.edges, { diagramType });
+            nextNodes = layoutNodesHeuristically(nextNodes, prev.edges, { diagramType, groups: prev.groups });
         }
 
         return { 
@@ -536,7 +536,7 @@ function App() {
       newGroups = newGroups.filter(g => usedGroupIds.has(g.id));
 
       if (diagramType === 'piechart' && ['value', 'size'].includes(field)) {
-          newNodes = layoutNodesHeuristically(newNodes, prev.edges, { diagramType });
+          newNodes = layoutNodesHeuristically(newNodes, prev.edges, { diagramType, groups: prev.groups });
       }
 
       return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
@@ -578,7 +578,7 @@ function App() {
         const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
         
         if (diagramType === 'piechart') {
-           newNodes = layoutNodesHeuristically(newNodes, newEdges, { diagramType });
+           newNodes = layoutNodesHeuristically(newNodes, newEdges, { diagramType, groups: prev.groups });
         }
         
         return {

@@ -5,7 +5,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'logical step-by-step processes or algorithms.',
     allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps."
   },
   sequence: {
@@ -14,7 +14,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'chronological interactions between systems or actors.',
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls."
   },
   erd: {
@@ -23,7 +23,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'database schemas, entities, and relationships.',
     allowedNodes: ['process', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible."
   },
   radial: {
@@ -32,7 +32,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'mind-maps, concentric layers, or hub-and-spoke architectures.',
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described. Place the core concept at the center (or as the main node), and radiating sub-concepts pointing outwards."
   },
   array: {
@@ -41,7 +41,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'memory buffers, queues, or sequential data structures.',
     allowedNodes: ['process', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use 'process' nodes to represent sequential elements, queues, or arrays."
   },
   matrix: {
@@ -50,7 +50,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'grid-like comparisons, or categorization into distinct cluster zones/cells.',
     allowedNodes: ['process', 'text'],
     allowedEdges: ['none', 'solid'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
     connectionRules: [
       "process -> process : Allowed across different groups/cells using 'solid'."
@@ -62,7 +62,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'events plotted on a generic chronological spine.',
     allowedNodes: ['chevron', 'process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'process' for specific events attached to the spine. 5. This diagram maintains topological order without drawing visible links on the spine.",
     connectionRules: [
       "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
@@ -76,7 +76,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'strict hierarchical org-charts or breakdowns.',
     allowedNodes: ['process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections."
   },
   piechart: {
@@ -85,8 +85,8 @@ export const DIAGRAM_SCHEMAS = {
     description: 'breakdown of items into proportional circular slices.',
     allowedNodes: ['pie_slice'],
     allowedEdges: ['none'],
-    features: { hasNodeValue: true, allowConnections: false, hasGroups: false },
-    promptRule: "4. Use a single general group. Nodes represent slices. Populate the 'value' field with an exact number (e.g. 25, 400).",
+    features: { hasNodeValue: true, allowConnections: false },
+    promptRule: "4. Create a single group with 'type':'piechart'. The nodes represent the items inside it, using 'type':'pie_slice' and providing 'id', 'label', and 'value' fields.",
     connectionRules: [
       "Edges MUST NOT be used in piecharts."
     ]
@@ -97,7 +97,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'a generic mixed-architecture design.',
     allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
+    features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Choose node 'size' and 'lineStyle' that best represent the logic described."
   }
 };

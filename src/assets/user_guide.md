@@ -42,6 +42,7 @@ The system operates exclusively on the `.cci` file format. This is a strict **JS
    - `"radial"`: For Mind Maps, brainstorming, concept exploration, and stakeholder maps radiating from a central hub.
    - `"timeline"`: For project roadmaps, historical timelines, release planning, and linear sequential phases.
    - `"matrix"`: For SWOT analysis, priority matrices (urgent/important), product positioning maps, and 2D classifications.
+   - `"piechart"`: For proportional breakdown of elements in a pie graph. Uses radial group rendering internally.
 
 ### Groups Array (Contains Nodes)
 
@@ -67,13 +68,14 @@ Chartici is fundamentally built around grouping. Instead of a flat list of nodes
 ```
 
 - **`label`**: (Optional) The string name displayed at the top of the group visually.
-- **`type`**: The graphical shape of the item. Valid options: `"rect"` (default rectangle), `"circle"`, `"rhombus"`, `"oval"` (pill shape).
+- **`type`**: The graphical shape of the item. Valid options: `"rect"` (default rectangle), `"circle"`, `"rhombus"`, `"oval"` (pill shape), `"piechart"`.
 - **`color`**: Styling for the group itself. These styles **cascade** down and bind the `nodes` inside it. A node inside a group cannot have a uniquely different color or type than the group!
 - **`outlined`**: (Optional, boolean) When `true`, nodes in this group render as outlined (border only, transparent fill) instead of solid fill. Useful for secondary/supporting elements.
 - **`size`**: Defines the physical geometric scale of nodes (based on strict grid heights). Valid options: `"XS"`, `"S"`, `"M"`, `"L"`, `"XL"`. True widths scale dynamically based on the node `type` and textual contents.
 - **`nodes`**: Array of individual entities inside this group.
   - **`id`**: (Required) Unique identifier to be referenced as `sourceId` or `targetId` in Edges.
   - **`label`**: (Optional) The display string inside the node. If omitted, the node will be rendered blank but still act as a structural target for edges.
+  - **`value`**: (Optional) Numeric value. **Required** when the parent group `type` is `"piechart"`.
 
 **Note on Positioning:** The Heuristic Layout Engine completely calculates `x` and `y` coordinates to ensure pixel-perfect grids. Do not attempt to calculate coordinates mathematically yourself.
 

@@ -1,40 +1,28 @@
 {
-  "type": "cci_project",
-  "aspect": "16:9",
-  "diagramType": "sequence",
-  "theme": "blue-orange",
-  "bgColor": "white",
-  "title": "OAuth 2.0 Authorization Code Flow",
+  "meta": {
+    "type": "sequence",
+    "version": "1.0.0"
+  },
   "data": {
-    "groups": [
+    "nodes": [
       {
-        "id": "g_layer_0",
-        "nodes": [
-          {
-            "id": "user",
-            "text": "User App",
-            "groupId": "g_layer_0"
-          }
-        ],
-        "color": 1,
+        "id": "user",
+        "groupId": "g_layer_0",
+        "label": "User App",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_1",
-        "nodes": [
-          {
-            "id": "client",
-            "text": "Relying Party",
-            "groupId": "g_layer_1"
-          },
-          {
-            "id": "auth",
-            "text": "Auth Server",
-            "groupId": "g_layer_1"
-          }
-        ],
-        "color": 2,
+        "id": "client",
+        "groupId": "g_layer_1",
+        "label": "Relying Party",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "auth",
+        "groupId": "g_layer_1",
+        "label": "Auth Server",
         "type": "rect",
         "size": "L"
       }
@@ -42,49 +30,69 @@
     "edges": [
       {
         "id": "e1",
-        "sourceId": "user",
-        "targetId": "client",
-        "label": "1. Click Login"
+        "label": "1. Click Login",
+        "from": "user",
+        "to": "client"
       },
       {
         "id": "e2",
-        "sourceId": "client",
-        "targetId": "auth",
         "label": "2. Redirect to Auth",
-        "lineStyle": "dashed"
+        "lineStyle": "dashed",
+        "from": "client",
+        "to": "auth"
       },
       {
         "id": "e3",
-        "sourceId": "auth",
-        "targetId": "user",
-        "label": "3. Show Login Form"
+        "label": "3. Show Login Form",
+        "from": "auth",
+        "to": "user"
       },
       {
         "id": "e4",
-        "sourceId": "user",
-        "targetId": "auth",
-        "label": "4. Submit Credentials"
+        "label": "4. Submit Credentials",
+        "from": "user",
+        "to": "auth"
       },
       {
         "id": "e5",
-        "sourceId": "auth",
-        "targetId": "client",
         "label": "5. Redirect w/ Code",
-        "lineStyle": "dashed"
+        "lineStyle": "dashed",
+        "from": "auth",
+        "to": "client"
       },
       {
         "id": "e6",
-        "sourceId": "client",
-        "targetId": "auth",
-        "label": "6. POST /token (Code)"
+        "label": "6. POST /token (Code)",
+        "from": "client",
+        "to": "auth"
       },
       {
         "id": "e7",
-        "sourceId": "auth",
-        "targetId": "client",
         "label": "7. Return Access Token",
-        "lineStyle": "dashed"
+        "lineStyle": "dashed",
+        "from": "auth",
+        "to": "client"
       }
-    ]
+    ],
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "config": {
+      "aspect": "16:9",
+      "theme": "blue-orange",
+      "bgColor": "white",
+      "title": "OAuth 2.0 Authorization Code Flow"
+    }
   }
 }

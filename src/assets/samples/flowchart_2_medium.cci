@@ -1,27 +1,116 @@
 {
-  "type": "cci_project",
-  "title": "Order Processing",
-  "aspect": "16:9",
-  "diagramType": "flowchart",
-  "theme": "blue-teal-slate",
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
   "data": {
+    "nodes": [
+      {
+        "groupId": "g_1",
+        "label": "Receive Order",
+        "id": "receive_order_1",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_1",
+        "label": "Validate Order",
+        "id": "validate_order_2",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_2",
+        "label": "In Stock?",
+        "id": "in_stock_3",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Pack Items",
+        "id": "pack_items_4",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Ship Order",
+        "id": "ship_order_5",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Notify Customer",
+        "id": "notify_customer_6",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Restock Request",
+        "id": "restock_request_7",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_5",
+        "label": "Order Complete",
+        "id": "order_complete_8",
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "from": "receive_order_1",
+        "to": "validate_order_2"
+      },
+      {
+        "id": "e2",
+        "from": "validate_order_2",
+        "to": "in_stock_3"
+      },
+      {
+        "id": "e3",
+        "label": "Yes",
+        "from": "in_stock_3",
+        "to": "pack_items_4"
+      },
+      {
+        "id": "e4",
+        "label": "No",
+        "from": "in_stock_3",
+        "to": "notify_customer_6"
+      },
+      {
+        "id": "e5",
+        "from": "pack_items_4",
+        "to": "ship_order_5"
+      },
+      {
+        "id": "e6",
+        "from": "ship_order_5",
+        "to": "order_complete_8"
+      },
+      {
+        "id": "e7",
+        "from": "notify_customer_6",
+        "to": "restock_request_7"
+      },
+      {
+        "id": "e8",
+        "from": "restock_request_7",
+        "to": "in_stock_3"
+      }
+    ],
     "groups": [
       {
         "color": 1,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "intake",
-            "label": "Receive Order",
-            "id": "receive_order_1"
-          },
-          {
-            "groupId": "intake",
-            "label": "Validate Order",
-            "id": "validate_order_2"
-          }
-        ],
         "label": "intake",
         "id": "g_1"
       },
@@ -29,13 +118,6 @@
         "color": 3,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "decision",
-            "label": "In Stock?",
-            "id": "in_stock_3"
-          }
-        ],
         "label": "decision",
         "id": "g_2"
       },
@@ -43,18 +125,6 @@
         "color": 5,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "fulfill",
-            "label": "Pack Items",
-            "id": "pack_items_4"
-          },
-          {
-            "groupId": "fulfill",
-            "label": "Ship Order",
-            "id": "ship_order_5"
-          }
-        ],
         "label": "fulfill",
         "id": "g_3"
       },
@@ -62,18 +132,6 @@
         "color": 7,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "backorder",
-            "label": "Notify Customer",
-            "id": "notify_customer_6"
-          },
-          {
-            "groupId": "backorder",
-            "label": "Restock Request",
-            "id": "restock_request_7"
-          }
-        ],
         "label": "backorder",
         "id": "g_4"
       },
@@ -81,60 +139,14 @@
         "color": 9,
         "type": "rect",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "done",
-            "label": "Order Complete",
-            "id": "order_complete_8"
-          }
-        ],
         "label": "done",
         "id": "g_5"
       }
     ],
-    "edges": [
-      {
-        "id": "e1",
-        "sourceId": "receive_order_1",
-        "targetId": "validate_order_2"
-      },
-      {
-        "id": "e2",
-        "sourceId": "validate_order_2",
-        "targetId": "in_stock_3"
-      },
-      {
-        "id": "e3",
-        "label": "Yes",
-        "sourceId": "in_stock_3",
-        "targetId": "pack_items_4"
-      },
-      {
-        "id": "e4",
-        "label": "No",
-        "sourceId": "in_stock_3",
-        "targetId": "notify_customer_6"
-      },
-      {
-        "id": "e5",
-        "sourceId": "pack_items_4",
-        "targetId": "ship_order_5"
-      },
-      {
-        "id": "e6",
-        "sourceId": "ship_order_5",
-        "targetId": "order_complete_8"
-      },
-      {
-        "id": "e7",
-        "sourceId": "notify_customer_6",
-        "targetId": "restock_request_7"
-      },
-      {
-        "id": "e8",
-        "sourceId": "restock_request_7",
-        "targetId": "in_stock_3"
-      }
-    ]
+    "config": {
+      "title": "Order Processing",
+      "aspect": "16:9",
+      "theme": "blue-teal-slate"
+    }
   }
 }

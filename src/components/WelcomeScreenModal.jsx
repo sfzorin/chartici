@@ -13,6 +13,7 @@ import sampleRadial from '../assets/samples/radial_2_medium.cci?raw';
 import sampleSequence from '../assets/samples/sequence_2_medium.cci?raw';
 import sampleTimeline from '../assets/samples/timeline_2_medium.cci?raw';
 import sampleTree from '../assets/samples/tree_2_medium.cci?raw';
+import samplePiechart from '../assets/samples/piechart_2_medium.cci?raw';
 
 const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
     const [isVisible, setIsVisible] = useState(true);
@@ -278,7 +279,8 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                         { label: 'ERD', data: sampleERD },
                         { label: 'Matrix', data: sampleMatrix },
                         { label: 'Radial', data: sampleRadial },
-                        { label: 'Timeline', data: sampleTimeline }
+                        { label: 'Timeline', data: sampleTimeline },
+                        { label: 'Pie Chart', data: samplePiechart }
                     ].map(s => (
                         <button key={s.label} onClick={() => processJson(s.data)} style={{
                             padding: '5px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600,

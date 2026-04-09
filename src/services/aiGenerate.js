@@ -114,10 +114,14 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     group.color = (index % 9) + 1; // Maps 0-8 to 1-9
   });
 
-  // Inject the title and diagramType calculated in Phase 1
-  parsed.title = title;
-  parsed.diagramType = diagramType;
-  parsed.aspect = '16:9';
+  // Inject properties into the correct standard locations
+  parsed.meta = parsed.meta || {};
+  parsed.meta.type = diagramType;
+  parsed.meta.version = "1.0.0";
+  
+  parsed.data.config = parsed.data.config || {};
+  parsed.data.config.title = title;
+  parsed.data.config.aspect = '16:9';
 
   // Assign a random theme
   const THEMES = [

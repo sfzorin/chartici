@@ -1,68 +1,56 @@
 {
-  "type": "cci_project",
-  "aspect": "16:9",
-  "diagramType": "tree",
-  "theme": "vibrant-rainbow",
-  "bgColor": "white",
-  "title": "Startup Org Chart",
+  "meta": {
+    "type": "tree",
+    "version": "1.0.0"
+  },
   "data": {
-    "groups": [
+    "nodes": [
       {
-        "id": "g_layer_0",
-        "nodes": [
-          {
-            "id": "ceo",
-            "text": "CEO",
-            "groupId": "g_layer_0"
-          }
-        ],
-        "color": 1,
+        "id": "ceo",
+        "groupId": "g_layer_0",
+        "label": "CEO",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_1",
-        "nodes": [
-          {
-            "id": "cto",
-            "text": "Head of Engineering",
-            "groupId": "g_layer_1"
-          },
-          {
-            "id": "cmo",
-            "text": "Head of Marketing",
-            "groupId": "g_layer_1"
-          },
-          {
-            "id": "cro",
-            "text": "Head of Sales",
-            "groupId": "g_layer_1"
-          }
-        ],
-        "color": 2,
+        "id": "cto",
+        "groupId": "g_layer_1",
+        "label": "Head of Engineering",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_2",
-        "nodes": [
-          {
-            "id": "eng_team",
-            "text": "Engineers",
-            "groupId": "g_layer_2"
-          },
-          {
-            "id": "mkt_team",
-            "text": "Marketers",
-            "groupId": "g_layer_2"
-          },
-          {
-            "id": "sales_team",
-            "text": "Sales Reps",
-            "groupId": "g_layer_2"
-          }
-        ],
-        "color": 3,
+        "id": "cmo",
+        "groupId": "g_layer_1",
+        "label": "Head of Marketing",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "cro",
+        "groupId": "g_layer_1",
+        "label": "Head of Sales",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "eng_team",
+        "groupId": "g_layer_2",
+        "label": "Engineers",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "mkt_team",
+        "groupId": "g_layer_2",
+        "label": "Marketers",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "sales_team",
+        "groupId": "g_layer_2",
+        "label": "Sales Reps",
         "type": "rect",
         "size": "L"
       }
@@ -70,34 +58,60 @@
     "edges": [
       {
         "id": "e1",
-        "sourceId": "ceo",
-        "targetId": "cto"
+        "from": "ceo",
+        "to": "cto"
       },
       {
         "id": "e2",
-        "sourceId": "ceo",
-        "targetId": "cmo"
+        "from": "ceo",
+        "to": "cmo"
       },
       {
         "id": "e3",
-        "sourceId": "ceo",
-        "targetId": "cro"
+        "from": "ceo",
+        "to": "cro"
       },
       {
         "id": "e4",
-        "sourceId": "cto",
-        "targetId": "eng_team"
+        "from": "cto",
+        "to": "eng_team"
       },
       {
         "id": "e5",
-        "sourceId": "cmo",
-        "targetId": "mkt_team"
+        "from": "cmo",
+        "to": "mkt_team"
       },
       {
         "id": "e6",
-        "sourceId": "cro",
-        "targetId": "sales_team"
+        "from": "cro",
+        "to": "sales_team"
       }
-    ]
+    ],
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "config": {
+      "aspect": "16:9",
+      "theme": "vibrant-rainbow",
+      "bgColor": "white",
+      "title": "Startup Org Chart"
+    }
   }
 }

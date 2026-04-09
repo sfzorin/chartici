@@ -1,32 +1,114 @@
 {
-  "type": "cci_project",
-  "title": "SWOT Analysis",
-  "aspect": "1:1",
-  "diagramType": "matrix",
-  "theme": "green-purple",
+  "meta": {
+    "type": "matrix",
+    "version": "1.0.0"
+  },
   "data": {
+    "nodes": [
+      {
+        "groupId": "g_1",
+        "label": "Strong Brand",
+        "id": "strong_brand_1",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_1",
+        "label": "Loyal Users",
+        "id": "loyal_users_2",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_1",
+        "label": "Fast Shipping",
+        "id": "fast_shipping_3",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "High Costs",
+        "id": "high_costs_4",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Small Team",
+        "id": "small_team_5",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Tech Debt",
+        "id": "tech_debt_6",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_3",
+        "label": "New Markets",
+        "id": "new_markets_7",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_3",
+        "label": "AI Features",
+        "id": "ai_features_8",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Partnerships",
+        "id": "partnerships_9",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Competition",
+        "id": "competition_10",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Regulation",
+        "id": "regulation_11",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Recession",
+        "id": "recession_12",
+        "type": "rect",
+        "size": "M"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "label": "leverage",
+        "from": "strong_brand_1",
+        "to": "new_markets_7"
+      },
+      {
+        "id": "e2",
+        "label": "risk",
+        "from": "tech_debt_6",
+        "to": "competition_10"
+      }
+    ],
     "groups": [
       {
         "color": 1,
         "type": "rect",
         "size": "M",
-        "nodes": [
-          {
-            "groupId": "strengths",
-            "label": "Strong Brand",
-            "id": "strong_brand_1"
-          },
-          {
-            "groupId": "strengths",
-            "label": "Loyal Users",
-            "id": "loyal_users_2"
-          },
-          {
-            "groupId": "strengths",
-            "label": "Fast Shipping",
-            "id": "fast_shipping_3"
-          }
-        ],
         "label": "strengths",
         "id": "g_1"
       },
@@ -34,23 +116,6 @@
         "color": 3,
         "type": "rect",
         "size": "M",
-        "nodes": [
-          {
-            "groupId": "weaknesses",
-            "label": "High Costs",
-            "id": "high_costs_4"
-          },
-          {
-            "groupId": "weaknesses",
-            "label": "Small Team",
-            "id": "small_team_5"
-          },
-          {
-            "groupId": "weaknesses",
-            "label": "Tech Debt",
-            "id": "tech_debt_6"
-          }
-        ],
         "label": "weaknesses",
         "id": "g_2"
       },
@@ -58,23 +123,6 @@
         "color": 5,
         "type": "rect",
         "size": "M",
-        "nodes": [
-          {
-            "groupId": "opportunities",
-            "label": "New Markets",
-            "id": "new_markets_7"
-          },
-          {
-            "groupId": "opportunities",
-            "label": "AI Features",
-            "id": "ai_features_8"
-          },
-          {
-            "groupId": "opportunities",
-            "label": "Partnerships",
-            "id": "partnerships_9"
-          }
-        ],
         "label": "opportunities",
         "id": "g_3"
       },
@@ -82,40 +130,14 @@
         "color": 7,
         "type": "rect",
         "size": "M",
-        "nodes": [
-          {
-            "groupId": "threats",
-            "label": "Competition",
-            "id": "competition_10"
-          },
-          {
-            "groupId": "threats",
-            "label": "Regulation",
-            "id": "regulation_11"
-          },
-          {
-            "groupId": "threats",
-            "label": "Recession",
-            "id": "recession_12"
-          }
-        ],
         "label": "threats",
         "id": "g_4"
       }
     ],
-    "edges": [
-      {
-        "id": "e1",
-        "label": "leverage",
-        "sourceId": "strong_brand_1",
-        "targetId": "new_markets_7"
-      },
-      {
-        "id": "e2",
-        "label": "risk",
-        "sourceId": "tech_debt_6",
-        "targetId": "competition_10"
-      }
-    ]
+    "config": {
+      "title": "SWOT Analysis",
+      "aspect": "1:1",
+      "theme": "green-purple"
+    }
   }
 }

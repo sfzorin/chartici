@@ -915,6 +915,44 @@ export default function DiagramRenderer({
              pointerEvents="none"
            />
         )}
+
+        {(() => {
+            const pieGroups = (initialData.groups || []).filter(g => g.type === 'piechart');
+            if (pieGroups.length === 0) return null;
+            
+            return pieGroups.map(g => {
+                const gNodes = computedNodes.filter(n => getGroupId(n) === g.id && n.isPieSlice);
+                if (gNodes.length === 0) return null;
+                
+                // Get the position of the first node as the pie center
+                const cx = gNodes[0].x || 0;
+                const cy = gNodes[0].y || 0;
+                
+                // Legend position: to the right of the pie chart
+                const pieRadius = gNodes[0].w / 2 || 200;
+                const legX = cx + pieRadius + 40;
+                const legY = cy - (gNodes.length * 24) / 2;
+                
+                return (
+                  <g key={`leg-group-${g.id}`} transform={`translate(${legX}, ${legY})`}>
+                     {gNodes.map((n, i) => {
+                        const nColor = g.color || n.color || 1;
+                        const fillC = theme.nodes[nColor]?.bg || nColor || '#ccc';
+                        const strokeC = theme.nodes[nColor]?.stroke || nColor || '#999';
+                        return (
+                            <g key={`leg-${n.id}`} transform={`translate(0, ${i * 24})`}>
+                               <rect x="0" y="-10" width="16" height="16" rx="4" fill={fillC} stroke={strokeC} strokeWidth="1.5" />
+                               <text x="24" y="-1" dominantBaseline="central" fontSize="14" fontWeight="500" fill="var(--diagram-text)">
+                                   {n.label} {n.value !== undefined && n.value !== null ? `— ${n.value}` : ''}
+                               </text>
+                            </g>
+                        );
+                     })}
+                  </g>
+                );
+            });
+        })()}
+
       </g>
       
 

@@ -1,22 +1,133 @@
 {
-  "type": "cci_project",
-  "title": "Marketing Strategy",
-  "aspect": "1:1",
-  "diagramType": "radial",
-  "theme": "blue-orange",
+  "meta": {
+    "type": "radial",
+    "version": "1.0.0"
+  },
   "data": {
+    "nodes": [
+      {
+        "groupId": "g_1",
+        "label": "Brand",
+        "id": "brand_1",
+        "type": "circle",
+        "size": "L"
+      },
+      {
+        "groupId": "g_2",
+        "label": "SEO",
+        "id": "seo_2",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Social Media",
+        "id": "social_media_3",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Email",
+        "id": "email_4",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Events",
+        "id": "events_5",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "PR",
+        "id": "pr_6",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_2",
+        "label": "Content",
+        "id": "content_7",
+        "type": "rect",
+        "size": "M"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Analytics",
+        "id": "analytics_8",
+        "type": "rect",
+        "size": "S"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Blog",
+        "id": "blog_9",
+        "type": "rect",
+        "size": "S"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Newsletter",
+        "id": "newsletter_10",
+        "type": "rect",
+        "size": "S"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "from": "brand_1",
+        "to": "seo_2"
+      },
+      {
+        "id": "e2",
+        "from": "brand_1",
+        "to": "social_media_3"
+      },
+      {
+        "id": "e3",
+        "from": "brand_1",
+        "to": "email_4"
+      },
+      {
+        "id": "e4",
+        "from": "brand_1",
+        "to": "events_5"
+      },
+      {
+        "id": "e5",
+        "from": "brand_1",
+        "to": "pr_6"
+      },
+      {
+        "id": "e6",
+        "from": "brand_1",
+        "to": "content_7"
+      },
+      {
+        "id": "e7",
+        "from": "seo_2",
+        "to": "analytics_8"
+      },
+      {
+        "id": "e8",
+        "from": "content_7",
+        "to": "blog_9"
+      },
+      {
+        "id": "e9",
+        "from": "email_4",
+        "to": "newsletter_10"
+      }
+    ],
     "groups": [
       {
         "color": 1,
         "type": "circle",
         "size": "L",
-        "nodes": [
-          {
-            "groupId": "hub",
-            "label": "Brand",
-            "id": "brand_1"
-          }
-        ],
         "label": "hub",
         "id": "g_1"
       },
@@ -24,38 +135,6 @@
         "color": 3,
         "type": "rect",
         "size": "M",
-        "nodes": [
-          {
-            "groupId": "channels",
-            "label": "SEO",
-            "id": "seo_2"
-          },
-          {
-            "groupId": "channels",
-            "label": "Social Media",
-            "id": "social_media_3"
-          },
-          {
-            "groupId": "channels",
-            "label": "Email",
-            "id": "email_4"
-          },
-          {
-            "groupId": "channels",
-            "label": "Events",
-            "id": "events_5"
-          },
-          {
-            "groupId": "channels",
-            "label": "PR",
-            "id": "pr_6"
-          },
-          {
-            "groupId": "channels",
-            "label": "Content",
-            "id": "content_7"
-          }
-        ],
         "label": "channels",
         "id": "g_2"
       },
@@ -63,73 +142,14 @@
         "color": 5,
         "type": "rect",
         "size": "S",
-        "nodes": [
-          {
-            "groupId": "tools",
-            "label": "Analytics",
-            "id": "analytics_8"
-          },
-          {
-            "groupId": "tools",
-            "label": "Blog",
-            "id": "blog_9"
-          },
-          {
-            "groupId": "tools",
-            "label": "Newsletter",
-            "id": "newsletter_10"
-          }
-        ],
         "label": "tools",
         "id": "g_3"
       }
     ],
-    "edges": [
-      {
-        "id": "e1",
-        "sourceId": "brand_1",
-        "targetId": "seo_2"
-      },
-      {
-        "id": "e2",
-        "sourceId": "brand_1",
-        "targetId": "social_media_3"
-      },
-      {
-        "id": "e3",
-        "sourceId": "brand_1",
-        "targetId": "email_4"
-      },
-      {
-        "id": "e4",
-        "sourceId": "brand_1",
-        "targetId": "events_5"
-      },
-      {
-        "id": "e5",
-        "sourceId": "brand_1",
-        "targetId": "pr_6"
-      },
-      {
-        "id": "e6",
-        "sourceId": "brand_1",
-        "targetId": "content_7"
-      },
-      {
-        "id": "e7",
-        "sourceId": "seo_2",
-        "targetId": "analytics_8"
-      },
-      {
-        "id": "e8",
-        "sourceId": "content_7",
-        "targetId": "blog_9"
-      },
-      {
-        "id": "e9",
-        "sourceId": "email_4",
-        "targetId": "newsletter_10"
-      }
-    ]
+    "config": {
+      "title": "Marketing Strategy",
+      "aspect": "1:1",
+      "theme": "blue-orange"
+    }
   }
 }

@@ -6,10 +6,8 @@ The `.cci` (Chartici Concept Interchange) file format is a strict JSON blueprint
 ```json
 {
   "data": {
-    "nodes": [],
-    "edges": [],
     "groups": [],
-    "config": {}
+    "edges": []
   },
   "meta": {
     "type": "flowchart",
@@ -18,23 +16,30 @@ The `.cci` (Chartici Concept Interchange) file format is a strict JSON blueprint
 }
 ```
 
-## 2. General Node Properties
-Nodes define graphical entities. All sizes and coordinates use a virtual canvas pixel system.
-- **`id`** (String): Unique identifier. System title use `__SYSTEM_TITLE__` internally.
+## 2. Groups & Nodes
+In the Chartici architecture, all nodes are strictly grouped. A `group` defines the physical container shape and the layout rules for its children. Nodes inherit visual properties (color, size) from their parent group unless explicitly overridden.
+
+### Group Properties
+- **`id`** (String): Unique identifier.
+- **`type`** (String): Visual shape/layout strategy of the group container. Allowed: `rect`, `ellipse`, `none`, `piechart`.
+- **`label`** (String): The title of the group.
+- **`color`** (Number): 1-9 palette index.
+- **`size`** (String): Typography and padding sizing (AUTO, XS, S, M, L, XL).
+- **`nodes`** (Array): The list of nodes belonging to this group.
+
+### Node Properties (inside group.nodes)
+- **`id`** (String): Unique identifier.
 - **`type`** (String): Visual shape. Must be one of: `process, circle, oval, rhombus, text, chevron, pie_slice`.
 - **`label`** (String): Content of the node. Newlines `\n` are supported.
-- **`x`**, **`y`** (Number): Logical coordinates.
-- **`color`** (Number | String): Either an integer `1-9` matching the predefined color palettes, OR a valid Hex string like `#1E293B`.
-- **`size`** (String): Typography and boundary scaling. Allowed: `AUTO, XS, S, M, L, XL`. (Pie slices strictly enforce `M`).
-- **`lockPos`** (Boolean): If `true`, the Auto-Layout (Heuristic) engine will NOT touch or move this node from its `x,y` position.
-- **`value`** (Number): Quantitative value, heavily used in specific types (e.g., Pie Chart slices).
-- **`groupId`** (String): Optional reference to a group ID.
+- **`value`** (Number): Quantitative value. Required when `type` is `"pie_slice"`.
+- **`x`**, **`y`** (Number): Optional explicit logical coordinates.
+- **`lockPos`** (Boolean): If `true`, the Auto-Layout engine will NOT touch or move this node from its `x,y` position.
 
 ## 3. General Edge Properties
 - **`id`** (String): Unique edge ID.
-- **`from`**, **`to`** (String): Must match existing node `id`s.
+- **`sourceId`**, **`targetId`** (String): Must match existing node `id`s from any group.
 - **`label`** (String): Optional textual badge centered on the edge.
-- **`lineStyle`** (String): `solid, dashed, dotted, bold, bold-dashed, none`. (`none` acts as a topological invsible spine link).
+- **`lineStyle`** (String): `solid, dashed, dotted, bold, bold-dashed, none`.
 - **`connectionType`** (String): Arrow mapping: `target, both, reverse, none` or ERD specifics like `1:1, 1:N, N:M`.
 
 ## 4. Diagram Type Matrix

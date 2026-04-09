@@ -1,74 +1,42 @@
 {
-  "type": "cci_project",
-  "aspect": "16:9",
-  "diagramType": "flowchart",
-  "theme": "indigo-green-red",
-  "bgColor": "white",
-  "title": "Basic Process Flowchart",
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
   "data": {
-    "groups": [
+    "nodes": [
       {
-        "id": "g_layer_0",
-        "nodes": [
-          {
-            "id": "start",
-            "text": "Start Process",
-            "groupId": "g_layer_0"
-          }
-        ],
-        "color": 1,
+        "id": "start",
+        "groupId": "g_layer_0",
+        "label": "Start Process",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_1",
-        "nodes": [
-          {
-            "id": "task1",
-            "text": "Perform Task",
-            "groupId": "g_layer_1"
-          }
-        ],
-        "color": 2,
+        "id": "task1",
+        "groupId": "g_layer_1",
+        "label": "Perform Task",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_2",
-        "nodes": [
-          {
-            "id": "decision1",
-            "text": "Is it valid?",
-            "groupId": "g_layer_2"
-          }
-        ],
-        "color": 3,
+        "id": "decision1",
+        "groupId": "g_layer_2",
+        "label": "Is it valid?",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_3",
-        "nodes": [
-          {
-            "id": "task2",
-            "text": "Process Data",
-            "groupId": "g_layer_3"
-          }
-        ],
-        "color": 4,
+        "id": "task2",
+        "groupId": "g_layer_3",
+        "label": "Process Data",
         "type": "rect",
         "size": "L"
       },
       {
-        "id": "g_layer_4",
-        "nodes": [
-          {
-            "id": "end",
-            "text": "End",
-            "groupId": "g_layer_4"
-          }
-        ],
-        "color": 5,
+        "id": "end",
+        "groupId": "g_layer_4",
+        "label": "End",
         "type": "rect",
         "size": "L"
       }
@@ -76,31 +44,69 @@
     "edges": [
       {
         "id": "e1",
-        "sourceId": "start",
-        "targetId": "task1"
+        "from": "start",
+        "to": "task1"
       },
       {
         "id": "e2",
-        "sourceId": "task1",
-        "targetId": "decision1"
+        "from": "task1",
+        "to": "decision1"
       },
       {
         "id": "e3",
-        "sourceId": "decision1",
-        "targetId": "task2",
-        "label": "Yes"
+        "label": "Yes",
+        "from": "decision1",
+        "to": "task2"
       },
       {
         "id": "e4",
-        "sourceId": "decision1",
-        "targetId": "start",
-        "label": "No"
+        "label": "No",
+        "from": "decision1",
+        "to": "start"
       },
       {
         "id": "e5",
-        "sourceId": "task2",
-        "targetId": "end"
+        "from": "task2",
+        "to": "end"
       }
-    ]
+    ],
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_3",
+        "color": 4,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_4",
+        "color": 5,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "config": {
+      "aspect": "16:9",
+      "theme": "indigo-green-red",
+      "bgColor": "white",
+      "title": "Basic Process Flowchart"
+    }
   }
 }

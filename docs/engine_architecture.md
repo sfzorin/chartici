@@ -71,13 +71,13 @@ The objective is to calculate `(x, y)` for all nodes to minimize intersections.
 - **Layout:** Standard Sugiyama DAG (Dagre) without the constraints of a Happy Path. Nodes naturally flow linearly from left-to-right due to graph connectedness.
 - **Edges:** Orthogonal. Suitable for visualizing tight buffers or sequential access memory logic.
 
-#### 9. Pie Chart
-- **Layout:** A deterministic custom script (`layoutPiechart`). Ignores grid snaps entirely.
-  - Nodes are strictly grouped together into a single center point.
-  - Nodes are sorted by `value` (or `size` mapping) in descending order to render largest slices first at the 12 o'clock position (Math.PI / 2).
-  - Sizes are forcefully globally unified to `size="M"` during layout to ensure label formatting consistency.
-  - Colors are uniformly mathematically assigned (1-9 ranking) via index.
-- **Edges:** No edges or routing allowed. Topology logic operates purely on node properties.
+#### 9. Pie Chart (Group Context Layout)
+- **Logic:** Pie Charts are NOT standalone diagram layouts. They are a specific `group` type (`type="piechart"`) that can exist within ANY diagram topology (Flowchart, Tree, etc.).
+- **Layout:** 
+  - Before the main Sugiyama (or RT) layout begins, all children of a `piechart` group are extracted and temporarily replaced by a single massive **Proxy Node** matching the mathematical diameter of the group.
+  - This allows the parent diagram topology to route lines and place the Pie Chart block seamlessly among other standard flowchart boxes.
+  - Post-layout, the Proxy Node's `(cx, cy)` coordinates are distributed back to the inner pie slices. `layoutPiechart.js` then mathematically computes their angular sweeps (`pieStartAngle`, `pieEndAngle`) based purely on their `value` properties. Let DiagramRenderer draw it as a singular cohesive disk SVG.
+- **Edges:** Routing is permitted TO the Pie Chart group (Proxy Node boundary), but edges inside the pie slices are banned.
 
 ---
 

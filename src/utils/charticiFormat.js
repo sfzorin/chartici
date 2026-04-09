@@ -35,12 +35,13 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
     gMap[parentId].nodes.push(nodeExport);
   });
 
-  const { ...configRoot } = (config || {});
+  const { diagramType, ...configRoot } = (config || {});
   
   const payload = {
-    type: 'cci_project',
-    version: 2,
-    ...configRoot,
+    meta: {
+      type: diagramType || 'flowchart',
+      version: "1.0.0"
+    },
     data: {
       groups: exportGroups,
       edges: (diagramData.edges || []).map(e => {
@@ -190,18 +191,25 @@ export function parseCharticiFile(fileContent) {
     const isProjectWrapped = data.type === 'cci_project' || data.type === 'chartici_project' || data.data;
     const coreData = isProjectWrapped ? (data.data || {}) : data;
     const configFromData = coreData.config || {};
+    const metaData = data.meta || coreData.meta || {};
 
     const { flatNodes, cleanGroups } = resolveNodesAndGroups(coreData.nodes, coreData.groups);
-    const { type, data: _d, version, ...restConfig } = data;
+    const { type, data: _d, version, meta, ...restConfig } = data;
 
     // Old format uses 'header' instead of 'title'
     if (data.header && !restConfig.title) restConfig.title = data.header;
+
+    const finalConfig = { ...configFromData, ...restConfig };
+    
+    if (metaData.type && !finalConfig.diagramType) {
+       finalConfig.diagramType = metaData.type;
+    }
 
     return {
       groups: cleanGroups,
       nodes: flatNodes,
       edges: resolveEdges(coreData.edges),
-      config: { ...configFromData, ...restConfig }
+      config: finalConfig
     };
   } catch (error) {
     throw new Error(`Failed to parse .cci file: ${error.message}`);

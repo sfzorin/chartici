@@ -1,76 +1,51 @@
 {
-  "type": "cci_project",
-  "title": "E-Commerce Data Model",
-  "aspect": "16:9",
-  "diagramType": "erd",
-  "theme": "blue-teal-slate",
+  "meta": {
+    "type": "erd",
+    "version": "1.0.0"
+  },
   "data": {
-    "groups": [
+    "nodes": [
       {
-        "color": 1,
+        "groupId": "g_1",
+        "label": "Customer",
+        "id": "customer_1",
         "type": "rect",
-        "size": "L",
-        "nodes": [
-          {
-            "groupId": "users",
-            "label": "Customer",
-            "id": "customer_1"
-          }
-        ],
-        "label": "users",
-        "id": "g_1"
+        "size": "L"
       },
       {
-        "color": 3,
+        "groupId": "g_2",
+        "label": "Order",
+        "id": "order_2",
         "type": "rect",
-        "size": "L",
-        "nodes": [
-          {
-            "groupId": "commerce",
-            "label": "Order",
-            "id": "order_2"
-          },
-          {
-            "groupId": "commerce",
-            "label": "Line Item",
-            "id": "line_item_3"
-          }
-        ],
-        "label": "commerce",
-        "id": "g_2"
+        "size": "L"
       },
       {
-        "color": 5,
+        "groupId": "g_2",
+        "label": "Line Item",
+        "id": "line_item_3",
         "type": "rect",
-        "size": "L",
-        "nodes": [
-          {
-            "groupId": "catalog",
-            "label": "Product",
-            "id": "product_4"
-          },
-          {
-            "groupId": "catalog",
-            "label": "Category",
-            "id": "category_5"
-          }
-        ],
-        "label": "catalog",
-        "id": "g_3"
+        "size": "L"
       },
       {
-        "color": 7,
+        "groupId": "g_3",
+        "label": "Product",
+        "id": "product_4",
         "type": "rect",
-        "size": "L",
-        "nodes": [
-          {
-            "groupId": "payment",
-            "label": "Invoice",
-            "id": "invoice_6"
-          }
-        ],
-        "label": "payment",
-        "id": "g_4"
+        "size": "L"
+      },
+      {
+        "groupId": "g_3",
+        "label": "Category",
+        "id": "category_5",
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "groupId": "g_4",
+        "label": "Invoice",
+        "id": "invoice_6",
+        "type": "rect",
+        "size": "L"
       }
     ],
     "edges": [
@@ -78,37 +53,72 @@
         "id": "e1",
         "connectionType": "1:N",
         "label": "places",
-        "sourceId": "customer_1",
-        "targetId": "order_2"
+        "from": "customer_1",
+        "to": "order_2"
       },
       {
         "id": "e2",
         "connectionType": "1:N",
         "label": "contains",
-        "sourceId": "order_2",
-        "targetId": "line_item_3"
+        "from": "order_2",
+        "to": "line_item_3"
       },
       {
         "id": "e3",
         "connectionType": "N:1",
         "label": "refs",
-        "sourceId": "line_item_3",
-        "targetId": "product_4"
+        "from": "line_item_3",
+        "to": "product_4"
       },
       {
         "id": "e4",
         "connectionType": "N:1",
         "label": "belongs",
-        "sourceId": "product_4",
-        "targetId": "category_5"
+        "from": "product_4",
+        "to": "category_5"
       },
       {
         "id": "e5",
         "connectionType": "1:1",
         "label": "generates",
-        "sourceId": "order_2",
-        "targetId": "invoice_6"
+        "from": "order_2",
+        "to": "invoice_6"
       }
-    ]
+    ],
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "label": "users",
+        "id": "g_1"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "L",
+        "label": "commerce",
+        "id": "g_2"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "L",
+        "label": "catalog",
+        "id": "g_3"
+      },
+      {
+        "color": 7,
+        "type": "rect",
+        "size": "L",
+        "label": "payment",
+        "id": "g_4"
+      }
+    ],
+    "config": {
+      "title": "E-Commerce Data Model",
+      "aspect": "16:9",
+      "theme": "blue-teal-slate"
+    }
   }
 }

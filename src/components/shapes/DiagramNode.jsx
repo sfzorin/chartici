@@ -161,6 +161,13 @@ const DiagramNode = React.memo(({
   if (diagramType === 'timeline' && node.isTimelineSpine) {
       actualType = 'chevron';
   }
+  if (node.isPieSlice) {
+      actualType = 'pie_slice';
+  }
+  // If it's a process, fallback
+  if (!['circle','oval','rhombus','element','pie_slice','text','title','chevron'].includes(actualType)) {
+      actualType = 'process';
+  }
   
   let shape;
   switch(actualType) {
@@ -297,23 +304,15 @@ const DiagramNode = React.memo(({
                 );
             } else {
                 // Render inside
-                const textR = r * 0.65;
+                const textR = r + 20;
                 const textX = cx + textR * Math.cos(midAngle);
                 const textY = cy + textR * Math.sin(midAngle);
                 
                 labelGroup = (
                    <g transform={`translate(${textX}, ${textY})`}>
-                       {rawLabel && (
-                           <text 
-                             x="0" y={valText ? "-8" : "0"} 
-                             textAnchor="middle" dominantBaseline="central"
-                             fill={textColor} fontSize="13" fontWeight={fontWeight} fontStyle={fontStyle}
-                             style={{ pointerEvents: 'none', userSelect: 'none' }}
-                           >{rawLabel}</text>
-                       )}
                        {valText && (
                            <text 
-                             x="0" y={rawLabel ? "8" : "0"} 
+                             x="0" y="0" 
                              textAnchor="middle" dominantBaseline="central"
                              fill={textColor} fontSize="14" fontWeight="800"
                              style={{ pointerEvents: 'none', userSelect: 'none' }}
@@ -440,7 +439,7 @@ const DiagramNode = React.memo(({
       <rect x={-SEL_PADDING} y={-SEL_PADDING} width={NODE_WIDTH+(SEL_PADDING*2)} height={NODE_HEIGHT+(SEL_PADDING*2)} fill="none" stroke={SEL_COLOR} strokeWidth="2" rx="10" />
     </g>
   );
-  if (node.type === 'circle') {
+  if (node.type === 'circle' || actualType === 'pie_slice') {
      const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
      selectionBound = (
         <g>
