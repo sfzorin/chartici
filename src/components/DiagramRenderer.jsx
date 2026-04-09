@@ -9,6 +9,7 @@ import LeftToolbox from './LeftToolbox';
 import Icon from './Icons';
 
 import { computeBindings, getAxisDir } from '../utils/layout';
+import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 
 export default function DiagramRenderer({ 
   initialData, 
@@ -485,6 +486,9 @@ export default function DiagramRenderer({
   const prevPathsRef = useRef({});
 
   const engineEdges = useMemo(() => {
+    const schema = DIAGRAM_SCHEMAS[diagramType];
+    if (schema && !schema.features.allowConnections) return [];
+
     if (diagramType !== 'timeline') return edges;
     return edges.filter(edge => {
        const srcId = String(edge.sourceId || edge.from);

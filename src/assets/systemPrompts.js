@@ -37,6 +37,9 @@ export function getSystemPromptPhase2(diagramType) {
   const specificRules = schema.promptRule || "";
   const includeEdgeLabel = schema.features.allowConnections;
   const hasNodeValue = schema.features.hasNodeValue;
+  const connectionRulesStr = schema.connectionRules 
+     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}` 
+     : `\n5. "size" must be one of: XS, S, M, L, XL.`;
 
   return `You are a strict JSON generator.
 The user will provide a detailed architectural specification for a diagram of type: ${diagramType.toUpperCase()}.
@@ -73,8 +76,7 @@ RULES:
 1. Every node must have a unique id.
 2. Every sourceId and targetId in edges must exactly match an existing node id. This is CRITICAL. A missing ID will crash the renderer.
 3. "type" must be one of: ${allowedTypes}.
-${specificRules}
-5. "size" must be one of: XS, S, M, L, XL. (Use XL/L for major categories/systems, M for standard items, S/XS for auxiliary details).
+${specificRules}${connectionRulesStr}
 6. "lineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden. (Use dashed/dotted for asynchronous/optional paths, bold for the critical main path).
 7. "connectionType" must be one of: ${allowedConnectionTypes}.
 8. Use groups to cluster logically related nodes. A group can contain 1 or more nodes.

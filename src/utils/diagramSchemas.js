@@ -33,13 +33,21 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['process', 'text'],
     allowedEdges: ['none', 'solid'],
     features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
-    promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed."
+    promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
+    connectionRules: [
+      "process -> process : Allowed across different groups/cells using 'solid'."
+    ]
   },
   timeline: {
     allowedNodes: ['chevron', 'process', 'circle', 'text'],
     allowedEdges: ['solid', 'dashed', 'none'],
     features: { hasNodeValue: false, allowConnections: true, hasGroups: true },
-    promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'process' for specific events attached to the spine. 5. Connect 'chevron' spine nodes sequentially using 'lineStyle': 'none'. This maintains topological order without drawing visible links."
+    promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'circle' or 'process' for specific events attached to the spine. 5. This diagram maintains topological order without drawing visible links on the spine.",
+    connectionRules: [
+      "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
+      "circle/process -> chevron : Use 'solid' or 'dashed' (visible event links)",
+      "text -> any : Use 'none' (invisible text binding)"
+    ]
   },
   tree: {
     allowedNodes: ['process', 'circle', 'text'],
@@ -51,7 +59,10 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['pie_slice'],
     allowedEdges: ['none'],
     features: { hasNodeValue: true, allowConnections: false, hasGroups: false },
-    promptRule: "4. Use a single general group. Nodes represent slices. Populate the 'value' field with an exact number (e.g. 25, 400). Edges are structurally unnecessary and should be avoided."
+    promptRule: "4. Use a single general group. Nodes represent slices. Populate the 'value' field with an exact number (e.g. 25, 400).",
+    connectionRules: [
+      "Edges MUST NOT be used in piecharts."
+    ]
   },
   default: {
     allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
