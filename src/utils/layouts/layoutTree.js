@@ -1,6 +1,6 @@
 import { getNodeDim } from '../constants.js';
 
-export function layoutTree(nodes, edges, isHorizontalFlow, layoutRules) {
+export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
   if (nodes.length === 0) return [];
   if (nodes.length === 1) return [{ ...nodes[0], x: 0, y: 0 }];
 

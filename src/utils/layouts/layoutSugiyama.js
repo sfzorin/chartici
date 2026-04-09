@@ -2,7 +2,8 @@ import dagre from 'dagre';
 import { getNodeDim } from '../constants.js';
 import { getGroupId } from '../groupUtils.js';
 
-export function layoutSugiyamaDAG(nodes, edges, isHorizontalFlow, layoutRules, applyHappyPath = false, dt = 'flowchart') {
+export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, dt = 'flowchart') {
+  const applyHappyPath = dt !== 'sequence' && dt !== 'erd';
   const g = new dagre.graphlib.Graph();
   
   const MIN_GAP_MAIN = isHorizontalFlow ? layoutRules.MIN_GAP_X : layoutRules.MIN_GAP_Y;
