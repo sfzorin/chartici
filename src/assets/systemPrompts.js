@@ -107,9 +107,9 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: The root or absolute top-level parent
-   - ${sMap.M}: Middle-management branches or sub-departments
-   - ${sMap.S}: End-node leaves or individual contributors
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Branches" (groups of children).
 5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
@@ -147,9 +147,9 @@ Follow these rules:
    - process: Standard operational step, action, or statement
    - event: Small intermediate triggers, connectors, or join points
 4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Major macro system or overarching flow
-   - ${sMap.M}: Standard operational process or functional block
-   - ${sMap.S}: Micro-step or isolated detailed action
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Connections are defined DIRECTLY in the "Next Steps" column of the node.
@@ -182,9 +182,9 @@ Follow these rules:
    - attribute: Database field, property, or column connected to a table
    - annotation: Free-floating comment, note, or boundary definition
 4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Broad database schema or service domain
-   - ${sMap.M}: Standard database table or entity
-   - ${sMap.S}: Specific column, attribute, or property
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. "ConnectionType" inside # Edges MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
@@ -220,9 +220,9 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: The absolute core or central hub of the map
-   - ${sMap.M}: Primary radiating arms or secondary rings
-   - ${sMap.S}: Outer-edge leaves or minor sub-concepts
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly ONE central hub node) and "# Branches" (groups of radiating satellites).
 5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
@@ -262,9 +262,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Top overarching parent or absolute dominant component
-   - ${sMap.M}: Standard feature or secondary component
-   - ${sMap.S}: Micro-detail or nested child element
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!${genericEdges}
 
