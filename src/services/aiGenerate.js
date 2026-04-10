@@ -211,12 +211,14 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         });
       }
 
-      if (mode === 'edges' && cols.length >= 5) {
+      if (mode === 'edges' && cols.length >= 4) {
         const sourceId = cols[0];
         const targetId = cols[1];
         const label = cols[2];
-        const lineStyle = cols[3] || 'solid';
-        const connectionType = cols[4] || 'target';
+        const connectionType = cols[3] || 'target';
+        
+        let lineStyle = 'solid';
+        // In the future, dynamically adjust lineStyle based on diagramType or node pair types
         
         parsed.data.edges.push({
            sourceId, targetId,

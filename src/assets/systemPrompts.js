@@ -79,9 +79,9 @@ export function getSystemPromptPhase2(diagramType) {
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
 
 # Edges
-| Source ID | Target ID | Label | LineStyle | ConnectionType |
-|---|---|---|---|---|
-| item_1 | item_2 | ${includeEdgeLabel ? 'Query' : '-'} | solid | target |
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| item_1 | item_2 | ${includeEdgeLabel ? 'Query' : '-'} | target |
 `;
   }
 
@@ -108,8 +108,7 @@ ${isPie ? '' : '2. Ensure every single element has a unique, simple alphanumeric
 3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
 4. "Type" must be one of: ${allowedTypes}.
 ${specificRules}${connectionRulesStr}
-6. "LineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden (ONLY if formatting edges).
-7. "ConnectionType" must be one of: ${allowedConnectionTypes}.
+5. "ConnectionType" must be one of: ${allowedConnectionTypes}.
 ${tableHeaderRule}
 9. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
