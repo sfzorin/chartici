@@ -423,7 +423,9 @@ export default function LeftToolbox({
             <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
               <div className="popover-title">Line Style</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
-                 {['solid', 'bold', 'dashed', 'none'].map(style => {
+                 {['solid', 'bold', 'dashed', 'none']
+                    .filter(style => diagramSchema.allowedEdges.includes(style))
+                    .map(style => {
                     let dash = "none";
                     let sw = 2;
                     if (style.includes('dashed')) dash = "6 6";
