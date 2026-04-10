@@ -35,13 +35,7 @@ export function getSystemPromptPhase2(diagramType) {
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
   const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.flowchart.semanticDescription;
   
-  // Helpers to prevent repeating template code inside the massive strings
-  const sizeRules = `4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}`;
-   
-  const allowedTypes = `3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.`;
+  // We explicitly inline all rules per diagram point.
 
   switch (dt) {
     case 'piechart':
@@ -53,7 +47,10 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
-${sizeRules}
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -76,8 +73,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
@@ -108,8 +108,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -145,8 +148,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -181,8 +187,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -217,8 +226,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -264,8 +276,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-${allowedTypes}
-${sizeRules}
+3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!${genericEdges}
 
