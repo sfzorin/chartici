@@ -44,6 +44,37 @@ function App() {
 
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
 
+  const filteredData = React.useMemo(() => {
+    let outNodes = diagramData.nodes || [];
+    let outEdges = diagramData.edges || [];
+    
+    if (activeSchema) {
+        // Hide nodes that are not supported by the current schema (except title/text attachments if applicable)
+        outNodes = outNodes.filter(n => activeSchema.allowedNodes.includes(n.type) || n.type === 'title' || n.type === 'text');
+        
+        // Hide edges if the diagram does not support connections, or if they connect to unsupported hidden nodes
+        if (!activeSchema.features.allowConnections) {
+            outEdges = [];
+        } else {
+            const allowedIds = new Set(outNodes.map(n => n.id));
+            outEdges = outEdges.filter(e => allowedIds.has(e.from) && allowedIds.has(e.to));
+        }
+
+        // Enforce maximum node limits (e.g. piechart)
+        if (activeSchema.features.enforceMaxNodes !== undefined) {
+            const max = activeSchema.features.enforceMaxNodes;
+            let count = 0;
+            outNodes = outNodes.filter(n => {
+                if (n.type === 'title' || n.type === 'text') return true;
+                if (count < max) { count++; return true; }
+                return false;
+            });
+        }
+    }
+    
+    return { ...diagramData, nodes: outNodes, edges: outEdges };
+  }, [diagramData, activeSchema]);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-app-theme', appTheme);
     localStorage.setItem('appTheme', appTheme);
@@ -93,7 +124,8 @@ function App() {
   };
 
   const handleDownloadChartici = async () => {
-    const savedName = await downloadCharticiFile(diagramTitle, diagramData, { 
+    // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
+    const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
       aspect, bgColor, theme: paletteTheme, diagramType, title: diagramTitle 
     });
     if (savedName) {
@@ -687,7 +719,7 @@ function App() {
         {/* Canvas Area */}
         <section className="app-canvas-area" style={{ flex: 1, position: 'relative' }}>
           <DiagramRenderer 
-            initialData={diagramData} 
+            initialData={filteredData} 
             theme={paletteTheme}
             svgRef={svgRef} 
             aspectRatio={aspect} 
@@ -740,9 +772,9 @@ function App() {
               updateGroupFromSelection,
               connectToNode,
               deleteSelectedElement,
-              nodesList: diagramData.nodes,
-              edgesList: diagramData.edges,
-              groupsList: diagramData.groups,
+              nodesList: filteredData.nodes,
+              edgesList: filteredData.edges,
+              groupsList: filteredData.groups,
               removeEdge,
               currentPaletteInfo: PALETTES[paletteTheme],
               diagramTitle,

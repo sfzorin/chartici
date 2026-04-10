@@ -58,6 +58,25 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
       })
     }
   };
+  
+  if (diagramType === 'piechart') {
+     // Pie chart spec: strictly omit groups/edges, output pure flat nodes with size mappings
+     const flatNodes = [];
+     exportGroups.forEach(g => {
+        g.nodes.forEach(n => {
+           flatNodes.push({
+              id: n.id,
+              label: n.label,
+              size: n.size || g.size,
+              value: n.value
+           });
+        });
+     });
+     delete payload.data.groups;
+     delete payload.data.edges;
+     payload.data.nodes = flatNodes;
+  }
+
 
   const jsonStr = JSON.stringify(payload, null, 2);
 

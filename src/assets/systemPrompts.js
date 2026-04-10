@@ -43,27 +43,41 @@ export function getSystemPromptPhase2(diagramType) {
   const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
   const allowedSizes = Object.values(sMap).join(', ');
   
-  let exampleText = `
+  let exampleText = '';
+  
+  if (isPie) {
+    exampleText = `
+# Pie Slices
+| ID | Title (Label) | Size | Value |
+|---|---|---|---|
+| p1 | Revenue | ${sMap.L} | 45.5 |
+| p2 | Costs | ${sMap.M} | 30 |`;
+  } else if (diagramType.toLowerCase() === 'timeline') {
+    exampleText = `
+# Timeline Spine
+| ID | Phase/Era Label | Size |
+|---|---|---|
+| e1 | Q1 Phase | ${sMap.L} |
+
+# Events
+| Event ID | Spine ID | Label | Size | Type |
+|---|---|---|---|---|
+| ev_1 | e1 | Start up | ${sMap.S} | circle |`;
+  } else {
+    exampleText = `
 # Nodes
 
-### Group: ${isPie ? 'Data' : 'Backend'} | Size: ${sMap.M} | Type: ${egType1}
+### Group: Backend | Size: ${sMap.M} | Type: ${egType1}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
-| item_1 | ${isPie ? 'Revenue' : 'API Server'} |${hasNodeValue ? ' 25 |' : ''}
-| item_2 | ${isPie ? 'Profit' : 'Database'} |${hasNodeValue ? ' 50 |' : ''}
-`;
+| item_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
+| item_2 | Database |${hasNodeValue ? ' 50 |' : ''}
 
-  if (!isPie) {
-    exampleText += `
 ### Group: Orphans | Size: ${sMap.L} | Type: ${egType2}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
-`;
-  }
 
-  if (schema.features.allowConnections) {
-    exampleText += `
 # Edges
 | Source ID | Target ID | Label | LineStyle | ConnectionType |
 |---|---|---|---|---|
@@ -73,27 +87,31 @@ export function getSystemPromptPhase2(diagramType) {
 
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "Size" defines the hierarchy level of the group. You MUST use one of these EXACT words (${allowedSizes}):
+    : `\n5. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
    - ${sMap.L}: ${sDesc.L}
    - ${sMap.M}: ${sDesc.M}
    - ${sMap.S}: ${sDesc.S}`;
 
+  const tableHeaderRule = isPie 
+      ? `8. You MUST output exactly ONE table called "# Pie Slices". Do not use groups or edges.`
+      : diagramType.toLowerCase() === 'timeline'
+      ? `8. You MUST output EXACTLY two tables: "# Timeline Spine" (for main trajectory steps) and "# Events" (chronological children).`
+      : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".`;
+
   return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
-You MUST output EXACTLY two tables: "# Nodes" and "# Edges".
 
 Follow these rules:
-1. Think carefully first in a <thinking> block: which entities belong to which clusters? What are the precise source and target IDs for every edge?
-2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. Ensure every relationship explicitly specifies the source and target IDs that EXACTLY match the defined nodes.
+1. Think carefully first in a <thinking> block.
+2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
 4. "Type" must be one of: ${allowedTypes}.
 ${specificRules}${connectionRulesStr}
-6. "LineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden.
+6. "LineStyle" must be one of: solid, dashed, dotted, bold, bold-dashed, hidden (ONLY if formatting edges).
 7. "ConnectionType" must be one of: ${allowedConnectionTypes}.
-8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".
-9. "Size" and "Type" are properties of the GROUP, not the individual node. Specify them in the group heading exactly as shown below: "### Group: [Label] | Size: [size] | Type: [type]".
-10. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels and group names. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+${tableHeaderRule}
+9. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>

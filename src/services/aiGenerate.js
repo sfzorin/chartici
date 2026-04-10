@@ -115,8 +115,26 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   
   for (let i = 0; i < lines.length; i++) {
     const t = lines[i].trim();
+    const matchSize = (rawSizeStr) => {
+      if (!rawSizeStr) return 'M';
+      const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
+      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
+      const rawLow = String(rawSizeStr).trim().toLowerCase();
+      let matched = 'M';
+      for (const [coreSize, mappedWord] of Object.entries(sMap)) {
+          if (mappedWord.toLowerCase() === rawLow || coreSize.toLowerCase() === rawLow) {
+              matched = coreSize;
+              break;
+          }
+      }
+      return matched;
+    };
+
     if (t.toLowerCase().startsWith('# nodes')) { mode = 'nodes'; continue; }
     if (t.toLowerCase().startsWith('# edges')) { mode = 'edges'; continue; }
+    if (t.toLowerCase().startsWith('# pie slices')) { mode = 'pie'; continue; }
+    if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
+    if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
     
     if (mode === 'nodes' && t.toLowerCase().startsWith('### group:')) {
       const parts = t.substring(10).split('|').map(s => s.trim());
@@ -124,22 +142,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       currentGroupSize = 'M';
       currentGroupType = 'process';
       
-      const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
-      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
-
       parts.slice(1).forEach(p => {
-        if (p.toLowerCase().startsWith('size:')) {
-            const rawSize = p.substring(5).trim();
-            const rawLow = rawSize.toLowerCase();
-            let matched = 'M';
-            for (const [coreSize, mappedWord] of Object.entries(sMap)) {
-                if (mappedWord.toLowerCase() === rawLow || coreSize.toLowerCase() === rawLow) {
-                    matched = coreSize;
-                    break;
-                }
-            }
-            currentGroupSize = matched;
-        }
+        if (p.toLowerCase().startsWith('size:')) currentGroupSize = matchSize(p.substring(5));
         if (p.toLowerCase().startsWith('type:')) currentGroupType = p.substring(5).trim();
       });
       continue;
@@ -151,7 +155,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       if (cols[0] === '') cols.shift();
       if (cols[cols.length - 1] === '') cols.pop();
       
-      if (cols.length === 0 || cols[0].toLowerCase() === 'id' || cols[0].toLowerCase() === 'source id') continue;
+      // row bypass format: | ID |
+      if (cols.length === 0 || cols[0].toLowerCase() === 'id' || cols[0].toLowerCase() === 'source id' || cols[0].toLowerCase() === 'event id') continue;
       
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
@@ -164,6 +169,44 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         group.nodes.push(nodeObj);
       }
       
+      if (mode === 'pie' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        const rawSize = cols[2];
+        const val = cols[3] ? Number(cols[3]) : undefined;
+        
+        const group = getOrCreateGroup('Data', 'M', 'pie_slice');
+        const nodeObj = { id, label, type: 'pie_slice', size: matchSize(rawSize) };
+        if (val !== undefined && !isNaN(val)) nodeObj.value = val;
+        group.nodes.push(nodeObj);
+      }
+
+      if (mode === 'spine' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        const rawSize = cols[2];
+        
+        const group = getOrCreateGroup('Spine', 'L', 'chevron');
+        group.nodes.push({ id, label, type: 'chevron', size: matchSize(rawSize) });
+      }
+
+      if (mode === 'events' && cols.length >= 4) {
+        const id = cols[0];
+        const spineId = cols[1];
+        const label = cols[2];
+        const rawSize = cols[3];
+        const type = cols[4] || 'process';
+        
+        const group = getOrCreateGroup(`Events for ${spineId}`, 'M', type);
+        group.nodes.push({ id, label, type, size: matchSize(rawSize) });
+        
+        // Link event to spine inherently
+        parsed.data.edges.push({
+           sourceId: spineId, targetId: id,
+           lineStyle: 'solid', connectionType: 'target'
+        });
+      }
+
       if (mode === 'edges' && cols.length >= 5) {
         const sourceId = cols[0];
         const targetId = cols[1];
