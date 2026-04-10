@@ -801,22 +801,47 @@ export default function DiagramRenderer({
               <g className="matrix-grid">
                 {boxes.map((box, i) => (
                   <g key={`mbox-${i}`}>
-                    <path
-                      d={`M ${(box.left + box.right) / 2 + Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top} L ${box.right - 8} ${box.top} Q ${box.right} ${box.top} ${box.right} ${box.top + 8} L ${box.right} ${box.bottom - 8} Q ${box.right} ${box.bottom} ${box.right - 8} ${box.bottom} L ${box.left + 8} ${box.bottom} Q ${box.left} ${box.bottom} ${box.left} ${box.bottom - 8} L ${box.left} ${box.top + 8} Q ${box.left} ${box.top} ${box.left + 8} ${box.top} L ${(box.left + box.right) / 2 - Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top}`}
-                      fill="none" stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="6, 6"
-                      opacity="0.6"
-                    />
-                    {(!box.label.toLowerCase().startsWith('void')) && (
-                      <text
-                        id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
-                        x={(box.left + box.right) / 2} y={box.top + 6}
-                        fontSize="20" fill="var(--diagram-group)" opacity="0.85"
-                        fontWeight="700" textAnchor="middle"
-                        style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
-                        onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
-                      >
-                        {box.label.replace(/_/g, ' ')}
-                      </text>
+                    {diagramType === 'sequence' ? (
+                      <g>
+                        <rect
+                          x={vMinX + 40} y={box.top}
+                          width={vW - 80} height={box.bottom - box.top}
+                          fill="var(--diagram-group)" fillOpacity="0.04"
+                          stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="4 4" rx="4"
+                        />
+                        {(!box.label.toLowerCase().startsWith('void')) && (
+                          <text
+                            id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
+                            x={vMinX + 60} y={(box.top + box.bottom) / 2}
+                            fontSize="18" fill="var(--diagram-group)" opacity="0.8"
+                            fontWeight="600" textAnchor="start" alignmentBaseline="middle"
+                            style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
+                            onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
+                          >
+                            {box.label.replace(/_/g, ' ')}
+                          </text>
+                        )}
+                      </g>
+                    ) : (
+                      <g>
+                        <path
+                          d={`M ${(box.left + box.right) / 2 + Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top} L ${box.right - 8} ${box.top} Q ${box.right} ${box.top} ${box.right} ${box.top + 8} L ${box.right} ${box.bottom - 8} Q ${box.right} ${box.bottom} ${box.right - 8} ${box.bottom} L ${box.left + 8} ${box.bottom} Q ${box.left} ${box.bottom} ${box.left} ${box.bottom - 8} L ${box.left} ${box.top + 8} Q ${box.left} ${box.top} ${box.left + 8} ${box.top} L ${(box.left + box.right) / 2 - Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top}`}
+                          fill="none" stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="6, 6"
+                          opacity="0.6"
+                        />
+                        {(!box.label.toLowerCase().startsWith('void')) && (
+                          <text
+                            id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
+                            x={(box.left + box.right) / 2} y={box.top + 6}
+                            fontSize="20" fill="var(--diagram-group)" opacity="0.85"
+                            fontWeight="700" textAnchor="middle"
+                            style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
+                            onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
+                          >
+                            {box.label.replace(/_/g, ' ')}
+                          </text>
+                        )}
+                      </g>
                     )}
                   </g>
                 ))}

@@ -7,8 +7,10 @@ const makeNode = (id, label, value) => {
   return n;
 };
 
+let colorCounter = 0;
 const makeGroup = (label, type, size, nodes) => {
-  let g = { type, size, nodes };
+  let g = { type, size, nodes, color: String(colorCounter % 8) };
+  colorCounter++;
   if (label !== "Spine" && label !== "Root" && label !== "Data") {
      g.label = label;
   }
@@ -226,7 +228,7 @@ const docs = {
       ],
       edges: [
          makeEdge("p1", "e1", "target", "solid"),
-         makeEdge("p1", "e2", "target", "dashed"),
+         makeEdge("p1", "e2", "target", "solid"),
          makeEdge("p2", "e3", "target", "solid"),
          makeEdge("p2", "e4", "target", "solid")
       ]
@@ -250,7 +252,7 @@ const docs = {
          makeEdge("era2", "ev3", "target", "solid"),
          makeEdge("era2", "ev4", "target", "solid"),
          makeEdge("era3", "ev5", "target", "solid"),
-         makeEdge("era3", "ev6", "target", "dashed"),
+         makeEdge("era3", "ev6", "target", "solid"),
          makeEdge("era4", "ev7", "target", "solid"),
          makeEdge("era4", "ev8", "target", "solid")
       ]
@@ -258,40 +260,51 @@ const docs = {
   },
   "tree_1_medium": {
     meta: { type: "tree", version: "1.0.0" },
-    theme: "indigo-green-red",
     title: { text: "Startup Org Chart" },
     data: {
       groups: [
-         makeGroup("Root", "process", "L", [makeNode("c_ceo", "CEO Office")]),
-         makeGroup("Product", "process", "M", [makeNode("d_prod", "Head of Product"), makeNode("d_eng", "Lead Engineer")]),
-         makeGroup("Sales", "process", "S", [makeNode("d_sales", "Account Exec")])
+         makeGroup("Organization", "process", "L", [
+           makeNode("c_ceo", "CEO Office"),
+           makeNode("d_prod", "Head of Product"),
+           makeNode("d_eng", "Lead Engineer"),
+           makeNode("d_sales", "Account Exec")
+         ])
       ],
       edges: [
-         makeEdge("c_ceo", "d_prod", "target", "solid"),
-         makeEdge("c_ceo", "d_sales", "target", "solid"),
-         makeEdge("d_prod", "d_eng", "target", "dashed")
+         makeEdge("c_ceo", "d_prod", "none", "solid"),
+         makeEdge("c_ceo", "d_sales", "none", "solid"),
+         makeEdge("d_prod", "d_eng", "none", "solid")
       ]
     }
   },
   "tree_2_complex": {
     meta: { type: "tree", version: "1.0.0" },
-    theme: "brown-amber-grey",
     title: { text: "Directory Structure Schema" },
     data: {
       groups: [
-         makeGroup("Root", "process", "L", [makeNode("f_root", "src/")]),
-         makeGroup("Components", "process", "M", [makeNode("f_com", "components/"), makeNode("f_btn", "Button.jsx"), makeNode("f_nav", "Navbar.jsx")]),
-         makeGroup("Utils", "process", "S", [makeNode("f_util", "utils/"), makeNode("f_hlp", "helpers.js")]),
-         makeGroup("State", "process", "M", [makeNode("f_st", "store/"), makeNode("f_rdx", "index.js")])
+         makeGroup("Repository", "process", "M", [
+           makeNode("f_root", "src/"),
+           makeNode("f_com", "components/"),
+           makeNode("f_btn", "Button.jsx"),
+           makeNode("f_nav", "Navbar.jsx"),
+           makeNode("f_util", "utils/"),
+           makeNode("f_hlp", "helpers.js"),
+           makeNode("f_api", "api.js"),
+           makeNode("f_st", "store/"),
+           makeNode("f_rdx", "index.js"),
+           makeNode("f_auth", "auth.js")
+         ])
       ],
       edges: [
-         makeEdge("f_root", "f_com", "target", "solid"),
-         makeEdge("f_root", "f_util", "target", "solid"),
-         makeEdge("f_root", "f_st", "target", "solid"),
-         makeEdge("f_com", "f_btn", "target", "dashed"),
-         makeEdge("f_com", "f_nav", "target", "dashed"),
-         makeEdge("f_util", "f_hlp", "target", "dashed"),
-         makeEdge("f_st", "f_rdx", "target", "dashed")
+         makeEdge("f_root", "f_com", "none", "solid"),
+         makeEdge("f_root", "f_util", "none", "solid"),
+         makeEdge("f_root", "f_st", "none", "solid"),
+         makeEdge("f_com", "f_btn", "none", "solid"),
+         makeEdge("f_com", "f_nav", "none", "solid"),
+         makeEdge("f_util", "f_hlp", "none", "solid"),
+         makeEdge("f_util", "f_api", "none", "solid"),
+         makeEdge("f_st", "f_rdx", "none", "solid"),
+         makeEdge("f_st", "f_auth", "none", "solid")
       ]
     }
   },

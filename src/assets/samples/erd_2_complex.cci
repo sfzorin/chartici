@@ -26,6 +26,7 @@
             "label": "Name"
           }
         ],
+        "color": "2",
         "label": "Employees"
       },
       {
@@ -41,6 +42,7 @@
             "label": "Dept ID"
           }
         ],
+        "color": "3",
         "label": "Departments"
       },
       {
@@ -56,6 +58,7 @@
             "label": "Proj ID"
           }
         ],
+        "color": "4",
         "label": "Projects"
       },
       {
@@ -71,6 +74,7 @@
             "label": "Hours Logged"
           }
         ],
+        "color": "5",
         "label": "Assignments"
       }
     ],

@@ -21,7 +21,8 @@
             "id": "p2",
             "label": "Execution"
           }
-        ]
+        ],
+        "color": "0"
       },
       {
         "type": "process",
@@ -36,6 +37,7 @@
             "label": "Design Approval"
           }
         ],
+        "color": "1",
         "label": "Discovery Events"
       },
       {
@@ -51,6 +53,7 @@
             "label": "Soft Launch"
           }
         ],
+        "color": "2",
         "label": "Execution Events"
       }
     ],
@@ -65,7 +68,7 @@
         "sourceId": "p1",
         "targetId": "e2",
         "connectionType": "target",
-        "lineStyle": "dashed"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "p2",

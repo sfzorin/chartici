@@ -22,6 +22,7 @@
             "label": "Compress Images"
           }
         ],
+        "color": "2",
         "label": "High Impact / Low Effort"
       },
       {
@@ -33,6 +34,7 @@
             "label": "DB Sharding"
           }
         ],
+        "color": "3",
         "label": "High Impact / High Effort"
       }
     ],

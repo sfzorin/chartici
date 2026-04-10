@@ -22,6 +22,7 @@
             "label": "Graph DB Migration"
           }
         ],
+        "color": "4",
         "label": "Q1"
       },
       {
@@ -37,6 +38,7 @@
             "label": "SSO Support"
           }
         ],
+        "color": "5",
         "label": "Q2"
       },
       {
@@ -52,6 +54,7 @@
             "label": "Voice Commands"
           }
         ],
+        "color": "6",
         "label": "Q3"
       },
       {
@@ -67,6 +70,7 @@
             "label": "Accessibility API"
           }
         ],
+        "color": "7",
         "label": "Backlog"
       }
     ],

@@ -26,6 +26,7 @@
             "label": "Store Token"
           }
         ],
+        "color": "0",
         "label": "Web App"
       },
       {
@@ -45,6 +46,7 @@
             "label": "Issue Cookie"
           }
         ],
+        "color": "1",
         "label": "Auth Gateway"
       },
       {
@@ -64,6 +66,7 @@
             "label": "Validate Secret"
           }
         ],
+        "color": "2",
         "label": "OAuth Provider"
       }
     ],

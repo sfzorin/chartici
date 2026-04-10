@@ -26,6 +26,7 @@
             "label": "Amount"
           }
         ],
+        "color": "0",
         "label": "Orders Table"
       },
       {
@@ -45,6 +46,7 @@
             "label": "Email"
           }
         ],
+        "color": "1",
         "label": "Users Table"
       }
     ],

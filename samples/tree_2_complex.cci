@@ -3,7 +3,6 @@
     "type": "tree",
     "version": "1.0.0"
   },
-  "theme": "brown-amber-grey",
   "title": {
     "text": "Directory Structure Schema"
   },
@@ -11,18 +10,12 @@
     "groups": [
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
         "nodes": [
           {
             "id": "f_root",
             "label": "src/"
-          }
-        ]
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
+          },
           {
             "id": "f_com",
             "label": "components/"
@@ -34,14 +27,7 @@
           {
             "id": "f_nav",
             "label": "Navbar.jsx"
-          }
-        ],
-        "label": "Components"
-      },
-      {
-        "type": "process",
-        "size": "S",
-        "nodes": [
+          },
           {
             "id": "f_util",
             "label": "utils/"
@@ -49,14 +35,11 @@
           {
             "id": "f_hlp",
             "label": "helpers.js"
-          }
-        ],
-        "label": "Utils"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
+          },
+          {
+            "id": "f_api",
+            "label": "api.js"
+          },
           {
             "id": "f_st",
             "label": "store/"
@@ -64,53 +47,70 @@
           {
             "id": "f_rdx",
             "label": "index.js"
+          },
+          {
+            "id": "f_auth",
+            "label": "auth.js"
           }
         ],
-        "label": "State"
+        "color": "1",
+        "label": "Repository"
       }
     ],
     "edges": [
       {
         "sourceId": "f_root",
         "targetId": "f_com",
-        "connectionType": "target",
+        "connectionType": "none",
         "lineStyle": "solid"
       },
       {
         "sourceId": "f_root",
         "targetId": "f_util",
-        "connectionType": "target",
+        "connectionType": "none",
         "lineStyle": "solid"
       },
       {
         "sourceId": "f_root",
         "targetId": "f_st",
-        "connectionType": "target",
+        "connectionType": "none",
         "lineStyle": "solid"
       },
       {
         "sourceId": "f_com",
         "targetId": "f_btn",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "connectionType": "none",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "f_com",
         "targetId": "f_nav",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "connectionType": "none",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "f_util",
         "targetId": "f_hlp",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "connectionType": "none",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_util",
+        "targetId": "f_api",
+        "connectionType": "none",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "f_st",
         "targetId": "f_rdx",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "connectionType": "none",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_st",
+        "targetId": "f_auth",
+        "connectionType": "none",
+        "lineStyle": "solid"
       }
     ]
   }

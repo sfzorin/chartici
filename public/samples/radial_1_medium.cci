@@ -18,6 +18,7 @@
             "label": "Control Plane"
           }
         ],
+        "color": "3",
         "label": "Core"
       },
       {
@@ -33,6 +34,7 @@
             "label": "Jenkins"
           }
         ],
+        "color": "4",
         "label": "CI/CD"
       },
       {
@@ -48,6 +50,7 @@
             "label": "Prometheus"
           }
         ],
+        "color": "5",
         "label": "Metrics"
       }
     ],

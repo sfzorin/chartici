@@ -18,6 +18,7 @@
             "label": "App Launch"
           }
         ],
+        "color": "0",
         "label": "Start"
       },
       {
@@ -29,6 +30,7 @@
             "label": "Session Valid?"
           }
         ],
+        "color": "1",
         "label": "Checks"
       },
       {
@@ -48,6 +50,7 @@
             "label": "Load Dashboard"
           }
         ],
+        "color": "2",
         "label": "Processes"
       },
       {
@@ -59,6 +62,7 @@
             "label": "Exit App"
           }
         ],
+        "color": "3",
         "label": "End"
       }
     ],

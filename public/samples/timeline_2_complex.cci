@@ -29,7 +29,8 @@
             "id": "era4",
             "label": "The 2020s"
           }
-        ]
+        ],
+        "color": "3"
       },
       {
         "type": "process",
@@ -44,6 +45,7 @@
             "label": "JavaScript V1"
           }
         ],
+        "color": "4",
         "label": "Early Web"
       },
       {
@@ -59,6 +61,7 @@
             "label": "Cloud AWS Launch"
           }
         ],
+        "color": "5",
         "label": "Web 2.0"
       },
       {
@@ -74,6 +77,7 @@
             "label": "Docker Standardized"
           }
         ],
+        "color": "6",
         "label": "Mobile & SPA"
       },
       {
@@ -89,6 +93,7 @@
             "label": "AI Powered IDEs"
           }
         ],
+        "color": "7",
         "label": "AI Era"
       }
     ],
@@ -127,7 +132,7 @@
         "sourceId": "era3",
         "targetId": "ev6",
         "connectionType": "target",
-        "lineStyle": "dashed"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "era4",

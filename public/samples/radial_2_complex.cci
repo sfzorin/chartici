@@ -18,6 +18,7 @@
             "label": "Master Relational Node"
           }
         ],
+        "color": "6",
         "label": "Core"
       },
       {
@@ -37,6 +38,7 @@
             "label": "Asia Replica"
           }
         ],
+        "color": "7",
         "label": "Replicas"
       },
       {
@@ -52,6 +54,7 @@
             "label": "Memcached V2"
           }
         ],
+        "color": "0",
         "label": "Caching"
       },
       {
@@ -67,6 +70,7 @@
             "label": "Metabase"
           }
         ],
+        "color": "1",
         "label": "Analytics Sync"
       }
     ],
