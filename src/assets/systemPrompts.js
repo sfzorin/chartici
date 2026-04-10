@@ -110,8 +110,8 @@ Follow these rules:
    - ${sMap.L}: The root or absolute top-level parent
    - ${sMap.M}: Middle-management branches or sub-departments
    - ${sMap.S}: End-node leaves or individual contributors
-4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Sub-Branches" (groups of children).
-5. Under "# Sub-Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
+4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Branches" (groups of children).
+5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -124,7 +124,7 @@ Use this EXACT format:
 |---|---|---|
 | root_1 | CEO | ${sMap.L} |
 
-# Sub-Branches
+# Branches
 
 ### Group: Engineering | Parent ID: root_1 | Size: ${sMap.M}
 | ID | Label |

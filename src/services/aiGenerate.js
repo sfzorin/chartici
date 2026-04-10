@@ -137,9 +137,9 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
     if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
     if (t.toLowerCase().startsWith('# root')) { mode = 'root'; continue; }
-    if (t.toLowerCase().startsWith('# sub-branches')) { mode = 'subbranches'; continue; }
+    if (t.toLowerCase().startsWith('# branches')) { mode = 'branches'; continue; }
     
-    if ((mode === 'nodes' || mode === 'events' || mode === 'subbranches') && t.toLowerCase().startsWith('### group:')) {
+    if ((mode === 'nodes' || mode === 'events' || mode === 'branches') && t.toLowerCase().startsWith('### group:')) {
       const parts = t.substring(10).split('|').map(s => s.trim());
       currentGroupLabel = parts[0];
       currentGroupSize = 'M';
@@ -182,7 +182,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         group.nodes.push({ id, label, type: 'process', size: matchSize(rawSize) });
       }
 
-      if (mode === 'subbranches' && cols.length >= 2) {
+      if (mode === 'branches' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
         
