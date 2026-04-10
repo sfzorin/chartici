@@ -30,30 +30,70 @@ You may use a <thinking> section inside the <prompt> to outline the concept firs
 </prompt>`;
 
 export function getSystemPromptPhase2(diagramType) {
-  const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
-  const allowedTypes = schema.allowedNodes.join(', ');
-  const allowedConnectionTypes = schema.features.allowConnections ? "target, both, reverse, none" + (diagramType.toLowerCase() === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none";
-  const specificRules = schema.promptRule || "";
-  const includeEdgeLabel = schema.features.allowConnections;
-  const hasNodeValue = schema.features.hasNodeValue;
-  const egType1 = schema.allowedNodes[0];
-  const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
-  const isPie = diagramType.toLowerCase() === 'piechart';
+  const dt = diagramType.toLowerCase();
+  const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.default;
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
   const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
   const allowedSizes = Object.values(sMap).join(', ');
   
-  let exampleText = '';
-  
-  if (isPie) {
-    exampleText = `
+  const rules = {
+      idNode: `2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).`,
+      relSpecific: `3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.`,
+      type: `4. "Type" must be one of: ${schema.allowedNodes.join(', ')}.`,
+      connType: `5. "ConnectionType" must be one of: ${schema.features.allowConnections ? "target, both, reverse, none" + (dt === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none"}.`,
+      lang: `9. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!`
+  };
+
+  const connectionRulesStr = schema.connectionRules
+    ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
+    : `\n5. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}`;
+
+  if (dt === 'piechart') {
+      return `You are a Diagram Topology Engineer.
+The user will provide a detailed conceptual architecture for a PIECHART diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+${rules.type}
+${connectionRulesStr}
+8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
+${rules.lang}
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning ...
+</thinking>
+
 # Pie Slices
 | Title (Label) | Size | Value |
 |---|---|---|
 | Revenue | ${sMap.L} | 45.5 |
 | Costs | ${sMap.M} | 30 |`;
-  } else if (diagramType.toLowerCase() === 'timeline') {
-    exampleText = `
+  }
+
+  if (dt === 'timeline') {
+      return `You are a Diagram Topology Engineer.
+The user will provide a detailed conceptual architecture for a TIMELINE diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+${rules.idNode}
+${rules.relSpecific}
+${rules.type}
+${connectionRulesStr}
+8. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
+${rules.lang}
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
 # Timeline Spine
 | ID | Phase/Era Label | Size |
 |---|---|---|
@@ -63,11 +103,36 @@ export function getSystemPromptPhase2(diagramType) {
 # Events
 
 ### Group: Engineering Tasks | Size: ${sMap.S} | Type: process
-| Event ID | Spine ID | Label | Size | Type |
+| ID | Spine ID | Label | Size | Type |
 |---|---|---|---|---|
 | ev_1 | e1 | Bootstrapping | ${sMap.S} | process |`;
-  } else {
-    exampleText = `
+  }
+
+  // Base Logic for (flowchart, erd, radial, tree, matrix, sequence, etc...)
+  const hasNodeValue = schema.features.hasNodeValue;
+  const includeEdgeLabel = schema.features.allowConnections;
+  const egType1 = schema.allowedNodes[0];
+  const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
+
+  let promptStr = `You are a Diagram Topology Engineer.
+The user will provide a detailed conceptual architecture for a ${dt.toUpperCase()} diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+${rules.idNode}
+${rules.relSpecific}
+${rules.type}
+${connectionRulesStr}
+${schema.features.allowConnections ? rules.connType : ''}
+8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+${rules.lang}
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
 # Nodes
 
 ### Group: Backend | Size: ${sMap.M} | Type: ${egType1}
@@ -80,7 +145,10 @@ export function getSystemPromptPhase2(diagramType) {
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
+`;
 
+  if (schema.features.allowConnections) {
+      promptStr += `
 # Edges
 | Source ID | Target ID | Label | ConnectionType |
 |---|---|---|---|
@@ -88,36 +156,5 @@ export function getSystemPromptPhase2(diagramType) {
 `;
   }
 
-  const connectionRulesStr = schema.connectionRules
-    ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}`;
-
-  const tableHeaderRule = isPie 
-      ? `8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.`
-      : diagramType.toLowerCase() === 'timeline'
-      ? `8. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main trajectory steps) and "# Events" (chronological children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.`
-      : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.`;
-
-  return `You are a Diagram Topology Engineer.
-The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.
-Your task is to transform their concept into STRICT Markdown Tables.
-
-Follow these rules:
-1. Think carefully first in a <thinking> block.
-${isPie ? '' : '2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).'}
-3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
-4. "Type" must be one of: ${allowedTypes}.
-${specificRules}${connectionRulesStr}
-5. "ConnectionType" must be one of: ${allowedConnectionTypes}.
-${tableHeaderRule}
-9. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-
-Use this EXACT format:
-<thinking>
-... your logic, topology planning, and ID tracking ...
-</thinking>
-${exampleText}`;
+  return promptStr;
 }
