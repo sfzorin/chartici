@@ -219,40 +219,31 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+3. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: The absolute core or central hub of the map
    - ${sMap.M}: Primary radiating arms or secondary rings
    - ${sMap.S}: Outer-edge leaves or minor sub-concepts
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly ONE central hub node) and "# Branches" (groups of radiating satellites).
+5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
-8. "ConnectionType" must be one of: none.
-9. STRICT CONNECTION RULES:
-   - Identify ONE clear central node. Connect all surrounding core nodes directly to this center.
 
 Use this EXACT format:
 <thinking>
 ... your logic, topology planning, and ID tracking ...
 </thinking>
 
-# Nodes
+# Root
+| ID | Label | Size |
+|---|---|---|
+| center_1 | Kernel API | ${sMap.L} |
 
-### Group: Core App | Size: ${sMap.L} | Type: ${schema.allowedNodes[0]}
+# Branches
+
+### Group: Microservices | Parent ID: center_1 | Size: ${sMap.M}
 | ID | Label |
 |---|---|
-| center | Kernel API |
-
-### Group: Microservices | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
-| ID | Label |
-|---|---|
-| s1 | Auth |
-| s2 | Billing |
-
-# Edges
-| Source ID | Target ID | Label | ConnectionType |
-|---|---|---|---|
-| center | s1 | - | none |`;
+| s_1 | Auth |
+| s_2 | Billing |`;
 
 
     // Covers matrix, sequence, and any unrecognized default graph types
