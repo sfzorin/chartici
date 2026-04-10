@@ -33,7 +33,6 @@ export function getSystemPromptPhase2(diagramType) {
   const dt = diagramType.toLowerCase();
   const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.flowchart;
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
-  const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.flowchart.semanticDescription;
   
   // We explicitly inline all rules per diagram point.
 
@@ -48,9 +47,9 @@ Follow these rules:
 2. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
 4. "Size" defines visual emphasis (highlighting specific data). You MUST use one of these EXACT words:
-   - highlight: Highly emphasized, broken-out, or critical outlier slice
-   - standard: Standard proportional slice (use this by default)
-   - muted: De-emphasized, minor, or muted slice
+   - ${sMap.L}: Highly emphasized, broken-out, or critical outlier slice
+   - ${sMap.M}: Standard proportional slice (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or muted slice
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -61,8 +60,8 @@ Use this EXACT format:
 # Pie Slices
 | Title (Label) | Size | Value |
 |---|---|---|
-| Revenue | highlight | 45.5 |
-| Costs | standard | 30 |`;
+| Revenue | ${sMap.L} | 45.5 |
+| Costs | ${sMap.M} | 30 |`;
 
 
     case 'timeline':
@@ -75,9 +74,9 @@ Follow these rules:
 2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: Major historical eras or macroscopic periods
+   - ${sMap.M}: Standard chronological events or milestones
+   - ${sMap.S}: Minor sub-events or granular moments in time
 5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
@@ -110,9 +109,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: The root or absolute top-level parent
+   - ${sMap.M}: Middle-management branches or sub-departments
+   - ${sMap.S}: End-node leaves or individual contributors
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -150,9 +149,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: Major macro system or overarching flow
+   - ${sMap.M}: Standard operational process or functional block
+   - ${sMap.S}: Micro-step or isolated detailed action
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -189,9 +188,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: Broad database schema or service domain
+   - ${sMap.M}: Standard database table or entity
+   - ${sMap.S}: Specific column, attribute, or property
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -228,9 +227,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: The absolute core or central hub of the map
+   - ${sMap.M}: Primary radiating arms or secondary rings
+   - ${sMap.S}: Outer-edge leaves or minor sub-concepts
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
@@ -278,9 +277,9 @@ Follow these rules:
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+   - ${sMap.L}: Top overarching parent or absolute dominant component
+   - ${sMap.M}: Standard feature or secondary component
+   - ${sMap.S}: Micro-detail or nested child element
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!${genericEdges}
 
