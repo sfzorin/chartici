@@ -146,12 +146,10 @@ Follow these rules:
    - ${sMap.L}: Major macro system or overarching flow
    - ${sMap.M}: Standard operational process or functional block
    - ${sMap.S}: Micro-step or isolated detailed action
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
-8. "ConnectionType" must be one of: target, both, reverse, none.
-9. STRICT CONNECTION RULES:
-   - If representing a conditional (decision), specify connection endpoints clearly.
+7. Connections are defined DIRECTLY in the "Next Steps" column of the node.
+8. SYNTAX FOR NEXT STEPS: Write target node IDs separated by commas. If a connection has a label (like 'Yes' or 'No'), put it in brackets: \`target_id[Label Text]\`. Example: \`p_2[Yes], p_3[No]\`.
 
 Use this EXACT format:
 <thinking>
@@ -160,16 +158,11 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: System A | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
-| ID | Label |
-|---|---|
-| item_1 | Start Process |
-| item_2 | Verify Step |
-
-# Edges
-| Source ID | Target ID | Label | ConnectionType |
+### Group: System A | Size: ${sMap.M}
+| ID | Label | Type | Next Steps |
 |---|---|---|---|
-| item_1 | item_2 | Yes | target |`;
+| p_1 | Start Process | process | d_1 |
+| d_1 | Verify Step | rhombus | p_2[Yes], e_1[No] |`;
 
 
     case 'erd':

@@ -166,12 +166,36 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
-        const val = cols[2] ? Number(cols[2]) : undefined;
         
+        let nodeType = currentGroupType;
+        let val = undefined;
+        let nextSteps = null;
+        
+        if (diagramType === 'flowchart') {
+            nodeType = cols[2] || currentGroupType;
+            nextSteps = cols[3];
+        } else {
+            val = cols[2] ? Number(cols[2]) : undefined;
+        }
+
         const group = getOrCreateGroup(currentGroupLabel, currentGroupSize, currentGroupType);
-        const nodeObj = { id, label, type: currentGroupType, size: currentGroupSize };
+        const nodeObj = { id, label, type: nodeType, size: currentGroupSize };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
+        
+        if (diagramType === 'flowchart' && nextSteps && nextSteps !== '-') {
+            const regex = /([^,\[\]\s]+)(?:\[(.*?)\])?/g;
+            let match;
+            while ((match = regex.exec(nextSteps)) !== null) {
+                const targetId = match[1];
+                const edgeLabel = match[2] || undefined;
+                parsed.data.edges.push({
+                   sourceId: id, targetId,
+                   label: edgeLabel,
+                   lineStyle: 'solid', connectionType: 'target'
+                });
+            }
+        }
       }
       
       if (mode === 'root' && cols.length >= 2) {
@@ -267,6 +291,22 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         });
       }
     }
+  }
+  
+  if (diagramType.toLowerCase() === 'flowchart') {
+      const mergedEdges = [];
+      const edgeMap = new Map();
+      parsed.data.edges.forEach(e => {
+          const key1 = `${e.sourceId}->${e.targetId}`;
+          const key2 = `${e.targetId}->${e.sourceId}`;
+          if (edgeMap.has(key2) && !e.label && !edgeMap.get(key2).label) {
+              edgeMap.get(key2).connectionType = 'both';
+          } else {
+              edgeMap.set(key1, e);
+              mergedEdges.push(e);
+          }
+      });
+      parsed.data.edges = mergedEdges;
   }
   
   if (parsed.data.groups.length === 0) {
