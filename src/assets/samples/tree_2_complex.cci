@@ -3,6 +3,7 @@
     "type": "tree",
     "version": "1.0.0"
   },
+  "theme": "brown-amber-grey",
   "title": {
     "text": "Directory Structure Schema"
   },

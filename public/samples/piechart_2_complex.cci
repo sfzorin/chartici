@@ -3,6 +3,7 @@
     "type": "piechart",
     "version": "1.0.0"
   },
+  "theme": "vibrant-rainbow",
   "title": {
     "text": "Cloud Spending Breakdown"
   },

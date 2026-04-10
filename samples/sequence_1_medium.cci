@@ -3,6 +3,7 @@
     "type": "sequence",
     "version": "1.0.0"
   },
+  "theme": "green",
   "title": {
     "text": "Basic Auth Protocol"
   },

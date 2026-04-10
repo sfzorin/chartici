@@ -5,7 +5,7 @@ export const DIAGRAM_SCHEMAS = {
     description: 'logical step-by-step processes or algorithms.',
     allowedNodes: ['process', 'circle', 'oval', 'rhombus'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
+    features: { hasNodeValue: false, allowConnections: false },
     promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps.",
     semanticScale: { L: 'system', M: 'process', S: 'step' },
     engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'oval', 'rhombus'] }
@@ -48,12 +48,12 @@ export const DIAGRAM_SCHEMAS = {
     name: 'Matrix',
     description: 'grid-like comparisons, or categorization into distinct cluster zones/cells.',
     allowedNodes: ['process'],
-    allowedEdges: ['none', 'solid'],
+    allowedEdges: ['none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
     semanticScale: { L: 'zone', M: 'cell', S: 'item' },
     connectionRules: [
-      "process -> process : Allowed across different groups/cells using 'solid'."
+      "Edges MUST NOT be used in matrices."
     ],
     engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'], matrixGridOverlays: true }
   },

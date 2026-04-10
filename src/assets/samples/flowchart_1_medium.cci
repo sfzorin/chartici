@@ -3,6 +3,7 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
+  "theme": "muted-rainbow",
   "title": {
     "text": "App Authentication Flow"
   },

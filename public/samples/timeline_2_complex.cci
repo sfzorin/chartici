@@ -3,6 +3,7 @@
     "type": "timeline",
     "version": "1.0.0"
   },
+  "theme": "blue-teal-slate",
   "title": {
     "text": "History of Web Infrastructure"
   },

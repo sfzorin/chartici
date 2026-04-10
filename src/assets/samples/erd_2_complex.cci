@@ -3,6 +3,7 @@
     "type": "erd",
     "version": "1.0.0"
   },
+  "theme": "red",
   "title": {
     "text": "Enterprise Personnel DB"
   },

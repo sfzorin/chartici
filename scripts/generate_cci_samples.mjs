@@ -24,6 +24,7 @@ const makeEdge = (source, target, connectionType, lineStyle, label) => {
 const docs = {
   "flowchart_1_medium": {
     meta: { type: "flowchart", version: "1.0.0" },
+    theme: "muted-rainbow",
     title: { text: "App Authentication Flow" },
     data: {
       groups: [
@@ -44,6 +45,7 @@ const docs = {
   },
   "flowchart_2_complex": {
     meta: { type: "flowchart", version: "1.0.0" },
+    theme: "vibrant-rainbow",
     title: { text: "E-Commerce Checkout Pipeline" },
     data: {
       groups: [
@@ -69,6 +71,7 @@ const docs = {
   },
   "erd_1_medium": {
     meta: { type: "erd", version: "1.0.0" },
+    theme: "grey",
     title: { text: "Sales Schema" },
     data: {
       groups: [
@@ -86,6 +89,7 @@ const docs = {
   },
   "erd_2_complex": {
     meta: { type: "erd", version: "1.0.0" },
+    theme: "red",
     title: { text: "Enterprise Personnel DB" },
     data: {
       groups: [
@@ -108,6 +112,7 @@ const docs = {
   },
   "sequence_1_medium": {
     meta: { type: "sequence", version: "1.0.0" },
+    theme: "green",
     title: { text: "Basic Auth Protocol" },
     data: {
       groups: [
@@ -123,6 +128,7 @@ const docs = {
   },
   "sequence_2_complex": {
     meta: { type: "sequence", version: "1.0.0" },
+    theme: "blue",
     title: { text: "OAuth 2.0 Web Flow" },
     data: {
       groups: [
@@ -144,6 +150,7 @@ const docs = {
   },
   "radial_1_medium": {
     meta: { type: "radial", version: "1.0.0" },
+    theme: "brown",
     title: { text: "DevOps Topology" },
     data: {
       groups: [
@@ -161,6 +168,7 @@ const docs = {
   },
   "radial_2_complex": {
     meta: { type: "radial", version: "1.0.0" },
+    theme: "purple",
     title: { text: "Global Database Architecture" },
     data: {
       groups: [
@@ -182,6 +190,7 @@ const docs = {
   },
   "matrix_1_medium": {
     meta: { type: "matrix", version: "1.0.0" },
+    theme: "blue-orange",
     title: { text: "Priorities Q3" },
     data: {
       groups: [
@@ -193,6 +202,7 @@ const docs = {
   },
   "matrix_2_complex": {
     meta: { type: "matrix", version: "1.0.0" },
+    theme: "green-purple",
     title: { text: "Feature Roadmap 2026" },
     data: {
       groups: [
@@ -208,6 +218,7 @@ const docs = {
   },
   "timeline_1_medium": {
     meta: { type: "timeline", version: "1.0.0" },
+    theme: "slate-rose",
     title: { text: "Product Release Plan" },
     data: {
       groups: [
@@ -225,6 +236,7 @@ const docs = {
   },
   "timeline_2_complex": {
     meta: { type: "timeline", version: "1.0.0" },
+    theme: "blue-teal-slate",
     title: { text: "History of Web Infrastructure" },
     data: {
       groups: [
@@ -248,6 +260,7 @@ const docs = {
   },
   "tree_1_medium": {
     meta: { type: "tree", version: "1.0.0" },
+    theme: "indigo-green-red",
     title: { text: "Startup Org Chart" },
     data: {
       groups: [
@@ -264,6 +277,7 @@ const docs = {
   },
   "tree_2_complex": {
     meta: { type: "tree", version: "1.0.0" },
+    theme: "brown-amber-grey",
     title: { text: "Directory Structure Schema" },
     data: {
       groups: [
@@ -285,6 +299,7 @@ const docs = {
   },
   "piechart_1_medium": {
     meta: { type: "piechart", version: "1.0.0" },
+    theme: "muted-rainbow",
     title: { text: "Resource Allocation" },
     data: {
       nodes: [
@@ -297,6 +312,7 @@ const docs = {
   },
   "piechart_2_complex": {
     meta: { type: "piechart", version: "1.0.0" },
+    theme: "vibrant-rainbow",
     title: { text: "Cloud Spending Breakdown" },
     data: {
       nodes: [

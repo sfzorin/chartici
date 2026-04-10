@@ -3,6 +3,7 @@
     "type": "radial",
     "version": "1.0.0"
   },
+  "theme": "purple",
   "title": {
     "text": "Global Database Architecture"
   },
