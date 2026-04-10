@@ -27,36 +27,43 @@ const docs = {
     title: { text: "App Authentication Flow", size: "L" },
     data: {
       groups: [
-        makeGroup("User Input", "process", "M", [makeNode("s1", "App Launch"), makeNode("d1", "Verify Session")]),
-        makeGroup("Auth Flow", "process", "M", [makeNode("l1", "Show Login"), makeNode("e1", "Try Auth")])
+        makeGroup("Start", "terminator", "M", [makeNode("start", "App Launch")]),
+        makeGroup("Checks", "decision", "M", [makeNode("sess_check", "Session Valid?")]),
+        makeGroup("Processes", "process", "M", [makeNode("show_login", "Show Login UI"), makeNode("auth_api", "Call Auth API"), makeNode("home", "Load Dashboard")]),
+        makeGroup("End", "terminator", "M", [makeNode("end", "Exit App")])
       ],
       edges: [
-        makeEdge("s1", "d1", "target", "solid"),
-        makeEdge("d1", "l1", "target", "solid", "No"),
-        makeEdge("l1", "e1", "target", "solid"),
-        makeEdge("e1", "d1", "target", "solid")
+        makeEdge("start", "sess_check", "target", "solid"),
+        makeEdge("sess_check", "home", "target", "solid", "Yes"),
+        makeEdge("sess_check", "show_login", "target", "dashed", "No"),
+        makeEdge("show_login", "auth_api", "target", "solid", "Submit Creds"),
+        makeEdge("auth_api", "sess_check", "target", "solid", "Token Received"),
+        makeEdge("home", "end", "target", "solid", "Logout")
       ]
     }
   },
   "flowchart_2_complex": {
     meta: { type: "flowchart", version: "1.0.0" },
-    title: { text: "Payment Gateway Logic", size: "L" },
+    title: { text: "E-Commerce Checkout Pipeline", size: "L" },
     data: {
       groups: [
-        makeGroup("Intake", "process", "M", [makeNode("p1", "Webhook Recv"), makeNode("s1", "Clean Body"), makeNode("d_v", "Is Valid JSON?")]),
-        makeGroup("Router", "process", "L", [makeNode("r1", "Inspect Event"), makeNode("d_e", "Event Type?")]),
-        makeGroup("Payments", "process", "L", [makeNode("pay1", "Process Charge"), makeNode("d_f", "Has Funds?")]),
-        makeGroup("Persistence", "process", "M", [makeNode("db1", "Commit DB"), makeNode("end", "Finish")])
+        makeGroup("Triggers", "terminator", "M", [makeNode("t_start", "User Clicks Checkout"), makeNode("t_end", "Show Order Success")]),
+        makeGroup("Decisions", "decision", "L", [makeNode("d_cart", "Cart Empty?"), makeNode("d_stock", "Items in Stock?"), makeNode("d_pay", "Payment Approved?")]),
+        makeGroup("API & Processes", "process", "M", [makeNode("p_reserve", "Reserve Inventory"), makeNode("p_charge", "Stripe API Charge"), makeNode("p_db", "Log Order DB")]),
+        makeGroup("Error Handling", "process", "S", [makeNode("err_cart", "Prompt to Shop"), makeNode("err_stock", "Show Out of Stock"), makeNode("err_pay", "Show Decline Msg")])
       ],
       edges: [
-        makeEdge("p1", "s1", "target", "solid"),
-        makeEdge("s1", "d_v", "target", "solid"),
-        makeEdge("d_v", "r1", "target", "solid", "Yes"),
-        makeEdge("r1", "d_e", "target", "solid"),
-        makeEdge("d_e", "pay1", "target", "solid", "Pay"),
-        makeEdge("pay1", "d_f", "target", "solid"),
-        makeEdge("d_f", "db1", "target", "solid", "Yes"),
-        makeEdge("db1", "end", "target", "solid")
+        makeEdge("t_start", "d_cart", "target", "solid"),
+        makeEdge("d_cart", "err_cart", "target", "solid", "Yes"),
+        makeEdge("d_cart", "d_stock", "target", "solid", "No"),
+        makeEdge("d_stock", "err_stock", "target", "solid", "No"),
+        makeEdge("d_stock", "p_reserve", "target", "solid", "Yes"),
+        makeEdge("p_reserve", "p_charge", "target", "dashed", "Initiate Pay"),
+        makeEdge("p_charge", "d_pay", "target", "solid"),
+        makeEdge("d_pay", "err_pay", "target", "solid", "No"),
+        makeEdge("err_pay", "p_charge", "target", "solid", "Retry"),
+        makeEdge("d_pay", "p_db", "target", "solid", "Yes"),
+        makeEdge("p_db", "t_end", "target", "solid")
       ]
     }
   },

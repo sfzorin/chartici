@@ -10,61 +10,99 @@
   "data": {
     "groups": [
       {
-        "type": "process",
+        "type": "terminator",
         "size": "M",
         "nodes": [
           {
-            "id": "s1",
+            "id": "start",
             "label": "App Launch"
-          },
-          {
-            "id": "d1",
-            "label": "Verify Session"
           }
         ],
-        "label": "User Input"
+        "label": "Start"
+      },
+      {
+        "type": "decision",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "sess_check",
+            "label": "Session Valid?"
+          }
+        ],
+        "label": "Checks"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "l1",
-            "label": "Show Login"
+            "id": "show_login",
+            "label": "Show Login UI"
           },
           {
-            "id": "e1",
-            "label": "Try Auth"
+            "id": "auth_api",
+            "label": "Call Auth API"
+          },
+          {
+            "id": "home",
+            "label": "Load Dashboard"
           }
         ],
-        "label": "Auth Flow"
+        "label": "Processes"
+      },
+      {
+        "type": "terminator",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "end",
+            "label": "Exit App"
+          }
+        ],
+        "label": "End"
       }
     ],
     "edges": [
       {
-        "sourceId": "s1",
-        "targetId": "d1",
+        "sourceId": "start",
+        "targetId": "sess_check",
         "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "d1",
-        "targetId": "l1",
+        "sourceId": "sess_check",
+        "targetId": "home",
         "connectionType": "target",
         "lineStyle": "solid",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "sess_check",
+        "targetId": "show_login",
+        "connectionType": "target",
+        "lineStyle": "dashed",
         "label": "No"
       },
       {
-        "sourceId": "l1",
-        "targetId": "e1",
+        "sourceId": "show_login",
+        "targetId": "auth_api",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "Submit Creds"
       },
       {
-        "sourceId": "e1",
-        "targetId": "d1",
+        "sourceId": "auth_api",
+        "targetId": "sess_check",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "Token Received"
+      },
+      {
+        "sourceId": "home",
+        "targetId": "end",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Logout"
       }
     ]
   }

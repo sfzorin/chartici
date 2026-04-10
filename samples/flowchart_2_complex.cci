@@ -4,125 +4,156 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Payment Gateway Logic",
+    "text": "E-Commerce Checkout Pipeline",
     "size": "L"
   },
   "data": {
     "groups": [
       {
-        "type": "process",
+        "type": "terminator",
         "size": "M",
         "nodes": [
           {
-            "id": "p1",
-            "label": "Webhook Recv"
+            "id": "t_start",
+            "label": "User Clicks Checkout"
           },
           {
-            "id": "s1",
-            "label": "Clean Body"
-          },
-          {
-            "id": "d_v",
-            "label": "Is Valid JSON?"
+            "id": "t_end",
+            "label": "Show Order Success"
           }
         ],
-        "label": "Intake"
+        "label": "Triggers"
       },
       {
-        "type": "process",
+        "type": "decision",
         "size": "L",
         "nodes": [
           {
-            "id": "r1",
-            "label": "Inspect Event"
+            "id": "d_cart",
+            "label": "Cart Empty?"
           },
           {
-            "id": "d_e",
-            "label": "Event Type?"
-          }
-        ],
-        "label": "Router"
-      },
-      {
-        "type": "process",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "pay1",
-            "label": "Process Charge"
+            "id": "d_stock",
+            "label": "Items in Stock?"
           },
           {
-            "id": "d_f",
-            "label": "Has Funds?"
+            "id": "d_pay",
+            "label": "Payment Approved?"
           }
         ],
-        "label": "Payments"
+        "label": "Decisions"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "db1",
-            "label": "Commit DB"
+            "id": "p_reserve",
+            "label": "Reserve Inventory"
           },
           {
-            "id": "end",
-            "label": "Finish"
+            "id": "p_charge",
+            "label": "Stripe API Charge"
+          },
+          {
+            "id": "p_db",
+            "label": "Log Order DB"
           }
         ],
-        "label": "Persistence"
+        "label": "API & Processes"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "err_cart",
+            "label": "Prompt to Shop"
+          },
+          {
+            "id": "err_stock",
+            "label": "Show Out of Stock"
+          },
+          {
+            "id": "err_pay",
+            "label": "Show Decline Msg"
+          }
+        ],
+        "label": "Error Handling"
       }
     ],
     "edges": [
       {
-        "sourceId": "p1",
-        "targetId": "s1",
+        "sourceId": "t_start",
+        "targetId": "d_cart",
         "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "s1",
-        "targetId": "d_v",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_v",
-        "targetId": "r1",
+        "sourceId": "d_cart",
+        "targetId": "err_cart",
         "connectionType": "target",
         "lineStyle": "solid",
         "label": "Yes"
       },
       {
-        "sourceId": "r1",
-        "targetId": "d_e",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_e",
-        "targetId": "pay1",
+        "sourceId": "d_cart",
+        "targetId": "d_stock",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Pay"
+        "label": "No"
       },
       {
-        "sourceId": "pay1",
-        "targetId": "d_f",
+        "sourceId": "d_stock",
+        "targetId": "err_stock",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "No"
       },
       {
-        "sourceId": "d_f",
-        "targetId": "db1",
+        "sourceId": "d_stock",
+        "targetId": "p_reserve",
         "connectionType": "target",
         "lineStyle": "solid",
         "label": "Yes"
       },
       {
-        "sourceId": "db1",
-        "targetId": "end",
+        "sourceId": "p_reserve",
+        "targetId": "p_charge",
+        "connectionType": "target",
+        "lineStyle": "dashed",
+        "label": "Initiate Pay"
+      },
+      {
+        "sourceId": "p_charge",
+        "targetId": "d_pay",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_pay",
+        "targetId": "err_pay",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "No"
+      },
+      {
+        "sourceId": "err_pay",
+        "targetId": "p_charge",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Retry"
+      },
+      {
+        "sourceId": "d_pay",
+        "targetId": "p_db",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "p_db",
+        "targetId": "t_end",
         "connectionType": "target",
         "lineStyle": "solid"
       }
