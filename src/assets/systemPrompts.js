@@ -54,15 +54,21 @@ export function getSystemPromptPhase2(diagramType) {
 | Costs | ${sMap.M} | 30 |`;
   } else if (diagramType.toLowerCase() === 'timeline') {
     exampleText = `
-# Timeline Spine
-| ID | Phase/Era Label | Size |
-|---|---|---|
-| e1 | Q1 Phase | ${sMap.L} |
+# Nodes
 
-# Events
-| Event ID | Spine ID | Label | Size | Type |
-|---|---|---|---|---|
-| ev_1 | e1 | Start up | ${sMap.S} | circle |`;
+### Group: Timeline Spine | Size: ${sMap.L} | Type: chevron
+| ID | Label |
+| e1 | Q1 Phase 1 |
+| e2 | Q2 Phase 2 |
+
+### Group: Engineering Tasks | Size: ${sMap.S} | Type: process
+| ID | Label |
+| ev_1 | Bootstrapping |
+
+# Edges
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| ev_1 | e1 | - | none |`;
   } else {
     exampleText = `
 # Nodes
@@ -94,8 +100,6 @@ export function getSystemPromptPhase2(diagramType) {
 
   const tableHeaderRule = isPie 
       ? `8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.`
-      : diagramType.toLowerCase() === 'timeline'
-      ? `8. You MUST output EXACTLY two tables: "# Timeline Spine" (for main trajectory steps) and "# Events" (chronological children).`
       : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.`;
 
   return `You are a Diagram Topology Engineer.
