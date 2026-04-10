@@ -188,22 +188,25 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       if (mode === 'spine' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
-        const rawSize = cols[2];
+        const rawColor = cols[2];
         
         const group = getOrCreateGroup('Spine', 'L', 'chevron');
-        group.nodes.push({ id, label, type: 'chevron', size: matchSize(rawSize) });
+        const nodeObj = { id, label, type: 'chevron', size: 'L' };
+        if (rawColor && rawColor !== '-' && !isNaN(Number(rawColor))) {
+            nodeObj.color = Number(rawColor);
+        }
+        group.nodes.push(nodeObj);
       }
 
-      if (mode === 'events' && cols.length >= 3) {
-        const id = cols[0];
-        const spineId = cols[1];
-        const label = cols[2];
-        const rawSize = cols[3];
-        const type = cols[4] || currentGroupType || 'process';
+      if (mode === 'events' && cols.length >= 2) {
+        const spineId = cols[0];
+        const label = cols[1];
+        const id = `ev_${Math.random().toString(36).substr(2, 9)}`;
+        const type = 'process';
         
         // Relies on the standard currentGroupLabel parsed just above!
-        const group = getOrCreateGroup(currentGroupLabel || 'Events', currentGroupSize, currentGroupType);
-        group.nodes.push({ id, label, type, size: matchSize(rawSize) });
+        const group = getOrCreateGroup(currentGroupLabel || 'Events', currentGroupSize || 'M', 'process');
+        group.nodes.push({ id, label, type, size: currentGroupSize || 'M' });
         
         // Link event to spine inherently
         parsed.data.edges.push({

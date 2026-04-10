@@ -76,7 +76,7 @@ Follow these rules:
    - ${sMap.L}: Major historical eras or macroscopic periods
    - ${sMap.M}: Standard chronological events or milestones
    - ${sMap.S}: Minor sub-events or granular moments in time
-4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
+4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single event MUST belong to a logical group.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -85,17 +85,17 @@ Use this EXACT format:
 </thinking>
 
 # Timeline Spine
-| ID | Phase/Era Label | Size |
+| ID | Phase/Era Label | Color (0-11) |
 |---|---|---|
-| e1 | Q1 Phase 1 | ${sMap.L} |
-| e2 | Q2 Phase 2 | ${sMap.M} |
+| e1 | Q1 Phase 1 | 0 |
+| e2 | Q2 Phase 2 | 2 |
 
 # Events
 
-### Group: Engineering Tasks
-| ID | Spine ID | Label | Size |
-|---|---|---|---|
-| ev_1 | e1 | Bootstrapping | ${sMap.S} |`;
+### Group: Engineering Tasks | Size: ${sMap.S}
+| Spine ID | Label |
+|---|---|
+| e1 | Bootstrapping |`;
 
 
     case 'tree':

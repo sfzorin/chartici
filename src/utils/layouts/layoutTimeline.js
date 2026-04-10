@@ -142,41 +142,8 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     
     let gapForStep = 20; // Default for Micro step S/M
     
-    let isSameGroup = false;
-    if (i < spineNodesTemp.length - 1) {
-       const nextId = spineNodesTemp[i+1];
-       const nextN = nodeMap.get(nextId);
-       if (nextN) {
-           const g1 = getGroupId(n);
-           const g2 = getGroupId(nextN);
-           if (g1 && g2 && g1 === g2) {
-               isSameGroup = true;
-           }
-       }
-    }
-    
-    const sizeValues = { 'S': 1, 'M': 2, 'L': 3 };
-    const myTier = sizeValues[size] || 2;
-    let nextTier = 0;
-    
-    if (i < spineNodesTemp.length - 1) {
-       const nextId = spineNodesTemp[i+1];
-       const nextN = nodeMap.get(nextId);
-       if (nextN) {
-           nextTier = sizeValues[nextN.size || 'M'] || 2;
-       }
-    }
-    
-    // Rule: gap is based on the rules of the larger of the two adjacent chevrons
-    const effectiveTier = Math.max(myTier, nextTier);
     const cut = hBase * 0.25;
-    
-    let baseGapLevel;
-    if (effectiveTier >= 3) { // L
-        baseGapLevel = isSameGroup ? 40 : 80;
-    } else { // S, M
-        baseGapLevel = isSameGroup ? 20 : 40;
-    }
+    const baseGapLevel = 40; // Hardcoded fixed gap between chevrons
     
     // Find the next perfect 20px grid snap that satisfies the minimum base gap requirement
     const requiredTotalStep = wBase + cut + baseGapLevel;
