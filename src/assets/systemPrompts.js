@@ -37,8 +37,21 @@ export function getSystemPromptPhase2(diagramType) {
   const allowedSizes = Object.values(sMap).join(', ');
   const allowedTypesStr = schema.allowedNodes.join(', ');
 
+  const roleMap = {
+    'piechart': 'Data Visualization Analyst',
+    'timeline': 'Chronological Planner',
+    'tree': 'Information Hierarchy Architect',
+    'matrix': 'Strategic Categorization Analyst',
+    'flowchart': 'Process Flow Engineer',
+    'erd': 'Database Systems Engineer',
+    'sequence': 'System Interactions Engineer',
+    'radial': 'Centralized Architecture Analyst',
+    'default': 'Diagram Topology Engineer'
+  };
+  const aiRole = roleMap[dt] || roleMap.default;
+
   if (dt === 'piechart') {
-      return `You are a Diagram Topology Engineer.
+      return `You are a ${aiRole}.
 The user will provide a detailed conceptual architecture for a PIECHART diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
@@ -65,7 +78,7 @@ Use this EXACT format:
   }
 
   if (dt === 'timeline') {
-      return `You are a Diagram Topology Engineer.
+      return `You are a ${aiRole}.
 The user will provide a detailed conceptual architecture for a TIMELINE diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
@@ -106,7 +119,7 @@ Use this EXACT format:
   const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
   const connTypesStr = schema.features.allowConnections ? "target, both, reverse, none" + (dt === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none";
 
-  let promptStr = `You are a Diagram Topology Engineer.
+  let promptStr = `You are a ${aiRole}.
 The user will provide a detailed conceptual architecture for a ${dt.toUpperCase()} diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
