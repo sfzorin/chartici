@@ -98,6 +98,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   let currentGroupLabel = '';
   let currentGroupSize = 'M';
   let currentGroupType = 'process';
+  let currentGroupParentId = null;
   
   const groupsMap = new Map();
   
@@ -135,16 +136,20 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (t.toLowerCase().startsWith('# pie slices')) { mode = 'pie'; continue; }
     if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
     if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
+    if (t.toLowerCase().startsWith('# root')) { mode = 'root'; continue; }
+    if (t.toLowerCase().startsWith('# sub-branches')) { mode = 'subbranches'; continue; }
     
-    if ((mode === 'nodes' || mode === 'events') && t.toLowerCase().startsWith('### group:')) {
+    if ((mode === 'nodes' || mode === 'events' || mode === 'subbranches') && t.toLowerCase().startsWith('### group:')) {
       const parts = t.substring(10).split('|').map(s => s.trim());
       currentGroupLabel = parts[0];
       currentGroupSize = 'M';
       currentGroupType = 'process';
+      currentGroupParentId = null;
       
       parts.slice(1).forEach(p => {
         if (p.toLowerCase().startsWith('size:')) currentGroupSize = matchSize(p.substring(5));
         if (p.toLowerCase().startsWith('type:')) currentGroupType = p.substring(5).trim();
+        if (p.toLowerCase().startsWith('parent id:')) currentGroupParentId = p.substring(10).trim();
       });
       continue;
     }
@@ -167,6 +172,29 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const nodeObj = { id, label, type: currentGroupType, size: currentGroupSize };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
+      }
+      
+      if (mode === 'root' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        const rawSize = cols[2];
+        const group = getOrCreateGroup('Root', 'L', 'process');
+        group.nodes.push({ id, label, type: 'process', size: matchSize(rawSize) });
+      }
+
+      if (mode === 'subbranches' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        
+        const group = getOrCreateGroup(currentGroupLabel || 'Branch', currentGroupSize || 'M', 'process');
+        group.nodes.push({ id, label, type: 'process', size: currentGroupSize || 'M' });
+        
+        if (currentGroupParentId) {
+             parsed.data.edges.push({
+                 sourceId: currentGroupParentId, targetId: id,
+                 lineStyle: 'solid', connectionType: 'none'
+             });
+        }
       }
       
       if (mode === 'pie' && cols.length >= 2) {

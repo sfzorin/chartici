@@ -100,42 +100,37 @@ Use this EXACT format:
 
     case 'tree':
       return `You are an Information Hierarchy Architect.
-The user will provide a detailed conceptual architecture for a TREE diagram.
+The user will provide a detailed conceptual architecture for a TREE structure diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+3. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: The root or absolute top-level parent
    - ${sMap.M}: Middle-management branches or sub-departments
    - ${sMap.S}: End-node leaves or individual contributors
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Sub-Branches" (groups of children).
+5. Under "# Sub-Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
-8. "ConnectionType" must be one of: none.
-9. STRICT CONNECTION RULES:
-   - Relationships MUST form a strict single-rooted hierarchy (no circular dependencies).
-   - A node can only have ONE parent.
 
 Use this EXACT format:
 <thinking>
-... your logic, parent-child mapping, and ID tracking ...
+... your logic, topology planning, and ID tracking ...
 </thinking>
 
-# Nodes
+# Root
+| ID | Label | Size |
+|---|---|---|
+| root_1 | CEO | ${sMap.L} |
 
-### Group: Management | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+# Sub-Branches
+
+### Group: Engineering | Parent ID: root_1 | Size: ${sMap.M}
 | ID | Label |
 |---|---|
-| item_1 | CEO |
-| item_2 | VP Engineering |
-
-# Edges
-| Source ID | Target ID | Label | ConnectionType |
-|---|---|---|---|
-| item_1 | item_2 | - | none |`;
+| vp_1 | VP Engineering |
+| cto_1 | CTO |`;
 
 
     case 'flowchart':

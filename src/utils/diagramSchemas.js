@@ -86,13 +86,13 @@ export const DIAGRAM_SCHEMAS = {
   tree: {
     id: 'tree',
     name: 'Tree',
-    description: 'strict hierarchical org-charts or breakdowns.',
-    allowedNodes: ['process', 'circle', 'text'],
+    description: 'hierarchical structure with one or few roots branching downwards.',
+    allowedNodes: ['process'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections.",
     semanticScale: { L: 'parent', M: 'branch', S: 'leaf' },
-    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process', 'circle', 'text'], isTree: true, enableBusRouting: true }
+    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process'], isTree: true, enableBusRouting: true }
   },
   piechart: {
     id: 'piechart',
