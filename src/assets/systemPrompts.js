@@ -76,7 +76,7 @@ Follow these rules:
    - ${sMap.L}: Major historical eras or macroscopic periods
    - ${sMap.M}: Standard chronological events or milestones
    - ${sMap.S}: Minor sub-events or granular moments in time
-4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single event MUST belong to a logical group.
+4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Phase: <Name> | Size: <Size>". EVERY single event MUST belong to a logical group.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -92,7 +92,7 @@ Use this EXACT format:
 
 # Events
 
-### Group: Engineering Tasks | Size: ${sMap.S}
+### Phase: Engineering Tasks | Size: ${sMap.S}
 | Spine ID | Label |
 |---|---|
 | e1 | Bootstrapping |`;
@@ -111,7 +111,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Branches" (groups of children).
-5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
+5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Branch: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -126,7 +126,7 @@ Use this EXACT format:
 
 # Branches
 
-### Group: Engineering | Parent ID: root_1 | Size: ${sMap.M}
+### Branch: Engineering | Parent ID: root_1 | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | vp_1 | VP Engineering |
@@ -150,7 +150,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
+5. You MUST group your Nodes into separate Markdown Tables per subsystem using a heading starting with "### Subsystem: <Name> | Size: <Size>". EVERY single node MUST belong to a subsystem.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Connections are defined DIRECTLY in the "Next Steps" column of the node.
 8. SYNTAX FOR NEXT STEPS: Write target node IDs separated by commas. If a connection has a label (like 'Yes' or 'No'), put it in brackets: \`target_id[Label Text]\`. Example: \`p_2[Yes], p_3[No]\`.
@@ -162,7 +162,7 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: System A | Size: ${sMap.M}
+### Subsystem: Core App | Size: ${sMap.M}
 | ID | Label | Type | Next Steps |
 |---|---|---|---|
 | p_1 | Start Process | terminal | d_1 |
@@ -184,7 +184,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
+5. You MUST group your Nodes into separate Markdown Tables per schema or block using a heading starting with "### Schema: <Name> | Size: <Size>". EVERY single node MUST belong to a schema group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. "ConnectionType" inside # Edges MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
 
@@ -196,7 +196,7 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Users Schema | Size: ${sMap.M}
+### Schema: Core Auth | Size: ${sMap.M}
 | ID | Label | Type |
 |---|---|---|
 | t_users | Users Table | table |
@@ -238,7 +238,7 @@ Use this EXACT format:
 
 # Branches
 
-### Group: Microservices | Parent ID: center_1 | Size: ${sMap.M}
+### Orbit: Microservices | Parent ID: center_1 | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | s_1 | Auth |
@@ -258,7 +258,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. A sequence diagram consists of Actors/Systems (Lifelines) and Messages between them.
-5. You MUST group your Nodes by Actor/System using a heading: "### Group: <Actor Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
+5. You MUST group your Nodes by Actor/System using a heading: "### Actor: <Actor Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. "ConnectionType" inside # Edges MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
 
@@ -269,13 +269,13 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Client | Size: ${sMap.M}
+### Actor: Client | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | c_1 | Init Request |
 | c_2 | Display Results |
 
-### Group: API Server | Size: ${sMap.M}
+### Actor: API Server | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | s_1 | Validate Auth |
@@ -301,7 +301,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. You MUST group your Nodes into separate Markdown Tables per array/list using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to an array group.
+4. You MUST group your Nodes into separate Markdown Tables per array/domain using a heading starting with "### Domain: <Name> | Size: <Size>". EVERY single node MUST belong to an array group.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 6. Connections are defined DIRECTLY in the "Next Element" column of the node.
 7. SYNTAX FOR NEXT ELEMENT: Write the target ID of the next consecutive node. Specify nothing if it's the end of the array. Example: \`a_2\`.
@@ -313,7 +313,7 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Main Buffer | Size: ${sMap.M}
+### Domain: Main Buffer | Size: ${sMap.M}
 | ID | Label | Next Element |
 |---|---|---|
 | i_1 | Header | i_2 |
@@ -333,7 +333,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. You MUST group your Nodes into separate Markdown Tables per matrix cell or zone using a heading: "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a cell or quadrant group.
+4. You MUST group your Nodes into separate Markdown Tables per matrix cell or zone using a heading: "### Zone: <Name> | Size: <Size>". EVERY single node MUST belong to a cell or quadrant group.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 6. Matrix diagrams typically do not need edges. If cross-connections are strictly necessary, define them under "# Edges".
 
@@ -344,13 +344,13 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: High Priority | Size: ${sMap.M}
+### Zone: High Priority | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | t_1 | Fix Database |
 | t_2 | Patch Auth |
 
-### Group: Low Priority | Size: ${sMap.M}
+### Zone: Low Priority | Size: ${sMap.M}
 | ID | Label |
 |---|---|
 | t_3 | Update CSS |`;
