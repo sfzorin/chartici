@@ -76,7 +76,7 @@ Follow these rules:
    - ${sMap.L}: Major historical eras or macroscopic periods
    - ${sMap.M}: Standard chronological events or milestones
    - ${sMap.S}: Minor sub-events or granular moments in time
-4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Phase: <Name> | Size: <Size>". EVERY single event MUST belong to a logical group.
+4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per phase using a heading starting with "### Phase: <Name> | Size: <Size>". EVERY single event MUST belong to a logical phase.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -111,7 +111,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Branches" (groups of children).
-5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Branch: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
+5. Under "# Branches", group your child nodes into separate Markdown Tables per branch using a heading starting with "### Branch: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this branch is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -184,7 +184,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-5. You MUST group your Nodes into separate Markdown Tables per schema or block using a heading starting with "### Schema: <Name> | Size: <Size>". EVERY single node MUST belong to a schema group.
+5. You MUST group your Nodes into separate Markdown Tables per schema using a heading starting with "### Schema: <Name> | Size: <Size>". EVERY single node MUST belong to a schema group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. "ConnectionType" inside # Edges MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
 
@@ -223,7 +223,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly ONE central hub node) and "# Branches" (groups of radiating satellites).
-5. Under "# Branches", group your child nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this group is automatically connected to the specified Parent ID.
+5. Under "# Branches", group your child nodes into separate Markdown Tables per orbit using a heading starting with "### Orbit: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this orbit is automatically connected to the specified Parent ID.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -301,7 +301,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. You MUST group your Nodes into separate Markdown Tables per array/domain using a heading starting with "### Domain: <Name> | Size: <Size>". EVERY single node MUST belong to an array group.
+4. You MUST group your Nodes into separate Markdown Tables per domain using a heading starting with "### Domain: <Name> | Size: <Size>". EVERY single node MUST belong to a domain.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 6. Connections are defined DIRECTLY in the "Next Element" column of the node.
 7. SYNTAX FOR NEXT ELEMENT: Write the target ID of the next consecutive node. Specify nothing if it's the end of the array. Example: \`a_2\`.
@@ -333,7 +333,7 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. You MUST group your Nodes into separate Markdown Tables per matrix cell or zone using a heading: "### Zone: <Name> | Size: <Size>". EVERY single node MUST belong to a cell or quadrant group.
+4. You MUST group your Nodes into separate Markdown Tables per zone using a heading: "### Zone: <Name> | Size: <Size>". EVERY single node MUST belong to a zone.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 6. Matrix diagrams typically do not need edges. If cross-connections are strictly necessary, define them under "# Edges".
 
