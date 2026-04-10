@@ -40,6 +40,7 @@ export function getSystemPromptPhase2(diagramType) {
   const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
   const isPie = diagramType.toLowerCase() === 'piechart';
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
+  const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
   const allowedSizes = Object.values(sMap).join(', ');
   
   let exampleText = `
@@ -54,7 +55,7 @@ export function getSystemPromptPhase2(diagramType) {
 
   if (!isPie) {
     exampleText += `
-### Group: Orphans | Size: ${sMap.XL} | Type: ${egType2}
+### Group: Orphans | Size: ${sMap.L} | Type: ${egType2}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
@@ -73,11 +74,9 @@ export function getSystemPromptPhase2(diagramType) {
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
     : `\n5. "Size" defines the hierarchy level of the group. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.XL}: Top overarching parent / absolute domain
-   - ${sMap.L}: Major sub-system or primary category
-   - ${sMap.M}: Standard feature or operational component
-   - ${sMap.S}: Sub-feature or child element
-   - ${sMap.XS}: Micro-detail or isolated property`;
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}`;
 
   return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.

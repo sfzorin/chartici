@@ -42,7 +42,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
         
         const proxyId = `__pie_proxy_${g.id}`;
         // approximate pie diameter
-        const sizeMap = { 'XS': 200, 'S': 300, 'M': 450, 'L': 600, 'XL': 800 };
+        const sizeMap = { 'S': 300, 'M': 450, 'L': 600 };
         const side = sizeMap[g.size] || 450;
         
         pieProxyMap[proxyId] = {

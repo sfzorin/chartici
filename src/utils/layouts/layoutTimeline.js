@@ -113,11 +113,9 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     
     const size = n.size || 'M';
     const deltaMap = {
-        'XS': 15,
         'S': 12,
         'M': 10,
-        'L': 25,
-        'XL': 20
+        'L': 25
     };
     const delta = deltaMap[size] || 10;
     
@@ -142,7 +140,7 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
       y: isHorizontal ? 0 : centerX
     });
     
-    let gapForStep = 20; // Default for Micro step XS/S/M
+    let gapForStep = 20; // Default for Micro step S/M
     
     let isSameGroup = false;
     if (i < spineNodesTemp.length - 1) {
@@ -157,15 +155,15 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
        }
     }
     
-    const sizeValues = { 'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5 };
-    const myTier = sizeValues[size] || 3;
+    const sizeValues = { 'S': 1, 'M': 2, 'L': 3 };
+    const myTier = sizeValues[size] || 2;
     let nextTier = 0;
     
     if (i < spineNodesTemp.length - 1) {
        const nextId = spineNodesTemp[i+1];
        const nextN = nodeMap.get(nextId);
        if (nextN) {
-           nextTier = sizeValues[nextN.size || 'M'] || 3;
+           nextTier = sizeValues[nextN.size || 'M'] || 2;
        }
     }
     
@@ -174,9 +172,9 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     const cut = hBase * 0.25;
     
     let baseGapLevel;
-    if (effectiveTier >= 4) { // L, XL
+    if (effectiveTier >= 3) { // L
         baseGapLevel = isSameGroup ? 40 : 80;
-    } else { // XS, S, M
+    } else { // S, M
         baseGapLevel = isSameGroup ? 20 : 40;
     }
     

@@ -7,7 +7,7 @@ export interface DiagramNode {
   id: string;
   type: 'rect' | 'oval' | 'circle' | 'rhombus' | 'chevron' | 'text' | 'title';
   label: string;
-  size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'AUTO';
+  size: 'S' | 'M' | 'L' | 'AUTO';
   color?: number | string;
   x: number;
   y: number;

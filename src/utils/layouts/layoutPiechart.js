@@ -2,8 +2,8 @@ export function layoutPiechart(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];
   
   const sizeVal = (size) => {
-    const sizeMap = { 'XS': 1, 'S': 2, 'M': 4, 'L': 8, 'XL': 12 };
-    return sizeMap[size] || 1;
+    const sizeMap = { 'S': 1, 'M': 2, 'L': 4 };
+    return sizeMap[size] || 2;
   };
 
   const sortedNodes = [...nodes].sort((a, b) => {

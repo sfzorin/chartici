@@ -1,9 +1,7 @@
 export const SIZES = {
-  XS: { width: 80, height: 40, fontSize: 11 },
-  S: { width: 120, height: 60, fontSize: 14 },
-  M: { width: 160, height: 80, fontSize: 16 },
-  L: { width: 240, height: 120, fontSize: 22 },
-  XL: { width: 320, height: 160, fontSize: 28 }
+  S: { width: 160, height: 80, fontSize: 16 },
+  M: { width: 240, height: 120, fontSize: 22 },
+  L: { width: 320, height: 160, fontSize: 28 }
 };
 
 const monoRules = { 2: [1,4], 3: [1,4,7], 4: [1,3,5,8], 5: [1,3,5,7,9], 6: [1,2,4,6,8,9], 7: [1,2,3,5,7,8,9], 8: [1,2,3,4,6,7,8,9] };
@@ -104,17 +102,19 @@ export const DEFAULT_SIZE = "M";
 
 export function getNodeDim(node) {
   if (!node) return { ...SIZES.M };
-  const dim = { ...(SIZES[node?.size] || SIZES.M) };
+  
+  let resolvedSize = node?.size || 'M';
+  if (resolvedSize === 'XS') resolvedSize = 'S';
+  if (resolvedSize === 'XL') resolvedSize = 'L';
+  const dim = { ...(SIZES[resolvedSize] || SIZES.M) };
   
   if (node.type === 'oval') {
     dim.width = Math.round((dim.width + dim.height / 4) / 40) * 40; // Add half a radius
   } else if (node.type === 'title') {
-    if (node.size === 'XS') dim.fontSize = 18;
-    else if (node.size === 'S') dim.fontSize = 24;
-    else if (node.size === 'M') dim.fontSize = 36;
-    else if (node.size === 'L') dim.fontSize = 56;
-    else if (node.size === 'XL') dim.fontSize = 80;
-    else dim.fontSize = 36;
+    if (resolvedSize === 'S') dim.fontSize = 56;
+    else if (resolvedSize === 'M') dim.fontSize = 80;
+    else if (resolvedSize === 'L') dim.fontSize = 110;
+    else dim.fontSize = 56;
 
     const text = node.label || "Text";
     const lines = text.split('\n');
@@ -127,11 +127,9 @@ export function getNodeDim(node) {
     dim.height = Math.max(Math.ceil(estHeight / 40) * 40, 40);
   } else if (node.type === 'text') {
     // Override font size specifically for text annotations to have a wider scale
-    if (node.size === 'XS') dim.fontSize = 12;
-    else if (node.size === 'S') dim.fontSize = 14;
-    else if (node.size === 'M') dim.fontSize = 18;
-    else if (node.size === 'L') dim.fontSize = 28;
-    else if (node.size === 'XL') dim.fontSize = 40;
+    if (resolvedSize === 'S') dim.fontSize = 18;
+    else if (resolvedSize === 'M') dim.fontSize = 28;
+    else if (resolvedSize === 'L') dim.fontSize = 40;
     else dim.fontSize = 18;
 
     // Dynamic sizing for text-only nodes based on content, snapping to 40px grid

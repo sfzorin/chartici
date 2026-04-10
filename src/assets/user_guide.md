@@ -71,7 +71,7 @@ Chartici is fundamentally built around grouping. Instead of a flat list of nodes
 - **`type`**: The graphical shape of the item. Valid options: `"rect"` (default rectangle), `"circle"`, `"rhombus"`, `"oval"` (pill shape), `"piechart"`.
 - **`color`**: Styling for the group itself. These styles **cascade** down and bind the `nodes` inside it. A node inside a group cannot have a uniquely different color or type than the group!
 - **`outlined`**: (Optional, boolean) When `true`, nodes in this group render as outlined (border only, transparent fill) instead of solid fill. Useful for secondary/supporting elements.
-- **`size`**: Defines the physical geometric scale of nodes (based on strict grid heights). Valid options: `"XS"`, `"S"`, `"M"`, `"L"`, `"XL"`. True widths scale dynamically based on the node `type` and textual contents.
+- **`size`**: Defines the physical geometric scale of nodes (based on strict grid heights). Valid options: `"S"`, `"M"`, `"L"`. True widths scale dynamically based on the node `type` and textual contents.
 - **`nodes`**: Array of individual entities inside this group.
   - **`id`**: (Required) Unique identifier to be referenced as `sourceId` or `targetId` in Edges.
   - **`label`**: (Optional) The display string inside the node. If omitted, the node will be rendered blank but still act as a structural target for edges.

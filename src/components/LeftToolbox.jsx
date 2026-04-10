@@ -222,8 +222,8 @@ export default function LeftToolbox({
               <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
                 <div className="popover-title">Node Size</div>
                 <div className="popover-list">
-                  {['AUTO', 'XS', 'S', 'M', 'L', 'XL'].filter(s => s !== 'AUTO' || nContext.type === 'title' || nContext.id === '__SYSTEM_TITLE__').map(s => {
-                    const labels = { AUTO: 'Auto Sizing', XS: 'Extra Small', S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra Large' };
+                  {['AUTO', 'S', 'M', 'L'].filter(s => s !== 'AUTO' || nContext.type === 'title' || nContext.id === '__SYSTEM_TITLE__').map(s => {
+                    const labels = { AUTO: 'Auto Sizing', S: 'Small', M: 'Medium', L: 'Large' };
                     return (
                       <button key={s} className={(nContext.size === s || (s === 'AUTO' && !nContext.size)) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s === 'AUTO' ? undefined : s); setActivePopover(null); }}>
                         {labels[s]}
