@@ -39,11 +39,13 @@ export function getSystemPromptPhase2(diagramType) {
   const egType1 = schema.allowedNodes[0];
   const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
   const isPie = diagramType.toLowerCase() === 'piechart';
+  const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
+  const allowedSizes = Object.values(sMap).join(', ');
   
   let exampleText = `
 # Nodes
 
-### Group: ${isPie ? 'Data' : 'Backend'} | Size: M | Type: ${egType1}
+### Group: ${isPie ? 'Data' : 'Backend'} | Size: ${sMap.M} | Type: ${egType1}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | item_1 | ${isPie ? 'Revenue' : 'API Server'} |${hasNodeValue ? ' 25 |' : ''}
@@ -52,7 +54,7 @@ export function getSystemPromptPhase2(diagramType) {
 
   if (!isPie) {
     exampleText += `
-### Group: Orphans | Size: L | Type: ${egType2}
+### Group: Orphans | Size: ${sMap.XL} | Type: ${egType2}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
@@ -70,12 +72,12 @@ export function getSystemPromptPhase2(diagramType) {
 
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "Size" defines the visual scale of the nodes in the group. Must be one of:
-   - XS: Tiny auxiliary elements (icons, badges, micro-steps)
-   - S: Small components, secondary functions
-   - M: Default standard elements
-   - L: Major overarching components, large systems
-   - XL: Massive platforms, environments, or main chronological phases`;
+    : `\n5. "Size" defines the hierarchy level of the group. You MUST use one of these EXACT words (${allowedSizes}):
+   - ${sMap.XL}: Top overarching parent / absolute domain
+   - ${sMap.L}: Major sub-system or primary category
+   - ${sMap.M}: Standard feature or operational component
+   - ${sMap.S}: Sub-feature or child element
+   - ${sMap.XS}: Micro-detail or isolated property`;
 
   return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.

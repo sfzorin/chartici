@@ -1,4 +1,5 @@
 import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts';
+import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
 /**
  * Helper to call the Moonshot API proxy
@@ -123,8 +124,22 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       currentGroupSize = 'M';
       currentGroupType = 'process';
       
+      const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
+      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
+
       parts.slice(1).forEach(p => {
-        if (p.toLowerCase().startsWith('size:')) currentGroupSize = p.substring(5).trim();
+        if (p.toLowerCase().startsWith('size:')) {
+            const rawSize = p.substring(5).trim();
+            const rawLow = rawSize.toLowerCase();
+            let matched = 'M';
+            for (const [coreSize, mappedWord] of Object.entries(sMap)) {
+                if (mappedWord.toLowerCase() === rawLow || coreSize.toLowerCase() === rawLow) {
+                    matched = coreSize;
+                    break;
+                }
+            }
+            currentGroupSize = matched;
+        }
         if (p.toLowerCase().startsWith('type:')) currentGroupType = p.substring(5).trim();
       });
       continue;
