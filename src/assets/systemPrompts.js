@@ -257,8 +257,8 @@ Follow these rules:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. A sequence diagram consists of Actors/Systems (Lifelines) and Messages between them.
-5. You MUST group your Nodes by Actor/System using a heading: "### Actor: <Actor Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
+4. A sequence diagram consists of Actors (Lifelines) and Messages between them.
+5. You MUST group your Nodes by Actor using a heading: "### Actor: <Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. "ConnectionType" inside # Edges MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
 
