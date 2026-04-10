@@ -19,7 +19,7 @@ Output EXACTLY three XML tags:
 <type>Exact diagramType (one of the types listed above)</type>
 <prompt>
 Write a detailed conceptual specification for the diagram. Focus on WHAT to show, not HOW to format it.
-Scale the diagram's detail level according to the user's request (e.g., if they ask for a "simple" or "detailed" diagram, obey that). If not specified, match the natural complexity of the topic: do not overcomplicate simple concepts, and do not oversimplify complex architectures.
+Scale the diagram's detail level according to the user's request (e.g., if they ask for a "simple" or "detailed" diagram, obey that). If unspecified, scale the complexity proportionately to the conceptual depth of the text.
 Keep the diagram readable: aim for 9-20 total entities unless the user explicitly demands a massive architecture.
 Condense long text into punchy 1-3 word conceptual entities. Avoid using full sentences for the core entities.
 If the user asks for an unsupported graphic (like a Pie Chart or Gantt Chart), map it to the closest conceptual type (e.g., radial or timeline).
@@ -45,12 +45,12 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
+3. You MUST output exactly ONE Markdown Table called "# Pie Slices" as your exclusive output.
 4. "Size" defines visual emphasis (highlighting specific data). You MUST use one of these EXACT words:
    - ${sMap.L}: Highly emphasized, broken-out, or critical outlier slice
    - ${sMap.M}: Standard proportional slice (use this by default)
    - ${sMap.S}: De-emphasized, minor, or muted slice
-5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 
 Use this EXACT format:
 <thinking>
@@ -77,7 +77,7 @@ Follow these rules:
    - ${sMap.M}: Standard chronological events or milestones
    - ${sMap.S}: Minor sub-events or granular moments in time
 4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per phase using a heading starting with "### Phase: <Name> | Size: <Size>". EVERY single event MUST belong to a logical phase.
-5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 
 Use this EXACT format:
 <thinking>
@@ -112,7 +112,7 @@ Follow these rules:
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly one root node) and "# Branches" (groups of children).
 5. Under "# Branches", group your child nodes into separate Markdown Tables per branch using a heading starting with "### Branch: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this branch is automatically connected to the specified Parent ID.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 
 Use this EXACT format:
 <thinking>
@@ -151,7 +151,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per subsystem using a heading starting with "### Subsystem: <Name> | Size: <Size>". EVERY single node MUST belong to a subsystem.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 7. Connections are defined DIRECTLY in the "Next Steps" column of the node.
 8. SYNTAX FOR NEXT STEPS: Write target node IDs separated by commas. If a connection has a label (like 'Yes' or 'No'), put it in brackets: \`target_id[Label Text]\`. Example: \`p_2[Yes], p_3[No]\`.
 
@@ -185,7 +185,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per schema using a heading starting with "### Schema: <Name> | Size: <Size>". EVERY single node MUST belong to a schema group.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 7. "ConnectionType" inside # Relationships MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
 
 
@@ -224,7 +224,7 @@ Follow these rules:
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST output EXACTLY two master sections: "# Root" (a table with exactly ONE central hub node) and "# Branches" (groups of radiating satellites).
 5. Under "# Branches", group your child nodes into separate Markdown Tables per orbit using a heading starting with "### Orbit: <Name> | Parent ID: <ID> | Size: <Size>". Every node in this orbit is automatically connected to the specified Parent ID.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 
 Use this EXACT format:
 <thinking>
@@ -259,7 +259,7 @@ Follow these rules:
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. A sequence diagram consists of Actors (Lifelines) and Messages between them.
 5. You MUST group your Nodes by Actor using a heading: "### Actor: <Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 7. "ConnectionType" inside # Messages MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
 
 Use this EXACT format:
@@ -302,7 +302,7 @@ Follow these rules:
    - ${sMap.M}: Standard normal element (use this by default)
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST group your Nodes into separate Markdown Tables per zone using a heading: "### Zone: <Name> | Size: <Size>". EVERY single node MUST belong to a zone.
-5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
 
 Use this EXACT format:
 <thinking>
