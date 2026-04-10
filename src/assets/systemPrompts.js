@@ -60,7 +60,7 @@ ${specificRules}${connectionRulesStr}
 7. "ConnectionType" must be one of: ${allowedConnectionTypes}.
 8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".
 9. "Size" and "Type" are properties of the GROUP, not the individual node. Specify them in the group heading exactly as shown below: "### Group: [Label] | Size: [size] | Type: [type]".
-10. Use the user's language for all labels.
+10. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels and group names. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
