@@ -187,9 +187,8 @@ Follow these rules:
    - ${sMap.S}: Specific column, attribute, or property
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. ERDs use structural cardinalities, NOT directional arrows. "ConnectionType" inside # Edges MUST literally be one of the cardinalities: 1:1, 1:N, N:1, N:M
+7. "ConnectionType" inside # Edges MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
 8. STRICT ERD RULES:
-   - Do NOT use "target", "both", or "reverse". Only use cardinality codes.
    - Connect attributes to their respective tables using "1:1" if mapped explicitly.
 
 Use this EXACT format:
