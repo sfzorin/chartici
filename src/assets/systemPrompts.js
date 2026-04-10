@@ -73,7 +73,7 @@ export function getSystemPromptPhase2(diagramType) {
 | item_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
 | item_2 | Database |${hasNodeValue ? ' 50 |' : ''}
 
-### Group: Orphans | Size: ${sMap.L} | Type: ${egType2}
+### Group: Web Interface | Size: ${sMap.L} | Type: ${egType2}
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
@@ -96,7 +96,7 @@ export function getSystemPromptPhase2(diagramType) {
       ? `8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.`
       : diagramType.toLowerCase() === 'timeline'
       ? `8. You MUST output EXACTLY two tables: "# Timeline Spine" (for main trajectory steps) and "# Events" (chronological children).`
-      : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".`;
+      : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.`;
 
   return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${diagramType.toUpperCase()} diagram.
