@@ -204,10 +204,10 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const group = getOrCreateGroup(`Events for ${spineId}`, 'M', type);
         group.nodes.push({ id, label, type, size: matchSize(rawSize) });
         
-        // Link event to spine inherently
+        // Link event to spine inherently; timeline edges are simple dashed lines with no arrows
         parsed.data.edges.push({
            sourceId: spineId, targetId: id,
-           lineStyle: 'solid', connectionType: 'target'
+           lineStyle: 'dashed', connectionType: 'none'
         });
       }
 
@@ -215,10 +215,18 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const sourceId = cols[0];
         const targetId = cols[1];
         const label = cols[2];
-        const connectionType = cols[3] || 'target';
         
+        let connectionType = cols[3] || 'target';
         let lineStyle = 'solid';
-        // In the future, dynamically adjust lineStyle based on diagramType or node pair types
+        const dt = diagramType.toLowerCase();
+
+        // Enforce specific styles based on diagram type logic
+        if (dt === 'timeline') {
+            lineStyle = 'dashed';
+            connectionType = 'none';
+        } else if (dt === 'radial' || dt === 'tree') {
+            connectionType = 'none';
+        }
         
         parsed.data.edges.push({
            sourceId, targetId,
