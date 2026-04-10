@@ -43,17 +43,6 @@ export const DIAGRAM_SCHEMAS = {
     semanticScale: { L: 'core', M: 'ring1', S: 'leaf' },
     engineManifest: { layout: 'radial', edgeStyle: 'straight_clipped', isHorizontalFlow: false, nodeTypes: ['process'], suppressEdgeMarkers: true, suppressEdgeLabels: true }
   },
-  array: {
-    id: 'array',
-    name: 'Array',
-    description: 'memory buffers, queues, or sequential data structures.',
-    allowedNodes: ['process'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use 'process' nodes to represent sequential elements, queues, or arrays.",
-    semanticScale: { L: 'structure', M: 'array', S: 'element' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'] }
-  },
   matrix: {
     id: 'matrix',
     name: 'Matrix',

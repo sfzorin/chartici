@@ -289,38 +289,6 @@ Use this EXACT format:
 | s_2 | c_2 | 200 OK | dashed |`;
 
 
-    case 'array':
-      return `You are a Data Pipeline Analyst.
-The user will provide a detailed conceptual architecture for an ARRAY (linear pipeline) diagram.
-Your task is to transform their concept into STRICT Markdown Tables.
-
-Follow these rules:
-1. Think carefully first in a <thinking> block.
-2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
-   - ${sMap.M}: Standard normal element (use this by default)
-   - ${sMap.S}: De-emphasized, minor, or visually smaller element
-4. You MUST group your Nodes into separate Markdown Tables per domain using a heading starting with "### Domain: <Name> | Size: <Size>". EVERY single node MUST belong to a domain.
-5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-6. Connections are defined DIRECTLY in the "Next Element" column of the node.
-7. SYNTAX FOR NEXT ELEMENT: Write the target ID of the next consecutive node. Specify nothing if it's the end of the array. Example: \`a_2\`.
-
-Use this EXACT format:
-<thinking>
-... your logic, sequential pipeline tracking ...
-</thinking>
-
-# Elements
-
-### Domain: Main Buffer | Size: ${sMap.M}
-| ID | Label | Next Element |
-|---|---|---|
-| i_1 | Header | i_2 |
-| i_2 | Payload | i_3 |
-| i_3 | Footer |  |`;
-
-
     case 'matrix':
       return `You are a Categorization Architect.
 The user will provide a detailed conceptual architecture for a MATRIX diagram.
