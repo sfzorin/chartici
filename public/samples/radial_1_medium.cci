@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "type": "radial",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample radial",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_rltbb3pkc",
+        "label": "Root",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "hub",
+            "label": "DevOps Stack",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_nbcxravai",
+        "label": "CI/CD",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ci1",
+            "label": "GitHub Actions",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "ci2",
+            "label": "Jenkins",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_xo1akudui",
+        "label": "Monitoring",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "mon1",
+            "label": "Datadog",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "mon2",
+            "label": "Grafana",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "hub",
+        "targetId": "ci1",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "ci2",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "mon1",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "mon2",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      }
+    ]
+  }
+}

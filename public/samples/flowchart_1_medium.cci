@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample flowchart",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_rfby5jqfc",
+        "label": "User Input",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "App Launch",
+            "type": "oval",
+            "size": "M"
+          },
+          {
+            "id": "check_auth",
+            "label": "Verify Session",
+            "type": "rhombus",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_ixdsdxu1m",
+        "label": "Auth",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "login",
+            "label": "Show Login",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "submit",
+            "label": "Try Auth",
+            "type": "circle",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_6mt65qa56",
+        "label": "Core",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "dash",
+            "label": "Load Dashboard",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "end",
+            "label": "Exit",
+            "type": "oval",
+            "size": "L"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "start",
+        "targetId": "check_auth",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "check_auth",
+        "targetId": "dash",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "check_auth",
+        "targetId": "login",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "No"
+      },
+      {
+        "sourceId": "login",
+        "targetId": "submit",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "submit",
+        "targetId": "check_auth",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "dash",
+        "targetId": "end",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      }
+    ]
+  }
+}

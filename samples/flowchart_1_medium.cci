@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "App Authentication Flow",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "s1",
+            "label": "App Launch"
+          },
+          {
+            "id": "d1",
+            "label": "Verify Session"
+          }
+        ],
+        "label": "User Input"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "l1",
+            "label": "Show Login"
+          },
+          {
+            "id": "e1",
+            "label": "Try Auth"
+          }
+        ],
+        "label": "Auth Flow"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "s1",
+        "targetId": "d1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d1",
+        "targetId": "l1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "No"
+      },
+      {
+        "sourceId": "l1",
+        "targetId": "e1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "e1",
+        "targetId": "d1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

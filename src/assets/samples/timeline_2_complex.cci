@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "type": "timeline",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "History of Web Infrastructure",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "chevron",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "era1",
+            "label": "The 1990s"
+          },
+          {
+            "id": "era2",
+            "label": "The 2000s"
+          },
+          {
+            "id": "era3",
+            "label": "The 2010s"
+          },
+          {
+            "id": "era4",
+            "label": "The 2020s"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "ev1",
+            "label": "HTML Created"
+          },
+          {
+            "id": "ev2",
+            "label": "JavaScript V1"
+          }
+        ],
+        "label": "Early Web"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "ev3",
+            "label": "AJAX Born"
+          },
+          {
+            "id": "ev4",
+            "label": "Cloud AWS Launch"
+          }
+        ],
+        "label": "Web 2.0"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "ev5",
+            "label": "React.js Release"
+          },
+          {
+            "id": "ev6",
+            "label": "Docker Standardized"
+          }
+        ],
+        "label": "Mobile & SPA"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "ev7",
+            "label": "GPT Access"
+          },
+          {
+            "id": "ev8",
+            "label": "AI Powered IDEs"
+          }
+        ],
+        "label": "AI Era"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "era1",
+        "targetId": "ev1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era1",
+        "targetId": "ev2",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era2",
+        "targetId": "ev3",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era2",
+        "targetId": "ev4",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era3",
+        "targetId": "ev5",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era3",
+        "targetId": "ev6",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "era4",
+        "targetId": "ev7",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "era4",
+        "targetId": "ev8",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

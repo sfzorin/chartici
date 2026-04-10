@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "type": "erd",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Sales Schema",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_o",
+            "label": "Orders"
+          },
+          {
+            "id": "c_i",
+            "label": "Order ID"
+          },
+          {
+            "id": "c_amount",
+            "label": "Amount"
+          }
+        ],
+        "label": "Orders Table"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_u",
+            "label": "Users"
+          },
+          {
+            "id": "c_u",
+            "label": "User ID"
+          },
+          {
+            "id": "c_email",
+            "label": "Email"
+          }
+        ],
+        "label": "Users Table"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "t_o",
+        "targetId": "c_i",
+        "connectionType": "1:1",
+        "lineStyle": "solid",
+        "label": "PK"
+      },
+      {
+        "sourceId": "t_u",
+        "targetId": "c_u",
+        "connectionType": "1:1",
+        "lineStyle": "solid",
+        "label": "PK"
+      },
+      {
+        "sourceId": "t_u",
+        "targetId": "t_o",
+        "connectionType": "1:N",
+        "lineStyle": "solid",
+        "label": "places"
+      }
+    ]
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Payment Gateway Logic",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "p1",
+            "label": "Webhook Recv"
+          },
+          {
+            "id": "s1",
+            "label": "Clean Body"
+          },
+          {
+            "id": "d_v",
+            "label": "Is Valid JSON?"
+          }
+        ],
+        "label": "Intake"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "r1",
+            "label": "Inspect Event"
+          },
+          {
+            "id": "d_e",
+            "label": "Event Type?"
+          }
+        ],
+        "label": "Router"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "pay1",
+            "label": "Process Charge"
+          },
+          {
+            "id": "d_f",
+            "label": "Has Funds?"
+          }
+        ],
+        "label": "Payments"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "db1",
+            "label": "Commit DB"
+          },
+          {
+            "id": "end",
+            "label": "Finish"
+          }
+        ],
+        "label": "Persistence"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "p1",
+        "targetId": "s1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "s1",
+        "targetId": "d_v",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_v",
+        "targetId": "r1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "r1",
+        "targetId": "d_e",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_e",
+        "targetId": "pay1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Pay"
+      },
+      {
+        "sourceId": "pay1",
+        "targetId": "d_f",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_f",
+        "targetId": "db1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "db1",
+        "targetId": "end",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "type": "radial",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample radial",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_vz59lg8c2",
+        "label": "Root",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "center",
+            "label": "Master DB",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_tq4mt8g1i",
+        "label": "Replicas",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "r_eu",
+            "label": "EU Replica",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "r_us",
+            "label": "US Replica",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "r_as",
+            "label": "Asia Replica",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_nlzkyy8e1",
+        "label": "Caching",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "c_1",
+            "label": "Redis Cluster",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "c_2",
+            "label": "Memcached",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_cj0dw2g33",
+        "label": "Analytics",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "a_1",
+            "label": "Snowflake",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "a_2",
+            "label": "Metabase",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "a_3",
+            "label": "Airflow pipeline",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "center",
+        "targetId": "r_eu",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "r_us",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "r_as",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "c_1",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "c_2",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "a_1",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "a_2",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "center",
+        "targetId": "a_3",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      }
+    ]
+  }
+}

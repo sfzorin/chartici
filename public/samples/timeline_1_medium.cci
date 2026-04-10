@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "type": "timeline",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample timeline",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_niklq8ps0",
+        "label": "Spine",
+        "size": "L",
+        "nodeType": "chevron",
+        "nodes": [
+          {
+            "id": "p_1",
+            "label": "Discovery",
+            "type": "chevron",
+            "size": "L"
+          },
+          {
+            "id": "p_2",
+            "label": "Development",
+            "type": "chevron",
+            "size": "L"
+          }
+        ],
+        "outlined": true
+      },
+      {
+        "id": "g_xjecwgvxj",
+        "label": "Early Tasks",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.6054202112031224",
+            "label": "Kickoff Meeting",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "ev_0.6644254767243349",
+            "label": "Requirements",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_uockfwoyi",
+        "label": "Build",
+        "size": "S",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.5980445040224649",
+            "label": "Sprint 1",
+            "type": "process",
+            "size": "S"
+          },
+          {
+            "id": "ev_0.4309127542319535",
+            "label": "MVP Launch",
+            "type": "process",
+            "size": "S"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "p_1",
+        "targetId": "ev_0.6054202112031224",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "p_1",
+        "targetId": "ev_0.6644254767243349",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "p_2",
+        "targetId": "ev_0.5980445040224649",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "p_2",
+        "targetId": "ev_0.4309127542319535",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      }
+    ]
+  }
+}

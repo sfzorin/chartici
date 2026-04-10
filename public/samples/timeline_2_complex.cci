@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "type": "timeline",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample timeline",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_wcja1qdpi",
+        "label": "Spine",
+        "size": "L",
+        "nodeType": "chevron",
+        "nodes": [
+          {
+            "id": "t1",
+            "label": "1990s",
+            "type": "chevron",
+            "size": "L"
+          },
+          {
+            "id": "t2",
+            "label": "2000s",
+            "type": "chevron",
+            "size": "L"
+          },
+          {
+            "id": "t3",
+            "label": "2010s",
+            "type": "chevron",
+            "size": "L"
+          },
+          {
+            "id": "t4",
+            "label": "2020s",
+            "type": "chevron",
+            "size": "L"
+          }
+        ],
+        "outlined": true
+      },
+      {
+        "id": "g_4bxi8uv9g",
+        "label": "Early Web",
+        "size": "S",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.7560894756068215",
+            "label": "HTML Invented",
+            "type": "process",
+            "size": "S"
+          },
+          {
+            "id": "ev_0.055013515679444014",
+            "label": "Netscape",
+            "type": "process",
+            "size": "S"
+          },
+          {
+            "id": "ev_0.9600192580146285",
+            "label": "Dot Com Boom",
+            "type": "process",
+            "size": "S"
+          }
+        ]
+      },
+      {
+        "id": "g_d3uzv2gqz",
+        "label": "Social Era",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.4157331896058083",
+            "label": "Web 2.0",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "ev_0.33481376009554054",
+            "label": "Facebook Launch",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "ev_0.47326055494456076",
+            "label": "iPhone Release",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_m1n1tobd3",
+        "label": "Mobile Era",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.19797931206554553",
+            "label": "Instagram",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "ev_0.04318173481418852",
+            "label": "Responsive Web",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_idsspufzp",
+        "label": "AI Era",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "ev_0.5589146644950687",
+            "label": "GPT-3",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "ev_0.3317039428626971",
+            "label": "AI Copilots",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "t1",
+        "targetId": "ev_0.7560894756068215",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t1",
+        "targetId": "ev_0.055013515679444014",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t1",
+        "targetId": "ev_0.9600192580146285",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t2",
+        "targetId": "ev_0.4157331896058083",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t2",
+        "targetId": "ev_0.33481376009554054",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t2",
+        "targetId": "ev_0.47326055494456076",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t3",
+        "targetId": "ev_0.19797931206554553",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t3",
+        "targetId": "ev_0.04318173481418852",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t4",
+        "targetId": "ev_0.5589146644950687",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "t4",
+        "targetId": "ev_0.3317039428626971",
+        "lineStyle": "dashed",
+        "connectionType": "none"
+      }
+    ]
+  }
+}

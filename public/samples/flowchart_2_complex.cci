@@ -1,0 +1,234 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample flowchart",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_y9vo9mqts",
+        "label": "Intake",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "p1",
+            "label": "Webhook Recv",
+            "type": "oval",
+            "size": "M"
+          },
+          {
+            "id": "sanitize",
+            "label": "Clean Body",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "d_valid",
+            "label": "Is Valid JSON?",
+            "type": "rhombus",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_kpye1o3gn",
+        "label": "Error Handling",
+        "size": "S",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "err",
+            "label": "Return 400",
+            "type": "process",
+            "size": "S"
+          }
+        ]
+      },
+      {
+        "id": "g_6esmmc42t",
+        "label": "Router",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "route",
+            "label": "Inspect Event",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "d_type",
+            "label": "Event Type?",
+            "type": "rhombus",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_ae34emkd4",
+        "label": "Users",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "handle_user",
+            "label": "Upsert User",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_hqyflncu9",
+        "label": "Payments",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "handle_pay",
+            "label": "Process Charge",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "d_funds",
+            "label": "Has Funds?",
+            "type": "rhombus",
+            "size": "L"
+          },
+          {
+            "id": "tx_fail",
+            "label": "Cancel Sub",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_cewqy4a1a",
+        "label": "Persistence",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "db_write",
+            "label": "Commit DB",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "end",
+            "label": "Finish",
+            "type": "oval",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "p1",
+        "targetId": "sanitize",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "sanitize",
+        "targetId": "d_valid",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "d_valid",
+        "targetId": "route",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "d_valid",
+        "targetId": "err",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "No"
+      },
+      {
+        "sourceId": "err",
+        "targetId": "end",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "route",
+        "targetId": "d_type",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "d_type",
+        "targetId": "handle_user",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "User"
+      },
+      {
+        "sourceId": "d_type",
+        "targetId": "handle_pay",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "Pay"
+      },
+      {
+        "sourceId": "handle_user",
+        "targetId": "db_write",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "handle_pay",
+        "targetId": "d_funds",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "d_funds",
+        "targetId": "db_write",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "d_funds",
+        "targetId": "tx_fail",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": "No"
+      },
+      {
+        "sourceId": "tx_fail",
+        "targetId": "end",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      },
+      {
+        "sourceId": "db_write",
+        "targetId": "end",
+        "lineStyle": "solid",
+        "connectionType": "target",
+        "label": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "type": "piechart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample piechart",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_qswvx9c8k",
+        "label": "Data",
+        "size": "M",
+        "nodeType": "pie_slice",
+        "nodes": [
+          {
+            "id": "pie_0.8373324018727748",
+            "label": "AWS Infrastructure",
+            "type": "pie_slice",
+            "size": "L",
+            "value": 45.2
+          },
+          {
+            "id": "pie_0.28406240068335586",
+            "label": "SaaS Subscriptions",
+            "type": "pie_slice",
+            "size": "M",
+            "value": 22.8
+          },
+          {
+            "id": "pie_0.030859422413545445",
+            "label": "Marketing Spend",
+            "type": "pie_slice",
+            "size": "M",
+            "value": 18.5
+          },
+          {
+            "id": "pie_0.7202426154394828",
+            "label": "Contractor Fees",
+            "type": "pie_slice",
+            "size": "S",
+            "value": 8
+          },
+          {
+            "id": "pie_0.8281066922811953",
+            "label": "Office Supplies",
+            "type": "pie_slice",
+            "size": "S",
+            "value": 3.5
+          },
+          {
+            "id": "pie_0.06905597178148226",
+            "label": "Miscellaneous",
+            "type": "pie_slice",
+            "size": "S",
+            "value": 2
+          }
+        ],
+        "outlined": true
+      }
+    ],
+    "edges": []
+  }
+}

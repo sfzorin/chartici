@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "type": "erd",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample erd",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_6fnqfjzt9",
+        "label": "Sales",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "t_order",
+            "label": "Orders",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "c_o_id",
+            "label": "Order ID",
+            "type": "text",
+            "size": "M"
+          },
+          {
+            "id": "c_total",
+            "label": "Total Amount",
+            "type": "text",
+            "size": "M"
+          },
+          {
+            "id": "t_customer",
+            "label": "Customers",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "c_c_id",
+            "label": "Customer ID",
+            "type": "text",
+            "size": "M"
+          },
+          {
+            "id": "c_email",
+            "label": "Email",
+            "type": "text",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "t_customer",
+        "targetId": "c_c_id",
+        "label": "Primary Key",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "t_customer",
+        "targetId": "c_email",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "t_order",
+        "targetId": "c_o_id",
+        "label": "Primary Key",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "t_order",
+        "targetId": "c_total",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "t_customer",
+        "targetId": "t_order",
+        "label": "Places",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

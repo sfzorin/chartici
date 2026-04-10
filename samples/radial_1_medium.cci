@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "type": "radial",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "DevOps Topology",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "hub",
+            "label": "Control Plane"
+          }
+        ],
+        "label": "Core"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "c1",
+            "label": "GitHub Actions"
+          },
+          {
+            "id": "c2",
+            "label": "Jenkins"
+          }
+        ],
+        "label": "CI/CD"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "m1",
+            "label": "Datadog"
+          },
+          {
+            "id": "m2",
+            "label": "Prometheus"
+          }
+        ],
+        "label": "Metrics"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "hub",
+        "targetId": "c1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "c2",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "m1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "hub",
+        "targetId": "m2",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

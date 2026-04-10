@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "type": "sequence",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample sequence",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_kjks053f6",
+        "label": "Web App",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "w_1",
+            "label": "Initiate Login",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "w_2",
+            "label": "Receive Code",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "w_3",
+            "label": "Store Token",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_j8gur45a3",
+        "label": "Auth Gateway",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "a_1",
+            "label": "Validate Client",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "a_2",
+            "label": "Exchange Token",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "a_3",
+            "label": "Issue Cookie",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_cavt1aqzx",
+        "label": "OAuth Provider",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "o_1",
+            "label": "Show Consent",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "o_2",
+            "label": "Redirect Back",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "o_3",
+            "label": "Validate Secret",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "w_1",
+        "targetId": "a_1",
+        "label": "Click Login",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "a_1",
+        "targetId": "o_1",
+        "label": "Redirect to /auth",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "o_1",
+        "targetId": "o_2",
+        "label": "User Accepts",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "o_2",
+        "targetId": "w_2",
+        "label": "302 ?code=xyz",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "w_2",
+        "targetId": "a_2",
+        "label": "POST Code",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "a_2",
+        "targetId": "o_3",
+        "label": "/token exchange",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "o_3",
+        "targetId": "a_3",
+        "label": "200 Bearer JWT",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "a_3",
+        "targetId": "w_3",
+        "label": "Set-Cookie",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      }
+    ]
+  }
+}

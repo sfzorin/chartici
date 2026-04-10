@@ -1,0 +1,166 @@
+{
+  "meta": {
+    "type": "tree",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample tree",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_20chm3r4w",
+        "label": "Root",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "root",
+            "label": "src/",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_59zs2wdf3",
+        "label": "Components",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b_com",
+            "label": "components/",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "f_btn",
+            "label": "Button.jsx",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "f_nav",
+            "label": "Navbar.jsx",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_wkl35td60",
+        "label": "Utils",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b_util",
+            "label": "utils/",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "f_help",
+            "label": "helpers.js",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_8k0yumh89",
+        "label": "Assets",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b_ass",
+            "label": "assets/",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "f_icn",
+            "label": "icons.svg",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "root",
+        "targetId": "b_com",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "f_btn",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "f_nav",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "b_util",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "f_help",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "b_ass",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "root",
+        "targetId": "f_icn",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "b_com",
+        "targetId": "f_btn",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "b_com",
+        "targetId": "f_nav",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "b_util",
+        "targetId": "f_help",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "b_ass",
+        "targetId": "f_icn",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

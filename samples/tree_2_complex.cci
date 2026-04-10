@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "type": "tree",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Directory Structure Schema",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "f_root",
+            "label": "src/"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "f_com",
+            "label": "components/"
+          },
+          {
+            "id": "f_btn",
+            "label": "Button.jsx"
+          },
+          {
+            "id": "f_nav",
+            "label": "Navbar.jsx"
+          }
+        ],
+        "label": "Components"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "f_util",
+            "label": "utils/"
+          },
+          {
+            "id": "f_hlp",
+            "label": "helpers.js"
+          }
+        ],
+        "label": "Utils"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "f_st",
+            "label": "store/"
+          },
+          {
+            "id": "f_rdx",
+            "label": "index.js"
+          }
+        ],
+        "label": "State"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "f_root",
+        "targetId": "f_com",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_root",
+        "targetId": "f_util",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_root",
+        "targetId": "f_st",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_com",
+        "targetId": "f_btn",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "f_com",
+        "targetId": "f_nav",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "f_util",
+        "targetId": "f_hlp",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "f_st",
+        "targetId": "f_rdx",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      }
+    ]
+  }
+}

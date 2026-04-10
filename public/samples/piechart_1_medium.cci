@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "type": "piechart",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample piechart",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_k6hkzti9j",
+        "label": "Data",
+        "size": "M",
+        "nodeType": "pie_slice",
+        "nodes": [
+          {
+            "id": "pie_0.5685986442682391",
+            "label": "Desktop",
+            "type": "pie_slice",
+            "size": "L",
+            "value": 60
+          },
+          {
+            "id": "pie_0.12146282246874152",
+            "label": "Mobile",
+            "type": "pie_slice",
+            "size": "M",
+            "value": 30
+          },
+          {
+            "id": "pie_0.12580676538538715",
+            "label": "Tablet",
+            "type": "pie_slice",
+            "size": "S",
+            "value": 10
+          }
+        ],
+        "outlined": true
+      }
+    ],
+    "edges": []
+  }
+}

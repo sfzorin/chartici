@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "type": "matrix",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Feature Roadmap 2026",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "q1_1",
+            "label": "Core API V3"
+          },
+          {
+            "id": "q1_2",
+            "label": "Graph DB Migration"
+          }
+        ],
+        "label": "Q1"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "q2_1",
+            "label": "Mobile App Launch"
+          },
+          {
+            "id": "q2_2",
+            "label": "SSO Support"
+          }
+        ],
+        "label": "Q2"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "q3_1",
+            "label": "AI Agent Integrations"
+          },
+          {
+            "id": "q3_2",
+            "label": "Voice Commands"
+          }
+        ],
+        "label": "Q3"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "bg1",
+            "label": "Dark Theme Tweaks"
+          },
+          {
+            "id": "bg2",
+            "label": "Accessibility API"
+          }
+        ],
+        "label": "Backlog"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "q1_1",
+        "targetId": "q2_1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

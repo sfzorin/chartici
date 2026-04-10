@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "type": "matrix",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Priorities Q3",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "m_1",
+            "label": "Optimize CDN"
+          },
+          {
+            "id": "m_2",
+            "label": "Compress Images"
+          }
+        ],
+        "label": "High Impact / Low Effort"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "m_3",
+            "label": "DB Sharding"
+          }
+        ],
+        "label": "High Impact / High Effort"
+      }
+    ],
+    "edges": []
+  }
+}

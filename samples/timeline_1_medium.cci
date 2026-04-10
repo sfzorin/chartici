@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "type": "timeline",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Product Release Plan",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "chevron",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "p1",
+            "label": "Discovery"
+          },
+          {
+            "id": "p2",
+            "label": "Execution"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "e1",
+            "label": "Kickoff Sync"
+          },
+          {
+            "id": "e2",
+            "label": "Design Approval"
+          }
+        ],
+        "label": "Discovery Events"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "e3",
+            "label": "Sprint 1"
+          },
+          {
+            "id": "e4",
+            "label": "Soft Launch"
+          }
+        ],
+        "label": "Execution Events"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "p1",
+        "targetId": "e1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "p1",
+        "targetId": "e2",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "p2",
+        "targetId": "e3",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "p2",
+        "targetId": "e4",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

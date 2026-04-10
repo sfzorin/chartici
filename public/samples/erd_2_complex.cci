@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "type": "erd",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample erd",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_qhocz2bbi",
+        "label": "Personnel",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "tab_emp",
+            "label": "Employees",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "e_id",
+            "label": "Emp ID",
+            "type": "text",
+            "size": "L"
+          },
+          {
+            "id": "e_name",
+            "label": "Name",
+            "type": "text",
+            "size": "L"
+          },
+          {
+            "id": "tab_dept",
+            "label": "Departments",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "d_id",
+            "label": "Dept ID",
+            "type": "text",
+            "size": "L"
+          },
+          {
+            "id": "d_name",
+            "label": "Dept Name",
+            "type": "text",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_lkzk5gzqs",
+        "label": "Tracking",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "tab_proj",
+            "label": "Projects",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "p_id",
+            "label": "Proj ID",
+            "type": "text",
+            "size": "M"
+          },
+          {
+            "id": "p_budget",
+            "label": "Budget",
+            "type": "text",
+            "size": "M"
+          },
+          {
+            "id": "tab_assign",
+            "label": "Assignments",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "a_hours",
+            "label": "Hours Logged",
+            "type": "text",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "tab_emp",
+        "targetId": "e_id",
+        "label": "PK",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_emp",
+        "targetId": "e_name",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_dept",
+        "targetId": "d_id",
+        "label": "PK",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_dept",
+        "targetId": "d_name",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_proj",
+        "targetId": "p_id",
+        "label": "PK",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_proj",
+        "targetId": "p_budget",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_assign",
+        "targetId": "a_hours",
+        "label": "",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_dept",
+        "targetId": "tab_emp",
+        "label": "Employs",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_emp",
+        "targetId": "tab_assign",
+        "label": "Has",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "tab_proj",
+        "targetId": "tab_assign",
+        "label": "Includes",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

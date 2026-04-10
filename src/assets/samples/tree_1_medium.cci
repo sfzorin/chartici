@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "type": "tree",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Startup Org Chart",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "c_ceo",
+            "label": "CEO Office"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "d_prod",
+            "label": "Head of Product"
+          },
+          {
+            "id": "d_eng",
+            "label": "Lead Engineer"
+          }
+        ],
+        "label": "Product"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "d_sales",
+            "label": "Account Exec"
+          }
+        ],
+        "label": "Sales"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "c_ceo",
+        "targetId": "d_prod",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "c_ceo",
+        "targetId": "d_sales",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_prod",
+        "targetId": "d_eng",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      }
+    ]
+  }
+}

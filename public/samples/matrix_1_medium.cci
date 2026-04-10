@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "type": "matrix",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample matrix",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_pghws6rqy",
+        "label": "High Impact",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "a1",
+            "label": "Core Refactor",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "a2",
+            "label": "Redis Cache",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_3mg6bn6ps",
+        "label": "Low Effort",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b1",
+            "label": "CSS Tweaks",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "b2",
+            "label": "Copy Updates",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_4xojmuv6i",
+        "label": "High Effort",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "c1",
+            "label": "CI/CD Pipeline",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": []
+  }
+}

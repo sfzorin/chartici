@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "type": "erd",
+    "version": "1.0.0"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Enterprise Personnel DB",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "t_e",
+            "label": "Employees"
+          },
+          {
+            "id": "c_eid",
+            "label": "Emp ID"
+          },
+          {
+            "id": "c_ename",
+            "label": "Name"
+          }
+        ],
+        "label": "Employees"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_d",
+            "label": "Departments"
+          },
+          {
+            "id": "c_did",
+            "label": "Dept ID"
+          }
+        ],
+        "label": "Departments"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_p",
+            "label": "Projects"
+          },
+          {
+            "id": "c_pid",
+            "label": "Proj ID"
+          }
+        ],
+        "label": "Projects"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "t_a",
+            "label": "Assignments"
+          },
+          {
+            "id": "c_hrs",
+            "label": "Hours Logged"
+          }
+        ],
+        "label": "Assignments"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "t_e",
+        "targetId": "c_eid",
+        "connectionType": "1:1",
+        "lineStyle": "solid",
+        "label": "PK"
+      },
+      {
+        "sourceId": "t_d",
+        "targetId": "c_did",
+        "connectionType": "1:1",
+        "lineStyle": "solid",
+        "label": "PK"
+      },
+      {
+        "sourceId": "t_p",
+        "targetId": "c_pid",
+        "connectionType": "1:1",
+        "lineStyle": "solid",
+        "label": "PK"
+      },
+      {
+        "sourceId": "t_a",
+        "targetId": "c_hrs",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "t_d",
+        "targetId": "t_e",
+        "connectionType": "1:N",
+        "lineStyle": "solid",
+        "label": "employs"
+      },
+      {
+        "sourceId": "t_e",
+        "targetId": "t_a",
+        "connectionType": "1:N",
+        "lineStyle": "solid",
+        "label": "assigned"
+      },
+      {
+        "sourceId": "t_p",
+        "targetId": "t_a",
+        "connectionType": "1:N",
+        "lineStyle": "solid",
+        "label": "includes"
+      }
+    ]
+  }
+}

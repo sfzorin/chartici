@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "type": "tree",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample tree",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_vrjx0cigx",
+        "label": "Root",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "c1",
+            "label": "E-Commerce Org",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_n4333hjj0",
+        "label": "Engineering",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b_eng",
+            "label": "VP Eng",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "d_be",
+            "label": "Backend Lead",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_wbvbsch1b",
+        "label": "Marketing",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "b_mkt",
+            "label": "VP Marketing",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "d_ads",
+            "label": "Ads Team",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "c1",
+        "targetId": "b_eng",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "c1",
+        "targetId": "d_be",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "c1",
+        "targetId": "b_mkt",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "c1",
+        "targetId": "d_ads",
+        "lineStyle": "solid",
+        "connectionType": "none"
+      },
+      {
+        "sourceId": "b_eng",
+        "targetId": "d_be",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "b_mkt",
+        "targetId": "d_ads",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
+  }
+}

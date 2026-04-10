@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "type": "sequence",
+    "version": "1.0.0"
+  },
+  "data": {
+    "config": {
+      "title": "Sample sequence",
+      "aspect": "16:9"
+    },
+    "groups": [
+      {
+        "id": "g_g075aa61c",
+        "label": "Client",
+        "size": "M",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "c_req",
+            "label": "Fetch User",
+            "type": "process",
+            "size": "M"
+          },
+          {
+            "id": "c_res",
+            "label": "Render UI",
+            "type": "process",
+            "size": "M"
+          }
+        ]
+      },
+      {
+        "id": "g_zhhrpxc4d",
+        "label": "Server",
+        "size": "L",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "s_rcv",
+            "label": "Verify Token",
+            "type": "process",
+            "size": "L"
+          },
+          {
+            "id": "s_snd",
+            "label": "Return JSON",
+            "type": "process",
+            "size": "L"
+          }
+        ]
+      },
+      {
+        "id": "g_uk0q73b0t",
+        "label": "Database",
+        "size": "S",
+        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "db_qry",
+            "label": "SELECT *",
+            "type": "process",
+            "size": "S"
+          },
+          {
+            "id": "db_ret",
+            "label": "Rows",
+            "type": "process",
+            "size": "S"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "c_req",
+        "targetId": "s_rcv",
+        "label": "GET /api/user",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "s_rcv",
+        "targetId": "db_qry",
+        "label": "Query DB",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "db_qry",
+        "targetId": "db_ret",
+        "label": "",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "db_ret",
+        "targetId": "s_snd",
+        "label": "Data",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "s_snd",
+        "targetId": "c_res",
+        "label": "200 OK",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      }
+    ]
+  }
+}
