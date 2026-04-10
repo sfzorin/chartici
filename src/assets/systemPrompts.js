@@ -54,7 +54,7 @@ Follow these rules:
 
 Use this EXACT format:
 <thinking>
-... your logic, topology planning ...
+... your logic, slice value distribution calculation ...
 </thinking>
 
 # Pie Slices
