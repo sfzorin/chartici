@@ -146,7 +146,6 @@ Follow these rules:
    - decision: If-condition used for branching logic and choices
    - process: Standard operational step, action, or statement
    - event: Small intermediate triggers, connectors, or join points
-   - annotation: Free-floating text or note
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: Major macro system or overarching flow
    - ${sMap.M}: Standard operational process or functional block
