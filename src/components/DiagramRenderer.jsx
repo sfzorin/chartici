@@ -773,27 +773,8 @@ export default function DiagramRenderer({
           </g>
 
           {/* ─── Topology Overlays Layer ─────────────────────── */}
-          {activeSchema?.engineManifest?.lifelineOverlays && (
-            <g className="sequence-lifelines" opacity={0.3}>
-              {computedNodes.filter(n => n.type !== 'text' && n.type !== 'title').map(node => {
-                const dim = getNodeDim(node);
-                const nx = (node.x || 0);
-                const ny = (node.y || 0) + dim.height / 2;
-                return (
-                  <line
-                    key={`lifeline-${node.id}`}
-                    x1={nx} y1={ny}
-                    x2={nx} y2={ny + 2000}
-                    stroke="var(--diagram-edge)"
-                    strokeWidth="1.5"
-                    strokeDasharray="6, 4"
-                  />
-                );
-              })}
-            </g>
-          )}
 
-            {/* ─── Matrix Grid Backdrop ─────────────────────── */}
+             {/* ─── Matrix Grid Backdrop ─────────────────────── */}
           {activeSchema?.engineManifest?.matrixGridOverlays && initialData.groups && initialData.groups.length > 1 && (() => {
             const realNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
             if (realNodes.length === 0) return null;

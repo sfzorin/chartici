@@ -139,9 +139,17 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (t.toLowerCase().startsWith('# root')) { mode = 'root'; continue; }
     if (t.toLowerCase().startsWith('# branches')) { mode = 'branches'; continue; }
     
-    if ((mode === 'nodes' || mode === 'events' || mode === 'branches') && t.toLowerCase().startsWith('### group:')) {
-      const parts = t.substring(10).split('|').map(s => s.trim());
-      currentGroupLabel = parts[0];
+    if ((mode === 'nodes' || mode === 'events' || mode === 'branches') && t.startsWith('### ')) {
+      const lineWithoutHash = t.substring(4).trim();
+      const parts = lineWithoutHash.split('|').map(s => s.trim());
+      const rawLabelPart = parts[0];
+      
+      const colonIdx = rawLabelPart.indexOf(':');
+      if (colonIdx !== -1) {
+          currentGroupLabel = rawLabelPart.substring(colonIdx + 1).trim();
+      } else {
+          currentGroupLabel = rawLabelPart;
+      }
       currentGroupSize = 'M';
       currentGroupType = 'process';
       currentGroupParentId = null;
