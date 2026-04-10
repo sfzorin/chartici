@@ -47,10 +47,10 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+4. "Size" defines visual emphasis (highlighting specific data). You MUST use one of these EXACT words:
+   - highlight: Highly emphasized, broken-out, or critical outlier slice
+   - standard: Standard proportional slice (use this by default)
+   - muted: De-emphasized, minor, or muted slice
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -61,8 +61,8 @@ Use this EXACT format:
 # Pie Slices
 | Title (Label) | Size | Value |
 |---|---|---|
-| Revenue | ${sMap.L} | 45.5 |
-| Costs | ${sMap.M} | 30 |`;
+| Revenue | highlight | 45.5 |
+| Costs | standard | 30 |`;
 
 
     case 'timeline':

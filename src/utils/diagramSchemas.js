@@ -143,11 +143,11 @@ export const DIAGRAM_SCHEMAS = {
     allowedEdges: ['none'],
     features: { hasNodeValue: true, allowConnections: false, autoIncrementColors: true, recalculateOnEdit: true, enforceMaxNodes: 9 },
     promptRule: "4. Create a single group with 'Type: pie_slice'. The nodes represent the items inside it, providing 'id', 'label', and 'value' fields.",
-    semanticScale: { L: 'category', M: 'slice', S: 'detail' },
+    semanticScale: { L: 'highlight', M: 'standard', S: 'muted' },
     semanticDescription: {
-      L: 'Broad macro-category spanning multiple parts',
-      M: 'Standard slice or proportional segment',
-      S: 'Sub-slice or minor proportional detail'
+      L: 'Highly emphasized, broken-out, or critical outlier slice',
+      M: 'Standard proportional slice (use this by default)',
+      S: 'De-emphasized, minor, or muted slice'
     },
     connectionRules: [
       "Edges MUST NOT be used in piecharts."
