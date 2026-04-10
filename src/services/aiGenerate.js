@@ -133,8 +133,10 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (t.toLowerCase().startsWith('# nodes')) { mode = 'nodes'; continue; }
     if (t.toLowerCase().startsWith('# edges')) { mode = 'edges'; continue; }
     if (t.toLowerCase().startsWith('# pie slices')) { mode = 'pie'; continue; }
+    if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
+    if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
     
-    if (mode === 'nodes' && t.toLowerCase().startsWith('### group:')) {
+    if ((mode === 'nodes' || mode === 'events') && t.toLowerCase().startsWith('### group:')) {
       const parts = t.substring(10).split('|').map(s => s.trim());
       currentGroupLabel = parts[0];
       currentGroupSize = 'M';
@@ -181,6 +183,33 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
+      }
+
+      if (mode === 'spine' && cols.length >= 2) {
+        const id = cols[0];
+        const label = cols[1];
+        const rawSize = cols[2];
+        
+        const group = getOrCreateGroup('Spine', 'L', 'chevron');
+        group.nodes.push({ id, label, type: 'chevron', size: matchSize(rawSize) });
+      }
+
+      if (mode === 'events' && cols.length >= 3) {
+        const id = cols[0];
+        const spineId = cols[1];
+        const label = cols[2];
+        const rawSize = cols[3];
+        const type = cols[4] || currentGroupType || 'process';
+        
+        // Relies on the standard currentGroupLabel parsed just above!
+        const group = getOrCreateGroup(currentGroupLabel || 'Events', currentGroupSize, currentGroupType);
+        group.nodes.push({ id, label, type, size: matchSize(rawSize) });
+        
+        // Link event to spine inherently
+        parsed.data.edges.push({
+           sourceId: spineId, targetId: id,
+           lineStyle: 'dashed', connectionType: 'none'
+        });
       }
 
       if (mode === 'edges' && cols.length >= 4) {

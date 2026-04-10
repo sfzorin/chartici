@@ -54,21 +54,18 @@ export function getSystemPromptPhase2(diagramType) {
 | Costs | ${sMap.M} | 30 |`;
   } else if (diagramType.toLowerCase() === 'timeline') {
     exampleText = `
-# Nodes
+# Timeline Spine
+| ID | Phase/Era Label | Size |
+|---|---|---|
+| e1 | Q1 Phase 1 | ${sMap.L} |
+| e2 | Q2 Phase 2 | ${sMap.M} |
 
-### Group: Timeline Spine | Size: ${sMap.L} | Type: chevron
-| ID | Label |
-| e1 | Q1 Phase 1 |
-| e2 | Q2 Phase 2 |
+# Events
 
 ### Group: Engineering Tasks | Size: ${sMap.S} | Type: process
-| ID | Label |
-| ev_1 | Bootstrapping |
-
-# Edges
-| Source ID | Target ID | Label | ConnectionType |
-|---|---|---|---|
-| ev_1 | e1 | - | none |`;
+| Event ID | Spine ID | Label | Size | Type |
+|---|---|---|---|---|
+| ev_1 | e1 | Bootstrapping | ${sMap.S} | process |`;
   } else {
     exampleText = `
 # Nodes
@@ -100,6 +97,8 @@ export function getSystemPromptPhase2(diagramType) {
 
   const tableHeaderRule = isPie 
       ? `8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.`
+      : diagramType.toLowerCase() === 'timeline'
+      ? `8. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main trajectory steps) and "# Events" (chronological children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.`
       : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.`;
 
   return `You are a Diagram Topology Engineer.
