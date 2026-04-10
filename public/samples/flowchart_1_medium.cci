@@ -10,7 +10,7 @@
   "data": {
     "groups": [
       {
-        "type": "terminator",
+        "type": "oval",
         "size": "M",
         "nodes": [
           {
@@ -21,7 +21,7 @@
         "label": "Start"
       },
       {
-        "type": "decision",
+        "type": "rhombus",
         "size": "M",
         "nodes": [
           {
@@ -51,7 +51,7 @@
         "label": "Processes"
       },
       {
-        "type": "terminator",
+        "type": "oval",
         "size": "M",
         "nodes": [
           {

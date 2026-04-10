@@ -10,7 +10,7 @@
   "data": {
     "groups": [
       {
-        "type": "terminator",
+        "type": "oval",
         "size": "M",
         "nodes": [
           {
@@ -25,7 +25,7 @@
         "label": "Triggers"
       },
       {
-        "type": "decision",
+        "type": "rhombus",
         "size": "L",
         "nodes": [
           {

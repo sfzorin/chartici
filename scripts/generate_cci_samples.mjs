@@ -27,10 +27,10 @@ const docs = {
     title: { text: "App Authentication Flow", size: "L" },
     data: {
       groups: [
-        makeGroup("Start", "terminator", "M", [makeNode("start", "App Launch")]),
-        makeGroup("Checks", "decision", "M", [makeNode("sess_check", "Session Valid?")]),
+        makeGroup("Start", "oval", "M", [makeNode("start", "App Launch")]),
+        makeGroup("Checks", "rhombus", "M", [makeNode("sess_check", "Session Valid?")]),
         makeGroup("Processes", "process", "M", [makeNode("show_login", "Show Login UI"), makeNode("auth_api", "Call Auth API"), makeNode("home", "Load Dashboard")]),
-        makeGroup("End", "terminator", "M", [makeNode("end", "Exit App")])
+        makeGroup("End", "oval", "M", [makeNode("end", "Exit App")])
       ],
       edges: [
         makeEdge("start", "sess_check", "target", "solid"),
@@ -47,8 +47,8 @@ const docs = {
     title: { text: "E-Commerce Checkout Pipeline", size: "L" },
     data: {
       groups: [
-        makeGroup("Triggers", "terminator", "M", [makeNode("t_start", "User Clicks Checkout"), makeNode("t_end", "Show Order Success")]),
-        makeGroup("Decisions", "decision", "L", [makeNode("d_cart", "Cart Empty?"), makeNode("d_stock", "Items in Stock?"), makeNode("d_pay", "Payment Approved?")]),
+        makeGroup("Triggers", "oval", "M", [makeNode("t_start", "User Clicks Checkout"), makeNode("t_end", "Show Order Success")]),
+        makeGroup("Decisions", "rhombus", "L", [makeNode("d_cart", "Cart Empty?"), makeNode("d_stock", "Items in Stock?"), makeNode("d_pay", "Payment Approved?")]),
         makeGroup("API & Processes", "process", "M", [makeNode("p_reserve", "Reserve Inventory"), makeNode("p_charge", "Stripe API Charge"), makeNode("p_db", "Log Order DB")]),
         makeGroup("Error Handling", "process", "S", [makeNode("err_cart", "Prompt to Shop"), makeNode("err_stock", "Show Out of Stock"), makeNode("err_pay", "Show Decline Msg")])
       ],
