@@ -72,13 +72,12 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+3. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: Major historical eras or macroscopic periods
    - ${sMap.M}: Standard chronological events or milestones
    - ${sMap.S}: Minor sub-events or granular moments in time
-5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+4. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
@@ -93,10 +92,10 @@ Use this EXACT format:
 
 # Events
 
-### Group: Engineering Tasks | Size: ${sMap.S} | Type: process
-| ID | Spine ID | Label | Size | Type |
-|---|---|---|---|---|
-| ev_1 | e1 | Bootstrapping | ${sMap.S} | process |`;
+### Group: Engineering Tasks | Size: ${sMap.S}
+| ID | Spine ID | Label | Size |
+|---|---|---|---|
+| ev_1 | e1 | Bootstrapping | ${sMap.S} |`;
 
 
     case 'tree':
