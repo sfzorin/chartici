@@ -34,35 +34,26 @@ export function getSystemPromptPhase2(diagramType) {
   const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.default;
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
   const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
-  const allowedSizes = Object.values(sMap).join(', ');
-  const allowedTypesStr = schema.allowedNodes.join(', ');
+  
+  // Helpers to prevent repeating template code inside the massive strings
+  const sizeRules = `4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}`;
+   
+  const allowedTypes = `3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.`;
 
-  const roleMap = {
-    'piechart': 'Data Visualization Analyst',
-    'timeline': 'Chronological Planner',
-    'tree': 'Information Hierarchy Architect',
-    'matrix': 'Strategic Categorization Analyst',
-    'flowchart': 'Process Flow Engineer',
-    'erd': 'Database Systems Engineer',
-    'sequence': 'System Interactions Engineer',
-    'radial': 'Centralized Architecture Analyst',
-    'default': 'Diagram Topology Engineer'
-  };
-  const aiRole = roleMap[dt] || roleMap.default;
-
-  if (dt === 'piechart') {
-      return `You are a ${aiRole}.
+  switch (dt) {
+    case 'piechart':
+      return `You are a Data Visualization Analyst.
 The user will provide a detailed conceptual architecture for a PIECHART diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
-2. "Type" must be one of: ${allowedTypesStr}.
+2. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
 3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+${sizeRules}
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -75,27 +66,24 @@ Use this EXACT format:
 |---|---|---|
 | Revenue | ${sMap.L} | 45.5 |
 | Costs | ${sMap.M} | 30 |`;
-  }
 
-  if (dt === 'timeline') {
-      return `You are a ${aiRole}.
+
+    case 'timeline':
+      return `You are a Chronological Planner.
 The user will provide a detailed conceptual architecture for a TIMELINE diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${allowedTypesStr}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+${allowedTypes}
+${sizeRules}
 5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
-... your logic, topology planning, and ID tracking ...
+... your logic, timing sequence planning, and ID tracking ...
 </thinking>
 
 # Timeline Spine
@@ -110,43 +98,61 @@ Use this EXACT format:
 | ID | Spine ID | Label | Size | Type |
 |---|---|---|---|---|
 | ev_1 | e1 | Bootstrapping | ${sMap.S} | process |`;
-  }
 
-  // Base Logic for (flowchart, erd, radial, tree, matrix, sequence, etc...)
-  const hasNodeValue = schema.features.hasNodeValue;
-  const includeEdgeLabel = schema.features.allowConnections;
-  const egType1 = schema.allowedNodes[0];
-  const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
-  const connTypesStr = schema.features.allowConnections ? "target, both, reverse, none" + (dt === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none";
 
-  let promptStr = `You are a ${aiRole}.
-The user will provide a detailed conceptual architecture for a ${dt.toUpperCase()} diagram.
+    case 'tree':
+      return `You are an Information Hierarchy Architect.
+The user will provide a detailed conceptual architecture for a TREE diagram.
 Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${allowedTypesStr}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}
+${allowedTypes}
+${sizeRules}
 5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!`;
-
-  if (schema.features.allowConnections) {
-      promptStr += `
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
-8. "ConnectionType" must be one of: ${connTypesStr}.`;
-      
-      if (schema.connectionRules) {
-          promptStr += `
+8. "ConnectionType" must be one of: none.
 9. STRICT CONNECTION RULES:
-${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`;
-      }
-  }
+   - Relationships MUST form a strict single-rooted hierarchy (no circular dependencies).
+   - A node can only have ONE parent.
 
-  promptStr += `
+Use this EXACT format:
+<thinking>
+... your logic, parent-child mapping, and ID tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Management | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+| ID | Label |
+|---|---|
+| item_1 | CEO |
+| item_2 | VP Engineering |
+
+# Edges
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| item_1 | item_2 | - | none |`;
+
+
+    case 'flowchart':
+      return `You are a Process Flow Engineer.
+The user will provide a detailed conceptual architecture for a FLOWCHART diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+${allowedTypes}
+${sizeRules}
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
+8. "ConnectionType" must be one of: target, both, reverse, none.
+9. STRICT CONNECTION RULES:
+   - If representing a conditional (decision), specify connection endpoints clearly.
 
 Use this EXACT format:
 <thinking>
@@ -155,26 +161,126 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Backend | Size: ${sMap.M} | Type: ${egType1}
-| ID | Label |${hasNodeValue ? ' Value |' : ''}
-|---|---|${hasNodeValue ? '---|' : ''}
-| item_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
-| item_2 | Database |${hasNodeValue ? ' 50 |' : ''}
+### Group: System A | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+| ID | Label |
+|---|---|
+| item_1 | Start Process |
+| item_2 | Verify Step |
 
-### Group: Web Interface | Size: ${sMap.L} | Type: ${egType2}
-| ID | Label |${hasNodeValue ? ' Value |' : ''}
-|---|---|${hasNodeValue ? '---|' : ''}
-| client | Web App |${hasNodeValue ? ' 10 |' : ''}
-`;
-
-  if (schema.features.allowConnections) {
-      promptStr += `
 # Edges
 | Source ID | Target ID | Label | ConnectionType |
 |---|---|---|---|
-| item_1 | item_2 | ${includeEdgeLabel ? 'Query' : '-'} | target |
-`;
-  }
+| item_1 | item_2 | Yes | target |`;
 
-  return promptStr;
+
+    case 'erd':
+      return `You are a Database Systems Engineer.
+The user will provide a detailed conceptual architecture for an ERD diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+${allowedTypes}
+${sizeRules}
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
+8. "ConnectionType" must be one of: target, both, reverse, none, 1:1, 1:N, N:1, N:M.
+9. STRICT CONNECTION RULES:
+   - Use standard ERD cardinalities for connectionTypes (1:1, 1:N, N:1, N:M).
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Users Schema | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+| ID | Label |
+|---|---|
+| item_1 | Users Table |
+| item_2 | Profiles Table |
+
+# Edges
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| item_1 | item_2 | Has One | 1:1 |`;
+
+
+    case 'radial':
+      return `You are a Centralized Architecture Analyst.
+The user will provide a detailed conceptual architecture for a RADIAL diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+${allowedTypes}
+${sizeRules}
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
+8. "ConnectionType" must be one of: none.
+9. STRICT CONNECTION RULES:
+   - Identify ONE clear central node. Connect all surrounding core nodes directly to this center.
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Core App | Size: ${sMap.L} | Type: ${schema.allowedNodes[0]}
+| ID | Label |
+|---|---|
+| center | Kernel API |
+
+### Group: Microservices | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+| ID | Label |
+|---|---|
+| s1 | Auth |
+| s2 | Billing |
+
+# Edges
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| center | s1 | - | none |`;
+
+
+    // Covers matrix, sequence, and any unrecognized default graph types
+    default:
+      const name = dt.toUpperCase();
+      const needsEdges = schema.features.allowConnections;
+      const genericEdges = needsEdges ? `\n7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.\n8. "ConnectionType" must be one of: target, both, reverse, none.` : ``;
+      const genericEdgesExample = needsEdges ? `\n# Edges\n| Source ID | Target ID | Label | ConnectionType |\n|---|---|---|---|\n| item_1 | item_2 | Query | target |` : ``;
+
+      return `You are a Structural Topology Engineer.
+The user will provide a detailed conceptual architecture for a ${name} diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+${allowedTypes}
+${sizeRules}
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!${genericEdges}
+
+Use this EXACT format:
+<thinking>
+... your logic, topology planning, and ID tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Primary | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
+| ID | Label |${schema.features.hasNodeValue ? ' Value |' : ''}
+|---|---|${schema.features.hasNodeValue ? '---|' : ''}
+| item_1 | Element A |${schema.features.hasNodeValue ? ' 25 |' : ''}
+| item_2 | Element B |${schema.features.hasNodeValue ? ' 50 |' : ''}
+${genericEdgesExample}`;
+  }
 }
