@@ -57,11 +57,23 @@
         "label": "PK"
       },
       {
+        "sourceId": "t_o",
+        "targetId": "c_amount",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
         "sourceId": "t_u",
         "targetId": "c_u",
         "connectionType": "1:1",
         "lineStyle": "solid",
         "label": "PK"
+      },
+      {
+        "sourceId": "t_u",
+        "targetId": "c_email",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_u",

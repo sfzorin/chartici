@@ -83,6 +83,12 @@
         "label": "PK"
       },
       {
+        "sourceId": "t_e",
+        "targetId": "c_ename",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
         "sourceId": "t_d",
         "targetId": "c_did",
         "connectionType": "1:1",

@@ -70,7 +70,9 @@ const docs = {
       ],
       edges: [
         makeEdge("t_o", "c_i", "1:1", "solid", "PK"),
+        makeEdge("t_o", "c_amount", "1:1", "solid"),
         makeEdge("t_u", "c_u", "1:1", "solid", "PK"),
+        makeEdge("t_u", "c_email", "1:1", "solid"),
         makeEdge("t_u", "t_o", "1:N", "solid", "places")
       ]
     }
@@ -87,6 +89,7 @@ const docs = {
       ],
       edges: [
         makeEdge("t_e", "c_eid", "1:1", "solid", "PK"),
+        makeEdge("t_e", "c_ename", "1:1", "solid"),
         makeEdge("t_d", "c_did", "1:1", "solid", "PK"),
         makeEdge("t_p", "c_pid", "1:1", "solid", "PK"),
         makeEdge("t_a", "c_hrs", "1:1", "solid"),
@@ -165,7 +168,8 @@ const docs = {
          makeEdge("center", "r3", "target", "solid", "sync"),
          makeEdge("center", "c1", "target", "dashed"),
          makeEdge("center", "c2", "target", "dashed"),
-         makeEdge("center", "a1", "target", "solid")
+         makeEdge("center", "a1", "target", "solid"),
+         makeEdge("a1", "a2", "target", "dashed")
       ]
     }
   },

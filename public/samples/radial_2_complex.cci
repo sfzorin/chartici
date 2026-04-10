@@ -109,6 +109,12 @@
         "targetId": "a1",
         "connectionType": "target",
         "lineStyle": "solid"
+      },
+      {
+        "sourceId": "a1",
+        "targetId": "a2",
+        "connectionType": "target",
+        "lineStyle": "dashed"
       }
     ]
   }
