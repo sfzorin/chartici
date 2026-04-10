@@ -38,15 +38,19 @@ export const ShapeRegistry = {
   },
   oval: {
     getTextLimits: (w, h) => ({ maxWidth: w - Math.min(w, h) * 0.5, maxHeight: h }),
-    getSelectionBounds: (w, h, padding, color) => (
-      <g>
-        <ellipse cx={w/2} cy={h/2} rx={(w/2) + padding} ry={(h/2) + padding} fill="none" stroke={color} strokeWidth="10" opacity="0.3" />
-        <ellipse cx={w/2} cy={h/2} rx={(w/2) + padding} ry={(h/2) + padding} fill="none" stroke={color} strokeWidth="2" />
-      </g>
-    ),
-    render: (w, h, fill, stroke, strokeW, dash, filter) => (
-      <ellipse cx={w/2} cy={h/2} rx={w/2} ry={h/2} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />
-    )
+    getSelectionBounds: (w, h, padding, color) => {
+        const ovalRx = (Math.min(w, h)/2)+padding;
+        return (
+          <g>
+            <rect x={-padding} y={-padding} width={w+(padding*2)} height={h+(padding*2)} rx={ovalRx} fill="none" stroke={color} strokeWidth="10" opacity="0.3" />
+            <rect x={-padding} y={-padding} width={w+(padding*2)} height={h+(padding*2)} rx={ovalRx} fill="none" stroke={color} strokeWidth="2" />
+          </g>
+        );
+    },
+    render: (w, h, fill, stroke, strokeW, dash, filter) => {
+        const rx = Math.min(w, h)/2;
+        return <rect x="0" y="0" width={w} height={h} rx={rx} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />;
+    }
   },
   rhombus: {
     getTextLimits: (w, h) => ({ maxWidth: w * 0.6, maxHeight: h * 0.6 }),

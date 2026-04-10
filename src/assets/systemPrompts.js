@@ -69,13 +69,13 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Backend | Size: M | Type: rect
+### Group: Backend | Size: M | Type: process
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | srv_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
 | db_1 | Database |${hasNodeValue ? ' 50 |' : ''}
 
-### Group: Orphans | Size: L | Type: oval
+### Group: Orphans | Size: L | Type: circle
 | ID | Label |${hasNodeValue ? ' Value |' : ''}
 |---|---|${hasNodeValue ? '---|' : ''}
 | client | Web App |${hasNodeValue ? ' 10 |' : ''}
