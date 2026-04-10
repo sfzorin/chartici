@@ -65,7 +65,7 @@ export function renderToSVG(cciJson) {
     }
   }
 
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const manifest = activeSchema.engineManifest || {};
 
   // Groups bounds

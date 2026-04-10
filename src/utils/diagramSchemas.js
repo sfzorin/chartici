@@ -153,27 +153,10 @@ export const DIAGRAM_SCHEMAS = {
       "Edges MUST NOT be used in piecharts."
     ],
     engineManifest: { layout: 'piechart', edgeStyle: 'none', isHorizontalFlow: false, nodeTypes: ['pie_slice'] }
-  },
-  default: {
-    id: 'default',
-    name: 'Custom',
-    description: 'a generic mixed-architecture design.',
-    allowedNodes: ['process', 'circle', 'oval', 'rhombus', 'text'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Choose node 'lineStyle' that best represent the logic described.",
-    semanticScale: { L: 'primary', M: 'secondary', S: 'minor' },
-    semanticDescription: {
-      L: 'Top overarching parent or absolute dominant component',
-      M: 'Standard feature or secondary component',
-      S: 'Micro-detail or nested child element'
-    },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'oval', 'rhombus', 'text'] }
   }
 };
 
 export const DIAGRAM_TYPES = Object.keys(DIAGRAM_SCHEMAS)
-  .filter(key => key !== 'default')
   .map(key => ({
     id: DIAGRAM_SCHEMAS[key].id,
     name: DIAGRAM_SCHEMAS[key].name

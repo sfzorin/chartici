@@ -37,7 +37,7 @@ export default function DiagramRenderer({
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   
   // Dragging state
   const [dragState, setDragState] = useState(null);

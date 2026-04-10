@@ -2,7 +2,7 @@ import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
 const getAvailableTypesText = () => {
   return Object.keys(DIAGRAM_SCHEMAS)
-    .filter(k => k !== 'default')
+    
     .map((k, i) => `${i + 1}. ${DIAGRAM_SCHEMAS[k].id}: ${DIAGRAM_SCHEMAS[k].description}`)
     .join('\n');
 };
@@ -31,9 +31,9 @@ You may use a <thinking> section inside the <prompt> to outline the concept firs
 
 export function getSystemPromptPhase2(diagramType) {
   const dt = diagramType.toLowerCase();
-  const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.default;
-  const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
-  const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
+  const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.flowchart;
+  const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
+  const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.flowchart.semanticDescription;
   
   // Helpers to prevent repeating template code inside the massive strings
   const sizeRules = `4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:

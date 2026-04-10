@@ -42,7 +42,7 @@ function App() {
   const lastGenerationTimeMs = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
 
   const filteredData = React.useMemo(() => {
     let outNodes = diagramData.nodes || [];

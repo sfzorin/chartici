@@ -12,7 +12,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   if (!edges || edges.length === 0) return result;
 
   const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const routingStyle = EdgeRoutingRegistry.getStyle(diagramType);
 
   if (routingStyle === 'none') {

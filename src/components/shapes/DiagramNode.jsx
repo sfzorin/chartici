@@ -116,7 +116,7 @@ const DiagramNode = React.memo(({
   const shadowFilter = 'none';
 
   let actualType = node.type;
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   if (node.isTimelineSpine && activeSchema.engineManifest?.spineNodeType) {
       actualType = activeSchema.engineManifest.spineNodeType;
   }

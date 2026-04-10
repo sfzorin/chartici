@@ -51,7 +51,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
      else if (ct === "both") { mStart = markerId; mEnd = markerId; }
   }
 
-  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.default;
+  const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const manifest = activeSchema.engineManifest || {};
   
   if (manifest.suppressEdgeMarkers) {

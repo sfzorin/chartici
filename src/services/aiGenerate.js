@@ -117,8 +117,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     const t = lines[i].trim();
     const matchSize = (rawSizeStr) => {
       if (!rawSizeStr) return 'M';
-      const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.default;
-      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
+      const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.flowchart;
+      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
       const rawLow = String(rawSizeStr).trim().toLowerCase();
       let matched = 'M';
       for (const [coreSize, mappedWord] of Object.entries(sMap)) {
