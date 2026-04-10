@@ -94,7 +94,7 @@ export const DIAGRAM_SCHEMAS = {
     allowedNodes: ['pie_slice'],
     allowedEdges: ['none'],
     features: { hasNodeValue: true, allowConnections: false, autoIncrementColors: true, recalculateOnEdit: true, enforceMaxNodes: 9 },
-    promptRule: "4. Create a single group with 'type':'piechart'. The nodes represent the items inside it, using 'type':'pie_slice' and providing 'id', 'label', and 'value' fields.",
+    promptRule: "4. Create a single group with 'Type: pie_slice'. The nodes represent the items inside it, providing 'id', 'label', and 'value' fields.",
     connectionRules: [
       "Edges MUST NOT be used in piecharts."
     ],

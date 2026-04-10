@@ -36,6 +36,38 @@ export function getSystemPromptPhase2(diagramType) {
   const specificRules = schema.promptRule || "";
   const includeEdgeLabel = schema.features.allowConnections;
   const hasNodeValue = schema.features.hasNodeValue;
+  const egType1 = schema.allowedNodes[0];
+  const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
+  const isPie = diagramType.toLowerCase() === 'piechart';
+  
+  let exampleText = `
+# Nodes
+
+### Group: ${isPie ? 'Data' : 'Backend'} | Size: M | Type: ${egType1}
+| ID | Label |${hasNodeValue ? ' Value |' : ''}
+|---|---|${hasNodeValue ? '---|' : ''}
+| item_1 | ${isPie ? 'Revenue' : 'API Server'} |${hasNodeValue ? ' 25 |' : ''}
+| item_2 | ${isPie ? 'Profit' : 'Database'} |${hasNodeValue ? ' 50 |' : ''}
+`;
+
+  if (!isPie) {
+    exampleText += `
+### Group: Orphans | Size: L | Type: ${egType2}
+| ID | Label |${hasNodeValue ? ' Value |' : ''}
+|---|---|${hasNodeValue ? '---|' : ''}
+| client | Web App |${hasNodeValue ? ' 10 |' : ''}
+`;
+  }
+
+  if (schema.features.allowConnections) {
+    exampleText += `
+# Edges
+| Source ID | Target ID | Label | LineStyle | ConnectionType |
+|---|---|---|---|---|
+| item_1 | item_2 | ${includeEdgeLabel ? 'Query' : '-'} | solid | target |
+`;
+  }
+
   const connectionRulesStr = schema.connectionRules
     ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
     : `\n5. "Size" defines the visual scale of the nodes in the group. Must be one of:
@@ -66,23 +98,5 @@ Use this EXACT format:
 <thinking>
 ... your logic, topology planning, and ID tracking ...
 </thinking>
-
-# Nodes
-
-### Group: Backend | Size: M | Type: process
-| ID | Label |${hasNodeValue ? ' Value |' : ''}
-|---|---|${hasNodeValue ? '---|' : ''}
-| srv_1 | API Server |${hasNodeValue ? ' 25 |' : ''}
-| db_1 | Database |${hasNodeValue ? ' 50 |' : ''}
-
-### Group: Orphans | Size: L | Type: circle
-| ID | Label |${hasNodeValue ? ' Value |' : ''}
-|---|---|${hasNodeValue ? '---|' : ''}
-| client | Web App |${hasNodeValue ? ' 10 |' : ''}
-
-# Edges
-| Source ID | Target ID | Label | LineStyle | ConnectionType |
-|---|---|---|---|---|
-| srv_1 | db_1 | ${includeEdgeLabel ? 'Query' : '-'} | solid | target |
-`;
+${exampleText}`;
 }
