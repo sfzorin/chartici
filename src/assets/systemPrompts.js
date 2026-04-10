@@ -142,11 +142,11 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of these EXACT words based on their structural purpose:
-   - oval: Terminal node (strictly used only for the Start or End of the flow)
-   - rhombus: Decision / If-condition (used for branching logic and choices)
+   - terminal: Strictly used only for the Start or End of the flow
+   - decision: If-condition used for branching logic and choices
    - process: Standard operational step, action, or statement
-   - circle: Event or Connector (small intermediate triggers or join points)
-   - text: Free-floating annotation or note
+   - event: Small intermediate triggers, connectors, or join points
+   - annotation: Free-floating text or note
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: Major macro system or overarching flow
    - ${sMap.M}: Standard operational process or functional block
@@ -166,8 +166,8 @@ Use this EXACT format:
 ### Group: System A | Size: ${sMap.M}
 | ID | Label | Type | Next Steps |
 |---|---|---|---|
-| p_1 | Start Process | process | d_1 |
-| d_1 | Verify Step | rhombus | p_2[Yes], e_1[No] |`;
+| p_1 | Start Process | terminal | d_1 |
+| d_1 | Verify Step | decision | p_2[Yes], e_1[No] |`;
 
 
     case 'erd':

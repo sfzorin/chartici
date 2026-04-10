@@ -172,7 +172,14 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         let nextSteps = null;
         
         if (diagramType === 'flowchart') {
-            nodeType = cols[2] || currentGroupType;
+            const rawType = cols[2] || currentGroupType;
+            const tLow = String(rawType).toLowerCase().trim();
+            if (tLow === 'terminal') nodeType = 'oval';
+            else if (tLow === 'decision') nodeType = 'rhombus';
+            else if (tLow === 'event') nodeType = 'circle';
+            else if (tLow === 'annotation') nodeType = 'text';
+            else nodeType = 'process'; // fallback
+            
             nextSteps = cols[3];
         } else {
             val = cols[2] ? Number(cols[2]) : undefined;
