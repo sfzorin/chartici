@@ -70,13 +70,6 @@
         "label": "Backlog"
       }
     ],
-    "edges": [
-      {
-        "sourceId": "q1_1",
-        "targetId": "q2_1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      }
-    ]
+    "edges": []
   }
 }

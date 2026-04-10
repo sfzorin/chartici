@@ -211,9 +211,7 @@ const docs = {
          makeGroup("Q3", "process", "M", [makeNode("q3_1", "AI Agent Integrations"), makeNode("q3_2", "Voice Commands")]),
          makeGroup("Backlog", "process", "S", [makeNode("bg1", "Dark Theme Tweaks"), makeNode("bg2", "Accessibility API")])
       ],
-      edges: [
-         makeEdge("q1_1", "q2_1", "target", "solid")
-      ]
+      edges: []
     }
   },
   "timeline_1_medium": {
