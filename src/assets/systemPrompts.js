@@ -160,7 +160,7 @@ Use this EXACT format:
 ... your logic, topology planning, and ID tracking ...
 </thinking>
 
-# Nodes
+# Steps
 
 ### Subsystem: Core App | Size: ${sMap.M}
 | ID | Label | Type | Next Steps |
@@ -324,38 +324,6 @@ Use this EXACT format:
 
 
     default:
-      const name = dt.toUpperCase();
-      const needsEdges = schema.features.allowConnections;
-      const genericEdges = needsEdges ? `\n7. Ensure every relationship under # Connections explicitly specifies target IDs that EXACTLY match.\n8. "ConnectionType" must be one of: target, both, reverse, none.` : ``;
-      const genericEdgesExample = needsEdges ? `\n# Connections\n| Source ID | Target ID | Label | ConnectionType |\n|---|---|---|---|\n| item_1 | item_2 | Query | target |` : ``;
-
-      return `You are a Structural Topology Engineer.
-The user will provide a detailed conceptual architecture for a ${name} diagram.
-Your task is to transform their concept into STRICT Markdown Tables.
-
-Follow these rules:
-1. Think carefully first in a <thinking> block.
-2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
-   - ${sMap.M}: Standard normal element (use this by default)
-   - ${sMap.S}: De-emphasized, minor, or visually smaller element
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
-6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!${genericEdges}
-
-Use this EXACT format:
-<thinking>
-... your logic, topology planning, and ID tracking ...
-</thinking>
-
-# Nodes
-
-### Group: Primary | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
-| ID | Label |${schema.features.hasNodeValue ? ' Value |' : ''}
-|---|---|${schema.features.hasNodeValue ? '---|' : ''}
-| item_1 | Element A |${schema.features.hasNodeValue ? ' 25 |' : ''}
-| item_2 | Element B |${schema.features.hasNodeValue ? ' 50 |' : ''}
-${genericEdgesExample}`;
+      throw new Error(`Unsupported diagram type: ${dt}. You must define a custom prompt in systemPrompts.js`);
   }
 }
