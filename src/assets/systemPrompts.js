@@ -92,7 +92,7 @@ Use this EXACT format:
 
 # Events
 
-### Group: Engineering Tasks | Size: ${sMap.S}
+### Group: Engineering Tasks
 | ID | Spine ID | Label | Size |
 |---|---|---|---|
 | ev_1 | e1 | Bootstrapping | ${sMap.S} |`;
