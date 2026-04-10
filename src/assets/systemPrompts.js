@@ -106,7 +106,7 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: The root or absolute top-level parent
    - ${sMap.M}: Middle-management branches or sub-departments
    - ${sMap.S}: End-node leaves or individual contributors
@@ -146,7 +146,7 @@ Follow these rules:
    - decision: If-condition used for branching logic and choices
    - process: Standard operational step, action, or statement
    - event: Small intermediate triggers, connectors, or join points
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: Major macro system or overarching flow
    - ${sMap.M}: Standard operational process or functional block
    - ${sMap.S}: Micro-step or isolated detailed action
@@ -181,7 +181,7 @@ Follow these rules:
    - table: Entity or Table (the primary block or subject)
    - attribute: Database field, property, or column connected to a table
    - annotation: Free-floating comment, note, or boundary definition
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: Broad database schema or service domain
    - ${sMap.M}: Standard database table or entity
    - ${sMap.S}: Specific column, attribute, or property
@@ -219,7 +219,7 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: The absolute core or central hub of the map
    - ${sMap.M}: Primary radiating arms or secondary rings
    - ${sMap.S}: Outer-edge leaves or minor sub-concepts
@@ -261,7 +261,7 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
-4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
+4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: Top overarching parent or absolute dominant component
    - ${sMap.M}: Standard feature or secondary component
    - ${sMap.S}: Micro-detail or nested child element
