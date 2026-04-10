@@ -186,7 +186,7 @@ Follow these rules:
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 5. You MUST group your Nodes into separate Markdown Tables per schema using a heading starting with "### Schema: <Name> | Size: <Size>". EVERY single node MUST belong to a schema group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. "ConnectionType" inside # Edges MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
+7. "ConnectionType" inside # Relationships MUST literally be one of the ERD cardinalities: 1:1, 1:N, N:1, N:M
 
 
 Use this EXACT format:
@@ -194,7 +194,7 @@ Use this EXACT format:
 ... your logic, topology planning, and ID tracking ...
 </thinking>
 
-# Nodes
+# Entities
 
 ### Schema: Core Auth | Size: ${sMap.M}
 | ID | Label | Type |
@@ -203,7 +203,7 @@ Use this EXACT format:
 | c_id | ID | attribute |
 | c_name | Profile Name | attribute |
 
-# Edges
+# Relationships
 | Source ID | Target ID | Label | ConnectionType |
 |---|---|---|---|
 | t_users | c_id | Primary Key | 1:1 |
@@ -260,14 +260,14 @@ Follow these rules:
 4. A sequence diagram consists of Actors (Lifelines) and Messages between them.
 5. You MUST group your Nodes by Actor using a heading: "### Actor: <Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. "ConnectionType" inside # Edges MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
+7. "ConnectionType" inside # Messages MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
 
 Use this EXACT format:
 <thinking>
 ... your chronological logic, actor separation, and ID tracking ...
 </thinking>
 
-# Nodes
+# States
 
 ### Actor: Client | Size: ${sMap.M}
 | ID | Label |
@@ -281,7 +281,7 @@ Use this EXACT format:
 | s_1 | Validate Auth |
 | s_2 | Query DB |
 
-# Edges
+# Messages
 | Source ID | Target ID | Label | ConnectionType |
 |---|---|---|---|
 | c_1 | s_1 | POST /data | solid |
@@ -311,7 +311,7 @@ Use this EXACT format:
 ... your logic, sequential pipeline tracking ...
 </thinking>
 
-# Nodes
+# Elements
 
 ### Domain: Main Buffer | Size: ${sMap.M}
 | ID | Label | Next Element |
@@ -342,7 +342,7 @@ Use this EXACT format:
 ... your logic, quadrant cell categorization ...
 </thinking>
 
-# Nodes
+# Elements
 
 ### Zone: High Priority | Size: ${sMap.M}
 | ID | Label |
@@ -359,8 +359,8 @@ Use this EXACT format:
     default:
       const name = dt.toUpperCase();
       const needsEdges = schema.features.allowConnections;
-      const genericEdges = needsEdges ? `\n7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.\n8. "ConnectionType" must be one of: target, both, reverse, none.` : ``;
-      const genericEdgesExample = needsEdges ? `\n# Edges\n| Source ID | Target ID | Label | ConnectionType |\n|---|---|---|---|\n| item_1 | item_2 | Query | target |` : ``;
+      const genericEdges = needsEdges ? `\n7. Ensure every relationship under # Connections explicitly specifies target IDs that EXACTLY match.\n8. "ConnectionType" must be one of: target, both, reverse, none.` : ``;
+      const genericEdgesExample = needsEdges ? `\n# Connections\n| Source ID | Target ID | Label | ConnectionType |\n|---|---|---|---|\n| item_1 | item_2 | Query | target |` : ``;
 
       return `You are a Structural Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${name} diagram.

@@ -131,8 +131,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       return matched;
     };
 
-    if (t.toLowerCase().startsWith('# nodes')) { mode = 'nodes'; continue; }
-    if (t.toLowerCase().startsWith('# edges')) { mode = 'edges'; continue; }
+    if (t.match(/^#\s*(nodes|tables|components|states|steps|elements|entities)/i)) { mode = 'nodes'; continue; }
+    if (t.match(/^#\s*(edges|relationships|messages|connections|transitions)/i)) { mode = 'edges'; continue; }
     if (t.toLowerCase().startsWith('# pie slices')) { mode = 'pie'; continue; }
     if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
     if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
