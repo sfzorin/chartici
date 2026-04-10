@@ -177,17 +177,20 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+3. "Type" must be one of these EXACT words based on their structural purpose:
+   - table: Entity or Table (the primary block or subject)
+   - attribute: Database field, property, or column connected to a table
+   - annotation: Free-floating comment, note, or boundary definition
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: Broad database schema or service domain
    - ${sMap.M}: Standard database table or entity
    - ${sMap.S}: Specific column, attribute, or property
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
-8. "ConnectionType" must be one of: target, both, reverse, none, 1:1, 1:N, N:1, N:M.
-9. STRICT CONNECTION RULES:
-   - Use standard ERD cardinalities for connectionTypes (1:1, 1:N, N:1, N:M).
+7. ERDs use structural cardinalities, NOT directional arrows. "ConnectionType" inside # Edges MUST literally be one of the cardinalities: 1:1, 1:N, N:1, N:M
+8. STRICT ERD RULES:
+   - Do NOT use "target", "both", or "reverse". Only use cardinality codes.
+   - Connect attributes to their respective tables using "1:1" if mapped explicitly.
 
 Use this EXACT format:
 <thinking>
@@ -196,16 +199,18 @@ Use this EXACT format:
 
 # Nodes
 
-### Group: Users Schema | Size: ${sMap.M} | Type: ${schema.allowedNodes[0]}
-| ID | Label |
-|---|---|
-| item_1 | Users Table |
-| item_2 | Profiles Table |
+### Group: Users Schema | Size: ${sMap.M}
+| ID | Label | Type |
+|---|---|---|
+| t_users | Users Table | table |
+| c_id | ID | attribute |
+| c_name | Profile Name | attribute |
 
 # Edges
 | Source ID | Target ID | Label | ConnectionType |
 |---|---|---|---|
-| item_1 | item_2 | Has One | 1:1 |`;
+| t_users | c_id | Primary Key | 1:1 |
+| t_users | c_name | - | 1:1 |`;
 
 
     case 'radial':

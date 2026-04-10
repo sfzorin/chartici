@@ -181,6 +181,12 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             else nodeType = 'process'; // fallback
             
             nextSteps = cols[3];
+        } else if (diagramType === 'erd') {
+            const rawType = cols[2] || currentGroupType;
+            const tLow = String(rawType).toLowerCase().trim();
+            if (tLow === 'attribute') nodeType = 'circle';
+            else if (tLow === 'annotation') nodeType = 'text';
+            else nodeType = 'process'; // fallback is robust enough for 'table'
         } else {
             val = cols[2] ? Number(cols[2]) : undefined;
         }
