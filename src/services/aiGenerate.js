@@ -107,7 +107,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     if (!lbl || lbl === '-' || lbl.toLowerCase() === 'orphans') lbl = '';
     
     if (!groupsMap.has(lbl)) {
-      const newGroup = { label: lbl || undefined, type: gType, size: gSize, nodes: [] };
+      const newGroup = { 
+        label: lbl || undefined, 
+        type: gType, 
+        size: gSize,
+        color: Math.floor(Math.random() * 8), // Random palette index [0-7]
+        nodes: [] 
+      };
       parsed.data.groups.push(newGroup);
       groupsMap.set(lbl, newGroup);
     }
