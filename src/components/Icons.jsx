@@ -61,10 +61,10 @@ const iconPaths = {
   ),
   'layout-sequence': (
     <>
-      <line x1="8" y1="4" x2="8" y2="20" strokeWidth="1.5" />
-      <line x1="16" y1="4" x2="16" y2="20" strokeWidth="1.5" />
-      <line x1="8" y1="12" x2="16" y2="12" strokeWidth="1.5" strokeDasharray="2 2" />
-      <polygon points="14 10 16 12 14 14" fill="currentColor" stroke="none" />
+      <line x1="4" y1="8" x2="20" y2="8" strokeWidth="1.5" />
+      <line x1="4" y1="16" x2="20" y2="16" strokeWidth="1.5" />
+      <line x1="12" y1="8" x2="12" y2="16" strokeWidth="1.5" strokeDasharray="2 2" />
+      <polygon points="10 14 12 16 14 14" fill="currentColor" stroke="none" />
     </>
   ),
   'layout-erd': (
