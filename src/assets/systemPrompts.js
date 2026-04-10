@@ -141,7 +141,12 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. "Type" must be one of: ${schema.allowedNodes.join(', ')}.
+3. "Type" must be one of these EXACT words based on their structural purpose:
+   - oval: Terminal node (strictly used only for the Start or End of the flow)
+   - rhombus: Decision / If-condition (used for branching logic and choices)
+   - process: Standard operational step, action, or statement
+   - circle: Event or Connector (small intermediate triggers or join points)
+   - text: Free-floating annotation or note
 4. "Size" defines the hierarchy level. You MUST use one of these EXACT words:
    - ${sMap.L}: Major macro system or overarching flow
    - ${sMap.M}: Standard operational process or functional block
