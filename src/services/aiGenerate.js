@@ -96,7 +96,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   let mode = null;
   let currentGroupLabel = '';
   let currentGroupSize = 'M';
-  let currentGroupType = 'rect';
+  let currentGroupType = 'process';
   
   const groupsMap = new Map();
   
@@ -121,7 +121,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       const parts = t.substring(10).split('|').map(s => s.trim());
       currentGroupLabel = parts[0];
       currentGroupSize = 'M';
-      currentGroupType = 'rect';
+      currentGroupType = 'process';
       
       parts.slice(1).forEach(p => {
         if (p.toLowerCase().startsWith('size:')) currentGroupSize = p.substring(5).trim();
@@ -144,7 +144,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const val = cols[2] ? Number(cols[2]) : undefined;
         
         const group = getOrCreateGroup(currentGroupLabel, currentGroupSize, currentGroupType);
-        const nodeObj = { id, label };
+        const nodeObj = { id, label, type: currentGroupType, size: currentGroupSize };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
       }

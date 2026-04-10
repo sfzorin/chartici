@@ -130,7 +130,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                         {phase1Plan ? 'Review AI Plan (Debug)' : 'Describe what you need'}
                     </h1>
                     <p style={{ margin: '8px 0 0', fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                        {phase1Plan ? 'Edit the expanded prompt if needed, then confirm to build JSON.' : 'AI will build the diagram for you'}
+                        {phase1Plan ? 'Edit the expanded prompt if needed, then confirm to build Diagram.' : 'AI will build the diagram for you'}
                     </p>
                 </div>
 
@@ -233,10 +233,10 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                                             border: '2px solid transparent', borderTopColor: 'currentColor',
                                             borderRadius: '50%', animation: 'spin 0.8s linear infinite'
                                         }} />
-                                        Building JSON…
+                                        Building Structure…
                                     </span>
                                 ) : (
-                                    'Confirm & Build JSON'
+                                    'Confirm & Build Diagram'
                                 )}
                             </button>
 

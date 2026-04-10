@@ -10,7 +10,7 @@ export const ShapeRegistry = {
       </g>
     ),
     render: (w, h, fill, stroke, strokeW, dash, filter) => (
-      <rect x="0" y="0" width={w} height={h} rx="25" fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />
+      <rect x="0" y="0" width={w} height={h} rx="6" fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />
     )
   },
   element: {
