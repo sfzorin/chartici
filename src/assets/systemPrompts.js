@@ -48,10 +48,10 @@ export function getSystemPromptPhase2(diagramType) {
   if (isPie) {
     exampleText = `
 # Pie Slices
-| ID | Title (Label) | Size | Value |
-|---|---|---|---|
-| p1 | Revenue | ${sMap.L} | 45.5 |
-| p2 | Costs | ${sMap.M} | 30 |`;
+| Title (Label) | Size | Value |
+|---|---|---|
+| Revenue | ${sMap.L} | 45.5 |
+| Costs | ${sMap.M} | 30 |`;
   } else if (diagramType.toLowerCase() === 'timeline') {
     exampleText = `
 # Timeline Spine
@@ -104,7 +104,7 @@ Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
-2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+${isPie ? '' : '2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).'}
 3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
 4. "Type" must be one of: ${allowedTypes}.
 ${specificRules}${connectionRulesStr}

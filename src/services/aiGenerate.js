@@ -170,13 +170,17 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       }
       
       if (mode === 'pie' && cols.length >= 2) {
-        const id = cols[0];
-        const label = cols[1];
-        const rawSize = cols[2];
-        const val = cols[3] ? Number(cols[3]) : undefined;
+        const title = cols[0];
+        const rawSize = cols[1];
+        const val = cols[2] ? Number(cols[2]) : undefined;
         
         const group = getOrCreateGroup('Data', 'M', 'pie_slice');
-        const nodeObj = { id, label, type: 'pie_slice', size: matchSize(rawSize) };
+        const nodeObj = { 
+           id: `pie_${Math.random().toString(36).substr(2, 9)}`, 
+           label: title, 
+           type: 'pie_slice', 
+           size: matchSize(rawSize) 
+        };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
       }
