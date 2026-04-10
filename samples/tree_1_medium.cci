@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Startup Org Chart",
-    "size": "L"
+    "text": "Startup Org Chart"
   },
   "data": {
     "groups": [

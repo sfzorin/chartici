@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Sales Schema",
-    "size": "L"
+    "text": "Sales Schema"
   },
   "data": {
     "groups": [

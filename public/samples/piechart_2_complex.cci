@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Cloud Spending Breakdown",
-    "size": "L"
+    "text": "Cloud Spending Breakdown"
   },
   "data": {
     "nodes": [

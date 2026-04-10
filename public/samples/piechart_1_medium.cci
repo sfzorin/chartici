@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Resource Allocation",
-    "size": "L"
+    "text": "Resource Allocation"
   },
   "data": {
     "nodes": [

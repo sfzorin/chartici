@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "E-Commerce Checkout Pipeline",
-    "size": "L"
+    "text": "E-Commerce Checkout Pipeline"
   },
   "data": {
     "groups": [

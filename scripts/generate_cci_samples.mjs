@@ -24,7 +24,7 @@ const makeEdge = (source, target, connectionType, lineStyle, label) => {
 const docs = {
   "flowchart_1_medium": {
     meta: { type: "flowchart", version: "1.0.0" },
-    title: { text: "App Authentication Flow", size: "L" },
+    title: { text: "App Authentication Flow" },
     data: {
       groups: [
         makeGroup("Start", "oval", "M", [makeNode("start", "App Launch")]),
@@ -44,7 +44,7 @@ const docs = {
   },
   "flowchart_2_complex": {
     meta: { type: "flowchart", version: "1.0.0" },
-    title: { text: "E-Commerce Checkout Pipeline", size: "L" },
+    title: { text: "E-Commerce Checkout Pipeline" },
     data: {
       groups: [
         makeGroup("Triggers", "oval", "M", [makeNode("t_start", "User Clicks Checkout"), makeNode("t_end", "Show Order Success")]),
@@ -69,7 +69,7 @@ const docs = {
   },
   "erd_1_medium": {
     meta: { type: "erd", version: "1.0.0" },
-    title: { text: "Sales Schema", size: "L" },
+    title: { text: "Sales Schema" },
     data: {
       groups: [
         makeGroup("Orders Table", "process", "M", [makeNode("t_o", "Orders"), makeNode("c_i", "Order ID"), makeNode("c_amount", "Amount")]),
@@ -86,7 +86,7 @@ const docs = {
   },
   "erd_2_complex": {
     meta: { type: "erd", version: "1.0.0" },
-    title: { text: "Enterprise Personnel DB", size: "L" },
+    title: { text: "Enterprise Personnel DB" },
     data: {
       groups: [
         makeGroup("Employees", "process", "L", [makeNode("t_e", "Employees"), makeNode("c_eid", "Emp ID"), makeNode("c_ename", "Name")]),
@@ -108,7 +108,7 @@ const docs = {
   },
   "sequence_1_medium": {
     meta: { type: "sequence", version: "1.0.0" },
-    title: { text: "Basic Auth Protocol", size: "L" },
+    title: { text: "Basic Auth Protocol" },
     data: {
       groups: [
          makeGroup("Client", "process", "M", [makeNode("c1", "Request Login"), makeNode("c2", "Save Token")]),
@@ -123,7 +123,7 @@ const docs = {
   },
   "sequence_2_complex": {
     meta: { type: "sequence", version: "1.0.0" },
-    title: { text: "OAuth 2.0 Web Flow", size: "L" },
+    title: { text: "OAuth 2.0 Web Flow" },
     data: {
       groups: [
          makeGroup("Web App", "process", "M", [makeNode("w1", "Init Login"), makeNode("w2", "Receive Code"), makeNode("w3", "Store Token")]),
@@ -144,7 +144,7 @@ const docs = {
   },
   "radial_1_medium": {
     meta: { type: "radial", version: "1.0.0" },
-    title: { text: "DevOps Topology", size: "L" },
+    title: { text: "DevOps Topology" },
     data: {
       groups: [
          makeGroup("Core", "process", "L", [makeNode("hub", "Control Plane")]),
@@ -161,7 +161,7 @@ const docs = {
   },
   "radial_2_complex": {
     meta: { type: "radial", version: "1.0.0" },
-    title: { text: "Global Database Architecture", size: "L" },
+    title: { text: "Global Database Architecture" },
     data: {
       groups: [
          makeGroup("Core", "process", "L", [makeNode("center", "Master Relational Node")]),
@@ -182,7 +182,7 @@ const docs = {
   },
   "matrix_1_medium": {
     meta: { type: "matrix", version: "1.0.0" },
-    title: { text: "Priorities Q3", size: "L" },
+    title: { text: "Priorities Q3" },
     data: {
       groups: [
          makeGroup("High Impact / Low Effort", "process", "L", [makeNode("m_1", "Optimize CDN"), makeNode("m_2", "Compress Images")]),
@@ -193,7 +193,7 @@ const docs = {
   },
   "matrix_2_complex": {
     meta: { type: "matrix", version: "1.0.0" },
-    title: { text: "Feature Roadmap 2026", size: "L" },
+    title: { text: "Feature Roadmap 2026" },
     data: {
       groups: [
          makeGroup("Q1", "process", "L", [makeNode("q1_1", "Core API V3"), makeNode("q1_2", "Graph DB Migration")]),
@@ -208,7 +208,7 @@ const docs = {
   },
   "timeline_1_medium": {
     meta: { type: "timeline", version: "1.0.0" },
-    title: { text: "Product Release Plan", size: "L" },
+    title: { text: "Product Release Plan" },
     data: {
       groups: [
          makeGroup("Spine", "chevron", "L", [makeNode("p1", "Discovery"), makeNode("p2", "Execution")]),
@@ -225,7 +225,7 @@ const docs = {
   },
   "timeline_2_complex": {
     meta: { type: "timeline", version: "1.0.0" },
-    title: { text: "History of Web Infrastructure", size: "L" },
+    title: { text: "History of Web Infrastructure" },
     data: {
       groups: [
          makeGroup("Spine", "chevron", "L", [makeNode("era1", "The 1990s"), makeNode("era2", "The 2000s"), makeNode("era3", "The 2010s"), makeNode("era4", "The 2020s")]),
@@ -248,7 +248,7 @@ const docs = {
   },
   "tree_1_medium": {
     meta: { type: "tree", version: "1.0.0" },
-    title: { text: "Startup Org Chart", size: "L" },
+    title: { text: "Startup Org Chart" },
     data: {
       groups: [
          makeGroup("Root", "process", "L", [makeNode("c_ceo", "CEO Office")]),
@@ -264,7 +264,7 @@ const docs = {
   },
   "tree_2_complex": {
     meta: { type: "tree", version: "1.0.0" },
-    title: { text: "Directory Structure Schema", size: "L" },
+    title: { text: "Directory Structure Schema" },
     data: {
       groups: [
          makeGroup("Root", "process", "L", [makeNode("f_root", "src/")]),
@@ -285,7 +285,7 @@ const docs = {
   },
   "piechart_1_medium": {
     meta: { type: "piechart", version: "1.0.0" },
-    title: { text: "Resource Allocation", size: "L" },
+    title: { text: "Resource Allocation" },
     data: {
       nodes: [
          makeNode("slice_1", "Engineering Budget", 45),
@@ -297,7 +297,7 @@ const docs = {
   },
   "piechart_2_complex": {
     meta: { type: "piechart", version: "1.0.0" },
-    title: { text: "Cloud Spending Breakdown", size: "L" },
+    title: { text: "Cloud Spending Breakdown" },
     data: {
       nodes: [
          makeNode("c1", "EC2 Instances", 40.5),

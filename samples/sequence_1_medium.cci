@@ -4,8 +4,7 @@
     "version": "1.0.0"
   },
   "title": {
-    "text": "Basic Auth Protocol",
-    "size": "L"
+    "text": "Basic Auth Protocol"
   },
   "data": {
     "groups": [
