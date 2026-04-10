@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useDiagramHistory } from './hooks/useDiagramHistory';
 import DiagramRenderer from './components/DiagramRenderer';
 import AppHeader from './components/AppHeader';
@@ -44,7 +44,7 @@ function App() {
 
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
 
-  const filteredData = React.useMemo(() => {
+  const filteredData = useMemo(() => {
     let outNodes = diagramData.nodes || [];
     let outEdges = diagramData.edges || [];
     
