@@ -180,7 +180,6 @@ Follow these rules:
 3. "Type" must be one of these EXACT words based on their structural purpose:
    - table: Entity or Table (the primary block or subject)
    - attribute: Database field, property, or column connected to a table
-   - annotation: Free-floating comment, note, or boundary definition
 4. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
    - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
    - ${sMap.M}: Standard normal element (use this by default)

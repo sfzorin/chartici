@@ -14,23 +14,23 @@ export const DIAGRAM_SCHEMAS = {
     id: 'sequence',
     name: 'Sequence',
     description: 'chronological interactions between systems or actors.',
-    allowedNodes: ['process', 'circle', 'text'],
+    allowedNodes: ['process', 'circle'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls.",
     semanticScale: { L: 'system', M: 'action', S: 'state' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'text'], lifelineOverlays: true }
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle'], lifelineOverlays: true }
   },
   erd: {
     id: 'erd',
     name: 'Entity-Relationship',
     description: 'database schemas, entities, and relationships.',
-    allowedNodes: ['process', 'text'],
+    allowedNodes: ['process'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true, erdMarkers: true },
     promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible.",
     semanticScale: { L: 'schema', M: 'table', S: 'column' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'] }
   },
   radial: {
     id: 'radial',
@@ -47,18 +47,18 @@ export const DIAGRAM_SCHEMAS = {
     id: 'array',
     name: 'Array',
     description: 'memory buffers, queues, or sequential data structures.',
-    allowedNodes: ['process', 'text'],
+    allowedNodes: ['process'],
     allowedEdges: ['solid', 'dashed', 'bold', 'none'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use 'process' nodes to represent sequential elements, queues, or arrays.",
     semanticScale: { L: 'structure', M: 'array', S: 'element' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'] }
+    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'] }
   },
   matrix: {
     id: 'matrix',
     name: 'Matrix',
     description: 'grid-like comparisons, or categorization into distinct cluster zones/cells.',
-    allowedNodes: ['process', 'text'],
+    allowedNodes: ['process'],
     allowedEdges: ['none', 'solid'],
     features: { hasNodeValue: false, allowConnections: true },
     promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
@@ -66,7 +66,7 @@ export const DIAGRAM_SCHEMAS = {
     connectionRules: [
       "process -> process : Allowed across different groups/cells using 'solid'."
     ],
-    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'text'], matrixGridOverlays: true }
+    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'], matrixGridOverlays: true }
   },
   timeline: {
     id: 'timeline',

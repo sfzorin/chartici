@@ -177,7 +177,6 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             if (tLow === 'terminal') nodeType = 'oval';
             else if (tLow === 'decision') nodeType = 'rhombus';
             else if (tLow === 'event') nodeType = 'circle';
-            else if (tLow === 'annotation') nodeType = 'text';
             else nodeType = 'process'; // fallback
             
             nextSteps = cols[3];
@@ -185,7 +184,6 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             const rawType = cols[2] || currentGroupType;
             const tLow = String(rawType).toLowerCase().trim();
             if (tLow === 'attribute') nodeType = 'circle';
-            else if (tLow === 'annotation') nodeType = 'text';
             else nodeType = 'process'; // fallback is robust enough for 'table'
         } else {
             val = cols[2] ? Number(cols[2]) : undefined;
