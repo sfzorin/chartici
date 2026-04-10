@@ -3,19 +3,9 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
+  "title": "Payment Gateway Logic",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Payment Gateway Logic",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "M",

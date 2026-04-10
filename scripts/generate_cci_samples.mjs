@@ -9,7 +9,7 @@ const makeNode = (id, label, value) => {
 
 const makeGroup = (label, type, size, nodes) => {
   let g = { type, size, nodes };
-  if (label !== "Title" && label !== "Spine" && label !== "Root" && label !== "Data") {
+  if (label !== "Spine" && label !== "Root" && label !== "Data") {
      g.label = label;
   }
   return g;
@@ -21,15 +21,12 @@ const makeEdge = (source, target, connectionType, lineStyle, label) => {
   return e;
 };
 
-const getTitleGroup = (type, title) => 
-  makeGroup("Title", "title", "L", [ { id: '__SYSTEM_TITLE__', label: title, type: 'title' } ]);
-
 const docs = {
   "flowchart_1_medium": {
     meta: { type: "flowchart", version: "1.0.0" },
+    title: "App Authentication Flow",
     data: {
       groups: [
-        getTitleGroup("flowchart", "App Authentication Flow"),
         makeGroup("User Input", "process", "M", [makeNode("s1", "App Launch"), makeNode("d1", "Verify Session")]),
         makeGroup("Auth Flow", "process", "M", [makeNode("l1", "Show Login"), makeNode("e1", "Try Auth")])
       ],
@@ -43,9 +40,9 @@ const docs = {
   },
   "flowchart_2_complex": {
     meta: { type: "flowchart", version: "1.0.0" },
+    title: "Payment Gateway Logic",
     data: {
       groups: [
-        getTitleGroup("flowchart", "Payment Gateway Logic"),
         makeGroup("Intake", "process", "M", [makeNode("p1", "Webhook Recv"), makeNode("s1", "Clean Body"), makeNode("d_v", "Is Valid JSON?")]),
         makeGroup("Router", "process", "L", [makeNode("r1", "Inspect Event"), makeNode("d_e", "Event Type?")]),
         makeGroup("Payments", "process", "L", [makeNode("pay1", "Process Charge"), makeNode("d_f", "Has Funds?")]),
@@ -65,9 +62,9 @@ const docs = {
   },
   "erd_1_medium": {
     meta: { type: "erd", version: "1.0.0" },
+    title: "Sales Schema",
     data: {
       groups: [
-        getTitleGroup("erd", "Sales Schema"),
         makeGroup("Orders Table", "process", "M", [makeNode("t_o", "Orders"), makeNode("c_i", "Order ID"), makeNode("c_amount", "Amount")]),
         makeGroup("Users Table", "process", "M", [makeNode("t_u", "Users"), makeNode("c_u", "User ID"), makeNode("c_email", "Email")])
       ],
@@ -80,9 +77,9 @@ const docs = {
   },
   "erd_2_complex": {
     meta: { type: "erd", version: "1.0.0" },
+    title: "Enterprise Personnel DB",
     data: {
       groups: [
-        getTitleGroup("erd", "Enterprise Personnel DB"),
         makeGroup("Employees", "process", "L", [makeNode("t_e", "Employees"), makeNode("c_eid", "Emp ID"), makeNode("c_ename", "Name")]),
         makeGroup("Departments", "process", "M", [makeNode("t_d", "Departments"), makeNode("c_did", "Dept ID")]),
         makeGroup("Projects", "process", "M", [makeNode("t_p", "Projects"), makeNode("c_pid", "Proj ID")]),
@@ -101,9 +98,9 @@ const docs = {
   },
   "sequence_1_medium": {
     meta: { type: "sequence", version: "1.0.0" },
+    title: "Basic Auth Protocol",
     data: {
       groups: [
-         getTitleGroup("sequence", "Basic Auth Protocol"),
          makeGroup("Client", "process", "M", [makeNode("c1", "Request Login"), makeNode("c2", "Save Token")]),
          makeGroup("Server", "process", "L", [makeNode("s1", "Validate"), makeNode("s2", "Generate JWT")])
       ],
@@ -116,9 +113,9 @@ const docs = {
   },
   "sequence_2_complex": {
     meta: { type: "sequence", version: "1.0.0" },
+    title: "OAuth 2.0 Web Flow",
     data: {
       groups: [
-         getTitleGroup("sequence", "OAuth 2.0 Web Flow"),
          makeGroup("Web App", "process", "M", [makeNode("w1", "Init Login"), makeNode("w2", "Receive Code"), makeNode("w3", "Store Token")]),
          makeGroup("Auth Gateway", "process", "L", [makeNode("a1", "Validate App"), makeNode("a2", "Exchange Token"), makeNode("a3", "Issue Cookie")]),
          makeGroup("OAuth Provider", "process", "M", [makeNode("o1", "Show Consent"), makeNode("o2", "Redirect Back"), makeNode("o3", "Validate Secret")])
@@ -137,9 +134,9 @@ const docs = {
   },
   "radial_1_medium": {
     meta: { type: "radial", version: "1.0.0" },
+    title: "DevOps Topology",
     data: {
       groups: [
-         getTitleGroup("radial", "DevOps Topology"),
          makeGroup("Core", "process", "L", [makeNode("hub", "Control Plane")]),
          makeGroup("CI/CD", "process", "M", [makeNode("c1", "GitHub Actions"), makeNode("c2", "Jenkins")]),
          makeGroup("Metrics", "process", "M", [makeNode("m1", "Datadog"), makeNode("m2", "Prometheus")])
@@ -154,9 +151,9 @@ const docs = {
   },
   "radial_2_complex": {
     meta: { type: "radial", version: "1.0.0" },
+    title: "Global Database Architecture",
     data: {
       groups: [
-         getTitleGroup("radial", "Global Database Architecture"),
          makeGroup("Core", "process", "L", [makeNode("center", "Master Relational Node")]),
          makeGroup("Replicas", "process", "L", [makeNode("r1", "EU Replica"), makeNode("r2", "US Replica"), makeNode("r3", "Asia Replica")]),
          makeGroup("Caching", "process", "M", [makeNode("c1", "Redis Cluster"), makeNode("c2", "Memcached V2")]),
@@ -174,9 +171,9 @@ const docs = {
   },
   "matrix_1_medium": {
     meta: { type: "matrix", version: "1.0.0" },
+    title: "Priorities Q3",
     data: {
       groups: [
-         getTitleGroup("matrix", "Priorities Q3"),
          makeGroup("High Impact / Low Effort", "process", "L", [makeNode("m_1", "Optimize CDN"), makeNode("m_2", "Compress Images")]),
          makeGroup("High Impact / High Effort", "process", "M", [makeNode("m_3", "DB Sharding")])
       ],
@@ -185,9 +182,9 @@ const docs = {
   },
   "matrix_2_complex": {
     meta: { type: "matrix", version: "1.0.0" },
+    title: "Feature Roadmap 2026",
     data: {
       groups: [
-         getTitleGroup("matrix", "Feature Roadmap 2026"),
          makeGroup("Q1", "process", "L", [makeNode("q1_1", "Core API V3"), makeNode("q1_2", "Graph DB Migration")]),
          makeGroup("Q2", "process", "M", [makeNode("q2_1", "Mobile App Launch"), makeNode("q2_2", "SSO Support")]),
          makeGroup("Q3", "process", "M", [makeNode("q3_1", "AI Agent Integrations"), makeNode("q3_2", "Voice Commands")]),
@@ -200,9 +197,9 @@ const docs = {
   },
   "timeline_1_medium": {
     meta: { type: "timeline", version: "1.0.0" },
+    title: "Product Release Plan",
     data: {
       groups: [
-         getTitleGroup("timeline", "Product Release Plan"),
          makeGroup("Spine", "chevron", "L", [makeNode("p1", "Discovery"), makeNode("p2", "Execution")]),
          makeGroup("Discovery Events", "process", "M", [makeNode("e1", "Kickoff Sync"), makeNode("e2", "Design Approval")]),
          makeGroup("Execution Events", "process", "M", [makeNode("e3", "Sprint 1"), makeNode("e4", "Soft Launch")])
@@ -217,9 +214,9 @@ const docs = {
   },
   "timeline_2_complex": {
     meta: { type: "timeline", version: "1.0.0" },
+    title: "History of Web Infrastructure",
     data: {
       groups: [
-         getTitleGroup("timeline", "History of Web Infrastructure"),
          makeGroup("Spine", "chevron", "L", [makeNode("era1", "The 1990s"), makeNode("era2", "The 2000s"), makeNode("era3", "The 2010s"), makeNode("era4", "The 2020s")]),
          makeGroup("Early Web", "process", "S", [makeNode("ev1", "HTML Created"), makeNode("ev2", "JavaScript V1")]),
          makeGroup("Web 2.0", "process", "M", [makeNode("ev3", "AJAX Born"), makeNode("ev4", "Cloud AWS Launch")]),
@@ -240,9 +237,9 @@ const docs = {
   },
   "tree_1_medium": {
     meta: { type: "tree", version: "1.0.0" },
+    title: "Startup Org Chart",
     data: {
       groups: [
-         getTitleGroup("tree", "Startup Org Chart"),
          makeGroup("Root", "process", "L", [makeNode("c_ceo", "CEO Office")]),
          makeGroup("Product", "process", "M", [makeNode("d_prod", "Head of Product"), makeNode("d_eng", "Lead Engineer")]),
          makeGroup("Sales", "process", "S", [makeNode("d_sales", "Account Exec")])
@@ -256,9 +253,9 @@ const docs = {
   },
   "tree_2_complex": {
     meta: { type: "tree", version: "1.0.0" },
+    title: "Directory Structure Schema",
     data: {
       groups: [
-         getTitleGroup("tree", "Directory Structure Schema"),
          makeGroup("Root", "process", "L", [makeNode("f_root", "src/")]),
          makeGroup("Components", "process", "M", [makeNode("f_com", "components/"), makeNode("f_btn", "Button.jsx"), makeNode("f_nav", "Navbar.jsx")]),
          makeGroup("Utils", "process", "S", [makeNode("f_util", "utils/"), makeNode("f_hlp", "helpers.js")]),
@@ -277,9 +274,9 @@ const docs = {
   },
   "piechart_1_medium": {
     meta: { type: "piechart", version: "1.0.0" },
+    title: "Resource Allocation",
     data: {
       nodes: [
-         { id: "__SYSTEM_TITLE__", label: "Resource Allocation", type: "title", size: "L" },
          makeNode("slice_1", "Engineering Budget", 45),
          makeNode("slice_2", "Marketing Budget", 30),
          makeNode("slice_3", "Office & Admin", 15),
@@ -289,9 +286,9 @@ const docs = {
   },
   "piechart_2_complex": {
     meta: { type: "piechart", version: "1.0.0" },
+    title: "Cloud Spending Breakdown",
     data: {
       nodes: [
-         { id: "__SYSTEM_TITLE__", label: "Cloud Spending Breakdown", type: "title", size: "L" },
          makeNode("c1", "EC2 Instances", 40.5),
          makeNode("c2", "RDS Postgres", 22.8),
          makeNode("c3", "S3 Storage", 15.2),

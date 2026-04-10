@@ -3,19 +3,9 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
+  "title": "App Authentication Flow",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "App Authentication Flow",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "M",

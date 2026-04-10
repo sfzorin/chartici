@@ -3,19 +3,9 @@
     "type": "radial",
     "version": "1.0.0"
   },
+  "title": "Global Database Architecture",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Global Database Architecture",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",

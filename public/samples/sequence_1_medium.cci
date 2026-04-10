@@ -3,19 +3,9 @@
     "type": "sequence",
     "version": "1.0.0"
   },
+  "title": "Basic Auth Protocol",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Basic Auth Protocol",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "M",

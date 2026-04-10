@@ -3,19 +3,9 @@
     "type": "matrix",
     "version": "1.0.0"
   },
+  "title": "Priorities Q3",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Priorities Q3",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",

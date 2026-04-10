@@ -3,19 +3,9 @@
     "type": "erd",
     "version": "1.0.0"
   },
+  "title": "Sales Schema",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Sales Schema",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "M",

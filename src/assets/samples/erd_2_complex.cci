@@ -3,19 +3,9 @@
     "type": "erd",
     "version": "1.0.0"
   },
+  "title": "Enterprise Personnel DB",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Enterprise Personnel DB",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",

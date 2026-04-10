@@ -3,19 +3,9 @@
     "type": "radial",
     "version": "1.0.0"
   },
+  "title": "DevOps Topology",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "DevOps Topology",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",

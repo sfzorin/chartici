@@ -3,19 +3,9 @@
     "type": "timeline",
     "version": "1.0.0"
   },
+  "title": "Product Release Plan",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Product Release Plan",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "chevron",
         "size": "L",

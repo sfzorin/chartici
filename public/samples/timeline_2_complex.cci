@@ -3,19 +3,9 @@
     "type": "timeline",
     "version": "1.0.0"
   },
+  "title": "History of Web Infrastructure",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "History of Web Infrastructure",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "chevron",
         "size": "L",

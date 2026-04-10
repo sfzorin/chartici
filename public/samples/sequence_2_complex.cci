@@ -3,19 +3,9 @@
     "type": "sequence",
     "version": "1.0.0"
   },
+  "title": "OAuth 2.0 Web Flow",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "OAuth 2.0 Web Flow",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "M",

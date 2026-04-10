@@ -3,19 +3,9 @@
     "type": "tree",
     "version": "1.0.0"
   },
+  "title": "Directory Structure Schema",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Directory Structure Schema",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",

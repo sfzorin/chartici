@@ -3,14 +3,9 @@
     "type": "piechart",
     "version": "1.0.0"
   },
+  "title": "Resource Allocation",
   "data": {
     "nodes": [
-      {
-        "id": "__SYSTEM_TITLE__",
-        "label": "Resource Allocation",
-        "type": "title",
-        "size": "L"
-      },
       {
         "id": "slice_1",
         "label": "Engineering Budget",

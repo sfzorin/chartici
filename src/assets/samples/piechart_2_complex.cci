@@ -3,14 +3,9 @@
     "type": "piechart",
     "version": "1.0.0"
   },
+  "title": "Cloud Spending Breakdown",
   "data": {
     "nodes": [
-      {
-        "id": "__SYSTEM_TITLE__",
-        "label": "Cloud Spending Breakdown",
-        "type": "title",
-        "size": "L"
-      },
       {
         "id": "c1",
         "label": "EC2 Instances",

@@ -3,19 +3,9 @@
     "type": "tree",
     "version": "1.0.0"
   },
+  "title": "Startup Org Chart",
   "data": {
     "groups": [
-      {
-        "type": "title",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "__SYSTEM_TITLE__",
-            "label": "Startup Org Chart",
-            "type": "title"
-          }
-        ]
-      },
       {
         "type": "process",
         "size": "L",
