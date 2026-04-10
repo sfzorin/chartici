@@ -37,13 +37,6 @@ export function getSystemPromptPhase2(diagramType) {
   const allowedSizes = Object.values(sMap).join(', ');
   const allowedTypesStr = schema.allowedNodes.join(', ');
 
-  const connectionRulesStr = schema.connectionRules
-    ? `\n4. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
-   - ${sMap.L}: ${sDesc.L}
-   - ${sMap.M}: ${sDesc.M}
-   - ${sMap.S}: ${sDesc.S}`;
-
   if (dt === 'piechart') {
       return `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a PIECHART diagram.
@@ -53,7 +46,10 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. "Type" must be one of: ${allowedTypesStr}.
 3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
-${connectionRulesStr}
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
@@ -77,7 +73,10 @@ Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
 3. "Type" must be one of: ${allowedTypesStr}.
-${connectionRulesStr}
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
 5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
 6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
@@ -114,11 +113,27 @@ Your task is to transform their concept into STRICT Markdown Tables.
 Follow these rules:
 1. Think carefully first in a <thinking> block.
 2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
-4. "Type" must be one of: ${allowedTypesStr}.
-5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.${schema.features.allowConnections ? `\n6. "ConnectionType" must be one of: ${connTypesStr}.` : ''}
-${connectionRulesStr.replace('4.', schema.features.allowConnections ? '7.' : '6.')}
-8. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+3. "Type" must be one of: ${allowedTypesStr}.
+4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
+   - ${sMap.L}: ${sDesc.L}
+   - ${sMap.M}: ${sDesc.M}
+   - ${sMap.S}: ${sDesc.S}
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!`;
+
+  if (schema.features.allowConnections) {
+      promptStr += `
+7. Ensure every relationship under # Edges explicitly specifies target IDs that EXACTLY match.
+8. "ConnectionType" must be one of: ${connTypesStr}.`;
+      
+      if (schema.connectionRules) {
+          promptStr += `
+9. STRICT CONNECTION RULES:
+${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`;
+      }
+  }
+
+  promptStr += `
 
 Use this EXACT format:
 <thinking>
