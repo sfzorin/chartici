@@ -245,7 +245,117 @@ Use this EXACT format:
 | s_2 | Billing |`;
 
 
-    // Covers matrix, sequence, and any unrecognized default graph types
+    case 'sequence':
+      return `You are a Distributed Systems Architect.
+The user will provide a detailed conceptual architecture for a SEQUENCE diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
+4. A sequence diagram consists of Actors/Systems (Lifelines) and Messages between them.
+5. You MUST group your Nodes by Actor/System using a heading: "### Group: <Actor Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+7. "ConnectionType" inside # Edges MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
+
+Use this EXACT format:
+<thinking>
+... your chronological logic, actor separation, and ID tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Client | Size: ${sMap.M}
+| ID | Label |
+|---|---|
+| c_1 | Init Request |
+| c_2 | Display Results |
+
+### Group: API Server | Size: ${sMap.M}
+| ID | Label |
+|---|---|
+| s_1 | Validate Auth |
+| s_2 | Query DB |
+
+# Edges
+| Source ID | Target ID | Label | ConnectionType |
+|---|---|---|---|
+| c_1 | s_1 | POST /data | solid |
+| s_1 | s_2 | Read DB | solid |
+| s_2 | c_2 | 200 OK | dashed |`;
+
+
+    case 'array':
+      return `You are a Data Pipeline Analyst.
+The user will provide a detailed conceptual architecture for an ARRAY (linear pipeline) diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
+4. You MUST group your Nodes into separate Markdown Tables per array/list using a heading starting with "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to an array group.
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. Connections are defined DIRECTLY in the "Next Element" column of the node.
+7. SYNTAX FOR NEXT ELEMENT: Write the target ID of the next consecutive node. Specify nothing if it's the end of the array. Example: \`a_2\`.
+
+Use this EXACT format:
+<thinking>
+... your logic, sequential pipeline tracking ...
+</thinking>
+
+# Nodes
+
+### Group: Main Buffer | Size: ${sMap.M}
+| ID | Label | Next Element |
+|---|---|---|
+| i_1 | Header | i_2 |
+| i_2 | Payload | i_3 |
+| i_3 | Footer |  |`;
+
+
+    case 'matrix':
+      return `You are a Categorization Architect.
+The user will provide a detailed conceptual architecture for a MATRIX diagram.
+Your task is to transform their concept into STRICT Markdown Tables.
+
+Follow these rules:
+1. Think carefully first in a <thinking> block.
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
+   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
+   - ${sMap.M}: Standard normal element (use this by default)
+   - ${sMap.S}: De-emphasized, minor, or visually smaller element
+4. You MUST group your Nodes into separate Markdown Tables per matrix cell or zone using a heading: "### Group: <Name> | Size: <Size>". EVERY single node MUST belong to a cell or quadrant group.
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
+6. Matrix diagrams typically do not need edges. If cross-connections are strictly necessary, define them under "# Edges".
+
+Use this EXACT format:
+<thinking>
+... your logic, quadrant cell categorization ...
+</thinking>
+
+# Nodes
+
+### Group: High Priority | Size: ${sMap.M}
+| ID | Label |
+|---|---|
+| t_1 | Fix Database |
+| t_2 | Patch Auth |
+
+### Group: Low Priority | Size: ${sMap.M}
+| ID | Label |
+|---|---|
+| t_3 | Update CSS |`;
+
+
     default:
       const name = dt.toUpperCase();
       const needsEdges = schema.features.allowConnections;

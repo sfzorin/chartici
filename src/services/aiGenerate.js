@@ -180,6 +180,9 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             else nodeType = 'process'; // fallback
             
             nextSteps = cols[3];
+        } else if (diagramType === 'array') {
+            nodeType = 'process';
+            nextSteps = cols[2];
         } else if (diagramType === 'erd') {
             const rawType = cols[2] || currentGroupType;
             const tLow = String(rawType).toLowerCase().trim();
