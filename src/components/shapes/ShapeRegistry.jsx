@@ -65,8 +65,29 @@ export const ShapeRegistry = {
       );
     },
     render: (w, h, fill, stroke, strokeW, dash, filter) => {
-      const pts = `${w/2},0 ${w},${h/2} ${w/2},${h} 0,${h/2}`;
-      return <polygon points={pts} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />
+      const r = 3;
+      const ex = 1.5;
+      const pts = [ 
+        {x: -ex, y: h/2}, 
+        {x: w/2, y: -ex}, 
+        {x: w+ex, y: h/2}, 
+        {x: w/2, y: h+ex} 
+      ];
+      let d = '';
+      for (let i = 0; i < 4; i++) {
+        const p1 = pts[(i+3)%4], p2 = pts[i], p3 = pts[(i+1)%4];
+        const d1 = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const d2 = Math.hypot(p3.x - p2.x, p3.y - p2.y);
+        const qStartX = p2.x + ((p1.x - p2.x) / d1) * r;
+        const qStartY = p2.y + ((p1.y - p2.y) / d1) * r;
+        const qEndX = p2.x + ((p3.x - p2.x) / d2) * r;
+        const qEndY = p2.y + ((p3.y - p2.y) / d2) * r;
+        if (i === 0) d += `M ${qStartX} ${qStartY}`;
+        else d += ` L ${qStartX} ${qStartY}`;
+        d += ` Q ${p2.x} ${p2.y} ${qEndX} ${qEndY}`;
+      }
+      d += ' Z';
+      return <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />;
     }
   },
   pie_slice: {
