@@ -3,7 +3,10 @@
     "type": "piechart",
     "version": "1.0.0"
   },
-  "title": "Resource Allocation",
+  "title": {
+    "text": "Resource Allocation",
+    "size": "L"
+  },
   "data": {
     "nodes": [
       {

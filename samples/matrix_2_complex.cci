@@ -3,7 +3,10 @@
     "type": "matrix",
     "version": "1.0.0"
   },
-  "title": "Feature Roadmap 2026",
+  "title": {
+    "text": "Feature Roadmap 2026",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

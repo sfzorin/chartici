@@ -3,7 +3,10 @@
     "type": "timeline",
     "version": "1.0.0"
   },
-  "title": "History of Web Infrastructure",
+  "title": {
+    "text": "History of Web Infrastructure",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

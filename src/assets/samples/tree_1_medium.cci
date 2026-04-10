@@ -3,7 +3,10 @@
     "type": "tree",
     "version": "1.0.0"
   },
-  "title": "Startup Org Chart",
+  "title": {
+    "text": "Startup Org Chart",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

@@ -3,7 +3,10 @@
     "type": "radial",
     "version": "1.0.0"
   },
-  "title": "DevOps Topology",
+  "title": {
+    "text": "DevOps Topology",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

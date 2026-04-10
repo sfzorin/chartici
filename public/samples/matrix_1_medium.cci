@@ -3,7 +3,10 @@
     "type": "matrix",
     "version": "1.0.0"
   },
-  "title": "Priorities Q3",
+  "title": {
+    "text": "Priorities Q3",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

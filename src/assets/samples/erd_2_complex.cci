@@ -3,7 +3,10 @@
     "type": "erd",
     "version": "1.0.0"
   },
-  "title": "Enterprise Personnel DB",
+  "title": {
+    "text": "Enterprise Personnel DB",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

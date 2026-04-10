@@ -3,7 +3,10 @@
     "type": "piechart",
     "version": "1.0.0"
   },
-  "title": "Cloud Spending Breakdown",
+  "title": {
+    "text": "Cloud Spending Breakdown",
+    "size": "L"
+  },
   "data": {
     "nodes": [
       {

@@ -3,7 +3,10 @@
     "type": "sequence",
     "version": "1.0.0"
   },
-  "title": "Basic Auth Protocol",
+  "title": {
+    "text": "Basic Auth Protocol",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

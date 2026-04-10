@@ -3,7 +3,10 @@
     "type": "erd",
     "version": "1.0.0"
   },
-  "title": "Sales Schema",
+  "title": {
+    "text": "Sales Schema",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

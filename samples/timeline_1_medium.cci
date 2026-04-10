@@ -3,7 +3,10 @@
     "type": "timeline",
     "version": "1.0.0"
   },
-  "title": "Product Release Plan",
+  "title": {
+    "text": "Product Release Plan",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

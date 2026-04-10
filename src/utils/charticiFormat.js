@@ -40,7 +40,13 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
   const payload = {
     meta: {
       type: diagramType || 'flowchart',
-      version: "1.0.0"
+      version: "2.0.0"
+    },
+    title: {
+       text: configRoot.title || '',
+       size: configRoot.titleSize || 'L',
+       ...(configRoot.titleX !== undefined ? { x: configRoot.titleX } : {}),
+       ...(configRoot.titleY !== undefined ? { y: configRoot.titleY } : {})
     },
     data: {
       groups: exportGroups,
@@ -214,11 +220,20 @@ export function parseCharticiFile(fileContent) {
 
     const { flatNodes, cleanGroups } = resolveNodesAndGroups(coreData.nodes, coreData.groups);
     const { type, data: _d, version, meta, ...restConfig } = data;
-
+    let finalConfig = { ...configFromData, ...restConfig };
+    
+    // Convert new root title object format into flat config schema expected by App state
+    if (finalConfig.title && typeof finalConfig.title === 'object') {
+       finalConfig.titleText = finalConfig.title.text || finalConfig.title.label || '';
+       if (finalConfig.title.size) finalConfig.titleSize = finalConfig.title.size;
+       if (finalConfig.title.x !== undefined) finalConfig.titleX = finalConfig.title.x;
+       if (finalConfig.title.y !== undefined) finalConfig.titleY = finalConfig.title.y;
+       finalConfig.titleLock = finalConfig.title.x !== undefined;
+       finalConfig.title = finalConfig.titleText; // Replace the object reference with string for compat
+    }
+    
     // Old format uses 'header' instead of 'title'
-    if (data.header && !restConfig.title) restConfig.title = data.header;
-
-    const finalConfig = { ...configFromData, ...restConfig };
+    if (data.header && !finalConfig.title) finalConfig.title = data.header;
     
     if (metaData.type && !finalConfig.diagramType) {
        finalConfig.diagramType = metaData.type;

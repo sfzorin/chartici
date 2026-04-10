@@ -3,7 +3,10 @@
     "type": "sequence",
     "version": "1.0.0"
   },
-  "title": "OAuth 2.0 Web Flow",
+  "title": {
+    "text": "OAuth 2.0 Web Flow",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

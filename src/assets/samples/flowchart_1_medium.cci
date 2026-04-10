@@ -3,7 +3,10 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
-  "title": "App Authentication Flow",
+  "title": {
+    "text": "App Authentication Flow",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

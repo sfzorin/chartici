@@ -3,7 +3,10 @@
     "type": "tree",
     "version": "1.0.0"
   },
-  "title": "Directory Structure Schema",
+  "title": {
+    "text": "Directory Structure Schema",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {

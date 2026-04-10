@@ -3,7 +3,10 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
-  "title": "Payment Gateway Logic",
+  "title": {
+    "text": "Payment Gateway Logic",
+    "size": "L"
+  },
   "data": {
     "groups": [
       {
