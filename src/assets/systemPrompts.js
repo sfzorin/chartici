@@ -35,18 +35,11 @@ export function getSystemPromptPhase2(diagramType) {
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.default.semanticScale;
   const sDesc = schema.semanticDescription || DIAGRAM_SCHEMAS.default.semanticDescription;
   const allowedSizes = Object.values(sMap).join(', ');
-  
-  const rules = {
-      idNode: `2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).`,
-      relSpecific: `3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.`,
-      type: `4. "Type" must be one of: ${schema.allowedNodes.join(', ')}.`,
-      connType: `5. "ConnectionType" must be one of: ${schema.features.allowConnections ? "target, both, reverse, none" + (dt === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none"}.`,
-      lang: `9. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!`
-  };
+  const allowedTypesStr = schema.allowedNodes.join(', ');
 
   const connectionRulesStr = schema.connectionRules
-    ? `\n5. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
-    : `\n5. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
+    ? `\n4. STRICT CONNECTION RULES:\n${schema.connectionRules.map(r => `   - ${r}`).join('\n')}`
+    : `\n4. "Size" defines the hierarchy level. You MUST use one of these EXACT words (${allowedSizes}):
    - ${sMap.L}: ${sDesc.L}
    - ${sMap.M}: ${sDesc.M}
    - ${sMap.S}: ${sDesc.S}`;
@@ -58,10 +51,10 @@ Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
-${rules.type}
+2. "Type" must be one of: ${allowedTypesStr}.
+3. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
 ${connectionRulesStr}
-8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.
-${rules.lang}
+5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
@@ -82,12 +75,11 @@ Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
-${rules.idNode}
-${rules.relSpecific}
-${rules.type}
+2. Ensure every single element has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. "Type" must be one of: ${allowedTypesStr}.
 ${connectionRulesStr}
-8. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
-${rules.lang}
+5. You MUST output EXACTLY two master sections: "# Timeline Spine" (a flat table of the main chronological steps) and "# Events" (children). Under "# Events", you MUST group the events into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single event MUST belong to a logical group.
+6. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
@@ -113,6 +105,7 @@ Use this EXACT format:
   const includeEdgeLabel = schema.features.allowConnections;
   const egType1 = schema.allowedNodes[0];
   const egType2 = schema.allowedNodes.length > 1 ? schema.allowedNodes[1] : schema.allowedNodes[0];
+  const connTypesStr = schema.features.allowConnections ? "target, both, reverse, none" + (dt === 'erd' ? ", 1:1, 1:N, N:1, N:M" : "") : "none";
 
   let promptStr = `You are a Diagram Topology Engineer.
 The user will provide a detailed conceptual architecture for a ${dt.toUpperCase()} diagram.
@@ -120,13 +113,12 @@ Your task is to transform their concept into STRICT Markdown Tables.
 
 Follow these rules:
 1. Think carefully first in a <thinking> block.
-${rules.idNode}
-${rules.relSpecific}
-${rules.type}
-${connectionRulesStr}
-${schema.features.allowConnections ? rules.connType : ''}
-8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.
-${rules.lang}
+2. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
+3. Ensure every relationship explicitly specifies target IDs that EXACTLY match.
+4. "Type" must be one of: ${allowedTypesStr}.
+5. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". EVERY single node MUST belong to a logical group. Do not leave any nodes ungrouped.${schema.features.allowConnections ? `\n6. "ConnectionType" must be one of: ${connTypesStr}.` : ''}
+${connectionRulesStr.replace('4.', schema.features.allowConnections ? '7.' : '6.')}
+8. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
 
 Use this EXACT format:
 <thinking>
