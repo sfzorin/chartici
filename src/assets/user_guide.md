@@ -42,7 +42,24 @@ The system operates exclusively on the `.cci` file format. This is a strict **JS
    - `"radial"`: For Mind Maps, brainstorming, concept exploration, and stakeholder maps radiating from a central hub.
    - `"timeline"`: For project roadmaps, historical timelines, release planning, and linear sequential phases.
    - `"matrix"`: For SWOT analysis, priority matrices (urgent/important), product positioning maps, and 2D classifications.
-   - `"piechart"`: For proportional breakdown of elements in a pie graph. Uses radial group rendering internally.
+   - `"piechart"`: For proportional breakdown of elements in a pie graph. Uses radial group rendering internally. **Note: Piecharts use a completely flat structure. They do NOT contain a `groups` or `edges` array in the JSON, but instead just a root level `nodes` array.**
+
+#### Piechart Flat Example:
+```json
+{
+  "type": "cci_project",
+  "diagramType": "piechart",
+  "data": {
+    "nodes": [
+      { "id": "p1", "label": "Revenue", "size": "L", "value": 45 },
+      { "id": "p2", "label": "Expenses", "size": "M", "value": 30 }
+    ]
+  }
+}
+```
+
+### Dynamic Filtering
+Chartici enforces strict schema rules. When you switch a `diagramType` in the visual editor, nodes or edges that are incompatible with that specific type (e.g., arrows in a Piechart) will **vanish non-destructively**. They will not be rendered on screen, nor exported to the `.cci` file, but they remain safely in memory in case you switch the diagram back.
 
 ### Groups Array (Contains Nodes)
 
@@ -64,6 +81,17 @@ Chartici is fundamentally built around grouping. Instead of a flat list of nodes
       "label": "PostgreSQL"
     }
   ]
+}
+```
+
+#### Timeline Spine Example:
+Timeline groups should separate the "Spine" (chevrons) from standard events.
+```json
+{
+  "label": "Chronology Spine",
+  "type": "chevron",
+  "size": "L",
+  "nodes": [ { "id": "q1", "label": "Q1 Launch" } ]
 }
 ```
 
@@ -114,6 +142,8 @@ When you are creating or modifying a Chartici diagram, you **MUST** follow these
 4. **ERD Cardinality**: Always use `connectionType` with crow's foot notation (`"1:1"`, `"1:N"`, `"N:M"`, etc.) for ERD diagrams instead of arrows. This communicates relationship semantics precisely.
 
 5. **Tree Dense Fan-Outs**: The engine automatically stacks >=3 leaf children vertically (max 6 per column). This means you can safely connect 10+ children to a single parent — the layout will remain compact.
+
+6. **Timeline Spines**: For Timeline diagrams, use `chevron` type nodes for the central time periods (the "spine"). Then, link events (`circle` or `process` nodes) directly to those chevrons. The engine will stack events dynamically above and below the spine.
 
 ---
 

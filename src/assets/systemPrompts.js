@@ -93,7 +93,7 @@ export function getSystemPromptPhase2(diagramType) {
    - ${sMap.S}: ${sDesc.S}`;
 
   const tableHeaderRule = isPie 
-      ? `8. You MUST output exactly ONE table called "# Pie Slices". Do not use groups or edges.`
+      ? `8. You MUST output exactly ONE Markdown Table called "# Pie Slices". Do not output anything else.`
       : diagramType.toLowerCase() === 'timeline'
       ? `8. You MUST output EXACTLY two tables: "# Timeline Spine" (for main trajectory steps) and "# Events" (chronological children).`
       : `8. You MUST group your Nodes into separate Markdown Tables per group using a heading starting with "### Group: ". If nodes don't belong to a group, put them under "### Group: Orphans".`;
