@@ -4,230 +4,134 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample flowchart",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_y9vo9mqts",
-        "label": "Intake",
+        "type": "title",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Payment Gateway Logic",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
             "id": "p1",
-            "label": "Webhook Recv",
-            "type": "oval",
-            "size": "M"
+            "label": "Webhook Recv"
           },
           {
-            "id": "sanitize",
-            "label": "Clean Body",
-            "type": "process",
-            "size": "M"
+            "id": "s1",
+            "label": "Clean Body"
           },
           {
-            "id": "d_valid",
-            "label": "Is Valid JSON?",
-            "type": "rhombus",
-            "size": "M"
+            "id": "d_v",
+            "label": "Is Valid JSON?"
           }
-        ]
+        ],
+        "label": "Intake"
       },
       {
-        "id": "g_kpye1o3gn",
-        "label": "Error Handling",
-        "size": "S",
-        "nodeType": "process",
-        "nodes": [
-          {
-            "id": "err",
-            "label": "Return 400",
-            "type": "process",
-            "size": "S"
-          }
-        ]
-      },
-      {
-        "id": "g_6esmmc42t",
-        "label": "Router",
+        "type": "process",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "route",
-            "label": "Inspect Event",
-            "type": "process",
-            "size": "L"
+            "id": "r1",
+            "label": "Inspect Event"
           },
           {
-            "id": "d_type",
-            "label": "Event Type?",
-            "type": "rhombus",
-            "size": "L"
+            "id": "d_e",
+            "label": "Event Type?"
           }
-        ]
+        ],
+        "label": "Router"
       },
       {
-        "id": "g_ae34emkd4",
-        "label": "Users",
-        "size": "M",
-        "nodeType": "process",
-        "nodes": [
-          {
-            "id": "handle_user",
-            "label": "Upsert User",
-            "type": "process",
-            "size": "M"
-          }
-        ]
-      },
-      {
-        "id": "g_hqyflncu9",
-        "label": "Payments",
+        "type": "process",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "handle_pay",
-            "label": "Process Charge",
-            "type": "process",
-            "size": "L"
+            "id": "pay1",
+            "label": "Process Charge"
           },
           {
-            "id": "d_funds",
-            "label": "Has Funds?",
-            "type": "rhombus",
-            "size": "L"
-          },
-          {
-            "id": "tx_fail",
-            "label": "Cancel Sub",
-            "type": "process",
-            "size": "L"
+            "id": "d_f",
+            "label": "Has Funds?"
           }
-        ]
+        ],
+        "label": "Payments"
       },
       {
-        "id": "g_cewqy4a1a",
-        "label": "Persistence",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "db_write",
-            "label": "Commit DB",
-            "type": "process",
-            "size": "M"
+            "id": "db1",
+            "label": "Commit DB"
           },
           {
             "id": "end",
-            "label": "Finish",
-            "type": "oval",
-            "size": "M"
+            "label": "Finish"
           }
-        ]
+        ],
+        "label": "Persistence"
       }
     ],
     "edges": [
       {
         "sourceId": "p1",
-        "targetId": "sanitize",
-        "lineStyle": "solid",
+        "targetId": "s1",
         "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "sanitize",
-        "targetId": "d_valid",
-        "lineStyle": "solid",
+        "sourceId": "s1",
+        "targetId": "d_v",
         "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "d_valid",
-        "targetId": "route",
-        "lineStyle": "solid",
+        "sourceId": "d_v",
+        "targetId": "r1",
         "connectionType": "target",
+        "lineStyle": "solid",
         "label": "Yes"
       },
       {
-        "sourceId": "d_valid",
-        "targetId": "err",
-        "lineStyle": "solid",
+        "sourceId": "r1",
+        "targetId": "d_e",
         "connectionType": "target",
-        "label": "No"
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "err",
-        "targetId": "end",
-        "lineStyle": "solid",
+        "sourceId": "d_e",
+        "targetId": "pay1",
         "connectionType": "target",
-        "label": ""
-      },
-      {
-        "sourceId": "route",
-        "targetId": "d_type",
         "lineStyle": "solid",
-        "connectionType": "target",
-        "label": ""
-      },
-      {
-        "sourceId": "d_type",
-        "targetId": "handle_user",
-        "lineStyle": "solid",
-        "connectionType": "target",
-        "label": "User"
-      },
-      {
-        "sourceId": "d_type",
-        "targetId": "handle_pay",
-        "lineStyle": "solid",
-        "connectionType": "target",
         "label": "Pay"
       },
       {
-        "sourceId": "handle_user",
-        "targetId": "db_write",
-        "lineStyle": "solid",
+        "sourceId": "pay1",
+        "targetId": "d_f",
         "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "handle_pay",
-        "targetId": "d_funds",
-        "lineStyle": "solid",
+        "sourceId": "d_f",
+        "targetId": "db1",
         "connectionType": "target",
-        "label": ""
-      },
-      {
-        "sourceId": "d_funds",
-        "targetId": "db_write",
         "lineStyle": "solid",
-        "connectionType": "target",
         "label": "Yes"
       },
       {
-        "sourceId": "d_funds",
-        "targetId": "tx_fail",
-        "lineStyle": "solid",
-        "connectionType": "target",
-        "label": "No"
-      },
-      {
-        "sourceId": "tx_fail",
+        "sourceId": "db1",
         "targetId": "end",
-        "lineStyle": "solid",
         "connectionType": "target",
-        "label": ""
-      },
-      {
-        "sourceId": "db_write",
-        "targetId": "end",
-        "lineStyle": "solid",
-        "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       }
     ]
   }

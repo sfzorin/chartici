@@ -4,90 +4,84 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample radial",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_rltbb3pkc",
-        "label": "Root",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "DevOps Topology",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
             "id": "hub",
-            "label": "DevOps Stack",
-            "type": "process",
-            "size": "L"
+            "label": "Control Plane"
           }
-        ]
+        ],
+        "label": "Core"
       },
       {
-        "id": "g_nbcxravai",
-        "label": "CI/CD",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "ci1",
-            "label": "GitHub Actions",
-            "type": "process",
-            "size": "M"
+            "id": "c1",
+            "label": "GitHub Actions"
           },
           {
-            "id": "ci2",
-            "label": "Jenkins",
-            "type": "process",
-            "size": "M"
+            "id": "c2",
+            "label": "Jenkins"
           }
-        ]
+        ],
+        "label": "CI/CD"
       },
       {
-        "id": "g_xo1akudui",
-        "label": "Monitoring",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "mon1",
-            "label": "Datadog",
-            "type": "process",
-            "size": "M"
+            "id": "m1",
+            "label": "Datadog"
           },
           {
-            "id": "mon2",
-            "label": "Grafana",
-            "type": "process",
-            "size": "M"
+            "id": "m2",
+            "label": "Prometheus"
           }
-        ]
+        ],
+        "label": "Metrics"
       }
     ],
     "edges": [
       {
         "sourceId": "hub",
-        "targetId": "ci1",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "c1",
+        "connectionType": "target",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "hub",
-        "targetId": "ci2",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "c2",
+        "connectionType": "target",
+        "lineStyle": "dashed"
       },
       {
         "sourceId": "hub",
-        "targetId": "mon1",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "m1",
+        "connectionType": "target",
+        "lineStyle": "solid"
       },
       {
         "sourceId": "hub",
-        "targetId": "mon2",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "m2",
+        "connectionType": "target",
+        "lineStyle": "solid"
       }
     ]
   }

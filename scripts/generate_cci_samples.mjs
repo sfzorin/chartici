@@ -310,5 +310,6 @@ Object.entries(docs).forEach(([k, config]) => {
   const fileContent = JSON.stringify(config, null, 2);
   fs.writeFileSync(path.join(outputDir, k + '.cci'), fileContent);
   fs.writeFileSync(path.join(process.cwd(), 'samples', k + '.cci'), fileContent);
+  fs.writeFileSync(path.join(process.cwd(), 'public/samples', k + '.cci'), fileContent);
   console.log('Wrote', k);
 });

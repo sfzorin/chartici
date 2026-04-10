@@ -4,104 +4,73 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample tree",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_vrjx0cigx",
-        "label": "Root",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "c1",
-            "label": "E-Commerce Org",
-            "type": "process",
-            "size": "L"
+            "id": "__SYSTEM_TITLE__",
+            "label": "Startup Org Chart",
+            "type": "title"
           }
         ]
       },
       {
-        "id": "g_n4333hjj0",
-        "label": "Engineering",
-        "size": "M",
-        "nodeType": "process",
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
-            "id": "b_eng",
-            "label": "VP Eng",
-            "type": "process",
-            "size": "M"
-          },
-          {
-            "id": "d_be",
-            "label": "Backend Lead",
-            "type": "process",
-            "size": "M"
+            "id": "c_ceo",
+            "label": "CEO Office"
           }
         ]
       },
       {
-        "id": "g_wbvbsch1b",
-        "label": "Marketing",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "b_mkt",
-            "label": "VP Marketing",
-            "type": "process",
-            "size": "M"
+            "id": "d_prod",
+            "label": "Head of Product"
           },
           {
-            "id": "d_ads",
-            "label": "Ads Team",
-            "type": "process",
-            "size": "M"
+            "id": "d_eng",
+            "label": "Lead Engineer"
           }
-        ]
+        ],
+        "label": "Product"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "d_sales",
+            "label": "Account Exec"
+          }
+        ],
+        "label": "Sales"
       }
     ],
     "edges": [
       {
-        "sourceId": "c1",
-        "targetId": "b_eng",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "c1",
-        "targetId": "d_be",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "c1",
-        "targetId": "b_mkt",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "c1",
-        "targetId": "d_ads",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "b_eng",
-        "targetId": "d_be",
-        "label": "",
+        "sourceId": "c_ceo",
+        "targetId": "d_prod",
         "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "b_mkt",
-        "targetId": "d_ads",
-        "label": "",
+        "sourceId": "c_ceo",
+        "targetId": "d_sales",
         "connectionType": "target",
         "lineStyle": "solid"
+      },
+      {
+        "sourceId": "d_prod",
+        "targetId": "d_eng",
+        "connectionType": "target",
+        "lineStyle": "dashed"
       }
     ]
   }

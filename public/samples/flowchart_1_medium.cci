@@ -4,114 +4,74 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample flowchart",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_rfby5jqfc",
-        "label": "User Input",
-        "size": "M",
-        "nodeType": "process",
-        "nodes": [
-          {
-            "id": "start",
-            "label": "App Launch",
-            "type": "oval",
-            "size": "M"
-          },
-          {
-            "id": "check_auth",
-            "label": "Verify Session",
-            "type": "rhombus",
-            "size": "M"
-          }
-        ]
-      },
-      {
-        "id": "g_ixdsdxu1m",
-        "label": "Auth",
-        "size": "M",
-        "nodeType": "process",
-        "nodes": [
-          {
-            "id": "login",
-            "label": "Show Login",
-            "type": "process",
-            "size": "M"
-          },
-          {
-            "id": "submit",
-            "label": "Try Auth",
-            "type": "circle",
-            "size": "M"
-          }
-        ]
-      },
-      {
-        "id": "g_6mt65qa56",
-        "label": "Core",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "dash",
-            "label": "Load Dashboard",
-            "type": "process",
-            "size": "L"
-          },
-          {
-            "id": "end",
-            "label": "Exit",
-            "type": "oval",
-            "size": "L"
+            "id": "__SYSTEM_TITLE__",
+            "label": "App Authentication Flow",
+            "type": "title"
           }
         ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "s1",
+            "label": "App Launch"
+          },
+          {
+            "id": "d1",
+            "label": "Verify Session"
+          }
+        ],
+        "label": "User Input"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "l1",
+            "label": "Show Login"
+          },
+          {
+            "id": "e1",
+            "label": "Try Auth"
+          }
+        ],
+        "label": "Auth Flow"
       }
     ],
     "edges": [
       {
-        "sourceId": "start",
-        "targetId": "check_auth",
-        "lineStyle": "solid",
+        "sourceId": "s1",
+        "targetId": "d1",
         "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "check_auth",
-        "targetId": "dash",
-        "lineStyle": "solid",
+        "sourceId": "d1",
+        "targetId": "l1",
         "connectionType": "target",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "check_auth",
-        "targetId": "login",
         "lineStyle": "solid",
-        "connectionType": "target",
         "label": "No"
       },
       {
-        "sourceId": "login",
-        "targetId": "submit",
-        "lineStyle": "solid",
+        "sourceId": "l1",
+        "targetId": "e1",
         "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "submit",
-        "targetId": "check_auth",
-        "lineStyle": "solid",
+        "sourceId": "e1",
+        "targetId": "d1",
         "connectionType": "target",
-        "label": ""
-      },
-      {
-        "sourceId": "dash",
-        "targetId": "end",
-        "lineStyle": "solid",
-        "connectionType": "target",
-        "label": ""
+        "lineStyle": "solid"
       }
     ]
   }

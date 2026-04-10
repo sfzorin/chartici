@@ -4,42 +4,33 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample piechart",
-      "aspect": "16:9"
-    },
-    "groups": [
+    "nodes": [
       {
-        "id": "g_k6hkzti9j",
-        "label": "Data",
-        "size": "M",
-        "nodeType": "pie_slice",
-        "nodes": [
-          {
-            "id": "pie_0.5685986442682391",
-            "label": "Desktop",
-            "type": "pie_slice",
-            "size": "L",
-            "value": 60
-          },
-          {
-            "id": "pie_0.12146282246874152",
-            "label": "Mobile",
-            "type": "pie_slice",
-            "size": "M",
-            "value": 30
-          },
-          {
-            "id": "pie_0.12580676538538715",
-            "label": "Tablet",
-            "type": "pie_slice",
-            "size": "S",
-            "value": 10
-          }
-        ],
-        "outlined": true
+        "id": "__SYSTEM_TITLE__",
+        "label": "Resource Allocation",
+        "type": "title",
+        "size": "L"
+      },
+      {
+        "id": "slice_1",
+        "label": "Engineering Budget",
+        "value": 45
+      },
+      {
+        "id": "slice_2",
+        "label": "Marketing Budget",
+        "value": 30
+      },
+      {
+        "id": "slice_3",
+        "label": "Office & Admin",
+        "value": 15
+      },
+      {
+        "id": "slice_4",
+        "label": "Legal Reserve",
+        "value": 10
       }
-    ],
-    "edges": []
+    ]
   }
 }

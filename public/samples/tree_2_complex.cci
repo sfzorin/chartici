@@ -4,162 +4,120 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample tree",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_20chm3r4w",
-        "label": "Root",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "root",
-            "label": "src/",
-            "type": "process",
-            "size": "L"
+            "id": "__SYSTEM_TITLE__",
+            "label": "Directory Structure Schema",
+            "type": "title"
           }
         ]
       },
       {
-        "id": "g_59zs2wdf3",
-        "label": "Components",
-        "size": "M",
-        "nodeType": "process",
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
-            "id": "b_com",
-            "label": "components/",
-            "type": "process",
-            "size": "M"
+            "id": "f_root",
+            "label": "src/"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "f_com",
+            "label": "components/"
           },
           {
             "id": "f_btn",
-            "label": "Button.jsx",
-            "type": "process",
-            "size": "M"
+            "label": "Button.jsx"
           },
           {
             "id": "f_nav",
-            "label": "Navbar.jsx",
-            "type": "process",
-            "size": "M"
+            "label": "Navbar.jsx"
           }
-        ]
+        ],
+        "label": "Components"
       },
       {
-        "id": "g_wkl35td60",
-        "label": "Utils",
-        "size": "M",
-        "nodeType": "process",
+        "type": "process",
+        "size": "S",
         "nodes": [
           {
-            "id": "b_util",
-            "label": "utils/",
-            "type": "process",
-            "size": "M"
+            "id": "f_util",
+            "label": "utils/"
           },
           {
-            "id": "f_help",
-            "label": "helpers.js",
-            "type": "process",
-            "size": "M"
+            "id": "f_hlp",
+            "label": "helpers.js"
           }
-        ]
+        ],
+        "label": "Utils"
       },
       {
-        "id": "g_8k0yumh89",
-        "label": "Assets",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "b_ass",
-            "label": "assets/",
-            "type": "process",
-            "size": "M"
+            "id": "f_st",
+            "label": "store/"
           },
           {
-            "id": "f_icn",
-            "label": "icons.svg",
-            "type": "process",
-            "size": "M"
+            "id": "f_rdx",
+            "label": "index.js"
           }
-        ]
+        ],
+        "label": "State"
       }
     ],
     "edges": [
       {
-        "sourceId": "root",
-        "targetId": "b_com",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "sourceId": "f_root",
+        "targetId": "f_com",
+        "connectionType": "target",
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "root",
+        "sourceId": "f_root",
+        "targetId": "f_util",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_root",
+        "targetId": "f_st",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "f_com",
         "targetId": "f_btn",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "connectionType": "target",
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "root",
+        "sourceId": "f_com",
         "targetId": "f_nav",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "root",
-        "targetId": "b_util",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "root",
-        "targetId": "f_help",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "root",
-        "targetId": "b_ass",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "root",
-        "targetId": "f_icn",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "b_com",
-        "targetId": "f_btn",
-        "label": "",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "b_com",
-        "targetId": "f_nav",
-        "label": "",
+        "sourceId": "f_util",
+        "targetId": "f_hlp",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "b_util",
-        "targetId": "f_help",
-        "label": "",
+        "sourceId": "f_st",
+        "targetId": "f_rdx",
         "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "b_ass",
-        "targetId": "f_icn",
-        "label": "",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "dashed"
       }
     ]
   }

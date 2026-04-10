@@ -4,104 +4,86 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample matrix",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_83hdvdeng",
-        "label": "Phase 1 (Q1)",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Feature Roadmap 2026",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
             "id": "q1_1",
-            "label": "API Design",
-            "type": "process",
-            "size": "L"
+            "label": "Core API V3"
           },
           {
             "id": "q1_2",
-            "label": "DB Schema",
-            "type": "process",
-            "size": "L"
-          },
-          {
-            "id": "q1_3",
-            "label": "Auth Service",
-            "type": "process",
-            "size": "L"
+            "label": "Graph DB Migration"
           }
-        ]
+        ],
+        "label": "Q1"
       },
       {
-        "id": "g_ly7ql1wsc",
-        "label": "Phase 2 (Q2)",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
             "id": "q2_1",
-            "label": "Mobile App",
-            "type": "process",
-            "size": "M"
+            "label": "Mobile App Launch"
           },
           {
             "id": "q2_2",
-            "label": "Analytics",
-            "type": "process",
-            "size": "M"
+            "label": "SSO Support"
           }
-        ]
+        ],
+        "label": "Q2"
       },
       {
-        "id": "g_2u3dkllxz",
-        "label": "Phase 3 (Q3)",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
             "id": "q3_1",
-            "label": "AI Integration",
-            "type": "process",
-            "size": "M"
+            "label": "AI Agent Integrations"
           },
           {
             "id": "q3_2",
-            "label": "Subscriptions",
-            "type": "process",
-            "size": "M"
+            "label": "Voice Commands"
           }
-        ]
+        ],
+        "label": "Q3"
       },
       {
-        "id": "g_c8a0c9w9z",
-        "label": "Backlog",
+        "type": "process",
         "size": "S",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "bl_1",
-            "label": "Dark Mode",
-            "type": "process",
-            "size": "S"
+            "id": "bg1",
+            "label": "Dark Theme Tweaks"
           },
           {
-            "id": "bl_2",
-            "label": "Localization",
-            "type": "process",
-            "size": "S"
-          },
-          {
-            "id": "bl_3",
-            "label": "Social Auth",
-            "type": "process",
-            "size": "S"
+            "id": "bg2",
+            "label": "Accessibility API"
           }
-        ]
+        ],
+        "label": "Backlog"
       }
     ],
-    "edges": []
+    "edges": [
+      {
+        "sourceId": "q1_1",
+        "targetId": "q2_1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      }
+    ]
   }
 }

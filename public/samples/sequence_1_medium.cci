@@ -4,107 +4,70 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample sequence",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_g075aa61c",
-        "label": "Client",
-        "size": "M",
-        "nodeType": "process",
-        "nodes": [
-          {
-            "id": "c_req",
-            "label": "Fetch User",
-            "type": "process",
-            "size": "M"
-          },
-          {
-            "id": "c_res",
-            "label": "Render UI",
-            "type": "process",
-            "size": "M"
-          }
-        ]
-      },
-      {
-        "id": "g_zhhrpxc4d",
-        "label": "Server",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "s_rcv",
-            "label": "Verify Token",
-            "type": "process",
-            "size": "L"
-          },
-          {
-            "id": "s_snd",
-            "label": "Return JSON",
-            "type": "process",
-            "size": "L"
+            "id": "__SYSTEM_TITLE__",
+            "label": "Basic Auth Protocol",
+            "type": "title"
           }
         ]
       },
       {
-        "id": "g_uk0q73b0t",
-        "label": "Database",
-        "size": "S",
-        "nodeType": "process",
+        "type": "process",
+        "size": "M",
         "nodes": [
           {
-            "id": "db_qry",
-            "label": "SELECT *",
-            "type": "process",
-            "size": "S"
+            "id": "c1",
+            "label": "Request Login"
           },
           {
-            "id": "db_ret",
-            "label": "Rows",
-            "type": "process",
-            "size": "S"
+            "id": "c2",
+            "label": "Save Token"
           }
-        ]
+        ],
+        "label": "Client"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "s1",
+            "label": "Validate"
+          },
+          {
+            "id": "s2",
+            "label": "Generate JWT"
+          }
+        ],
+        "label": "Server"
       }
     ],
     "edges": [
       {
-        "sourceId": "c_req",
-        "targetId": "s_rcv",
-        "label": "GET /api/user",
+        "sourceId": "c1",
+        "targetId": "s1",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "POST /login"
       },
       {
-        "sourceId": "s_rcv",
-        "targetId": "db_qry",
-        "label": "Query DB",
+        "sourceId": "s1",
+        "targetId": "s2",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "Verify DB"
       },
       {
-        "sourceId": "db_qry",
-        "targetId": "db_ret",
-        "label": "",
+        "sourceId": "s2",
+        "targetId": "c2",
         "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "db_ret",
-        "targetId": "s_snd",
-        "label": "Data",
-        "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "s_snd",
-        "targetId": "c_res",
-        "label": "200 OK",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "lineStyle": "dashed",
+        "label": "200 OK + Token"
       }
     ]
   }

@@ -4,146 +4,118 @@
     "version": "1.0.0"
   },
   "data": {
-    "config": {
-      "title": "Sample radial",
-      "aspect": "16:9"
-    },
     "groups": [
       {
-        "id": "g_vz59lg8c2",
-        "label": "Root",
+        "type": "title",
         "size": "L",
-        "nodeType": "process",
+        "nodes": [
+          {
+            "id": "__SYSTEM_TITLE__",
+            "label": "Global Database Architecture",
+            "type": "title"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
             "id": "center",
-            "label": "Master DB",
-            "type": "process",
-            "size": "L"
+            "label": "Master Relational Node"
           }
-        ]
+        ],
+        "label": "Core"
       },
       {
-        "id": "g_tq4mt8g1i",
-        "label": "Replicas",
-        "size": "M",
-        "nodeType": "process",
+        "type": "process",
+        "size": "L",
         "nodes": [
           {
-            "id": "r_eu",
-            "label": "EU Replica",
-            "type": "process",
-            "size": "M"
+            "id": "r1",
+            "label": "EU Replica"
           },
           {
-            "id": "r_us",
-            "label": "US Replica",
-            "type": "process",
-            "size": "M"
+            "id": "r2",
+            "label": "US Replica"
           },
           {
-            "id": "r_as",
-            "label": "Asia Replica",
-            "type": "process",
-            "size": "M"
+            "id": "r3",
+            "label": "Asia Replica"
           }
-        ]
+        ],
+        "label": "Replicas"
       },
       {
-        "id": "g_nlzkyy8e1",
-        "label": "Caching",
+        "type": "process",
         "size": "M",
-        "nodeType": "process",
         "nodes": [
           {
-            "id": "c_1",
-            "label": "Redis Cluster",
-            "type": "process",
-            "size": "M"
+            "id": "c1",
+            "label": "Redis Cluster"
           },
           {
-            "id": "c_2",
-            "label": "Memcached",
-            "type": "process",
-            "size": "M"
+            "id": "c2",
+            "label": "Memcached V2"
           }
-        ]
+        ],
+        "label": "Caching"
       },
       {
-        "id": "g_cj0dw2g33",
-        "label": "Analytics",
-        "size": "M",
-        "nodeType": "process",
+        "type": "process",
+        "size": "S",
         "nodes": [
           {
-            "id": "a_1",
-            "label": "Snowflake",
-            "type": "process",
-            "size": "M"
+            "id": "a1",
+            "label": "Snowflake Sink"
           },
           {
-            "id": "a_2",
-            "label": "Metabase",
-            "type": "process",
-            "size": "M"
-          },
-          {
-            "id": "a_3",
-            "label": "Airflow pipeline",
-            "type": "process",
-            "size": "M"
+            "id": "a2",
+            "label": "Metabase"
           }
-        ]
+        ],
+        "label": "Analytics Sync"
       }
     ],
     "edges": [
       {
         "sourceId": "center",
-        "targetId": "r_eu",
+        "targetId": "r1",
+        "connectionType": "target",
         "lineStyle": "solid",
-        "connectionType": "none"
+        "label": "sync"
       },
       {
         "sourceId": "center",
-        "targetId": "r_us",
+        "targetId": "r2",
+        "connectionType": "target",
         "lineStyle": "solid",
-        "connectionType": "none"
+        "label": "sync"
       },
       {
         "sourceId": "center",
-        "targetId": "r_as",
+        "targetId": "r3",
+        "connectionType": "target",
         "lineStyle": "solid",
-        "connectionType": "none"
+        "label": "sync"
       },
       {
         "sourceId": "center",
-        "targetId": "c_1",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "c1",
+        "connectionType": "target",
+        "lineStyle": "dashed"
       },
       {
         "sourceId": "center",
-        "targetId": "c_2",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "c2",
+        "connectionType": "target",
+        "lineStyle": "dashed"
       },
       {
         "sourceId": "center",
-        "targetId": "a_1",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "a_2",
-        "lineStyle": "solid",
-        "connectionType": "none"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "a_3",
-        "lineStyle": "solid",
-        "connectionType": "none"
+        "targetId": "a1",
+        "connectionType": "target",
+        "lineStyle": "solid"
       }
     ]
   }
