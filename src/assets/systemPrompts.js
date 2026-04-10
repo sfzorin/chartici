@@ -303,7 +303,6 @@ Follow these rules:
    - ${sMap.S}: De-emphasized, minor, or visually smaller element
 4. You MUST group your Nodes into separate Markdown Tables per zone using a heading: "### Zone: <Name> | Size: <Size>". EVERY single node MUST belong to a zone.
 5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. If the input is in Russian, all Labels MUST be in Russian. Do NOT translate labels to English!
-6. Matrix diagrams typically do not need edges. If cross-connections are strictly necessary, define them under "# Edges".
 
 Use this EXACT format:
 <thinking>
