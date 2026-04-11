@@ -1,137 +1,161 @@
 {
   "meta": {
     "type": "erd",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "red",
+  "theme": "blue-teal-slate",
   "title": {
-    "text": "Enterprise Personnel DB"
+    "text": "ERP Database Architecture"
   },
   "data": {
     "groups": [
       {
-        "type": "process",
-        "size": "L",
+        "label": "CRM Subsystem",
+        "color": 1,
         "nodes": [
           {
-            "id": "t_e",
-            "label": "Employees"
+            "id": "crm_customers",
+            "label": "customers"
           },
           {
-            "id": "c_eid",
-            "label": "Emp ID"
+            "id": "crm_leads",
+            "label": "leads"
           },
           {
-            "id": "c_ename",
-            "label": "Name"
+            "id": "crm_interactions",
+            "label": "interactions"
           }
         ],
-        "color": "2",
-        "label": "Employees"
+        "type": "process",
+        "size": "L"
       },
       {
-        "type": "process",
-        "size": "M",
+        "label": "Warehouse Module",
+        "color": 3,
         "nodes": [
           {
-            "id": "t_d",
-            "label": "Departments"
+            "id": "inv_products",
+            "label": "products"
           },
           {
-            "id": "c_did",
-            "label": "Dept ID"
+            "id": "inv_categories",
+            "label": "categories"
+          },
+          {
+            "id": "inv_stock",
+            "label": "stock_ledgers"
+          },
+          {
+            "id": "inv_warehouses",
+            "label": "warehouses"
           }
         ],
-        "color": "3",
-        "label": "Departments"
+        "type": "process",
+        "size": "L"
       },
       {
-        "type": "process",
-        "size": "M",
+        "label": "Finance Domain",
+        "color": 5,
         "nodes": [
           {
-            "id": "t_p",
-            "label": "Projects"
+            "id": "bil_orders",
+            "label": "orders"
           },
           {
-            "id": "c_pid",
-            "label": "Proj ID"
+            "id": "bil_invoices",
+            "label": "invoices"
+          },
+          {
+            "id": "bil_payments",
+            "label": "payments"
           }
         ],
-        "color": "4",
-        "label": "Projects"
+        "type": "process",
+        "size": "L"
       },
       {
-        "type": "process",
-        "size": "S",
+        "label": "HR Module",
+        "color": 7,
         "nodes": [
           {
-            "id": "t_a",
-            "label": "Assignments"
+            "id": "hr_employees",
+            "label": "employees"
           },
           {
-            "id": "c_hrs",
-            "label": "Hours Logged"
+            "id": "hr_departments",
+            "label": "departments"
           }
         ],
-        "color": "5",
-        "label": "Assignments"
+        "type": "process",
+        "size": "M"
       }
     ],
-    "edges": [
+    "relationships": [
       {
-        "sourceId": "t_e",
-        "targetId": "c_eid",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "sourceId": "crm_customers",
+        "targetId": "crm_interactions",
+        "label": "1:N",
+        "connectionType": "1:N"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "c_ename",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
+        "sourceId": "crm_leads",
+        "targetId": "crm_customers",
+        "label": "1:1",
+        "connectionType": "1:1"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "c_did",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "sourceId": "inv_categories",
+        "targetId": "inv_products",
+        "label": "1:N",
+        "connectionType": "1:N"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "c_pid",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "sourceId": "inv_products",
+        "targetId": "inv_stock",
+        "label": "1:N",
+        "connectionType": "1:N"
       },
       {
-        "sourceId": "t_a",
-        "targetId": "c_hrs",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
+        "sourceId": "inv_warehouses",
+        "targetId": "inv_stock",
+        "label": "1:N",
+        "connectionType": "1:N"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "t_e",
-        "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "employs"
+        "sourceId": "crm_customers",
+        "targetId": "bil_orders",
+        "label": "1:N",
+        "connectionType": "1:N"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "t_a",
-        "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "assigned"
+        "sourceId": "bil_orders",
+        "targetId": "bil_invoices",
+        "label": "1:1",
+        "connectionType": "1:1"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "t_a",
-        "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "includes"
+        "sourceId": "bil_invoices",
+        "targetId": "bil_payments",
+        "label": "1:N",
+        "connectionType": "1:N"
+      },
+      {
+        "sourceId": "inv_products",
+        "targetId": "bil_orders",
+        "label": "M:N",
+        "connectionType": "N:M"
+      },
+      {
+        "sourceId": "hr_departments",
+        "targetId": "hr_employees",
+        "label": "1:N",
+        "connectionType": "1:N"
+      },
+      {
+        "sourceId": "hr_employees",
+        "targetId": "crm_interactions",
+        "label": "1:N",
+        "connectionType": "1:N"
       }
     ]
   }

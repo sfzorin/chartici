@@ -4,31 +4,36 @@ import { layoutTimeline } from '../layoutTimeline.js';
 import { layoutMatrix } from '../layoutMatrix.js';
 import { layoutTree } from '../layoutTree.js';
 import { layoutPiechart } from '../layoutPiechart.js';
-import { DIAGRAM_SCHEMAS } from '../../diagramSchemas.js';
+
+// Layout manifest — intentionally NOT importing diagramSchemas.js to avoid a circular dependency:
+// diagramSchemas → engines/index → [any plugin layout.js if it imported utils] → EngineRegistry → diagramSchemas
+const LAYOUT_MANIFEST = {
+  flowchart: { layout: 'sugiyama', isHorizontalFlow: true  },
+  sequence:  { layout: 'sugiyama', isHorizontalFlow: true  },
+  erd:       { layout: 'sugiyama', isHorizontalFlow: true  },
+  tree:      { layout: 'tree',     isHorizontalFlow: false },
+  radial:    { layout: 'radial',   isHorizontalFlow: false },
+  timeline:  { layout: 'timeline', isHorizontalFlow: true  },
+  matrix:    { layout: 'matrix',   isHorizontalFlow: true  },
+  piechart:  { layout: 'piechart', isHorizontalFlow: false },
+};
 
 const layoutFunctions = {
   sugiyama: layoutSugiyamaDAG,
-  radial: layoutRadial,
+  radial:   layoutRadial,
   timeline: layoutTimeline,
-  matrix: layoutMatrix,
-  tree: layoutTree,
+  matrix:   layoutMatrix,
+  tree:     layoutTree,
   piechart: layoutPiechart
 };
 
 export const EngineRegistry = {};
 
-Object.keys(DIAGRAM_SCHEMAS).forEach(key => {
-  const schema = DIAGRAM_SCHEMAS[key];
-  if (!schema.engineManifest) return;
-  
-  const manifest = schema.engineManifest;
+Object.entries(LAYOUT_MANIFEST).forEach(([key, manifest]) => {
   const layoutFn = layoutFunctions[manifest.layout];
-  
   EngineRegistry[key] = {
     isHorizontalFlow: manifest.isHorizontalFlow,
-    execute: (nodes, edges, rules) => {
-      // Pass isHorizontal and diagramType specifically for certain layouts
-      return layoutFn(nodes, edges, rules, manifest.isHorizontalFlow, key);
-    }
+    execute: (nodes, edges, rules) =>
+      layoutFn(nodes, edges, rules, manifest.isHorizontalFlow, key)
   };
 });

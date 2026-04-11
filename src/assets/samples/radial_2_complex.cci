@@ -1,124 +1,122 @@
 {
   "meta": {
     "type": "radial",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "purple",
+  "theme": "brown-amber-grey",
   "title": {
-    "text": "Global Database Architecture"
+    "text": "Smart City AI Infrastructure"
   },
   "data": {
     "groups": [
       {
-        "type": "process",
-        "size": "L",
+        "label": "AI Core",
+        "color": 1,
         "nodes": [
           {
-            "id": "center",
-            "label": "Master Relational Node"
+            "id": "root",
+            "label": "City Brain OS",
+            "nextSteps": "traffic, power, health, sec"
           }
         ],
-        "color": "6",
-        "label": "Core"
+        "type": "process",
+        "size": "L"
       },
       {
-        "type": "process",
-        "size": "L",
+        "label": "Transportation Hub",
+        "color": 2,
         "nodes": [
           {
-            "id": "r1",
-            "label": "EU Replica"
+            "id": "traffic",
+            "label": "Traffic Control"
           },
           {
-            "id": "r2",
-            "label": "US Replica"
+            "id": "tr1",
+            "label": "Smart Lights"
           },
           {
-            "id": "r3",
-            "label": "Asia Replica"
+            "id": "tr2",
+            "label": "CCTV Cameras"
+          },
+          {
+            "id": "tr3",
+            "label": "Radar Speed"
           }
         ],
-        "color": "7",
-        "label": "Replicas"
-      },
-      {
         "type": "process",
         "size": "M",
-        "nodes": [
-          {
-            "id": "c1",
-            "label": "Redis Cluster"
-          },
-          {
-            "id": "c2",
-            "label": "Memcached V2"
-          }
-        ],
-        "color": "0",
-        "label": "Caching"
+        "parentId": "traffic"
       },
       {
+        "label": "Utility Network",
+        "color": 4,
+        "nodes": [
+          {
+            "id": "power",
+            "label": "Energy Grid"
+          },
+          {
+            "id": "pw1",
+            "label": "Smart Meters"
+          },
+          {
+            "id": "pw2",
+            "label": "Solar Arrays"
+          },
+          {
+            "id": "pw3",
+            "label": "Substations"
+          }
+        ],
         "type": "process",
-        "size": "S",
+        "size": "M",
+        "parentId": "power"
+      },
+      {
+        "label": "Medical Grid",
+        "color": 6,
         "nodes": [
           {
-            "id": "a1",
-            "label": "Snowflake Sink"
+            "id": "health",
+            "label": "Public Health"
           },
           {
-            "id": "a2",
-            "label": "Metabase"
+            "id": "hl1",
+            "label": "Ambulance AI"
+          },
+          {
+            "id": "hl2",
+            "label": "Hospital Beds"
           }
         ],
-        "color": "1",
-        "label": "Analytics Sync"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "center",
-        "targetId": "r1",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "sync"
+        "type": "process",
+        "size": "M",
+        "parentId": "health"
       },
       {
-        "sourceId": "center",
-        "targetId": "r2",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "sync"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "r3",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "sync"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "c1",
-        "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "c2",
-        "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "center",
-        "targetId": "a1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "a1",
-        "targetId": "a2",
-        "connectionType": "target",
-        "lineStyle": "dashed"
+        "label": "Law Enforcement",
+        "color": 8,
+        "nodes": [
+          {
+            "id": "sec",
+            "label": "City Security"
+          },
+          {
+            "id": "se1",
+            "label": "Police Drones"
+          },
+          {
+            "id": "se2",
+            "label": "Face Recognition"
+          },
+          {
+            "id": "se3",
+            "label": "Sound Sensors"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "parentId": "sec"
       }
     ]
   }

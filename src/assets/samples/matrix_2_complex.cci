@@ -1,79 +1,198 @@
 {
   "meta": {
     "type": "matrix",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "green-purple",
+  "theme": "brown-amber-grey",
   "title": {
-    "text": "Feature Roadmap 2026"
+    "text": "Cloud Product Offerings 2026"
   },
   "data": {
     "groups": [
       {
-        "type": "process",
-        "size": "L",
+        "label": "AWS | Compute",
+        "color": 2,
         "nodes": [
           {
-            "id": "q1_1",
-            "label": "Core API V3"
+            "id": "g1_1",
+            "label": "Amazon EC2"
           },
           {
-            "id": "q1_2",
-            "label": "Graph DB Migration"
+            "id": "g1_2",
+            "label": "AWS Lambda"
+          },
+          {
+            "id": "g1_3",
+            "label": "AWS Fargate"
+          },
+          {
+            "id": "g1_4",
+            "label": "AWS Outposts"
           }
         ],
-        "color": "4",
-        "label": "Q1"
+        "type": "process",
+        "size": "M"
       },
       {
-        "type": "process",
-        "size": "M",
+        "label": "AWS | Storage",
+        "color": 2,
         "nodes": [
           {
-            "id": "q2_1",
-            "label": "Mobile App Launch"
+            "id": "g2_1",
+            "label": "Amazon S3"
           },
           {
-            "id": "q2_2",
-            "label": "SSO Support"
+            "id": "g2_2",
+            "label": "Amazon EBS"
+          },
+          {
+            "id": "g2_3",
+            "label": "Amazon Glacier"
+          },
+          {
+            "id": "g2_4",
+            "label": "Storage Gateway"
+          },
+          {
+            "id": "g2_5",
+            "label": "Amazon EFS"
           }
         ],
-        "color": "5",
-        "label": "Q2"
+        "type": "process",
+        "size": "L"
       },
       {
-        "type": "process",
-        "size": "M",
+        "label": "GCP | Compute",
+        "color": 4,
         "nodes": [
           {
-            "id": "q3_1",
-            "label": "AI Agent Integrations"
+            "id": "g3_1",
+            "label": "Compute Engine"
           },
           {
-            "id": "q3_2",
-            "label": "Voice Commands"
+            "id": "g3_2",
+            "label": "Google Cloud Run"
+          },
+          {
+            "id": "g3_3",
+            "label": "Google App Engine"
+          },
+          {
+            "id": "g3_4",
+            "label": "Anthos"
           }
         ],
-        "color": "6",
-        "label": "Q3"
+        "type": "process",
+        "size": "M"
       },
       {
-        "type": "process",
-        "size": "S",
+        "label": "GCP | Storage",
+        "color": 4,
         "nodes": [
           {
-            "id": "bg1",
-            "label": "Dark Theme Tweaks"
+            "id": "g4_1",
+            "label": "Cloud Storage"
           },
           {
-            "id": "bg2",
-            "label": "Accessibility API"
+            "id": "g4_2",
+            "label": "Persistent Disk"
+          },
+          {
+            "id": "g4_3",
+            "label": "Filestore"
           }
         ],
-        "color": "7",
-        "label": "Backlog"
+        "type": "process",
+        "size": "L"
+      },
+      {
+        "label": "Azure | Compute",
+        "color": 6,
+        "nodes": [
+          {
+            "id": "g5_1",
+            "label": "Virtual Machines"
+          },
+          {
+            "id": "g5_2",
+            "label": "Azure Functions"
+          },
+          {
+            "id": "g5_3",
+            "label": "Azure App Service"
+          },
+          {
+            "id": "g5_4",
+            "label": "Azure Kubernetes"
+          }
+        ],
+        "type": "process",
+        "size": "M"
+      },
+      {
+        "label": "Azure | Storage",
+        "color": 6,
+        "nodes": [
+          {
+            "id": "g6_1",
+            "label": "Blob Storage"
+          },
+          {
+            "id": "g6_2",
+            "label": "Azure Files"
+          },
+          {
+            "id": "g6_3",
+            "label": "Disk Storage"
+          }
+        ],
+        "type": "process",
+        "size": "L"
+      },
+      {
+        "label": "DO | Compute",
+        "color": 8,
+        "nodes": [
+          {
+            "id": "g7_1",
+            "label": "DigitalOcean Droplets"
+          },
+          {
+            "id": "g7_2",
+            "label": "DO App Platform"
+          },
+          {
+            "id": "g7_3",
+            "label": "DO Kubernetes"
+          },
+          {
+            "id": "g7_4",
+            "label": "DO Functions"
+          }
+        ],
+        "type": "process",
+        "size": "M"
+      },
+      {
+        "label": "DO | Storage",
+        "color": 8,
+        "nodes": [
+          {
+            "id": "g8_1",
+            "label": "DO Spaces"
+          },
+          {
+            "id": "g8_2",
+            "label": "DO Volumes"
+          },
+          {
+            "id": "g8_3",
+            "label": "DO Container Reg"
+          }
+        ],
+        "type": "process",
+        "size": "L"
       }
-    ],
-    "edges": []
+    ]
   }
 }

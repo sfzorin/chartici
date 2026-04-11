@@ -1,150 +1,132 @@
 {
   "meta": {
     "type": "timeline",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "blue-teal-slate",
+  "theme": "vivid-sunset",
   "title": {
-    "text": "History of Web Infrastructure"
+    "text": "Apollo 11 Mission Timeline (July 1969)"
   },
   "data": {
     "groups": [
       {
         "type": "chevron",
+        "label": "Mission Spine",
         "size": "L",
         "nodes": [
           {
-            "id": "era1",
-            "label": "The 1990s"
+            "id": "t0",
+            "label": "T+0: Launch Phase"
           },
           {
-            "id": "era2",
-            "label": "The 2000s"
+            "id": "t1",
+            "label": "T+3 Days: Translunar",
+            "spineId": "t0"
           },
           {
-            "id": "era3",
-            "label": "The 2010s"
+            "id": "t2",
+            "label": "T+4 Days: Lunar Surface",
+            "spineId": "t1"
           },
           {
-            "id": "era4",
-            "label": "The 2020s"
+            "id": "t3",
+            "label": "T+8 Days: Return to Earth",
+            "spineId": "t2"
           }
         ],
-        "color": "3"
+        "color": 0
       },
       {
         "type": "process",
-        "size": "S",
+        "label": "Launch Events",
+        "color": 8,
         "nodes": [
           {
-            "id": "ev1",
-            "label": "HTML Created"
+            "id": "a1",
+            "label": "July 16, 13:32: Liftoff",
+            "spineId": "t0"
           },
           {
-            "id": "ev2",
-            "label": "JavaScript V1"
+            "id": "a2",
+            "label": "13:44: Earth Orbit Insertion",
+            "spineId": "t0"
+          },
+          {
+            "id": "a3",
+            "label": "16:22: TLI Burn",
+            "spineId": "t0"
           }
         ],
-        "color": "4",
-        "label": "Early Web"
+        "size": "M"
       },
       {
         "type": "process",
-        "size": "M",
+        "label": "Transit Events",
+        "color": 3,
         "nodes": [
           {
-            "id": "ev3",
-            "label": "AJAX Born"
+            "id": "a4",
+            "label": "July 17: Midcourse Correction",
+            "spineId": "t1"
           },
           {
-            "id": "ev4",
-            "label": "Cloud AWS Launch"
+            "id": "a5",
+            "label": "July 18: Lunar Orbit Insertion",
+            "spineId": "t1"
           }
         ],
-        "color": "5",
-        "label": "Web 2.0"
+        "size": "M"
       },
       {
         "type": "process",
-        "size": "L",
+        "label": "Lunar Events",
+        "color": 5,
         "nodes": [
           {
-            "id": "ev5",
-            "label": "React.js Release"
+            "id": "a6",
+            "label": "July 20, 17:44: Eagle Undocks",
+            "spineId": "t2"
           },
           {
-            "id": "ev6",
-            "label": "Docker Standardized"
+            "id": "a7",
+            "label": "20:17: Lunar Landing",
+            "spineId": "t2"
+          },
+          {
+            "id": "a8",
+            "label": "July 21, 02:56: First Step",
+            "spineId": "t2"
+          },
+          {
+            "id": "a9",
+            "label": "05:11: EVA Concludes",
+            "spineId": "t2"
           }
         ],
-        "color": "6",
-        "label": "Mobile & SPA"
+        "size": "M"
       },
       {
         "type": "process",
-        "size": "L",
+        "label": "Return Events",
+        "color": 2,
         "nodes": [
           {
-            "id": "ev7",
-            "label": "GPT Access"
+            "id": "a10",
+            "label": "17:54: Eagle Liftoff",
+            "spineId": "t3"
           },
           {
-            "id": "ev8",
-            "label": "AI Powered IDEs"
+            "id": "a11",
+            "label": "21:35: Docking with Columbia",
+            "spineId": "t3"
+          },
+          {
+            "id": "a12",
+            "label": "July 24, 16:50: Splashdown",
+            "spineId": "t3"
           }
         ],
-        "color": "7",
-        "label": "AI Era"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "era1",
-        "targetId": "ev1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era1",
-        "targetId": "ev2",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era2",
-        "targetId": "ev3",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era2",
-        "targetId": "ev4",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era3",
-        "targetId": "ev5",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era3",
-        "targetId": "ev6",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era4",
-        "targetId": "ev7",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "era4",
-        "targetId": "ev8",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "size": "S"
       }
     ]
   }

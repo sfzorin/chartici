@@ -1,49 +1,80 @@
 {
   "meta": {
     "type": "piechart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "blue-orange",
   "title": {
-    "text": "Cloud Spending Breakdown"
+    "text": "Global Desktop Browser Market Share 2025"
   },
   "data": {
-    "nodes": [
+    "groups": [
       {
-        "id": "c1",
-        "label": "EC2 Instances",
-        "value": 40.5,
-        "color": 1
-      },
-      {
-        "id": "c2",
-        "label": "RDS Postgres",
-        "value": 22.8,
-        "color": 2
-      },
-      {
-        "id": "c3",
-        "label": "S3 Storage",
-        "value": 15.2,
-        "color": 3
-      },
-      {
-        "id": "c4",
-        "label": "CloudFront CDN",
-        "value": 10,
-        "color": 4
-      },
-      {
-        "id": "c5",
-        "label": "Elasticache Redis",
-        "value": 8.3,
-        "color": 5
-      },
-      {
-        "id": "c6",
-        "label": "Route 53 DNS",
-        "value": 3.2,
-        "color": 6
+        "type": "pie_slice",
+        "nodes": [
+          {
+            "id": "b1",
+            "label": "Google Chrome",
+            "value": 64.73
+          },
+          {
+            "id": "b2",
+            "label": "Apple Safari",
+            "value": 18.56
+          },
+          {
+            "id": "b3",
+            "label": "Microsoft Edge",
+            "value": 4.97
+          },
+          {
+            "id": "b4",
+            "label": "Mozilla Firefox",
+            "value": 3.19
+          },
+          {
+            "id": "b5",
+            "label": "Samsung Internet",
+            "value": 2.8
+          },
+          {
+            "id": "b6",
+            "label": "Opera",
+            "value": 2.21
+          },
+          {
+            "id": "b7",
+            "label": "UC Browser",
+            "value": 0.86
+          },
+          {
+            "id": "b8",
+            "label": "Yandex Browser",
+            "value": 0.74
+          },
+          {
+            "id": "b9",
+            "label": "Brave",
+            "value": 0.5
+          },
+          {
+            "id": "b10",
+            "label": "Vivaldi",
+            "value": 0.32
+          },
+          {
+            "id": "b11",
+            "label": "Arc",
+            "value": 0.15
+          },
+          {
+            "id": "b12",
+            "label": "Other Experimental",
+            "value": 0.97
+          }
+        ],
+        "size": "M",
+        "color": 0
       }
     ]
   }

@@ -1,131 +1,139 @@
 {
   "meta": {
     "type": "sequence",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "blue",
+  "theme": "indigo-green-red",
   "title": {
-    "text": "OAuth 2.0 Web Flow"
+    "text": "Saga Pattern Distributed Transaction"
   },
   "data": {
     "groups": [
       {
         "type": "process",
-        "size": "M",
+        "label": "API Gateway",
+        "color": 1,
         "nodes": [
           {
-            "id": "w1",
-            "label": "Init Login"
+            "id": "1",
+            "label": "POST /checkout"
           },
           {
-            "id": "w2",
-            "label": "Receive Code"
-          },
-          {
-            "id": "w3",
-            "label": "Store Token"
+            "id": "14",
+            "label": "Return 200 OK"
           }
         ],
-        "color": "0",
-        "label": "Web App"
+        "size": "M"
       },
       {
         "type": "process",
-        "size": "L",
+        "label": "Order Service",
+        "color": 2,
         "nodes": [
           {
-            "id": "a1",
-            "label": "Validate App"
+            "id": "2",
+            "label": "Create PENDING Order"
           },
           {
-            "id": "a2",
-            "label": "Exchange Token"
+            "id": "3",
+            "label": "Publish 'OrderCreated'"
           },
           {
-            "id": "a3",
-            "label": "Issue Cookie"
+            "id": "13",
+            "label": "Publish 'OrderConfirmed'"
           }
         ],
-        "color": "1",
-        "label": "Auth Gateway"
+        "size": "M"
       },
       {
         "type": "process",
-        "size": "M",
+        "label": "Inventory Service",
+        "color": 4,
         "nodes": [
           {
-            "id": "o1",
-            "label": "Show Consent"
+            "id": "4",
+            "label": "Reserve Inventory"
           },
           {
-            "id": "o2",
-            "label": "Redirect Back"
-          },
-          {
-            "id": "o3",
-            "label": "Validate Secret"
+            "id": "8",
+            "label": "Inventory SECURED"
           }
         ],
-        "color": "2",
-        "label": "OAuth Provider"
+        "size": "M"
+      },
+      {
+        "type": "process",
+        "label": "Billing Service",
+        "color": 6,
+        "nodes": [
+          {
+            "id": "9",
+            "label": "Process Payment"
+          },
+          {
+            "id": "12",
+            "label": "Confirm Payment"
+          }
+        ],
+        "size": "M"
+      },
+      {
+        "type": "process",
+        "label": "Stripe API",
+        "color": 8,
+        "nodes": [
+          {
+            "id": "10",
+            "label": "Charge Credit Card"
+          },
+          {
+            "id": "11",
+            "label": "Payment OK"
+          }
+        ],
+        "size": "M"
       }
     ],
-    "edges": [
+    "messages": [
       {
-        "sourceId": "w1",
-        "targetId": "a1",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Click Login"
+        "sourceId": "1",
+        "targetId": "2"
       },
       {
-        "sourceId": "a1",
-        "targetId": "o1",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Redirect to Provider"
+        "sourceId": "2",
+        "targetId": "3"
       },
       {
-        "sourceId": "o1",
-        "targetId": "o2",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "User Accepts"
+        "sourceId": "3",
+        "targetId": "4"
       },
       {
-        "sourceId": "o2",
-        "targetId": "w2",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "302 Redirect ?code="
+        "sourceId": "4",
+        "targetId": "8"
       },
       {
-        "sourceId": "w2",
-        "targetId": "a2",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "POST Code"
+        "sourceId": "8",
+        "targetId": "9"
       },
       {
-        "sourceId": "a2",
-        "targetId": "o3",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Exchange code"
+        "sourceId": "9",
+        "targetId": "10"
       },
       {
-        "sourceId": "o3",
-        "targetId": "a3",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "200 OK JWT"
+        "sourceId": "10",
+        "targetId": "11"
       },
       {
-        "sourceId": "a3",
-        "targetId": "w3",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Set-Cookie"
+        "sourceId": "11",
+        "targetId": "12"
+      },
+      {
+        "sourceId": "12",
+        "targetId": "13"
+      },
+      {
+        "sourceId": "13",
+        "targetId": "14"
       }
     ]
   }

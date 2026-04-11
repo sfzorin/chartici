@@ -1,4 +1,5 @@
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
+import { getEngine } from '../engines/index.js';
 
 const getAvailableTypesText = () => {
   return Object.keys(DIAGRAM_SCHEMAS)
@@ -33,9 +34,14 @@ export function getSystemPromptPhase2(diagramType) {
   const dt = diagramType.toLowerCase();
   const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.flowchart;
   const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
-  
-  // We explicitly inline all rules per diagram point.
 
+  // Delegate to plugin — each engine owns its own AI prompt
+  const engine = getEngine(dt);
+  if (engine?.ai_prompt?.getPrompt) {
+    return engine.ai_prompt.getPrompt(schema, sMap);
+  }
+
+  // Fallback: inline switch (should never reach here if all plugins are defined)
   switch (dt) {
     case 'piechart':
       return `You are a Data Visualization Analyst.

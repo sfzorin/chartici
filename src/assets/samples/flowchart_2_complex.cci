@@ -1,9 +1,9 @@
 {
   "meta": {
     "type": "flowchart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "blue-orange",
   "title": {
     "text": "E-Commerce Checkout Pipeline"
   },
@@ -11,155 +11,125 @@
     "groups": [
       {
         "type": "oval",
-        "size": "M",
         "nodes": [
           {
-            "id": "t_start",
-            "label": "User Clicks Checkout"
+            "id": "n1",
+            "label": "Checkout Initiated",
+            "nextSteps": "n2"
           },
           {
-            "id": "t_end",
-            "label": "Show Order Success"
+            "id": "end",
+            "label": "Order Complete"
           }
         ],
-        "color": "4",
-        "label": "Triggers"
-      },
-      {
-        "type": "rhombus",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "d_cart",
-            "label": "Cart Empty?"
-          },
-          {
-            "id": "d_stock",
-            "label": "Items in Stock?"
-          },
-          {
-            "id": "d_pay",
-            "label": "Payment Approved?"
-          }
-        ],
-        "color": "5",
-        "label": "Decisions"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "p_reserve",
-            "label": "Reserve Inventory"
-          },
-          {
-            "id": "p_charge",
-            "label": "Stripe API Charge"
-          },
-          {
-            "id": "p_db",
-            "label": "Log Order DB"
-          }
-        ],
-        "color": "6",
-        "label": "API & Processes"
-      },
-      {
-        "type": "process",
         "size": "S",
+        "color": 0
+      },
+      {
+        "type": "process",
         "nodes": [
           {
-            "id": "err_cart",
-            "label": "Prompt to Shop"
-          },
-          {
-            "id": "err_stock",
+            "id": "n3",
             "label": "Show Out of Stock"
           },
           {
-            "id": "err_pay",
-            "label": "Show Decline Msg"
+            "id": "n9",
+            "label": "Send Confirmation",
+            "nextSteps": "end"
           }
         ],
-        "color": "7",
-        "label": "Error Handling"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "t_start",
-        "targetId": "d_cart",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "size": "M",
+        "color": 0
       },
       {
-        "sourceId": "d_cart",
-        "targetId": "err_cart",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
+        "label": "Inventory Scope",
+        "color": 3,
+        "type": "process",
+        "nodes": [
+          {
+            "id": "n2",
+            "label": "Verify Cart Items",
+            "nextSteps": "d1"
+          },
+          {
+            "id": "n8",
+            "label": "Create Order",
+            "nextSteps": "n9"
+          }
+        ],
+        "size": "M"
       },
       {
-        "sourceId": "d_cart",
-        "targetId": "d_stock",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
+        "type": "rhombus",
+        "nodes": [
+          {
+            "id": "d1",
+            "label": "In Stock?",
+            "nextSteps": "n3[No], n4[Yes]"
+          }
+        ],
+        "size": "M",
+        "color": 0
       },
       {
-        "sourceId": "d_stock",
-        "targetId": "err_stock",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
+        "label": "Billing System",
+        "color": 6,
+        "type": "process",
+        "nodes": [
+          {
+            "id": "n4",
+            "label": "Calculate Tax",
+            "nextSteps": "d2"
+          },
+          {
+            "id": "n5",
+            "label": "Apply Coupon",
+            "nextSteps": "n6"
+          }
+        ],
+        "size": "M"
       },
       {
-        "sourceId": "d_stock",
-        "targetId": "p_reserve",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
+        "type": "rhombus",
+        "nodes": [
+          {
+            "id": "d2",
+            "label": "Has Discount?",
+            "nextSteps": "n5[Yes], n6[No]"
+          }
+        ],
+        "size": "S",
+        "color": 0
       },
       {
-        "sourceId": "p_reserve",
-        "targetId": "p_charge",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Initiate Pay"
+        "label": "Gateway",
+        "color": 7,
+        "type": "process",
+        "nodes": [
+          {
+            "id": "n6",
+            "label": "Request Payment",
+            "nextSteps": "d3"
+          },
+          {
+            "id": "n7",
+            "label": "Payment Failed",
+            "nextSteps": "n6[Retry]"
+          }
+        ],
+        "size": "M"
       },
       {
-        "sourceId": "p_charge",
-        "targetId": "d_pay",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_pay",
-        "targetId": "err_pay",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "err_pay",
-        "targetId": "p_charge",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Retry"
-      },
-      {
-        "sourceId": "d_pay",
-        "targetId": "p_db",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "p_db",
-        "targetId": "t_end",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "type": "rhombus",
+        "nodes": [
+          {
+            "id": "d3",
+            "label": "Payment OK?",
+            "nextSteps": "n7[Failed], n8[Success]"
+          }
+        ],
+        "size": "M",
+        "color": 0
       }
     ]
   }
