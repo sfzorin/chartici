@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "erd",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "E-Commerce Data Model",
   "aspect": "16:9",
-  "diagramType": "erd",
   "theme": "blue-teal-slate",
   "data": {
     "groups": [
@@ -73,7 +76,7 @@
         "id": "g_4"
       }
     ],
-    "edges": [
+    "relationships": [
       {
         "id": "e1",
         "connectionType": "1:N",

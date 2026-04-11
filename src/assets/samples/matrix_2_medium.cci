@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "matrix",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "SWOT Analysis",
   "aspect": "1:1",
-  "diagramType": "matrix",
   "theme": "green-purple",
   "data": {
     "groups": [

@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "timeline",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "Product Roadmap 2026",
   "aspect": "16:9",
-  "diagramType": "timeline",
   "theme": "blue-teal-slate",
   "data": {
     "groups": [

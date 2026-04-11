@@ -1,7 +1,10 @@
 {
+  "meta": {
+    "type": "tree",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "aspect": "4:3",
-  "diagramType": "tree",
   "theme": "green-purple",
   "bgColor": "white",
   "title": "File System Structure",

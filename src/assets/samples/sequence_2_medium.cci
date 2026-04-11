@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "sequence",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "OAuth 2.0 Flow",
   "aspect": "16:9",
-  "diagramType": "sequence",
   "theme": "blue-orange",
   "data": {
     "groups": [
@@ -36,7 +39,7 @@
         "id": "g_1"
       }
     ],
-    "edges": [
+    "messages": [
       {
         "id": "e1",
         "label": "Login",

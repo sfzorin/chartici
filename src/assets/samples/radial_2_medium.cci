@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "radial",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "Marketing Strategy",
   "aspect": "1:1",
-  "diagramType": "radial",
   "theme": "blue-orange",
   "data": {
     "groups": [

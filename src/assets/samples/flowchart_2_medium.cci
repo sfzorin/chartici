@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "flowchart",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "Order Processing",
   "aspect": "16:9",
-  "diagramType": "flowchart",
   "theme": "blue-teal-slate",
   "data": {
     "groups": [

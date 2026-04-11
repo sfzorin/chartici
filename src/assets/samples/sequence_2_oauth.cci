@@ -1,7 +1,10 @@
 {
+  "meta": {
+    "type": "sequence",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "aspect": "16:9",
-  "diagramType": "sequence",
   "theme": "blue-orange",
   "bgColor": "white",
   "title": "OAuth 2.0 Authorization Code Flow",
@@ -39,7 +42,7 @@
         "size": "L"
       }
     ],
-    "edges": [
+    "messages": [
       {
         "id": "e1",
         "sourceId": "user",

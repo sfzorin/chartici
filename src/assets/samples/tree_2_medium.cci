@@ -1,8 +1,11 @@
 {
+  "meta": {
+    "type": "tree",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "title": "File System",
   "aspect": "16:9",
-  "diagramType": "tree",
   "theme": "blue-teal-slate",
   "data": {
     "groups": [

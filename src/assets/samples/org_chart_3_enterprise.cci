@@ -1,7 +1,10 @@
 {
+  "meta": {
+    "type": "tree",
+    "version": "3.0.0"
+  },
   "type": "cci_project",
   "aspect": "16:9",
-  "diagramType": "tree",
   "theme": "muted-rainbow",
   "bgColor": "white",
   "title": "Enterprise Hierarchy",
