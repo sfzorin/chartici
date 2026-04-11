@@ -1,0 +1,143 @@
+{
+  "type": "cci_project",
+  "aspect": "16:9",
+  "diagramType": "tree",
+  "theme": "muted-rainbow",
+  "bgColor": "white",
+  "title": "Enterprise Hierarchy",
+  "data": {
+    "groups": [
+      {
+        "id": "g_layer_0",
+        "nodes": [
+          {
+            "id": "ceo",
+            "text": "CEO",
+            "groupId": "g_layer_0"
+          }
+        ],
+        "color": 1,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_1",
+        "nodes": [
+          {
+            "id": "evp_ops",
+            "text": "EVP Operations",
+            "groupId": "g_layer_1"
+          },
+          {
+            "id": "evp_finance",
+            "text": "EVP Finance",
+            "groupId": "g_layer_1"
+          },
+          {
+            "id": "evp_sales",
+            "text": "EVP Global Sales",
+            "groupId": "g_layer_1"
+          }
+        ],
+        "color": 2,
+        "type": "rect",
+        "size": "L"
+      },
+      {
+        "id": "g_layer_2",
+        "nodes": [
+          {
+            "id": "dir_supply",
+            "text": "Dir. Supply Chain",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "dir_mfg",
+            "text": "Dir. Manufacturing",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "dir_acct",
+            "text": "Controller",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "dir_legal",
+            "text": "General Counsel",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "vp_na",
+            "text": "VP North America",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "vp_emea",
+            "text": "VP EMEA",
+            "groupId": "g_layer_2"
+          },
+          {
+            "id": "vp_apac",
+            "text": "VP APAC",
+            "groupId": "g_layer_2"
+          }
+        ],
+        "color": 3,
+        "type": "rect",
+        "size": "L"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "ceo",
+        "targetId": "evp_ops"
+      },
+      {
+        "id": "e2",
+        "sourceId": "ceo",
+        "targetId": "evp_finance"
+      },
+      {
+        "id": "e3",
+        "sourceId": "ceo",
+        "targetId": "evp_sales"
+      },
+      {
+        "id": "e4",
+        "sourceId": "evp_ops",
+        "targetId": "dir_supply"
+      },
+      {
+        "id": "e5",
+        "sourceId": "evp_ops",
+        "targetId": "dir_mfg"
+      },
+      {
+        "id": "e6",
+        "sourceId": "evp_finance",
+        "targetId": "dir_acct"
+      },
+      {
+        "id": "e7",
+        "sourceId": "evp_finance",
+        "targetId": "dir_legal"
+      },
+      {
+        "id": "e8",
+        "sourceId": "evp_sales",
+        "targetId": "vp_na"
+      },
+      {
+        "id": "e9",
+        "sourceId": "evp_sales",
+        "targetId": "vp_emea"
+      },
+      {
+        "id": "e10",
+        "sourceId": "evp_sales",
+        "targetId": "vp_apac"
+      }
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "1.0.0"
+  },
+  "theme": "muted-rainbow",
+  "title": {
+    "text": "App Authentication Flow"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "oval",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "App Launch"
+          }
+        ],
+        "color": "0",
+        "label": "Start"
+      },
+      {
+        "type": "rhombus",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "sess_check",
+            "label": "Session Valid?"
+          }
+        ],
+        "color": "1",
+        "label": "Checks"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "show_login",
+            "label": "Show Login UI"
+          },
+          {
+            "id": "auth_api",
+            "label": "Call Auth API"
+          },
+          {
+            "id": "home",
+            "label": "Load Dashboard"
+          }
+        ],
+        "color": "2",
+        "label": "Processes"
+      },
+      {
+        "type": "oval",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "end",
+            "label": "Exit App"
+          }
+        ],
+        "color": "3",
+        "label": "End"
+      }
+    ],
+    "edges": [
+      {
+        "sourceId": "start",
+        "targetId": "sess_check",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "sess_check",
+        "targetId": "home",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Yes"
+      },
+      {
+        "sourceId": "sess_check",
+        "targetId": "show_login",
+        "connectionType": "target",
+        "lineStyle": "dashed",
+        "label": "No"
+      },
+      {
+        "sourceId": "show_login",
+        "targetId": "auth_api",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Submit Creds"
+      },
+      {
+        "sourceId": "auth_api",
+        "targetId": "sess_check",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Token Received"
+      },
+      {
+        "sourceId": "home",
+        "targetId": "end",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Logout"
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "type": "cci_project",
+  "title": "OAuth 2.0 Flow",
+  "aspect": "16:9",
+  "diagramType": "sequence",
+  "theme": "blue-orange",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "parties",
+            "label": "User",
+            "id": "user_1"
+          },
+          {
+            "groupId": "parties",
+            "label": "App",
+            "id": "app_2"
+          },
+          {
+            "groupId": "parties",
+            "label": "Auth Server",
+            "id": "auth_server_3"
+          },
+          {
+            "groupId": "parties",
+            "label": "API Server",
+            "id": "api_server_4"
+          }
+        ],
+        "label": "parties",
+        "id": "g_1"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "label": "Login",
+        "sourceId": "user_1",
+        "targetId": "app_2"
+      },
+      {
+        "id": "e2",
+        "label": "Auth Code",
+        "sourceId": "app_2",
+        "targetId": "auth_server_3"
+      },
+      {
+        "id": "e3",
+        "label": "Consent",
+        "sourceId": "auth_server_3",
+        "targetId": "user_1"
+      },
+      {
+        "id": "e4",
+        "label": "Approve",
+        "sourceId": "user_1",
+        "targetId": "auth_server_3"
+      },
+      {
+        "id": "e5",
+        "label": "Token",
+        "sourceId": "auth_server_3",
+        "targetId": "app_2"
+      },
+      {
+        "id": "e6",
+        "label": "Fetch",
+        "sourceId": "app_2",
+        "targetId": "api_server_4"
+      },
+      {
+        "id": "e7",
+        "label": "Data",
+        "sourceId": "api_server_4",
+        "targetId": "app_2"
+      }
+    ]
+  }
+}

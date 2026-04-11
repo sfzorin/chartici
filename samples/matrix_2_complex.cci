@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "type": "matrix",
+    "version": "1.0.0"
+  },
+  "theme": "green-purple",
+  "title": {
+    "text": "Feature Roadmap 2026"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "q1_1",
+            "label": "Core API V3"
+          },
+          {
+            "id": "q1_2",
+            "label": "Graph DB Migration"
+          }
+        ],
+        "color": "4",
+        "label": "Q1"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "q2_1",
+            "label": "Mobile App Launch"
+          },
+          {
+            "id": "q2_2",
+            "label": "SSO Support"
+          }
+        ],
+        "color": "5",
+        "label": "Q2"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "q3_1",
+            "label": "AI Agent Integrations"
+          },
+          {
+            "id": "q3_2",
+            "label": "Voice Commands"
+          }
+        ],
+        "color": "6",
+        "label": "Q3"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "bg1",
+            "label": "Dark Theme Tweaks"
+          },
+          {
+            "id": "bg2",
+            "label": "Accessibility API"
+          }
+        ],
+        "color": "7",
+        "label": "Backlog"
+      }
+    ],
+    "edges": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "type": "piechart",
+    "version": "1.0.0"
+  },
+  "theme": "muted-rainbow",
+  "title": {
+    "text": "Resource Allocation"
+  },
+  "data": {
+    "nodes": [
+      {
+        "id": "slice_1",
+        "label": "Engineering Budget",
+        "value": 45
+      },
+      {
+        "id": "slice_2",
+        "label": "Marketing Budget",
+        "value": 30
+      },
+      {
+        "id": "slice_3",
+        "label": "Office & Admin",
+        "value": 15
+      },
+      {
+        "id": "slice_4",
+        "label": "Legal Reserve",
+        "value": 10
+      }
+    ]
+  }
+}

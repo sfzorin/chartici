@@ -1,0 +1,114 @@
+{
+  "type": "cci_project",
+  "title": "Product Roadmap 2026",
+  "aspect": "16:9",
+  "diagramType": "timeline",
+  "theme": "blue-teal-slate",
+  "data": {
+    "groups": [
+      {
+        "color": 1,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "q1",
+            "label": "Research",
+            "id": "research_1"
+          },
+          {
+            "groupId": "q1",
+            "label": "Prototype",
+            "id": "prototype_2"
+          }
+        ],
+        "label": "q1",
+        "id": "g_1"
+      },
+      {
+        "color": 3,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "q2",
+            "label": "Alpha Build",
+            "id": "alpha_build_3"
+          },
+          {
+            "groupId": "q2",
+            "label": "User Testing",
+            "id": "user_testing_4"
+          }
+        ],
+        "label": "q2",
+        "id": "g_2"
+      },
+      {
+        "color": 5,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "q3",
+            "label": "Public Beta",
+            "id": "public_beta_5"
+          },
+          {
+            "groupId": "q3",
+            "label": "Iterate",
+            "id": "iterate_6"
+          }
+        ],
+        "label": "q3",
+        "id": "g_3"
+      },
+      {
+        "color": 7,
+        "type": "rect",
+        "size": "L",
+        "nodes": [
+          {
+            "groupId": "q4",
+            "label": "Launch",
+            "id": "launch_7"
+          }
+        ],
+        "label": "q4",
+        "id": "g_4"
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "sourceId": "research_1",
+        "targetId": "prototype_2"
+      },
+      {
+        "id": "e2",
+        "sourceId": "prototype_2",
+        "targetId": "alpha_build_3"
+      },
+      {
+        "id": "e3",
+        "sourceId": "alpha_build_3",
+        "targetId": "user_testing_4"
+      },
+      {
+        "id": "e4",
+        "sourceId": "user_testing_4",
+        "targetId": "public_beta_5"
+      },
+      {
+        "id": "e5",
+        "sourceId": "public_beta_5",
+        "targetId": "iterate_6"
+      },
+      {
+        "id": "e6",
+        "sourceId": "iterate_6",
+        "targetId": "launch_7"
+      }
+    ]
+  }
+}
