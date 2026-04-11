@@ -274,6 +274,7 @@ export function parseCharticiFile(fileContent) {
       (coreData.groups || []).forEach(rawG => {
         if (!rawG.parentId) return;
         (rawG.nodes || []).forEach(n => {
+          if (String(rawG.parentId) === String(n.id)) return; // skip self-loops (parent node inside own group)
           implicitEdges.push({
             id: idGen(), from: String(rawG.parentId), to: String(n.id),
             lineStyle: 'solid', connectionType: 'none'
