@@ -238,12 +238,66 @@ export function parseCharticiFile(fileContent) {
        finalConfig.diagramType = metaData.type;
     }
 
-      // Merge all edge sources: v3.0.0 uses type-specific keys, fallback to generic 'edges'
+      // Merge all explicit edge sources: v3.0.0 uses type-specific keys, fallback to generic 'edges'
       const rawEdges = coreData.relationships || coreData.messages || coreData.edges || [];
+      const explicitEdges = resolveEdges(rawEdges);
+
+      // Expand implicit structural references (nextSteps / parentId / spineId) into runtime edges
+      const implicitEdges = [];
+      const idGen = () => `ie_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Build group lookup: nodeId → groupId
+      const nodeGroupMap = {};
+      cleanGroups.forEach(g => {
+        (coreData.groups || []).forEach(rawG => {
+          (rawG.nodes || []).forEach(n => { nodeGroupMap[n.id] = rawG.parentId; });
+        });
+      });
+
+      // 1. nextSteps on nodes → outbound arrows
+      flatNodes.forEach(n => {
+        if (!n.nextSteps) return;
+        const parts = String(n.nextSteps).split(',').map(s => s.trim()).filter(Boolean);
+        parts.forEach(step => {
+          const m = step.match(/^([^\[]+)(?:\[([^\]]*)\])?$/);
+          if (!m) return;
+          const targetId = m[1].trim();
+          const label = m[2] ? m[2].trim() : undefined;
+          implicitEdges.push({
+            id: idGen(), from: String(n.id), to: String(targetId),
+            label, lineStyle: 'solid', connectionType: 'target'
+          });
+        });
+      });
+
+      // 2. group.parentId → edges from parentId to every node in that group
+      (coreData.groups || []).forEach(rawG => {
+        if (!rawG.parentId) return;
+        (rawG.nodes || []).forEach(n => {
+          implicitEdges.push({
+            id: idGen(), from: String(rawG.parentId), to: String(n.id),
+            lineStyle: 'solid', connectionType: 'none'
+          });
+        });
+      });
+
+      // 3. node.spineId → edge from spineId chevron to that event node
+      flatNodes.forEach(n => {
+        if (!n.spineId) return;
+        implicitEdges.push({
+          id: idGen(), from: String(n.spineId), to: String(n.id),
+          lineStyle: 'dashed', connectionType: 'none'
+        });
+      });
+
+      // Deduplicate implicit against explicit (directed key)
+      const existingKeys = new Set(explicitEdges.map(e => `${e.from}::${e.to}`));
+      const uniqueImplicit = implicitEdges.filter(e => !existingKeys.has(`${e.from}::${e.to}`));
+
       return {
         groups: cleanGroups,
         nodes: flatNodes,
-        edges: resolveEdges(rawEdges),
+        edges: [...explicitEdges, ...uniqueImplicit],
         config: finalConfig
       };
   } catch (error) {
