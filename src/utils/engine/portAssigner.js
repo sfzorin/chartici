@@ -6,6 +6,7 @@
  * and delegating heavy lifting to A* Priority Queue.
  */
 import { getTrueBox, getNodePorts, isSegmentBlockedCheck } from './geometry.js';
+import { getEngine } from '../../engines/index.js';
 
 /**
  * Assign ports for all edges.
@@ -17,7 +18,9 @@ import { getTrueBox, getNodePorts, isSegmentBlockedCheck } from './geometry.js';
 export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false, ctx = null) {
   const nodeMap = new Map(nodes.map(n => [n.id, n]));
   const result = new Map();
-  const isTree = diagramType === 'tree';
+  const engine = getEngine(diagramType);
+  const penaltyMode = engine?.routing?.penaltyMode || 'flowchart';
+  const isTree = penaltyMode === 'tree';
 
   // For trees ONLY: we need to find the shared Golden port
   const treeExitAssignments = new Map();

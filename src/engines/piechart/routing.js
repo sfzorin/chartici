@@ -1,4 +1,7 @@
+// Routing config for piechart
+// penaltyMode: 'tree' | 'flowchart' | 'none'
+// Used by portAssigner.js to select the correct penalty strategy
 export default {
-    getPortAssignment: (source, target) => ({ sourcePort: 'bottom', targetPort: 'top' }),
-    getAStarPenalties: () => ({})
+    penaltyMode: 'none',
+    isHorizontalFlow: false
 };
