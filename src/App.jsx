@@ -50,7 +50,10 @@ function App() {
     
     if (activeSchema) {
         // Hide nodes that are not supported by the current schema (except title/text attachments if applicable)
-        outNodes = outNodes.filter(n => activeSchema.allowedNodes.includes(n.type) || n.type === 'title' || n.type === 'text');
+        outNodes = outNodes.map(n => {
+            if (diagramType === 'piechart' && n.type !== 'text' && n.type !== 'title') return { ...n, type: 'pie_slice' };
+            return n;
+        }).filter(n => activeSchema.allowedNodes.includes(n.type) || n.type === 'title' || n.type === 'text');
         
         // Hide edges if the diagram does not support connections, or if they connect to unsupported hidden nodes
         if (!activeSchema.features.allowConnections) {
@@ -672,7 +675,7 @@ function App() {
         id: '__SYSTEM_TITLE__',
         type: 'title',
         label: diagramTitle,
-        size: diagramData.config?.titleSize || 'AUTO',
+        size: diagramData.config?.titleSize || 'M',
         x: diagramData.config?.titleX,
         y: diagramData.config?.titleY,
         lockPos: diagramData.config?.titleLock || false
@@ -721,8 +724,9 @@ function App() {
           <DiagramRenderer 
             initialData={filteredData} 
             theme={paletteTheme}
+            appTheme={appTheme}
             svgRef={svgRef} 
-            aspectRatio={aspect} 
+            aspectRatio={aspect}  
             bgColor={bgColor} 
             selectedNodeId={selectedNodeId}
             onNodeSelect={handleSelectNode}

@@ -3,7 +3,7 @@
     "type": "radial",
     "version": "1.0.0"
   },
-  "theme": "purple",
+  "theme": "blue-teal-slate",
   "title": {
     "text": "Global Database Architecture"
   },
@@ -15,10 +15,11 @@
         "nodes": [
           {
             "id": "center",
-            "label": "Master Relational Node"
+            "label": "Master Relational Node",
+            "type": "process"
           }
         ],
-        "color": "6",
+        "color": "0",
         "label": "Core"
       },
       {
@@ -27,18 +28,21 @@
         "nodes": [
           {
             "id": "r1",
-            "label": "EU Replica"
+            "label": "EU Replica",
+            "type": "process"
           },
           {
             "id": "r2",
-            "label": "US Replica"
+            "label": "US Replica",
+            "type": "process"
           },
           {
             "id": "r3",
-            "label": "Asia Replica"
+            "label": "Asia Replica",
+            "type": "process"
           }
         ],
-        "color": "7",
+        "color": "1",
         "label": "Replicas"
       },
       {
@@ -47,14 +51,16 @@
         "nodes": [
           {
             "id": "c1",
-            "label": "Redis Cluster"
+            "label": "Redis Cluster",
+            "type": "process"
           },
           {
             "id": "c2",
-            "label": "Memcached V2"
+            "label": "Memcached V2",
+            "type": "process"
           }
         ],
-        "color": "0",
+        "color": "2",
         "label": "Caching"
       },
       {
@@ -63,14 +69,16 @@
         "nodes": [
           {
             "id": "a1",
-            "label": "Snowflake Sink"
+            "label": "Snowflake Sink",
+            "type": "process"
           },
           {
             "id": "a2",
-            "label": "Metabase"
+            "label": "Metabase",
+            "type": "process"
           }
         ],
-        "color": "1",
+        "color": "3",
         "label": "Analytics Sync"
       }
     ],

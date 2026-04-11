@@ -3,9 +3,9 @@
     "type": "matrix",
     "version": "1.0.0"
   },
-  "theme": "green-purple",
+  "theme": "blue-orange",
   "title": {
-    "text": "Feature Roadmap 2026"
+    "text": "9-Box Talent Assessment Grid"
   },
   "data": {
     "groups": [
@@ -14,64 +14,187 @@
         "size": "L",
         "nodes": [
           {
-            "id": "q1_1",
-            "label": "Core API V3"
+            "id": "s1",
+            "label": "Alice L.",
+            "type": "process"
           },
           {
-            "id": "q1_2",
-            "label": "Graph DB Migration"
+            "id": "s2",
+            "label": "Bob M.",
+            "type": "process"
+          },
+          {
+            "id": "s3",
+            "label": "Charlie D.",
+            "type": "process"
           }
         ],
         "color": "4",
-        "label": "Q1"
+        "label": "High Perf / High Pot (Stars)"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "q2_1",
-            "label": "Mobile App Launch"
+            "id": "hp1",
+            "label": "David K.",
+            "type": "process"
           },
           {
-            "id": "q2_2",
-            "label": "SSO Support"
+            "id": "hp2",
+            "label": "Eve R.",
+            "type": "process"
           }
         ],
         "color": "5",
-        "label": "Q2"
+        "label": "Mid Perf / High Pot (High Potentials)"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "q3_1",
-            "label": "AI Agent Integrations"
+            "id": "en1",
+            "label": "Frank T.",
+            "type": "process"
           },
           {
-            "id": "q3_2",
-            "label": "Voice Commands"
+            "id": "en2",
+            "label": "Grace V.",
+            "type": "process"
           }
         ],
         "color": "6",
-        "label": "Q3"
+        "label": "Low Perf / High Pot (Enigmas)"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "pro1",
+            "label": "Heidi S.",
+            "type": "process"
+          },
+          {
+            "id": "pro2",
+            "label": "Ivan J.",
+            "type": "process"
+          },
+          {
+            "id": "pro3",
+            "label": "Judy H.",
+            "type": "process"
+          },
+          {
+            "id": "pro4",
+            "label": "Karl W.",
+            "type": "process"
+          }
+        ],
+        "color": "7",
+        "label": "High Perf / Mid Pot (High Pros)"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "core1",
+            "label": "Leo P.",
+            "type": "process"
+          },
+          {
+            "id": "core2",
+            "label": "Mía G.",
+            "type": "process"
+          },
+          {
+            "id": "core3",
+            "label": "Noah C.",
+            "type": "process"
+          }
+        ],
+        "color": "0",
+        "label": "Mid Perf / Mid Pot (Core Players)"
       },
       {
         "type": "process",
         "size": "S",
         "nodes": [
           {
-            "id": "bg1",
-            "label": "Dark Theme Tweaks"
+            "id": "inc1",
+            "label": "Olivia F.",
+            "type": "process"
           },
           {
-            "id": "bg2",
-            "label": "Accessibility API"
+            "id": "inc2",
+            "label": "Paul B.",
+            "type": "process"
           }
         ],
-        "color": "7",
-        "label": "Backlog"
+        "color": "1",
+        "label": "Low Perf / Mid Pot (Inconsistent)"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "wh1",
+            "label": "Quinn N.",
+            "type": "process"
+          },
+          {
+            "id": "wh2",
+            "label": "Ryan X.",
+            "type": "process"
+          },
+          {
+            "id": "wh3",
+            "label": "Sara Z.",
+            "type": "process"
+          }
+        ],
+        "color": "2",
+        "label": "High Perf / Low Pot (Workhorses)"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "eff1",
+            "label": "Tom A.",
+            "type": "process"
+          },
+          {
+            "id": "eff2",
+            "label": "Uma Y.",
+            "type": "process"
+          }
+        ],
+        "color": "3",
+        "label": "Mid Perf / Low Pot (Effective)"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "rsk1",
+            "label": "Victor Q.",
+            "type": "process"
+          },
+          {
+            "id": "rsk2",
+            "label": "Wendy O.",
+            "type": "process"
+          }
+        ],
+        "color": "4",
+        "label": "Low Perf / Low Pot (Risk)"
       }
     ],
     "edges": []

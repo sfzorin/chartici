@@ -3,9 +3,9 @@
     "type": "sequence",
     "version": "1.0.0"
   },
-  "theme": "blue",
+  "theme": "muted-rainbow",
   "title": {
-    "text": "OAuth 2.0 Web Flow"
+    "text": "Distributed Async Messaging"
   },
   "data": {
     "groups": [
@@ -14,118 +14,135 @@
         "size": "M",
         "nodes": [
           {
-            "id": "w1",
-            "label": "Init Login"
+            "id": "p1",
+            "label": "Publish Event",
+            "type": "process"
           },
           {
-            "id": "w2",
-            "label": "Receive Code"
-          },
-          {
-            "id": "w3",
-            "label": "Store Token"
+            "id": "p2",
+            "label": "Log ACK",
+            "type": "process"
           }
         ],
-        "color": "0",
-        "label": "Web App"
+        "color": "4",
+        "label": "Producer"
       },
       {
         "type": "process",
         "size": "L",
         "nodes": [
           {
-            "id": "a1",
-            "label": "Validate App"
+            "id": "k1",
+            "label": "Receive & Partition",
+            "type": "process"
           },
           {
-            "id": "a2",
-            "label": "Exchange Token"
+            "id": "k2",
+            "label": "Commit to Disk",
+            "type": "process"
           },
           {
-            "id": "a3",
-            "label": "Issue Cookie"
+            "id": "k3",
+            "label": "Dispatch to Subs",
+            "type": "process"
           }
         ],
-        "color": "1",
-        "label": "Auth Gateway"
+        "color": "5",
+        "label": "Message Broker"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "o1",
-            "label": "Show Consent"
+            "id": "ca1",
+            "label": "Consume Topic",
+            "type": "process"
           },
           {
-            "id": "o2",
-            "label": "Redirect Back"
-          },
-          {
-            "id": "o3",
-            "label": "Validate Secret"
+            "id": "ca2",
+            "label": "Update Database",
+            "type": "process"
           }
         ],
-        "color": "2",
-        "label": "OAuth Provider"
+        "color": "6",
+        "label": "Consumer A"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "cb1",
+            "label": "Read Event",
+            "type": "process"
+          },
+          {
+            "id": "cb2",
+            "label": "Send Mail",
+            "type": "process"
+          }
+        ],
+        "color": "7",
+        "label": "Consumer B"
       }
     ],
     "edges": [
       {
-        "sourceId": "w1",
-        "targetId": "a1",
+        "sourceId": "p1",
+        "targetId": "k1",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Click Login"
+        "label": "Topic(Order)"
       },
       {
-        "sourceId": "a1",
-        "targetId": "o1",
+        "sourceId": "k1",
+        "targetId": "k2",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Redirect to Provider"
+        "label": "I/O"
       },
       {
-        "sourceId": "o1",
-        "targetId": "o2",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "User Accepts"
-      },
-      {
-        "sourceId": "o2",
-        "targetId": "w2",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "302 Redirect ?code="
-      },
-      {
-        "sourceId": "w2",
-        "targetId": "a2",
+        "sourceId": "k2",
+        "targetId": "ca1",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "POST Code"
+        "label": "Pull Request A"
       },
       {
-        "sourceId": "a2",
-        "targetId": "o3",
+        "sourceId": "ca1",
+        "targetId": "ca2",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Exchange code"
+        "label": "DB Transaction"
       },
       {
-        "sourceId": "o3",
-        "targetId": "a3",
+        "sourceId": "ca2",
+        "targetId": "k3",
         "connectionType": "target",
         "lineStyle": "dashed",
-        "label": "200 OK JWT"
+        "label": "ACK Offset A"
       },
       {
-        "sourceId": "a3",
-        "targetId": "w3",
+        "sourceId": "k3",
+        "targetId": "cb1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Push to B"
+      },
+      {
+        "sourceId": "cb1",
+        "targetId": "cb2",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "SMTP"
+      },
+      {
+        "sourceId": "cb2",
+        "targetId": "p2",
         "connectionType": "target",
         "lineStyle": "dashed",
-        "label": "Set-Cookie"
+        "label": "Final End-to-End ACK"
       }
     ]
   }

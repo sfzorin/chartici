@@ -12,32 +12,44 @@
       {
         "id": "c1",
         "label": "EC2 Instances",
-        "value": 40.5
+        "type": "pie_slice",
+        "value": 40.5,
+        "color": 1
       },
       {
         "id": "c2",
         "label": "RDS Postgres",
-        "value": 22.8
+        "type": "pie_slice",
+        "value": 22.8,
+        "color": 2
       },
       {
         "id": "c3",
         "label": "S3 Storage",
-        "value": 15.2
+        "type": "pie_slice",
+        "value": 15.2,
+        "color": 3
       },
       {
         "id": "c4",
         "label": "CloudFront CDN",
-        "value": 10
+        "type": "pie_slice",
+        "value": 10,
+        "color": 4
       },
       {
         "id": "c5",
         "label": "Elasticache Redis",
-        "value": 8.3
+        "type": "pie_slice",
+        "value": 8.3,
+        "color": 5
       },
       {
         "id": "c6",
         "label": "Route 53 DNS",
-        "value": 3.2
+        "type": "pie_slice",
+        "value": 3.2,
+        "color": 6
       }
     ]
   }

@@ -3,7 +3,7 @@
     "type": "sequence",
     "version": "1.0.0"
   },
-  "theme": "blue",
+  "theme": "blue-orange",
   "title": {
     "text": "OAuth 2.0 Web Flow"
   },
@@ -15,18 +15,21 @@
         "nodes": [
           {
             "id": "w1",
-            "label": "Init Login"
+            "label": "Init Login",
+            "type": "process"
           },
           {
             "id": "w2",
-            "label": "Receive Code"
+            "label": "Receive Code",
+            "type": "process"
           },
           {
             "id": "w3",
-            "label": "Store Token"
+            "label": "Store Token",
+            "type": "process"
           }
         ],
-        "color": "0",
+        "color": "1",
         "label": "Web App"
       },
       {
@@ -35,18 +38,21 @@
         "nodes": [
           {
             "id": "a1",
-            "label": "Validate App"
+            "label": "Validate App",
+            "type": "process"
           },
           {
             "id": "a2",
-            "label": "Exchange Token"
+            "label": "Exchange Token",
+            "type": "process"
           },
           {
             "id": "a3",
-            "label": "Issue Cookie"
+            "label": "Issue Cookie",
+            "type": "process"
           }
         ],
-        "color": "1",
+        "color": "2",
         "label": "Auth Gateway"
       },
       {
@@ -55,18 +61,21 @@
         "nodes": [
           {
             "id": "o1",
-            "label": "Show Consent"
+            "label": "Show Consent",
+            "type": "process"
           },
           {
             "id": "o2",
-            "label": "Redirect Back"
+            "label": "Redirect Back",
+            "type": "process"
           },
           {
             "id": "o3",
-            "label": "Validate Secret"
+            "label": "Validate Secret",
+            "type": "process"
           }
         ],
-        "color": "2",
+        "color": "3",
         "label": "OAuth Provider"
       }
     ],

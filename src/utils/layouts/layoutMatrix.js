@@ -33,10 +33,14 @@ export function layoutMatrix(nodes, edges, layoutRules) {
   }
 
   // Calculate grid dimensions for groups
-  const groupIds = [...groups.keys()];
+  let groupIds = [...groups.keys()];
   if (orphans.length > 0) {
     groupIds.push('__orphans__');
     groups.set('__orphans__', orphans);
+  }
+  
+  if (groupIds.length > 12) {
+    groupIds = groupIds.slice(0, 12);
   }
 
   const gridCols = Math.ceil(Math.sqrt(groupIds.length));

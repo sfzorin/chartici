@@ -22,9 +22,17 @@ export function sanitizeColors(elements, isNode, groups = [], safeIndices = [1, 
       }
 
       let resolvedColor;
-      let gId = getGroupId(el);
-      let g = groups?.find(gx => gx.id === gId);
-      resolvedColor = g?.color;
+      if (el.type === 'pie_slice') {
+          resolvedColor = el.color;
+      } else {
+          let gId = getGroupId(el);
+          let g = groups?.find(gx => gx.id === gId);
+          if (g?.color !== undefined) {
+             resolvedColor = g.color;
+          } else {
+             resolvedColor = el.color;
+          }
+      }
 
       if (resolvedColor === undefined || resolvedColor === null || String(resolvedColor).toLowerCase() === 'transparent') {
          const chosen = safeIndices[autoIndexTracker.current % safeIndices.length];
@@ -34,7 +42,7 @@ export function sanitizeColors(elements, isNode, groups = [], safeIndices = [1, 
 
       const c = resolvedColor;
 
-      if (typeof c === 'number' && c >= 0 && c <= 19) return el;
+      if (typeof c === 'number' && c >= 0 && c <= 19) return { ...el, color: c };
       if (typeof c === 'string') {
         const parsed = parseInt(c, 10);
         if (!isNaN(parsed) && parsed >= 0 && parsed <= 19) {

@@ -84,8 +84,10 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
           });
       } else {
           const out = { ...n };
-          delete out.w;
-          delete out.h;
+          if (out.type !== 'pie_slice') {
+              delete out.w;
+              delete out.h;
+          }
           delete out.subTreeBreadth;
           
           out.x = Math.round(out.x / 20) * 20;

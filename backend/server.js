@@ -3,9 +3,9 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MOONSHOT_API_KEY = process.env.MOONSHOT_API_KEY;
-const MOONSHOT_API_URL = 'https://api.moonshot.cn/v1/chat/completions';
-const MOONSHOT_TIMEOUT_MS = 120_000; // 120 seconds
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_TIMEOUT_MS = 120_000; // 120 seconds
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/generate', async (req, res) => {
   const startTime = Date.now();
   const ip = getClientIP(req);
-  let model = 'moonshot-v1-128k';
+  let model = 'deepseek-chat';
 
   try {
     // ── Validate input ──
@@ -88,25 +88,25 @@ app.post('/api/generate', async (req, res) => {
     }
 
     // ── Check API key ──
-    if (!MOONSHOT_API_KEY) {
-      console.error(`[${timestamp()}] MOONSHOT_API_KEY is not set!`);
+    if (!DEEPSEEK_API_KEY) {
+      console.error(`[${timestamp()}] DEEPSEEK_API_KEY is not set!`);
       return res.status(500).json({
         success: false,
         error: 'Internal server error',
       });
     }
 
-    // ── Call Moonshot API ──
+    // ── Call DeepSeek API ──
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), MOONSHOT_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), DEEPSEEK_TIMEOUT_MS);
 
-    let moonshotRes;
+    let deepseekRes;
     try {
-      moonshotRes = await fetch(MOONSHOT_API_URL, {
+      deepseekRes = await fetch(DEEPSEEK_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${MOONSHOT_API_KEY}`,
+          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
         },
         body: JSON.stringify({
           model,
@@ -129,7 +129,7 @@ app.post('/api/generate', async (req, res) => {
         });
       }
 
-      console.error(`[${timestamp()}] Moonshot fetch error:`, err.message);
+      console.error(`[${timestamp()}] DeepSeek fetch error:`, err.message);
       console.log(
         `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 502`
       );
@@ -141,9 +141,9 @@ app.post('/api/generate', async (req, res) => {
 
     clearTimeout(timeoutId);
 
-    // ── Handle Moonshot errors ──
-    if (!moonshotRes.ok) {
-      const status = moonshotRes.status;
+    // ── Handle DeepSeek errors ──
+    if (!deepseekRes.ok) {
+      const status = deepseekRes.status;
       let errorMsg = 'AI service error';
 
       if (status === 401 || status === 403) {
@@ -151,7 +151,7 @@ app.post('/api/generate', async (req, res) => {
       }
 
       console.error(
-        `[${timestamp()}] Moonshot API returned ${status}`
+        `[${timestamp()}] DeepSeek API returned ${status}`
       );
       console.log(
         `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 502`
@@ -163,11 +163,11 @@ app.post('/api/generate', async (req, res) => {
     }
 
     // ── Parse response ──
-    const data = await moonshotRes.json();
+    const data = await deepseekRes.json();
     const content = data?.choices?.[0]?.message?.content;
 
     if (content === undefined || content === null) {
-      console.error(`[${timestamp()}] Moonshot returned no content in choices`);
+      console.error(`[${timestamp()}] DeepSeek returned no content in choices`);
       console.log(
         `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 502`
       );
@@ -202,5 +202,5 @@ app.post('/api/generate', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[${timestamp()}] Chartici API proxy listening on port ${PORT}`);
-  console.log(`[${timestamp()}] Moonshot API key: ${MOONSHOT_API_KEY ? '✓ set' : '✗ NOT SET'}`);
+  console.log(`[${timestamp()}] DeepSeek API key: ${DEEPSEEK_API_KEY ? '✓ set' : '✗ NOT SET'}`);
 });

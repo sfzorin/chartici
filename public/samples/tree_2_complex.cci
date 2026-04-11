@@ -3,113 +3,258 @@
     "type": "tree",
     "version": "1.0.0"
   },
+  "theme": "slate-rose",
   "title": {
-    "text": "Directory Structure Schema"
+    "text": "Corporate Org Chart"
   },
   "data": {
     "groups": [
       {
         "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "board",
+            "label": "Board of Directors",
+            "type": "process"
+          },
+          {
+            "id": "ceo",
+            "label": "CEO",
+            "type": "process"
+          }
+        ],
+        "color": "5",
+        "label": "Executive"
+      },
+      {
+        "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "f_root",
-            "label": "src/"
+            "id": "vp_eng",
+            "label": "VP Engineering",
+            "type": "process"
           },
           {
-            "id": "f_com",
-            "label": "components/"
+            "id": "eng1",
+            "label": "Frontend Lead",
+            "type": "process"
           },
           {
-            "id": "f_btn",
-            "label": "Button.jsx"
+            "id": "eng2",
+            "label": "Backend Lead",
+            "type": "process"
           },
           {
-            "id": "f_nav",
-            "label": "Navbar.jsx"
+            "id": "eng3",
+            "label": "DevOps Lead",
+            "type": "process"
           },
           {
-            "id": "f_util",
-            "label": "utils/"
+            "id": "eng4",
+            "label": "QA Lead",
+            "type": "process"
           },
           {
-            "id": "f_hlp",
-            "label": "helpers.js"
+            "id": "eng5",
+            "label": "Data Lead",
+            "type": "process"
           },
           {
-            "id": "f_api",
-            "label": "api.js"
+            "id": "eng6",
+            "label": "Mobile Lead",
+            "type": "process"
           },
           {
-            "id": "f_st",
-            "label": "store/"
+            "id": "eng7",
+            "label": "Security Lead",
+            "type": "process"
           },
           {
-            "id": "f_rdx",
-            "label": "index.js"
+            "id": "eng8",
+            "label": "Architecture Lead",
+            "type": "process"
           },
           {
-            "id": "f_auth",
-            "label": "auth.js"
+            "id": "eng9",
+            "label": "AI Strategy",
+            "type": "process"
           }
         ],
-        "color": "1",
-        "label": "Repository"
+        "color": "6",
+        "label": "Engineering Branch"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "vp_sales",
+            "label": "VP Global Sales",
+            "type": "process"
+          },
+          {
+            "id": "sales1",
+            "label": "North America",
+            "type": "process"
+          },
+          {
+            "id": "sales2",
+            "label": "EMEA Regions",
+            "type": "process"
+          },
+          {
+            "id": "sales3",
+            "label": "APAC Regions",
+            "type": "process"
+          },
+          {
+            "id": "sales4",
+            "label": "LATAM Regions",
+            "type": "process"
+          }
+        ],
+        "color": "7",
+        "label": "Sales Branch"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "vp_hr",
+            "label": "VP HR",
+            "type": "process"
+          },
+          {
+            "id": "hr1",
+            "label": "Talent Acquisition",
+            "type": "process"
+          },
+          {
+            "id": "hr2",
+            "label": "Compliance",
+            "type": "process"
+          }
+        ],
+        "color": "0",
+        "label": "HR Branch"
       }
     ],
     "edges": [
       {
-        "sourceId": "f_root",
-        "targetId": "f_com",
-        "connectionType": "none",
+        "sourceId": "board",
+        "targetId": "ceo",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_root",
-        "targetId": "f_util",
-        "connectionType": "none",
+        "sourceId": "ceo",
+        "targetId": "vp_eng",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_root",
-        "targetId": "f_st",
-        "connectionType": "none",
+        "sourceId": "ceo",
+        "targetId": "vp_sales",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_com",
-        "targetId": "f_btn",
-        "connectionType": "none",
+        "sourceId": "ceo",
+        "targetId": "vp_hr",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_com",
-        "targetId": "f_nav",
-        "connectionType": "none",
+        "sourceId": "vp_eng",
+        "targetId": "eng1",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_util",
-        "targetId": "f_hlp",
-        "connectionType": "none",
+        "sourceId": "vp_eng",
+        "targetId": "eng2",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_util",
-        "targetId": "f_api",
-        "connectionType": "none",
+        "sourceId": "vp_eng",
+        "targetId": "eng3",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_st",
-        "targetId": "f_rdx",
-        "connectionType": "none",
+        "sourceId": "vp_eng",
+        "targetId": "eng4",
+        "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "f_st",
-        "targetId": "f_auth",
-        "connectionType": "none",
+        "sourceId": "vp_eng",
+        "targetId": "eng5",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_eng",
+        "targetId": "eng6",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_eng",
+        "targetId": "eng7",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_eng",
+        "targetId": "eng8",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_eng",
+        "targetId": "eng9",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_sales",
+        "targetId": "sales1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_sales",
+        "targetId": "sales2",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_sales",
+        "targetId": "sales3",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_sales",
+        "targetId": "sales4",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_hr",
+        "targetId": "hr1",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "vp_hr",
+        "targetId": "hr2",
+        "connectionType": "target",
         "lineStyle": "solid"
       }
     ]

@@ -6,14 +6,14 @@ import { promptExamples } from '../assets/prompts';
 import charticiLogo from '../assets/chartici-logo.svg';
 
 // Sample imports for "Examples" row
-import sampleERD from '../assets/samples/erd_1_medium.cci?raw';
-import sampleFlowchart from '../assets/samples/flowchart_1_medium.cci?raw';
-import sampleMatrix from '../assets/samples/matrix_1_medium.cci?raw';
-import sampleRadial from '../assets/samples/radial_1_medium.cci?raw';
-import sampleSequence from '../assets/samples/sequence_1_medium.cci?raw';
-import sampleTimeline from '../assets/samples/timeline_1_medium.cci?raw';
-import sampleTree from '../assets/samples/tree_1_medium.cci?raw';
-import samplePiechart from '../assets/samples/piechart_1_medium.cci?raw';
+import sampleERD from '../assets/samples/erd_2_complex.cci?raw';
+import sampleFlowchart from '../assets/samples/flowchart_2_complex.cci?raw';
+import sampleMatrix from '../assets/samples/matrix_2_complex.cci?raw';
+import sampleRadial from '../assets/samples/radial_2_complex.cci?raw';
+import sampleSequence from '../assets/samples/sequence_2_complex.cci?raw';
+import sampleTimeline from '../assets/samples/timeline_2_complex.cci?raw';
+import sampleTree from '../assets/samples/tree_2_complex.cci?raw';
+import samplePiechart from '../assets/samples/piechart_2_complex.cci?raw';
 
 const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
     const [isVisible, setIsVisible] = useState(true);

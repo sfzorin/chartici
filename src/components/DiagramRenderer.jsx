@@ -14,6 +14,7 @@ import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 export default function DiagramRenderer({ 
   initialData, 
   theme,
+  appTheme,
   svgRef, 
   aspectRatio = 'auto', 
   bgColor = 'white', 
@@ -79,7 +80,7 @@ export default function DiagramRenderer({
              id: '__SYSTEM_TITLE__',
              type: 'title',
              label: diagramTitle,
-             size: config.titleSize || 'AUTO',
+             size: config.titleSize || 'M',
              x: config.titleX, // Can be undefined, DiagramRenderer will compute fallback
              y: config.titleY
          });
@@ -125,7 +126,18 @@ export default function DiagramRenderer({
 
 
 
-  const computedNodes = useMemo(() => computeBindings(nodes), [nodes]);
+  const computedNodes = useMemo(() => {
+     const bound = computeBindings(nodes);
+     if (diagramType === 'piechart') {
+         return bound.map(n => {
+            if (n.type !== 'text' && n.type !== 'title') {
+                return { ...n, type: 'pie_slice' };
+            }
+            return n;
+         });
+     }
+     return bound;
+  }, [nodes, diagramType]);
   const nodesRef = useRef(nodes);
   const computedNodesRef = useRef(computedNodes);
   
@@ -516,8 +528,11 @@ export default function DiagramRenderer({
      let txtMinX = Infinity, txtMinY = Infinity, txtMaxX = -Infinity, txtMaxY = -Infinity;
      computedNodes.forEach(n => {
         const dim = getNodeDim(n);
-        const l = n.x - dim.width / 2, r = n.x + dim.width / 2;
-        const t = n.y - dim.height / 2, b = n.y + dim.height / 2;
+        const nw = n.type === 'pie_slice' ? dim.width : (n.w || dim.width);
+        const nh = n.type === 'pie_slice' ? dim.height : (n.h || dim.height);
+        const calloutPad = n.type === 'pie_slice' ? 140 : 0;
+        const l = n.x - nw / 2 - calloutPad, r = n.x + nw / 2 + calloutPad;
+        const t = n.y - nh / 2 - calloutPad, b = n.y + nh / 2 + calloutPad;
         if (n.type === 'text' || n.type === 'title') {
            if (l < txtMinX) txtMinX = l; if (r > txtMaxX) txtMaxX = r;
            if (t < txtMinY) txtMinY = t; if (b > txtMaxY) txtMaxY = b;
@@ -539,8 +554,8 @@ export default function DiagramRenderer({
         });
      }
 
-     // Expand boundaries by Matrix Groups
-     if (initialData?.diagramType === 'matrix' && initialData?.groups?.length > 1) {
+     // Expand boundaries by Matrix/Sequence Groups
+     if ((diagramType === 'matrix' || diagramType === 'sequence') && initialData?.groups?.length > 1) {
         const realNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
         initialData.groups.forEach(g => {
            const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
@@ -548,10 +563,12 @@ export default function DiagramRenderer({
            const pad = 30; // Matches rendering logic padding for matrix boxes
            gNodes.forEach(n => {
               const dim = getNodeDim(n);
-              const l = n.x - dim.width / 2 - pad - 8;
-              const r = n.x + dim.width / 2 + pad + 8;
-              const t = n.y - dim.height / 2 - pad - 8;
-              const b = n.y + dim.height / 2 + pad + 8;
+              const nw = n.w || dim.width;
+              const nh = n.h || dim.height;
+              const l = n.x - nw / 2 - pad - 60; // Extra left padding for Sequence labels
+              const r = n.x + nw / 2 + pad + 8;
+              const t = n.y - nh / 2 - pad - 8;
+              const b = n.y + nh / 2 + pad + 8;
               if (l < minX) minX = l; if (r > maxX) maxX = r;
               if (t < minY) minY = t; if (b > maxY) maxY = b;
            });
@@ -562,11 +579,19 @@ export default function DiagramRenderer({
      }
 
      const titleCx = (minX + maxX) / 2;
-     const titleY = minY;
-
+     let titleY = minY;
 
      if (diagramTitle) {
-        minY -= 124;
+        minY -= (diagramType === 'piechart' ? 140 : 204);
+     }
+
+     if (diagramType === 'piechart') {
+         maxX += 330; // Room specifically for the 1.25x legend on the right
+         const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
+         if (pSlicesCount > 0) {
+             const approxLegendH = pSlicesCount * 40 + 24;
+             maxY += (approxLegendH / 2) + 40; // Expand bottom boundary so legend doesn't overlap off canvas
+         }
      }
 
      if (maxX - minX < 200) { minX -= 100; maxX += 100; }
@@ -575,9 +600,10 @@ export default function DiagramRenderer({
      const graphW = maxX - minX;
      const graphH = maxY - minY;
 
-     // Regular nodes: 10% padding each side
-     let pW = graphW / 0.8;
-     let pH = graphH / 0.8;
+     // Regular nodes: 10% padding each side (or 5% for pie charts to keep them huge)
+     const padFactor = diagramType === 'piechart' ? 0.9 : 0.8;
+     let pW = graphW / padFactor;
+     let pH = graphH / padFactor;
 
      // Text nodes: expand paper if they fall outside 3% margin
      if (txtMinX < Infinity) {
@@ -612,18 +638,8 @@ export default function DiagramRenderer({
      const sysTitle = computedNodes.find(n => n.id === '__SYSTEM_TITLE__');
      if (sysTitle) {
         // Note: computeBindings() creates fresh node objects, so these assignments are safe
-        if (sysTitle.x === undefined) sysTitle.x = titleCx;
-        if (sysTitle.y === undefined) sysTitle.y = titleY - (diagramTitle ? 100 : 0);
-        
-        if (sysTitle.size === 'AUTO') {
-            const lines = (sysTitle.label || "").split('\n');
-            const longestLine = Math.max(...lines.map(line => line.length));
-            const targetFontSize = (pW - 120) / Math.max(longestLine * 0.62, 1);
-            
-            if (targetFontSize < 36) sysTitle.size = 'S';
-            else if (targetFontSize < 56) sysTitle.size = 'M';
-            else sysTitle.size = 'L';
-        }
+        if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
+        if (sysTitle.y === undefined) sysTitle.y = titleY - (diagramTitle ? 80 : 0);
      }
      
      return {
@@ -671,26 +687,39 @@ export default function DiagramRenderer({
     }
   }, [pendingZoom, vW, vH, handleZoomFit]);
 
-  let fillStr = 'var(--canvas-bg)';
-  let gridColorStr = 'var(--grid-line-color)';
-  let dEdge = 'var(--edge-color)';
-  let dText = 'var(--color-text-main)';
-  let dGroup = 'var(--color-neutral-text)'; // Default secondary/neutral color
-
+  let fillStr = 'transparent';
+  let gridColorStr = 'rgba(255, 255, 255, 0.08)';
+  let dEdge = '#cbd5e1';
+  let dText = '#f8fafc';
+  let dGroup = '#64748b'; 
+  let isCanvasDark = true;
 
   if (bgColor === 'white') {
     fillStr = '#FFFFFF';
     gridColorStr = 'rgba(0, 0, 0, 0.05)';
     dEdge = '#475569';
     dText = '#0f172a';
-    dGroup = '#94a3b8'; // Slate 400 (lighter than edge on white)
+    dGroup = '#94a3b8';
+    isCanvasDark = false;
   } else if (bgColor === 'black') {
     fillStr = '#000000';
     gridColorStr = 'rgba(255, 255, 255, 0.08)';
     dEdge = '#cbd5e1';
     dText = '#f8fafc';
-    dGroup = '#64748b'; // Slate 500 (darker than edge on black)
+    dGroup = '#64748b'; 
+    isCanvasDark = true;
+  } else if (bgColor === 'transparent-light') {
+    fillStr = 'transparent';
+    gridColorStr = 'rgba(0, 0, 0, 0.05)';
+    dEdge = '#475569';
+    dText = '#0f172a';
+    dGroup = '#94a3b8';
+    isCanvasDark = false;
   }
+
+  const resolvedCanvasColor = isCanvasDark ? (bgColor === 'black' ? '#000000' : '#0f172a') : '#ffffff';
+  const resolvedLegendBg = isCanvasDark ? '#1e293b' : '#f8fafc';
+  const resolvedLegendStroke = isCanvasDark ? '#334155' : '#e2e8f0';
 
   return (
     <>
@@ -797,6 +826,11 @@ export default function DiagramRenderer({
             });
             const boxes = Object.values(groupBoxes);
             if (boxes.length < 2) return null;
+            
+            // Boxes already have pad=30. We want 80px total left margin and 60px right margin.
+            const globalLeft = Math.min(...boxes.map(b => b.left)) - 50;
+            const globalRight = Math.max(...boxes.map(b => b.right)) + 30;
+            
             return (
               <g className="matrix-grid">
                 {boxes.map((box, i) => (
@@ -804,22 +838,30 @@ export default function DiagramRenderer({
                     {diagramType === 'sequence' ? (
                       <g>
                         <rect
-                          x={vMinX + 40} y={box.top}
-                          width={vW - 80} height={box.bottom - box.top}
+                          x={globalLeft} y={box.top}
+                          width={globalRight - globalLeft} height={box.bottom - box.top}
                           fill="var(--diagram-group)" fillOpacity="0.04"
                           stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="4 4" rx="4"
                         />
                         {(!box.label.toLowerCase().startsWith('void')) && (
-                          <text
-                            id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
-                            x={vMinX + 60} y={(box.top + box.bottom) / 2}
-                            fontSize="18" fill="var(--diagram-group)" opacity="0.8"
-                            fontWeight="600" textAnchor="start" alignmentBaseline="middle"
-                            style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
-                            onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
+                          <foreignObject
+                             x={globalLeft + 10} y={box.bottom - 10}
+                             width={box.bottom - box.top - 20} height={40}
+                             transform={`rotate(-90 ${globalLeft + 10} ${box.bottom - 10})`}
+                             style={{ overflow: 'visible' }}
                           >
-                            {box.label.replace(/_/g, ' ')}
-                          </text>
+                             <div xmlns="http://www.w3.org/1999/xhtml" style={{
+                                width: '100%', height: '100%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: 'var(--diagram-group)', fontSize: '15px', fontWeight: '600',
+                                textAlign: 'center', opacity: 0.8,
+                                cursor: 'text', pointerEvents: 'all', userSelect: 'none',
+                                lineHeight: '1.2'
+                             }}
+                             onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}>
+                               {box.label.replace(/_/g, ' ')}
+                             </div>
+                          </foreignObject>
                         )}
                       </g>
                     ) : (
@@ -848,6 +890,29 @@ export default function DiagramRenderer({
               </g>
             );
           })()}
+          {diagramType === 'piechart' && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
+             const slices = computedNodes.filter(n => n.type === 'pie_slice');
+             const pieBaseRadius = slices[0]?.size === 'S' ? 120 : slices[0]?.size === 'L' ? 280 : 200;
+             const legendX = pieBaseRadius + 160;
+             const legendBoxHeight = slices.length * 40 + 24;
+             // The pie is rendered from Y = -pieBaseRadius to Y = pieBaseRadius.
+             // To center the legend on the bottom edge (Y = pieBaseRadius),
+             // its top Y must be pieBaseRadius - (legendBoxHeight / 2).
+             const legendY = pieBaseRadius - (legendBoxHeight / 2);
+             return (
+               <g transform={`translate(${legendX}, ${legendY})`}>
+                 <rect x={0} y={0} width={325} height={legendBoxHeight} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={8} />
+                 {slices.map((slice, i) => (
+                    <g key={i} transform={`translate(20, ${28 + i * 40})`}>
+                       <rect x={0} y={-9} width={24} height={18} fill={`var(--color-${slice.color || 5})`} rx={2} />
+                       <text x={38} y={1} fontSize="20" fill="var(--diagram-text)" dominantBaseline="central">
+                         {`${slice.label || 'Item'}${(slice.value !== undefined && slice.value !== null) ? ` (${slice.value})` : ''}`}
+                       </text>
+                    </g>
+                 ))}
+               </g>
+             );
+          })()}
 
           {/* Edges Layer */}
         <g>
@@ -868,7 +933,7 @@ export default function DiagramRenderer({
         <g>
             {computedNodes.filter(n => n.type !== 'text').map(node => {
               const matchedGroup = initialData.groups?.find(gx => gx.id === getGroupId(node));
-              const injectedNode = { ...node, color: matchedGroup?.color || 1, outlined: matchedGroup?.outlined };
+              const injectedNode = { ...node, color: matchedGroup?.color || node.color || 1, outlined: matchedGroup?.outlined };
               return (
                 <DiagramNode
                   key={injectedNode.id}
@@ -876,6 +941,8 @@ export default function DiagramRenderer({
                   isActiveLinkSource={activeLinkSource === injectedNode.id}
                   isSelected={selectedNodeId === injectedNode.id}
                   theme={theme}
+                  activeTheme={appTheme}
+                  resolvedCanvasColor={resolvedCanvasColor}
                   diagramType={diagramType}
                   dragStateId={dragState?.id}
                   onPointerDown={handlePointerDown}
@@ -893,7 +960,7 @@ export default function DiagramRenderer({
         <g>
             {computedNodes.filter(n => n.type === 'text').map(node => {
               const matchedGroup = initialData.groups?.find(gx => gx.id === getGroupId(node));
-              const injectedNode = { ...node, color: matchedGroup?.color || 1, outlined: matchedGroup?.outlined };
+              const injectedNode = { ...node, color: matchedGroup?.color || node.color || 1, outlined: matchedGroup?.outlined };
               return (
                 <DiagramNode
                   key={injectedNode.id}
@@ -901,6 +968,8 @@ export default function DiagramRenderer({
                   isActiveLinkSource={activeLinkSource === injectedNode.id}
                   isSelected={selectedNodeId === injectedNode.id}
                   theme={theme}
+                  activeTheme={appTheme}
+                  resolvedCanvasColor={resolvedCanvasColor}
                   diagramType={diagramType}
                   dragStateId={dragState?.id}
                   onPointerDown={handlePointerDown}
@@ -1113,10 +1182,20 @@ export default function DiagramRenderer({
         const leftBox = Math.min(...dims.map(d => d.x - d.w/2)) - pad;
         const rightBox = Math.max(...dims.map(d => d.x + d.w/2)) + pad;
         const topBox = Math.min(...dims.map(d => d.y - d.h/2)) - pad;
+        const bottomBox = Math.max(...dims.map(d => d.y + d.h/2)) + pad;
         
         let pt = svg.createSVGPoint();
-        pt.x = (leftBox + rightBox) / 2;
-        pt.y = topBox - 4; // Equivalent to top + 6 - 10
+        if (diagramType === 'sequence') {
+            const allRealNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
+            const allDims = allRealNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, w: d.width }; });
+            const globalLeft = Math.min(...allDims.map(d => d.x - d.w/2)) - 80;
+            pt.x = globalLeft + 30; // Centered on the title rotated vertically
+            pt.y = (topBox + bottomBox) / 2;
+        } else {
+            pt.x = (leftBox + rightBox) / 2;
+            pt.y = topBox - 4; // Equivalent to top + 6 - 10
+        }
+        
         const viewport = viewportRef.current;
         if (!viewport) return null;
         const ctm = viewport.getScreenCTM();

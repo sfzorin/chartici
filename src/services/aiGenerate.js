@@ -1,16 +1,16 @@
-import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts';
+import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts.js';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
 /**
- * Helper to call the Moonshot API proxy
+ * Helper to call the DeepSeek API proxy
  */
-async function callMoonshot(messages, temp = 0.3, isJson = false) {
+async function callDeepSeek(messages, temp = 0.3, isJson = false) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       messages,
-      model: 'moonshot-v1-128k',
+      model: 'deepseek-chat',
       temperature: temp,
       ...(isJson ? { response_format: { type: 'json_object' } } : {})
     })
@@ -48,7 +48,7 @@ export async function planDiagram(userPrompt) {
     { role: 'user', content: userPrompt }
   ];
 
-  const phase1Data = await callMoonshot(phase1Messages, 0.3, false);
+  const phase1Data = await callDeepSeek(phase1Messages, 0.3, false);
   if (!phase1Data.success) {
     return { success: false, error: phase1Data.error || 'Unknown error in Phase 1' };
   }
@@ -80,7 +80,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     { role: 'user', content: extendedPrompt }
   ];
 
-  const phase2Data = await callMoonshot(phase2Messages, 0.1, false); // Temp 0.1, No JSON mode
+  const phase2Data = await callDeepSeek(phase2Messages, 0.1, false); // Temp 0.1, No JSON mode
   if (!phase2Data.success) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
@@ -175,8 +175,14 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       if (cols[cols.length - 1] === '') cols.pop();
       
       // row bypass format: | ID |
-      if (cols.length === 0 || cols[0].toLowerCase() === 'id' || cols[0].toLowerCase() === 'source id' || cols[0].toLowerCase() === 'event id') continue;
-      
+      const c0 = cols[0].toLowerCase();
+      const c1 = cols[1] ? cols[1].toLowerCase() : '';
+      if (
+          cols.length === 0 || 
+          c0 === 'id' || c0 === 'source id' || c0 === 'target id' || c0.endsWith(' id') || 
+          c0 === 'title' || 
+          c1 === 'label' || c1 === 'event label' || c1 === 'node label'
+      ) continue;
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
@@ -353,8 +359,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
 
   // Assign a random theme
   const THEMES = [
-    'muted-rainbow', 'vibrant-rainbow', 'grey', 'red', 'green', 'blue', 
-    'brown', 'purple', 'blue-orange', 'green-purple', 'slate-rose', 'blue-teal-slate'
+    'muted-rainbow', 'vibrant-rainbow', 'blue-orange', 'green-purple', 'slate-rose', 'blue-teal-slate'
   ];
   parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
 

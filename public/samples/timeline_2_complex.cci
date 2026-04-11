@@ -3,9 +3,9 @@
     "type": "timeline",
     "version": "1.0.0"
   },
-  "theme": "blue-teal-slate",
+  "theme": "vibrant-rainbow",
   "title": {
-    "text": "History of Web Infrastructure"
+    "text": "Space Exploration Milestones"
   },
   "data": {
     "groups": [
@@ -14,137 +14,208 @@
         "size": "L",
         "nodes": [
           {
-            "id": "era1",
-            "label": "The 1990s"
+            "id": "m1",
+            "label": "1950s: Dawn",
+            "type": "chevron"
           },
           {
-            "id": "era2",
-            "label": "The 2000s"
+            "id": "m2",
+            "label": "1960s: Moon",
+            "type": "chevron"
           },
           {
-            "id": "era3",
-            "label": "The 2010s"
+            "id": "m3",
+            "label": "1990s: Orbiters",
+            "type": "chevron"
           },
           {
-            "id": "era4",
-            "label": "The 2020s"
+            "id": "m4",
+            "label": "2010s: Rovers",
+            "type": "chevron"
+          },
+          {
+            "id": "m5",
+            "label": "2020s: Private",
+            "type": "chevron"
           }
         ],
-        "color": "3"
-      },
-      {
-        "type": "process",
-        "size": "S",
-        "nodes": [
-          {
-            "id": "ev1",
-            "label": "HTML Created"
-          },
-          {
-            "id": "ev2",
-            "label": "JavaScript V1"
-          }
-        ],
-        "color": "4",
-        "label": "Early Web"
+        "color": "2"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "ev3",
-            "label": "AJAX Born"
+            "id": "p1",
+            "label": "Sputnik 1",
+            "type": "process"
           },
           {
-            "id": "ev4",
-            "label": "Cloud AWS Launch"
+            "id": "p2",
+            "label": "Gagarin Flight",
+            "type": "process"
+          }
+        ],
+        "color": "3",
+        "label": "Pioneers"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "a1",
+            "label": "Apollo 11 Landing",
+            "type": "process"
+          },
+          {
+            "id": "a2",
+            "label": "Apollo 13 Crisis",
+            "type": "process"
+          }
+        ],
+        "color": "4",
+        "label": "Apollo"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "s1",
+            "label": "ISS Assembly Begins",
+            "type": "process"
+          },
+          {
+            "id": "s2",
+            "label": "Hubble Launched",
+            "type": "process"
           }
         ],
         "color": "5",
-        "label": "Web 2.0"
+        "label": "Stations"
       },
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
         "nodes": [
           {
-            "id": "ev5",
-            "label": "React.js Release"
+            "id": "d1",
+            "label": "Curiosity Mars",
+            "type": "process"
           },
           {
-            "id": "ev6",
-            "label": "Docker Standardized"
+            "id": "d2",
+            "label": "Voyager Interstellar",
+            "type": "process"
           }
         ],
         "color": "6",
-        "label": "Mobile & SPA"
+        "label": "Deep Space"
       },
       {
         "type": "process",
         "size": "L",
         "nodes": [
           {
-            "id": "ev7",
-            "label": "GPT Access"
+            "id": "n1",
+            "label": "Artemis I",
+            "type": "process"
           },
           {
-            "id": "ev8",
-            "label": "AI Powered IDEs"
+            "id": "n2",
+            "label": "Webb Telescope Scope",
+            "type": "process"
           }
         ],
         "color": "7",
-        "label": "AI Era"
+        "label": "New Age"
       }
     ],
     "edges": [
       {
-        "sourceId": "era1",
-        "targetId": "ev1",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "m1",
+        "targetId": "m2",
+        "connectionType": "none",
+        "lineStyle": "none"
       },
       {
-        "sourceId": "era1",
-        "targetId": "ev2",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "m2",
+        "targetId": "m3",
+        "connectionType": "none",
+        "lineStyle": "none"
       },
       {
-        "sourceId": "era2",
-        "targetId": "ev3",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "m3",
+        "targetId": "m4",
+        "connectionType": "none",
+        "lineStyle": "none"
       },
       {
-        "sourceId": "era2",
-        "targetId": "ev4",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "m4",
+        "targetId": "m5",
+        "connectionType": "none",
+        "lineStyle": "none"
       },
       {
-        "sourceId": "era3",
-        "targetId": "ev5",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "p1",
+        "targetId": "m1",
+        "connectionType": "none",
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "era3",
-        "targetId": "ev6",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "p2",
+        "targetId": "m1",
+        "connectionType": "none",
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "era4",
-        "targetId": "ev7",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "a1",
+        "targetId": "m2",
+        "connectionType": "none",
+        "lineStyle": "dashed"
       },
       {
-        "sourceId": "era4",
-        "targetId": "ev8",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "sourceId": "a2",
+        "targetId": "m2",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "s1",
+        "targetId": "m3",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "s2",
+        "targetId": "m3",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "d1",
+        "targetId": "m4",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "d2",
+        "targetId": "m4",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "n1",
+        "targetId": "m5",
+        "connectionType": "none",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "n2",
+        "targetId": "m5",
+        "connectionType": "none",
+        "lineStyle": "dashed"
       }
     ]
   }

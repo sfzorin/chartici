@@ -3,7 +3,7 @@
     "type": "erd",
     "version": "1.0.0"
   },
-  "theme": "red",
+  "theme": "indigo-green-red",
   "title": {
     "text": "Enterprise Personnel DB"
   },
@@ -15,18 +15,21 @@
         "nodes": [
           {
             "id": "t_e",
-            "label": "Employees"
+            "label": "Employees",
+            "type": "process"
           },
           {
             "id": "c_eid",
-            "label": "Emp ID"
+            "label": "Emp ID",
+            "type": "circle"
           },
           {
             "id": "c_ename",
-            "label": "Name"
+            "label": "Name",
+            "type": "circle"
           }
         ],
-        "color": "2",
+        "color": "1",
         "label": "Employees"
       },
       {
@@ -35,14 +38,16 @@
         "nodes": [
           {
             "id": "t_d",
-            "label": "Departments"
+            "label": "Departments",
+            "type": "process"
           },
           {
             "id": "c_did",
-            "label": "Dept ID"
+            "label": "Dept ID",
+            "type": "circle"
           }
         ],
-        "color": "3",
+        "color": "2",
         "label": "Departments"
       },
       {
@@ -51,14 +56,16 @@
         "nodes": [
           {
             "id": "t_p",
-            "label": "Projects"
+            "label": "Projects",
+            "type": "process"
           },
           {
             "id": "c_pid",
-            "label": "Proj ID"
+            "label": "Proj ID",
+            "type": "circle"
           }
         ],
-        "color": "4",
+        "color": "3",
         "label": "Projects"
       },
       {
@@ -67,14 +74,16 @@
         "nodes": [
           {
             "id": "t_a",
-            "label": "Assignments"
+            "label": "Assignments",
+            "type": "process"
           },
           {
             "id": "c_hrs",
-            "label": "Hours Logged"
+            "label": "Hours Logged",
+            "type": "circle"
           }
         ],
-        "color": "5",
+        "color": "4",
         "label": "Assignments"
       }
     ],

@@ -1,11 +1,11 @@
 {
   "meta": {
-    "type": "radial",
+    "type": "tree",
     "version": "1.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "indigo-green-red",
   "title": {
-    "text": "Zero Trust Mesh Orbit"
+    "text": "Corporate Org Chart"
   },
   "data": {
     "groups": [
@@ -14,139 +14,145 @@
         "size": "L",
         "nodes": [
           {
-            "id": "hub",
-            "label": "Istio Control Plane",
+            "id": "ceo",
+            "label": "CEO",
+            "type": "process"
+          }
+        ],
+        "color": "0"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "cto",
+            "label": "CTO",
+            "type": "process"
+          },
+          {
+            "id": "cfo",
+            "label": "CFO",
+            "type": "process"
+          },
+          {
+            "id": "cmo",
+            "label": "CMO",
+            "type": "process"
+          }
+        ],
+        "color": "1",
+        "label": "Execs"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "e_fe",
+            "label": "Frontend",
+            "type": "process"
+          },
+          {
+            "id": "e_be",
+            "label": "Backend",
+            "type": "process"
+          }
+        ],
+        "color": "2",
+        "label": "Eng"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "f_acc",
+            "label": "Accounting",
+            "type": "process"
+          },
+          {
+            "id": "f_tax",
+            "label": "Tax",
+            "type": "process"
+          }
+        ],
+        "color": "3",
+        "label": "Fin"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          {
+            "id": "m_seo",
+            "label": "SEO",
+            "type": "process"
+          },
+          {
+            "id": "m_ads",
+            "label": "Paid Media",
             "type": "process"
           }
         ],
         "color": "4",
-        "label": "Core Service"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "in1",
-            "label": "WAF Rules",
-            "type": "process"
-          },
-          {
-            "id": "in2",
-            "label": "DDoS Shield",
-            "type": "process"
-          },
-          {
-            "id": "in3",
-            "label": "API Gateway",
-            "type": "process"
-          }
-        ],
-        "color": "5",
-        "label": "Ingress Orbit"
-      },
-      {
-        "type": "process",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "n1",
-            "label": "Envoy Sidecar A",
-            "type": "process"
-          },
-          {
-            "id": "n2",
-            "label": "Envoy Sidecar B",
-            "type": "process"
-          },
-          {
-            "id": "n3",
-            "label": "Envoy Sidecar C",
-            "type": "process"
-          }
-        ],
-        "color": "6",
-        "label": "Mesh Nodes"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "o1",
-            "label": "Jaeger Trace",
-            "type": "process"
-          },
-          {
-            "id": "o2",
-            "label": "Elastic Logs",
-            "type": "process"
-          }
-        ],
-        "color": "7",
-        "label": "Observability Orbit"
+        "label": "Mkt"
       }
     ],
     "edges": [
       {
-        "sourceId": "hub",
-        "targetId": "in1",
+        "sourceId": "ceo",
+        "targetId": "cto",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "in2",
+        "sourceId": "ceo",
+        "targetId": "cfo",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "in3",
+        "sourceId": "ceo",
+        "targetId": "cmo",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "n1",
+        "sourceId": "cto",
+        "targetId": "e_fe",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "n2",
+        "sourceId": "cto",
+        "targetId": "e_be",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "n3",
+        "sourceId": "cfo",
+        "targetId": "f_acc",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "o1",
+        "sourceId": "cfo",
+        "targetId": "f_tax",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "hub",
-        "targetId": "o2",
+        "sourceId": "cmo",
+        "targetId": "m_seo",
         "connectionType": "none",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "n1",
-        "targetId": "n2",
+        "sourceId": "cmo",
+        "targetId": "m_ads",
         "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "in3",
-        "targetId": "n1",
-        "connectionType": "none",
-        "lineStyle": "dashed"
+        "lineStyle": "solid"
       }
     ]
   }

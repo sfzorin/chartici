@@ -3,163 +3,238 @@
     "type": "flowchart",
     "version": "1.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "blue-teal-slate",
   "title": {
-    "text": "E-Commerce Checkout Pipeline"
+    "text": "Microservice Orchestration Logic"
   },
   "data": {
     "groups": [
       {
-        "type": "oval",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_start",
-            "label": "User Clicks Checkout"
-          },
-          {
-            "id": "t_end",
-            "label": "Show Order Success"
-          }
-        ],
-        "color": "4",
-        "label": "Triggers"
-      },
-      {
-        "type": "rhombus",
+        "type": "process",
         "size": "L",
         "nodes": [
           {
-            "id": "d_cart",
-            "label": "Cart Empty?"
+            "id": "c_req",
+            "label": "Client Request",
+            "type": "oval"
           },
           {
-            "id": "d_stock",
-            "label": "Items in Stock?"
-          },
-          {
-            "id": "d_pay",
-            "label": "Payment Approved?"
+            "id": "c_res",
+            "label": "Response to Client",
+            "type": "oval"
           }
         ],
-        "color": "5",
-        "label": "Decisions"
+        "color": "4",
+        "label": "Client Origin"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
           {
-            "id": "p_reserve",
-            "label": "Reserve Inventory"
+            "id": "g_auth",
+            "label": "Rate Limited?",
+            "type": "rhombus"
           },
           {
-            "id": "p_charge",
-            "label": "Stripe API Charge"
-          },
-          {
-            "id": "p_db",
-            "label": "Log Order DB"
+            "id": "g_token",
+            "label": "Valid JWT?",
+            "type": "rhombus"
           }
         ],
-        "color": "6",
-        "label": "API & Processes"
+        "color": "5",
+        "label": "API Gateway"
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
-            "id": "err_cart",
-            "label": "Prompt to Shop"
+            "id": "o_start",
+            "label": "Initiate Saga",
+            "type": "circle"
           },
           {
-            "id": "err_stock",
-            "label": "Show Out of Stock"
+            "id": "o_wait",
+            "label": "Wait All Tasks",
+            "type": "process"
           },
           {
-            "id": "err_pay",
-            "label": "Show Decline Msg"
+            "id": "o_commit",
+            "label": "Commit Transactions",
+            "type": "process"
+          }
+        ],
+        "color": "6",
+        "label": "Orchestrator"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "s_pay",
+            "label": "Process Payment",
+            "type": "process"
+          },
+          {
+            "id": "s_inv",
+            "label": "Update Inventory",
+            "type": "process"
+          },
+          {
+            "id": "s_ship",
+            "label": "Schedule Shipping",
+            "type": "process"
           }
         ],
         "color": "7",
-        "label": "Error Handling"
+        "label": "Services"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "comp_pay",
+            "label": "Refund Payment",
+            "type": "process"
+          },
+          {
+            "id": "comp_inv",
+            "label": "Restore Stock",
+            "type": "process"
+          },
+          {
+            "id": "comp_all",
+            "label": "Rollback State",
+            "type": "process"
+          }
+        ],
+        "color": "0",
+        "label": "Compensation"
       }
     ],
     "edges": [
       {
-        "sourceId": "t_start",
-        "targetId": "d_cart",
+        "sourceId": "c_req",
+        "targetId": "g_auth",
         "connectionType": "target",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "d_cart",
-        "targetId": "err_cart",
+        "sourceId": "g_auth",
+        "targetId": "c_res",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Yes"
+        "label": "Yes (429)"
       },
       {
-        "sourceId": "d_cart",
-        "targetId": "d_stock",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "d_stock",
-        "targetId": "err_stock",
+        "sourceId": "g_auth",
+        "targetId": "g_token",
         "connectionType": "target",
         "lineStyle": "solid",
         "label": "No"
       },
       {
-        "sourceId": "d_stock",
-        "targetId": "p_reserve",
+        "sourceId": "g_token",
+        "targetId": "c_res",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "No (401)"
+      },
+      {
+        "sourceId": "g_token",
+        "targetId": "o_start",
         "connectionType": "target",
         "lineStyle": "solid",
         "label": "Yes"
       },
       {
-        "sourceId": "p_reserve",
-        "targetId": "p_charge",
+        "sourceId": "o_start",
+        "targetId": "s_pay",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "o_start",
+        "targetId": "s_inv",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "o_start",
+        "targetId": "s_ship",
+        "connectionType": "target",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "s_pay",
+        "targetId": "o_wait",
         "connectionType": "target",
         "lineStyle": "dashed",
-        "label": "Initiate Pay"
+        "label": "Done"
       },
       {
-        "sourceId": "p_charge",
-        "targetId": "d_pay",
+        "sourceId": "s_inv",
+        "targetId": "o_wait",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "dashed",
+        "label": "Done"
       },
       {
-        "sourceId": "d_pay",
-        "targetId": "err_pay",
+        "sourceId": "s_ship",
+        "targetId": "o_wait",
         "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
+        "lineStyle": "dashed",
+        "label": "Wait"
       },
       {
-        "sourceId": "err_pay",
-        "targetId": "p_charge",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Retry"
-      },
-      {
-        "sourceId": "d_pay",
-        "targetId": "p_db",
+        "sourceId": "s_pay",
+        "targetId": "comp_pay",
         "connectionType": "target",
         "lineStyle": "solid",
-        "label": "Yes"
+        "label": "Failed"
       },
       {
-        "sourceId": "p_db",
-        "targetId": "t_end",
+        "sourceId": "s_inv",
+        "targetId": "comp_inv",
         "connectionType": "target",
-        "lineStyle": "solid"
+        "lineStyle": "solid",
+        "label": "Failed"
+      },
+      {
+        "sourceId": "comp_pay",
+        "targetId": "comp_all",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "comp_inv",
+        "targetId": "comp_all",
+        "connectionType": "target",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "comp_all",
+        "targetId": "c_res",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Error (500)"
+      },
+      {
+        "sourceId": "o_wait",
+        "targetId": "o_commit",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Success"
+      },
+      {
+        "sourceId": "o_commit",
+        "targetId": "c_res",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "200 OK"
       }
     ]
   }

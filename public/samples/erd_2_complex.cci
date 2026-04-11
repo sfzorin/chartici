@@ -3,9 +3,9 @@
     "type": "erd",
     "version": "1.0.0"
   },
-  "theme": "red",
+  "theme": "blue-orange",
   "title": {
-    "text": "Enterprise Personnel DB"
+    "text": "IoT Time-series Fabric"
   },
   "data": {
     "groups": [
@@ -14,124 +14,143 @@
         "size": "L",
         "nodes": [
           {
-            "id": "t_e",
-            "label": "Employees"
+            "id": "t_dev",
+            "label": "Device Specs",
+            "type": "process"
           },
           {
-            "id": "c_eid",
-            "label": "Emp ID"
+            "id": "c_mac",
+            "label": "MAC Address",
+            "type": "circle"
           },
           {
-            "id": "c_ename",
-            "label": "Name"
-          }
-        ],
-        "color": "2",
-        "label": "Employees"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_d",
-            "label": "Departments"
-          },
-          {
-            "id": "c_did",
-            "label": "Dept ID"
-          }
-        ],
-        "color": "3",
-        "label": "Departments"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_p",
-            "label": "Projects"
-          },
-          {
-            "id": "c_pid",
-            "label": "Proj ID"
-          }
-        ],
-        "color": "4",
-        "label": "Projects"
-      },
-      {
-        "type": "process",
-        "size": "S",
-        "nodes": [
-          {
-            "id": "t_a",
-            "label": "Assignments"
-          },
-          {
-            "id": "c_hrs",
-            "label": "Hours Logged"
+            "id": "c_firm",
+            "label": "Firmware V",
+            "type": "circle"
           }
         ],
         "color": "5",
-        "label": "Assignments"
+        "label": "Devices"
+      },
+      {
+        "type": "process",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "t_tel",
+            "label": "Sensor Data",
+            "type": "process"
+          },
+          {
+            "id": "c_ts",
+            "label": "Timestamp",
+            "type": "circle"
+          },
+          {
+            "id": "c_val",
+            "label": "Value",
+            "type": "circle"
+          }
+        ],
+        "color": "6",
+        "label": "Telemetry"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_site",
+            "label": "Location Site",
+            "type": "process"
+          },
+          {
+            "id": "c_geo",
+            "label": "Coordinates",
+            "type": "circle"
+          }
+        ],
+        "color": "7",
+        "label": "Sites"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          {
+            "id": "t_alert",
+            "label": "Triggered Events",
+            "type": "process"
+          },
+          {
+            "id": "c_level",
+            "label": "Severity",
+            "type": "circle"
+          }
+        ],
+        "color": "0",
+        "label": "Alerts"
       }
     ],
     "edges": [
       {
-        "sourceId": "t_e",
-        "targetId": "c_eid",
+        "sourceId": "t_dev",
+        "targetId": "c_mac",
         "connectionType": "1:1",
         "lineStyle": "solid",
         "label": "PK"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "c_ename",
+        "sourceId": "t_dev",
+        "targetId": "c_firm",
         "connectionType": "1:1",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "c_did",
+        "sourceId": "t_tel",
+        "targetId": "c_ts",
         "connectionType": "1:1",
         "lineStyle": "solid",
         "label": "PK"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "c_pid",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_a",
-        "targetId": "c_hrs",
+        "sourceId": "t_tel",
+        "targetId": "c_val",
         "connectionType": "1:1",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "t_e",
-        "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "employs"
+        "sourceId": "t_site",
+        "targetId": "c_geo",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "t_a",
-        "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "assigned"
+        "sourceId": "t_alert",
+        "targetId": "c_level",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "t_a",
+        "sourceId": "t_site",
+        "targetId": "t_dev",
         "connectionType": "1:N",
         "lineStyle": "solid",
-        "label": "includes"
+        "label": "hosts"
+      },
+      {
+        "sourceId": "t_dev",
+        "targetId": "t_tel",
+        "connectionType": "1:N",
+        "lineStyle": "solid",
+        "label": "emits"
+      },
+      {
+        "sourceId": "t_tel",
+        "targetId": "t_alert",
+        "connectionType": "N:M",
+        "lineStyle": "solid",
+        "label": "triggers"
       }
     ]
   }

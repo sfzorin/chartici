@@ -188,6 +188,38 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
 
   dagre.layout(g);
 
+  if (dt === 'sequence') {
+      const gids = [...new Set(nodes.map(n => getGroupId(n)).filter(Boolean))];
+      
+      const maxH = {};
+      gids.forEach(gid => {
+          maxH[gid] = Math.max(...nodes.filter(n => getGroupId(n) === gid).map(n => g.node(n.id)?.height || 80));
+      });
+
+      const laneY = {};
+      let currentY = 0;
+      gids.forEach((gid, i) => {
+          if (i === 0) {
+              laneY[gid] = currentY;
+          } else {
+              const prevHalf = (maxH[gids[i - 1]] + 60) / 2; // pad=30 -> 60 total -> half is 30 + h/2
+              const currHalf = (maxH[gid] + 60) / 2;
+              currentY += prevHalf + currHalf + 60; // EXACT 60 pixels of clear space
+              laneY[gid] = currentY;
+          }
+      });
+
+      g.nodes().forEach(id => {
+         const info = g.node(id);
+         if (!info) return;
+         const n = nodeById.get(id);
+         const gid = getGroupId(n);
+         if (gid) {
+            info.y = laneY[gid];
+         }
+      });
+  }
+
   // Top-Align Nodes within each rank (pull shorter elements up to match the tallest in the row)
   const rankGroups = {};
   const shiftMap = {};

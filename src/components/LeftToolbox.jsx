@@ -129,7 +129,8 @@ export default function LeftToolbox({
   const currentCt = eContext.connectionType || eContext.cardinality || eContext.arrowType || 'target';
 
   const isShapeToolActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
-  const isSizeColorToolActive = !!selectedNode;
+  const isSizeToolActive = !!selectedNode;
+  const isColorToolActive = !!selectedNode;
   const diagramSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const isEdgeToolActive = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
@@ -215,17 +216,17 @@ export default function LeftToolbox({
 
 
             {/* Size Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isSizeColorToolActive) }}>
+            <div style={{ display: 'inline-block', ...getStyle(isSizeToolActive) }}>
               <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
-                <Icon name="size" size={20} textValue={(!nContext.size || nContext.size === 'AUTO') ? '' : nContext.size} />
+                <Icon name="size" size={20} textValue={nContext.size === 'AUTO' ? 'M' : (nContext.size || 'M')} />
               </button>
               <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
                 <div className="popover-title">Node Size</div>
                 <div className="popover-list">
-                  {['AUTO', 'S', 'M', 'L'].filter(s => s !== 'AUTO' || nContext.type === 'title' || nContext.id === '__SYSTEM_TITLE__').map(s => {
-                    const labels = { AUTO: 'Auto Sizing', S: 'Small', M: 'Medium', L: 'Large' };
+                  {['S', 'M', 'L'].map(s => {
+                    const labels = { S: 'Small', M: 'Medium', L: 'Large' };
                     return (
-                      <button key={s} className={(nContext.size === s || (s === 'AUTO' && !nContext.size)) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s === 'AUTO' ? undefined : s); setActivePopover(null); }}>
+                      <button key={s} className={(nContext.size === s || (!nContext.size && s === 'M') || (nContext.size === 'AUTO' && s === 'M')) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
                         {labels[s]}
                       </button>
                     );
@@ -235,7 +236,7 @@ export default function LeftToolbox({
             </div>
 
             {/* Color Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isSizeColorToolActive) }}>
+            <div style={{ display: 'inline-block', ...getStyle(isColorToolActive) }}>
               <button ref={colorBtnRef} className="toolbox-btn" onClick={() => togglePopover('color')} data-tooltip="Change Color / Style">
                 <div>
                   <Icon name="palette" size={24} />

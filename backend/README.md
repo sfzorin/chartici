@@ -1,13 +1,13 @@
 # Chartici API Backend
 
-Прокси-сервер, который пробрасывает запросы фронтенда к [Moonshot API](https://platform.moonshot.cn) (Kimi AI).
+Прокси-сервер, который пробрасывает запросы фронтенда к [DeepSeek API](https://platform.deepseek.com) (DeepSeek AI).
 
 ## Принцип работы
 
-Бэкенд — **тупой прокси**. Фронтенд формирует готовый массив `messages` (включая system prompt и спецификацию .cci), бэкенд пробрасывает его в Moonshot API и возвращает сырой ответ. Вся бизнес-логика — на фронтенде.
+Бэкенд — **тупой прокси**. Фронтенд формирует готовый массив `messages` (включая system prompt и спецификацию .cci), бэкенд пробрасывает его в DeepSeek API и возвращает сырой ответ. Вся бизнес-логика — на фронтенде.
 
 ```
-Frontend  →  POST /api/generate  →  Backend  →  Moonshot API  →  Kimi AI
+Frontend  →  POST /api/generate  →  Backend  →  DeepSeek API  →  DeepSeek AI
              { messages, model,      проксирует     тот же payload
                temperature }          как есть       + API key
 ```
@@ -23,7 +23,7 @@ Frontend  →  POST /api/generate  →  Backend  →  Moonshot API  →  Kimi AI
     { "role": "system", "content": "..." },
     { "role": "user", "content": "Нарисуй оргструктуру" }
   ],
-  "model": "moonshot-v1-128k",
+  "model": "deepseek-chat",
   "temperature": 0.3
 }
 ```
@@ -31,12 +31,12 @@ Frontend  →  POST /api/generate  →  Backend  →  Moonshot API  →  Kimi AI
 | Поле | Обязательно | Default |
 |------|:-----------:|---------|
 | `messages` | ✅ | — |
-| `model` | нет | `moonshot-v1-128k` |
+| `model` | нет | `deepseek-chat` |
 | `temperature` | нет | `0.3` |
 
 **Response (success):**
 ```json
-{ "success": true, "content": "...строка от Kimi..." }
+{ "success": true, "content": "...строка от DeepSeek..." }
 ```
 
 **Response (error):**
@@ -56,15 +56,15 @@ Frontend  →  POST /api/generate  →  Backend  →  Moonshot API  →  Kimi AI
 |----------|:----:|-------|
 | Невалидный request | 400 | `messages is required...` |
 | Rate limit (10 req/min) | 429 | `Rate limit exceeded...` |
-| Moonshot 401/403 | 502 | `AI service auth error` |
-| Moonshot timeout | 504 | `AI response timeout` |
-| Moonshot другая ошибка | 502 | `AI service error` |
+| DeepSeek 401/403 | 502 | `AI service auth error` |
+| DeepSeek timeout | 504 | `AI response timeout` |
+| DeepSeek другая ошибка | 502 | `AI service error` |
 | Внутренняя ошибка | 500 | `Internal server error` |
 
 ## Защита
 
 - **Rate limiting:** 10 запросов в минуту с одного IP
-- **Таймаут:** 120 секунд на ответ от Moonshot
+- **Таймаут:** 120 секунд на ответ от DeepSeek
 - **Логирование:** в stdout без содержимого messages (приватность)
 
 ## Локальная разработка
@@ -72,7 +72,7 @@ Frontend  →  POST /api/generate  →  Backend  →  Moonshot API  →  Kimi AI
 ```bash
 cd backend
 cp .env.example .env
-# Вписать реальный MOONSHOT_API_KEY в .env
+# Вписать реальный DEEPSEEK_API_KEY в .env
 npm install
 npm run dev
 ```
@@ -84,7 +84,7 @@ npm run dev
 Бэкенд деплоится автоматически через GitHub Actions вместе с фронтендом. На VPS (`/opt/chartici`) нужно один раз создать `.env`:
 
 ```bash
-echo "MOONSHOT_API_KEY=sk-ваш-ключ" > /opt/chartici/.env
+echo "DEEPSEEK_API_KEY=sk-ваш-ключ-deepseek" > /opt/chartici/.env
 ```
 
-Получить ключ: [platform.moonshot.cn](https://platform.moonshot.cn) → API Keys.
+Получить ключ: [platform.deepseek.com](https://platform.deepseek.com) → API Keys.

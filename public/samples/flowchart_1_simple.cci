@@ -10,39 +10,44 @@
   "data": {
     "groups": [
       {
-        "type": "oval",
+        "type": "process",
         "size": "M",
         "nodes": [
           {
             "id": "t_start",
-            "label": "User Clicks Checkout"
+            "label": "User Clicks Checkout",
+            "type": "oval"
           },
           {
             "id": "t_end",
-            "label": "Show Order Success"
+            "label": "Show Order Success",
+            "type": "oval"
           }
         ],
-        "color": "4",
+        "color": "0",
         "label": "Triggers"
       },
       {
-        "type": "rhombus",
+        "type": "process",
         "size": "L",
         "nodes": [
           {
             "id": "d_cart",
-            "label": "Cart Empty?"
+            "label": "Cart Empty?",
+            "type": "rhombus"
           },
           {
             "id": "d_stock",
-            "label": "Items in Stock?"
+            "label": "Items in Stock?",
+            "type": "rhombus"
           },
           {
             "id": "d_pay",
-            "label": "Payment Approved?"
+            "label": "Payment Approved?",
+            "type": "rhombus"
           }
         ],
-        "color": "5",
+        "color": "1",
         "label": "Decisions"
       },
       {
@@ -51,18 +56,21 @@
         "nodes": [
           {
             "id": "p_reserve",
-            "label": "Reserve Inventory"
+            "label": "Reserve Inventory",
+            "type": "process"
           },
           {
             "id": "p_charge",
-            "label": "Stripe API Charge"
+            "label": "Stripe API Charge",
+            "type": "process"
           },
           {
             "id": "p_db",
-            "label": "Log Order DB"
+            "label": "Log Order DB",
+            "type": "process"
           }
         ],
-        "color": "6",
+        "color": "2",
         "label": "API & Processes"
       },
       {
@@ -71,18 +79,21 @@
         "nodes": [
           {
             "id": "err_cart",
-            "label": "Prompt to Shop"
+            "label": "Prompt to Shop",
+            "type": "process"
           },
           {
             "id": "err_stock",
-            "label": "Show Out of Stock"
+            "label": "Show Out of Stock",
+            "type": "process"
           },
           {
             "id": "err_pay",
-            "label": "Show Decline Msg"
+            "label": "Show Decline Msg",
+            "type": "process"
           }
         ],
-        "color": "7",
+        "color": "3",
         "label": "Error Handling"
       }
     ],

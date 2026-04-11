@@ -1,7 +1,7 @@
 export const SIZES = {
-  S: { width: 160, height: 80, fontSize: 16 },
-  M: { width: 240, height: 120, fontSize: 22 },
-  L: { width: 320, height: 160, fontSize: 28 }
+  S: { width: 120, height: 60, fontSize: 12 },
+  M: { width: 160, height: 80, fontSize: 16 },
+  L: { width: 240, height: 120, fontSize: 22 }
 };
 
 const monoRules = { 2: [1,4], 3: [1,4,7], 4: [1,3,5,8], 5: [1,3,5,7,9], 6: [1,2,4,6,8,9], 7: [1,2,3,5,7,8,9], 8: [1,2,3,4,6,7,8,9] };
@@ -24,36 +24,6 @@ const createPaletteObj = (name, colorsMap, rules) => {
 };
 
 export const PALETTES = {
-  'grey': createPaletteObj('Grey', [
-    { c: '#0f172a', t: '#ffffff' }, { c: '#1e293b', t: '#ffffff' }, { c: '#334155', t: '#ffffff' },
-    { c: '#475569', t: '#ffffff' }, { c: '#64748b', t: '#ffffff' }, { c: '#94a3b8', t: '#1f2937' },
-    { c: '#b1bdce', t: '#1f2937' }, { c: '#cbd5e1', t: '#1f2937' }, { c: '#d1dce8', t: '#1f2937' }
-  ], monoRules),
-  'red': createPaletteObj('Red', [
-    { c: '#4c0519', t: '#ffffff' }, { c: '#831843', t: '#ffffff' }, { c: '#9f1239', t: '#ffffff' },
-    { c: '#be123c', t: '#ffffff' }, { c: '#e11d48', t: '#ffffff' }, { c: '#f43f5e', t: '#ffffff' },
-    { c: '#fb7185', t: '#1f2937' }, { c: '#fda4af', t: '#1f2937' }, { c: '#fecaca', t: '#1f2937' }
-  ], monoRules),
-  'green': createPaletteObj('Green', [
-    { c: '#064e3b', t: '#ffffff' }, { c: '#065f46', t: '#ffffff' }, { c: '#047857', t: '#ffffff' },
-    { c: '#059669', t: '#ffffff' }, { c: '#10b981', t: '#ffffff' }, { c: '#34d399', t: '#1f2937' },
-    { c: '#6ee7b7', t: '#1f2937' }, { c: '#a7f3d0', t: '#1f2937' }, { c: '#bbf7d0', t: '#1f2937' }
-  ], monoRules),
-  'blue': createPaletteObj('Blue', [
-    { c: '#1e1b4b', t: '#ffffff' }, { c: '#312e81', t: '#ffffff' }, { c: '#3730a3', t: '#ffffff' },
-    { c: '#4338ca', t: '#ffffff' }, { c: '#4f46e5', t: '#ffffff' }, { c: '#6366f1', t: '#ffffff' },
-    { c: '#818cf8', t: '#1f2937' }, { c: '#a5b4fc', t: '#1f2937' }, { c: '#c7d2fe', t: '#1f2937' }
-  ], monoRules),
-  'brown': createPaletteObj('Brown', [
-    { c: '#451a03', t: '#ffffff' }, { c: '#78350f', t: '#ffffff' }, { c: '#92400e', t: '#ffffff' },
-    { c: '#b45309', t: '#ffffff' }, { c: '#d97706', t: '#ffffff' }, { c: '#f59e0b', t: '#1f2937' },
-    { c: '#fbbf24', t: '#1f2937' }, { c: '#fcd34d', t: '#1f2937' }, { c: '#fde68a', t: '#1f2937' }
-  ], monoRules),
-  'purple': createPaletteObj('Purple', [
-    { c: '#2e1065', t: '#ffffff' }, { c: '#4c1d95', t: '#ffffff' }, { c: '#5b21b6', t: '#ffffff' },
-    { c: '#6d28d9', t: '#ffffff' }, { c: '#7c3aed', t: '#ffffff' }, { c: '#8b5cf6', t: '#1f2937' },
-    { c: '#a78bfa', t: '#1f2937' }, { c: '#c4b5fd', t: '#1f2937' }, { c: '#ddd6fe', t: '#1f2937' }
-  ], monoRules),
   'vibrant-rainbow': createPaletteObj('Vibrant Rainbow', [
     { c: '#e11d48', t: '#ffffff' }, { c: '#f97316', t: '#ffffff' }, { c: '#facc15', t: '#1f2937' },
     { c: '#22c55e', t: '#1f2937' }, { c: '#06b6d4', t: '#ffffff' }, { c: '#3b82f6', t: '#ffffff' },
@@ -108,12 +78,16 @@ export function getNodeDim(node) {
   if (resolvedSize === 'XL') resolvedSize = 'L';
   const dim = { ...(SIZES[resolvedSize] || SIZES.M) };
   
-  if (node.type === 'oval') {
+  if (node.type === 'pie_slice') {
+    const pSize = (resolvedSize === 'S' ? 240 : resolvedSize === 'L' ? 560 : 400);
+    dim.width = pSize;
+    dim.height = pSize;
+  } else if (node.type === 'oval') {
     dim.width = Math.round((dim.width + dim.height / 4) / 40) * 40; // Add half a radius
   } else if (node.type === 'title') {
-    if (resolvedSize === 'S') dim.fontSize = 56;
-    else if (resolvedSize === 'M') dim.fontSize = 80;
-    else if (resolvedSize === 'L') dim.fontSize = 110;
+    if (resolvedSize === 'S') dim.fontSize = 40;
+    else if (resolvedSize === 'M') dim.fontSize = 56;
+    else if (resolvedSize === 'L') dim.fontSize = 80;
     else dim.fontSize = 56;
 
     const text = node.label || "Text";
@@ -127,9 +101,9 @@ export function getNodeDim(node) {
     dim.height = Math.max(Math.ceil(estHeight / 40) * 40, 40);
   } else if (node.type === 'text') {
     // Override font size specifically for text annotations to have a wider scale
-    if (resolvedSize === 'S') dim.fontSize = 18;
-    else if (resolvedSize === 'M') dim.fontSize = 28;
-    else if (resolvedSize === 'L') dim.fontSize = 40;
+    if (resolvedSize === 'S') dim.fontSize = 14;
+    else if (resolvedSize === 'M') dim.fontSize = 18;
+    else if (resolvedSize === 'L') dim.fontSize = 28;
     else dim.fontSize = 18;
 
     // Dynamic sizing for text-only nodes based on content, snapping to 40px grid

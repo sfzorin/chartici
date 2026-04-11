@@ -81,7 +81,7 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
 
       // depth >= 1 strictly means we are evaluating grandchildren (level 2) or deeper 
       // relative to the root, since depth 0 is the root evaluating its direct children.
-      if (isLeafLevel && depth >= 1) {
+      if (isLeafLevel && depth >= 1 && childDataArr.length >= 3) {
           const maxKids = 15;
           const allowedKids = childDataArr.slice(0, maxKids);
           childDataArr.slice(maxKids).forEach(k => hiddenNodes.add(k.id));

@@ -3,41 +3,60 @@
     "type": "piechart",
     "version": "1.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "muted-rainbow",
   "title": {
-    "text": "Cloud Spending Breakdown"
+    "text": "Global Mobile OS Market Share 2026"
   },
   "data": {
     "nodes": [
       {
-        "id": "c1",
-        "label": "EC2 Instances",
-        "value": 40.5
+        "id": "os1",
+        "label": "Android 15+",
+        "type": "pie_slice",
+        "value": 35.2,
+        "color": 1
       },
       {
-        "id": "c2",
-        "label": "RDS Postgres",
-        "value": 22.8
+        "id": "os2",
+        "label": "Android Legacy",
+        "type": "pie_slice",
+        "value": 28.1,
+        "color": 2
       },
       {
-        "id": "c3",
-        "label": "S3 Storage",
-        "value": 15.2
+        "id": "os3",
+        "label": "iOS 18+",
+        "type": "pie_slice",
+        "value": 22.4,
+        "color": 3
       },
       {
-        "id": "c4",
-        "label": "CloudFront CDN",
-        "value": 10
+        "id": "os4",
+        "label": "iOS 17 & Older",
+        "type": "pie_slice",
+        "value": 6.8,
+        "color": 4
       },
       {
-        "id": "c5",
-        "label": "Elasticache Redis",
-        "value": 8.3
+        "id": "os5",
+        "label": "HarmonyOS",
+        "type": "pie_slice",
+        "value": 5.9,
+        "color": 5
       },
       {
-        "id": "c6",
-        "label": "Route 53 DNS",
-        "value": 3.2
+        "id": "os6",
+        "label": "KaiOS",
+        "type": "pie_slice",
+        "value": 1.2,
+        "color": 6
+      },
+      {
+        "id": "os7",
+        "label": "Others",
+        "type": "pie_slice",
+        "value": 0.4,
+        "color": 7
       }
     ]
   }

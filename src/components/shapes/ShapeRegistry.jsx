@@ -92,7 +92,34 @@ export const ShapeRegistry = {
   },
   pie_slice: {
     getTextLimits: (w, h) => ({ maxWidth: (Math.min(w, h) / 2) * 0.6, maxHeight: (Math.min(w, h) / 2) * 0.6 }),
-    getSelectionBounds: (w, h, padding, color) => ShapeRegistry.circle.getSelectionBounds(w, h, padding, color),
+    getSelectionBounds: (w, h, padding, color, node) => {
+        const cx = w / 2;
+        const cy = h / 2;
+        // Selection padding is added to the pie radius for the highlight expansion
+        const r = (Math.min(w, h) / 2) + padding;
+        const startRaw = node.pieStartAngle || 0;
+        const endRaw = node.pieEndAngle || Math.PI * 2;
+        let pathD;
+        if (endRaw - startRaw >= Math.PI * 2 - 0.001) {
+            pathD = `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
+        } else {
+            // Include padding expansion along the angle
+            const start = startRaw - Math.PI / 2 - (padding / r);
+            const end = endRaw - Math.PI / 2 + (padding / r);
+            const x1 = cx + r * Math.cos(start);
+            const y1 = cy + r * Math.sin(start);
+            const x2 = cx + r * Math.cos(end);
+            const y2 = cy + r * Math.sin(end);
+            const largeArcFlag = end - start <= Math.PI ? "0" : "1";
+            pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        }
+        return (
+          <g>
+            <path d={pathD} fill="none" stroke={color} strokeWidth="10" strokeLinejoin="round" opacity="0.3" />
+            <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+          </g>
+        );
+    },
     render: (w, h, fill, stroke, strokeW, dash, filter, node) => {
         const cx = w / 2;
         const cy = h / 2;
@@ -115,7 +142,9 @@ export const ShapeRegistry = {
             const largeArcFlag = end - start <= Math.PI ? "0" : "1";
             pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
         }
-        return <path d={pathD} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />;
+        const actualFill = node.color ? `var(--color-${node.color})` : fill;
+        const separatorColor = node._canvasBg; 
+        return <path d={pathD} fill={actualFill} stroke={separatorColor} strokeWidth="2" strokeDasharray="none" filter={filter} />;
     }
   },
   chevron: {

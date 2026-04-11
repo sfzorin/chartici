@@ -1,7 +1,7 @@
 {
   "name": "chartici-api",
   "version": "1.0.0",
-  "description": "Backend proxy for Chartici — forwards requests to Moonshot (Kimi AI) API",
+  "description": "Backend proxy for Chartici — forwards requests to DeepSeek API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

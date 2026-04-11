@@ -7,21 +7,25 @@ export function layoutPiechart(nodes, edges, layoutRules) {
   };
 
   const sortedNodes = [...nodes].sort((a, b) => {
-      const aVal = typeof a.value === 'number' ? a.value : sizeVal(a.size);
-      const bVal = typeof b.value === 'number' ? b.value : sizeVal(b.size);
+      let aVal = parseFloat(a.value);
+      if (isNaN(aVal)) aVal = sizeVal(a.size);
+      let bVal = parseFloat(b.value);
+      if (isNaN(bVal)) bVal = sizeVal(b.size);
       return Math.max(0, bVal) - Math.max(0, aVal);
   });
 
   const totalSize = sortedNodes.reduce((acc, n) => {
-    let val = typeof n.value === 'number' ? n.value : sizeVal(n.size);
+    let val = parseFloat(n.value);
+    if (isNaN(val)) val = sizeVal(n.size);
     return acc + Math.max(val, 0);
   }, 0);
 
   if (totalSize === 0) return nodes;
 
   let currentAngle = 0;
-  return sortedNodes.map((n, idx) => {
-    let val = typeof n.value === 'number' ? n.value : sizeVal(n.size);
+  const layedOut = sortedNodes.map((n, idx) => {
+    let val = parseFloat(n.value);
+    if (isNaN(val)) val = sizeVal(n.size);
     val = Math.max(val, 0);
     const angleSpan = (val / totalSize) * Math.PI * 2;
     const startAngle = currentAngle;
@@ -30,14 +34,62 @@ export function layoutPiechart(nodes, edges, layoutRules) {
     
     return {
       ...n,
-      color: (idx % 9) + 1, // Enforce sequential color by size rank
-      type: 'pie_slice', // force type for rendering
       x: 0,              // Snap to center
       y: 0,
-      w: 600,            // Overall pie diameter
-      h: 600,
       pieStartAngle: startAngle,
       pieEndAngle: endAngle
     };
   });
+
+  // Second pass: Rigorous angular collision detection
+  const R = 150; // Inner approx radius
+  const TEXT_SPAN_PIXELS = 22; // Physical pixel leeway requested per line
+  const STAGGER_STEP = 25; // Radial spacing between cascade levels
+  
+  // Track maximum occupied angle for levels [0, 1, 2]
+  let lastOccupiedAngles = [0, 0, 0];
+  // Start rightward overflow slightly past 12 o'clock (2*PI)
+  let overflowAngle = 2 * Math.PI + 0.05; 
+
+  const layedOutStaggered = layedOut.map((n) => {
+       const midAngle = (n.pieStartAngle + n.pieEndAngle) / 2;
+       const angleSpan = n.pieEndAngle - n.pieStartAngle;
+       
+       let targetStagger = 0;
+       let targetLabelAngle = midAngle;
+       let placed = false;
+       
+       // Process up to 3 radial levels for collision cascading
+       for (let level = 0; level <= 2; level++) {
+           const labelR = R + 20 + level * STAGGER_STEP;
+           // Convert required pixel span to angular span at this specific radius
+           const trueRequiredHalf = (TEXT_SPAN_PIXELS / labelR) / 2;
+           const desiredStart = midAngle - trueRequiredHalf;
+           
+           if (desiredStart >= lastOccupiedAngles[level]) {
+               targetStagger = level * STAGGER_STEP;
+               targetLabelAngle = midAngle;
+               lastOccupiedAngles[level] = midAngle + trueRequiredHalf;
+               placed = true;
+               break;
+           }
+       }
+       
+       if (!placed) {
+           // Cascade exhausted. Throw label over 12 o'clock boundary to right side.
+           targetStagger = 0; 
+           const labelR = R + 20;
+           const trueRequiredHalf = (TEXT_SPAN_PIXELS / labelR) / 2;
+           targetLabelAngle = overflowAngle + trueRequiredHalf;
+           overflowAngle = targetLabelAngle + trueRequiredHalf;
+       }
+       
+       return { 
+           ...n, 
+           pieLabelStagger: targetStagger,
+           pieLabelAngle: targetLabelAngle 
+       };
+  });
+  
+  return layedOutStaggered;
 }

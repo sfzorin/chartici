@@ -15,14 +15,16 @@
         "nodes": [
           {
             "id": "q1_1",
-            "label": "Core API V3"
+            "label": "Core API V3",
+            "type": "process"
           },
           {
             "id": "q1_2",
-            "label": "Graph DB Migration"
+            "label": "Graph DB Migration",
+            "type": "process"
           }
         ],
-        "color": "4",
+        "color": "0",
         "label": "Q1"
       },
       {
@@ -31,14 +33,16 @@
         "nodes": [
           {
             "id": "q2_1",
-            "label": "Mobile App Launch"
+            "label": "Mobile App Launch",
+            "type": "process"
           },
           {
             "id": "q2_2",
-            "label": "SSO Support"
+            "label": "SSO Support",
+            "type": "process"
           }
         ],
-        "color": "5",
+        "color": "1",
         "label": "Q2"
       },
       {
@@ -47,14 +51,16 @@
         "nodes": [
           {
             "id": "q3_1",
-            "label": "AI Agent Integrations"
+            "label": "AI Agent Integrations",
+            "type": "process"
           },
           {
             "id": "q3_2",
-            "label": "Voice Commands"
+            "label": "Voice Commands",
+            "type": "process"
           }
         ],
-        "color": "6",
+        "color": "2",
         "label": "Q3"
       },
       {
@@ -63,14 +69,16 @@
         "nodes": [
           {
             "id": "bg1",
-            "label": "Dark Theme Tweaks"
+            "label": "Dark Theme Tweaks",
+            "type": "process"
           },
           {
             "id": "bg2",
-            "label": "Accessibility API"
+            "label": "Accessibility API",
+            "type": "process"
           }
         ],
-        "color": "7",
+        "color": "3",
         "label": "Backlog"
       }
     ],
