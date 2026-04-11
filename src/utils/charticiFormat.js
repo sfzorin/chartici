@@ -187,7 +187,7 @@ export function parseCharticiFile(fileContent) {
       return { flatNodes, cleanGroups };
     };
 
-    // Helper function to resolve and deduplicate edges
+    // Helper: resolve edges from any of the three possible arrays (edges / relationships / messages)
     const resolveEdges = (rawEdges) => {
       const edges = (rawEdges || []).map(e => {
         const source = e.sourceId || e.from || e.sourcelabel || e.sourceLabel;
@@ -200,12 +200,11 @@ export function parseCharticiFile(fileContent) {
           to: String(target) 
         };
       });
+      // Deduplicate by DIRECTED key to preserve A→B and B→A as separate edges
       const seen = new Set();
       return edges.filter(e => {
         if (!e.from || !e.to || e.from === e.to) return false;
-        const min = e.from < e.to ? e.from : e.to;
-        const max = e.from > e.to ? e.from : e.to;
-        const key = `${min}::${max}`;
+        const key = `${e.from}::${e.to}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -239,12 +238,14 @@ export function parseCharticiFile(fileContent) {
        finalConfig.diagramType = metaData.type;
     }
 
-    return {
-      groups: cleanGroups,
-      nodes: flatNodes,
-      edges: resolveEdges(coreData.edges),
-      config: finalConfig
-    };
+      // Merge all edge sources: v3.0.0 uses type-specific keys, fallback to generic 'edges'
+      const rawEdges = coreData.relationships || coreData.messages || coreData.edges || [];
+      return {
+        groups: cleanGroups,
+        nodes: flatNodes,
+        edges: resolveEdges(rawEdges),
+        config: finalConfig
+      };
   } catch (error) {
     throw new Error(`Failed to parse .cci file: ${error.message}`);
   }
