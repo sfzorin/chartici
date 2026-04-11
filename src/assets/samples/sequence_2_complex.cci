@@ -95,46 +95,16 @@
       }
     ],
     "messages": [
-      {
-        "sourceId": "1",
-        "targetId": "2"
-      },
-      {
-        "sourceId": "2",
-        "targetId": "3"
-      },
-      {
-        "sourceId": "3",
-        "targetId": "4"
-      },
-      {
-        "sourceId": "4",
-        "targetId": "8"
-      },
-      {
-        "sourceId": "8",
-        "targetId": "9"
-      },
-      {
-        "sourceId": "9",
-        "targetId": "10"
-      },
-      {
-        "sourceId": "10",
-        "targetId": "11"
-      },
-      {
-        "sourceId": "11",
-        "targetId": "12"
-      },
-      {
-        "sourceId": "12",
-        "targetId": "13"
-      },
-      {
-        "sourceId": "13",
-        "targetId": "14"
-      }
+      { "sourceId": "1",  "targetId": "2",  "label": "POST /checkout" },
+      { "sourceId": "2",  "targetId": "3",  "label": "Create PENDING" },
+      { "sourceId": "3",  "targetId": "4",  "label": "OrderCreated event" },
+      { "sourceId": "4",  "targetId": "8",  "label": "Reserve stock" },
+      { "sourceId": "8",  "targetId": "9",  "label": "InventorySecured event" },
+      { "sourceId": "9",  "targetId": "10", "label": "Charge card", "lineStyle": "dashed" },
+      { "sourceId": "10", "targetId": "11", "label": "200 OK", "lineStyle": "dashed" },
+      { "sourceId": "11", "targetId": "12", "label": "Payment webhook" },
+      { "sourceId": "12", "targetId": "13", "label": "PaymentConfirmed" },
+      { "sourceId": "13", "targetId": "14", "label": "OrderConfirmed" }
     ]
   }
 }
