@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "type": "piechart",
+    "version": "3.0.0"
+  },
+  "theme": "blue-orange",
+  "title": {
+    "text": "Annual IT Budget Distribution"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "pie_slice",
+        "nodes": [
+          {
+            "id": "p1",
+            "label": "Employee Salaries",
+            "value": 45
+          },
+          {
+            "id": "p2",
+            "label": "Cloud Infrastructure",
+            "value": 25
+          },
+          {
+            "id": "p3",
+            "label": "Software Licenses",
+            "value": 15
+          },
+          {
+            "id": "p4",
+            "label": "Hardware & Equipment",
+            "value": 10
+          },
+          {
+            "id": "p5",
+            "label": "Training & Courses",
+            "value": 5
+          }
+        ],
+        "size": "M",
+        "color": 0
+      }
+    ]
+  }
+}

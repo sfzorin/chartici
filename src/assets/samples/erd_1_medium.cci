@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "type": "erd",
+    "version": "3.0.0"
+  },
+  "theme": "blue-teal-slate",
+  "title": {
+    "text": "Blog Data Schema"
+  },
+  "data": {
+    "groups": [
+      {
+        "nodes": [
+          {
+            "id": "users",
+            "label": "users"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "color": 0
+      },
+      {
+        "nodes": [
+          {
+            "id": "u_id",
+            "label": "id (PK)"
+          },
+          {
+            "id": "u_email",
+            "label": "email (UQ)"
+          }
+        ],
+        "type": "process",
+        "size": "S",
+        "color": 0
+      },
+      {
+        "nodes": [
+          {
+            "id": "posts",
+            "label": "posts"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "color": 0
+      },
+      {
+        "nodes": [
+          {
+            "id": "p_id",
+            "label": "id (PK)"
+          },
+          {
+            "id": "p_uid",
+            "label": "author_id (FK)"
+          }
+        ],
+        "type": "process",
+        "size": "S",
+        "color": 0
+      },
+      {
+        "nodes": [
+          {
+            "id": "comments",
+            "label": "comments"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "color": 0
+      },
+      {
+        "nodes": [
+          {
+            "id": "c_id",
+            "label": "id (PK)"
+          },
+          {
+            "id": "c_pid",
+            "label": "post_id (FK)"
+          },
+          {
+            "id": "c_uid",
+            "label": "user_id (FK)"
+          }
+        ],
+        "type": "process",
+        "size": "S",
+        "color": 0
+      }
+    ],
+    "relationships": [
+      {
+        "sourceId": "users",
+        "targetId": "u_id"
+      },
+      {
+        "sourceId": "users",
+        "targetId": "u_email"
+      },
+      {
+        "sourceId": "posts",
+        "targetId": "p_id"
+      },
+      {
+        "sourceId": "posts",
+        "targetId": "p_uid"
+      },
+      {
+        "sourceId": "comments",
+        "targetId": "c_id"
+      },
+      {
+        "sourceId": "comments",
+        "targetId": "c_pid"
+      },
+      {
+        "sourceId": "comments",
+        "targetId": "c_uid"
+      },
+      {
+        "sourceId": "users",
+        "targetId": "posts",
+        "label": "1:N",
+        "connectionType": "1:N"
+      },
+      {
+        "sourceId": "posts",
+        "targetId": "comments",
+        "label": "1:N",
+        "connectionType": "1:N"
+      },
+      {
+        "sourceId": "users",
+        "targetId": "comments",
+        "label": "1:N",
+        "connectionType": "1:N"
+      }
+    ]
+  }
+}

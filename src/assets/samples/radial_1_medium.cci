@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "type": "radial",
+    "version": "3.0.0"
+  },
+  "theme": "brown-amber-grey",
+  "title": {
+    "text": "Tech Stack Radar"
+  },
+  "data": {
+    "groups": [
+      {
+        "label": "Center",
+        "color": 1,
+        "nodes": [
+          {
+            "id": "core",
+            "label": "Tech Radar 2026"
+          }
+        ],
+        "type": "process",
+        "size": "L"
+      },
+      {
+        "label": "Hold",
+        "color": 3,
+        "nodes": [
+          {
+            "id": "f1",
+            "label": "React 19"
+          },
+          {
+            "id": "f2",
+            "label": "Vite"
+          },
+          {
+            "id": "f3",
+            "label": "Tailwind"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "parentId": "core"
+      },
+      {
+        "label": "Adopt",
+        "color": 5,
+        "nodes": [
+          {
+            "id": "b1",
+            "label": "Node.js 22"
+          },
+          {
+            "id": "b2",
+            "label": "Go"
+          },
+          {
+            "id": "b3",
+            "label": "PostgreSQL"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "parentId": "core"
+      },
+      {
+        "label": "Trial",
+        "color": 7,
+        "nodes": [
+          {
+            "id": "i1",
+            "label": "Docker"
+          },
+          {
+            "id": "i2",
+            "label": "Kubernetes"
+          },
+          {
+            "id": "i3",
+            "label": "Terraform"
+          }
+        ],
+        "type": "process",
+        "size": "M",
+        "parentId": "core"
+      }
+    ]
+  }
+}

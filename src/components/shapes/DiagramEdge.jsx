@@ -5,17 +5,23 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   if (!pathData) return null;
   
   const { pathD, textPathD, textPathLen } = pathData;
-  const style = edge.lineStyle || "solid";
+  let ct = edge.connectionType || (diagramType === 'erd' ? "1:1" : "target");
+  
+  // Handle case where AI or legacy Sequence puts lineStyle into connectionType
+  let style = edge.lineStyle || "solid";
+  if (ct === "solid" || ct === "dashed" || ct === "dotted") {
+      style = ct;
+      ct = "target"; // default arrow
+  }
+  
   let dashArray = "none";
   const isPrintTheme = theme === 'print-book';
   
   let strokeW = isPrintTheme ? "1" : "2";
   
-  if (style === "bold" || style === "bold-dashed") {
-    strokeW = isPrintTheme ? "1.5" : "3";
-  }
+
   
-  if (style === "dashed" || style === "bold-dashed") dashArray = "5, 5";
+  if (style === "dashed") dashArray = "5, 5";
   if (style === "dotted") dashArray = "2, 4";
   
   if (style === "none" || style === "hidden") {
@@ -29,9 +35,6 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   let mStart = "none";
   let mEnd = "none";
   let isLogical = style === "none" || style === "hidden";
-  
-  // Unified connectionType (fallback: legacy cardinality/arrowType)
-  const ct = edge.connectionType || edge.cardinality || edge.arrowType || "target";
   
   if (ct.includes(':')) {
     // ERD crow's foot notation: "1:N", "N:M", "1:1", etc.

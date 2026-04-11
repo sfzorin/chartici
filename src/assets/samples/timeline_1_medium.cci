@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "type": "timeline",
+    "version": "3.0.0"
+  },
+  "theme": "emerald-water",
+  "title": {
+    "text": "Q3 Product Roadmap"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "chevron",
+        "label": "Roadmap Spine",
+        "size": "L",
+        "nodes": [
+          {
+            "id": "ph1",
+            "label": "1. Design Phase"
+          },
+          {
+            "id": "ph2",
+            "label": "2. Development",
+            "spineId": "ph1"
+          },
+          {
+            "id": "ph3",
+            "label": "3. Quality Assurance",
+            "spineId": "ph2"
+          },
+          {
+            "id": "ph4",
+            "label": "4. Deployment",
+            "spineId": "ph3"
+          }
+        ],
+        "color": 0
+      },
+      {
+        "type": "process",
+        "label": "Design Events",
+        "color": 2,
+        "nodes": [
+          {
+            "id": "t1",
+            "label": "UI Mockups",
+            "spineId": "ph1"
+          },
+          {
+            "id": "t2",
+            "label": "User Testing",
+            "spineId": "ph1"
+          }
+        ],
+        "size": "S"
+      },
+      {
+        "type": "process",
+        "label": "Dev Events",
+        "color": 4,
+        "nodes": [
+          {
+            "id": "t3",
+            "label": "API Contracts",
+            "spineId": "ph2"
+          },
+          {
+            "id": "t4",
+            "label": "Frontend Impl",
+            "spineId": "ph2"
+          },
+          {
+            "id": "t5",
+            "label": "Backend Logic",
+            "spineId": "ph2"
+          }
+        ],
+        "size": "S"
+      },
+      {
+        "type": "process",
+        "label": "QA Events",
+        "color": 6,
+        "nodes": [
+          {
+            "id": "t6",
+            "label": "Integration Tests",
+            "spineId": "ph3"
+          },
+          {
+            "id": "t7",
+            "label": "Load Testing",
+            "spineId": "ph3"
+          }
+        ],
+        "size": "S"
+      },
+      {
+        "type": "process",
+        "label": "Deploy Events",
+        "color": 8,
+        "nodes": [
+          {
+            "id": "t8",
+            "label": "Production Go-Live",
+            "spineId": "ph4"
+          }
+        ],
+        "size": "M"
+      }
+    ]
+  }
+}

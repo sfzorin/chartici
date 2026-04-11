@@ -154,9 +154,9 @@ export function renderToSVG(cciJson) {
     const { pathD, textPathD } = pd;
     const style = edge.lineStyle || 'solid';
     let dashArray = '';
-    if (style === 'dashed' || style === 'bold-dashed') dashArray = ' stroke-dasharray="5,5"';
+    if (style === 'dashed') dashArray = ' stroke-dasharray="5,5"';
     if (style === 'dotted') dashArray = ' stroke-dasharray="2,4"';
-    const sw = (style === 'bold' || style === 'bold-dashed') ? 3 : 2;
+    const sw = 2;
     
     const ct = edge.connectionType || edge.cardinality || edge.arrowType || 'target';
     let markerEnd = '', markerStart = '';

@@ -181,7 +181,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
           cols.length === 0 || 
           c0 === 'id' || c0 === 'source id' || c0 === 'target id' || c0.endsWith(' id') || 
           c0 === 'title' || 
-          c1 === 'label' || c1 === 'event label' || c1 === 'node label'
+          c1 === 'label'
       ) continue;
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
@@ -215,17 +215,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         group.nodes.push(nodeObj);
         
         if (diagramType === 'flowchart' && nextSteps && nextSteps !== '-') {
-            const regex = /([^,\[\]\s]+)(?:\[(.*?)\])?/g;
-            let match;
-            while ((match = regex.exec(nextSteps)) !== null) {
-                const targetId = match[1];
-                const edgeLabel = match[2] || undefined;
-                parsed.data.edges.push({
-                   sourceId: id, targetId,
-                   label: edgeLabel,
-                   lineStyle: 'solid', connectionType: 'target'
-                });
-            }
+            nodeObj.nextSteps = nextSteps;
         }
       }
       
@@ -245,10 +235,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         group.nodes.push({ id, label, type: 'process', size: currentGroupSize || 'M' });
         
         if (currentGroupParentId) {
-             parsed.data.edges.push({
-                 sourceId: currentGroupParentId, targetId: id,
-                 lineStyle: 'solid', connectionType: 'none'
-             });
+             group.parentId = currentGroupParentId;
         }
       }
       
@@ -292,10 +279,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         group.nodes.push({ id, label, type, size: currentGroupSize || 'M' });
         
         // Link event to spine inherently
-        parsed.data.edges.push({
-           sourceId: spineId, targetId: id,
-           lineStyle: 'dashed', connectionType: 'none'
-        });
+        group.nodes[group.nodes.length - 1].spineId = spineId;
       }
 
       if (mode === 'edges' && cols.length >= 4) {
@@ -322,22 +306,6 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         });
       }
     }
-  }
-  
-  if (diagramType.toLowerCase() === 'flowchart') {
-      const mergedEdges = [];
-      const edgeMap = new Map();
-      parsed.data.edges.forEach(e => {
-          const key1 = `${e.sourceId}->${e.targetId}`;
-          const key2 = `${e.targetId}->${e.sourceId}`;
-          if (edgeMap.has(key2) && !e.label && !edgeMap.get(key2).label) {
-              edgeMap.get(key2).connectionType = 'both';
-          } else {
-              edgeMap.set(key1, e);
-              mergedEdges.push(e);
-          }
-      });
-      parsed.data.edges = mergedEdges;
   }
   
   if (parsed.data.groups.length === 0) {

@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "type": "sequence",
+    "version": "3.0.0"
+  },
+  "theme": "green-purple",
+  "title": {
+    "text": "OAuth 2.0 Auth Code Flow"
+  },
+  "data": {
+    "groups": [
+      {
+        "label": "Web Client",
+        "color": 1,
+        "nodes": [
+          {
+            "id": "n1",
+            "label": "GET /authorize"
+          },
+          {
+            "id": "n3",
+            "label": "Submit Credentials"
+          },
+          {
+            "id": "n5",
+            "label": "POST /token (auth_code)"
+          },
+          {
+            "id": "n8",
+            "label": "GET /api/resource"
+          }
+        ],
+        "type": "process",
+        "size": "M"
+      },
+      {
+        "label": "Authorization Server",
+        "color": 3,
+        "nodes": [
+          {
+            "id": "n2",
+            "label": "Show Login Page"
+          },
+          {
+            "id": "n4",
+            "label": "Redirect with auth_code"
+          },
+          {
+            "id": "n6",
+            "label": "Validate Code"
+          },
+          {
+            "id": "n7",
+            "label": "Return Access Token"
+          }
+        ],
+        "type": "process",
+        "size": "M"
+      },
+      {
+        "label": "Resource API",
+        "color": 5,
+        "nodes": [
+          {
+            "id": "n9",
+            "label": "Validate Token"
+          },
+          {
+            "id": "n10",
+            "label": "Return JSON Data"
+          }
+        ],
+        "type": "process",
+        "size": "M"
+      }
+    ],
+    "messages": [
+      {
+        "sourceId": "n1",
+        "targetId": "n2"
+      },
+      {
+        "sourceId": "n2",
+        "targetId": "n3"
+      },
+      {
+        "sourceId": "n3",
+        "targetId": "n4"
+      },
+      {
+        "sourceId": "n4",
+        "targetId": "n5"
+      },
+      {
+        "sourceId": "n5",
+        "targetId": "n6"
+      },
+      {
+        "sourceId": "n6",
+        "targetId": "n7"
+      },
+      {
+        "sourceId": "n7",
+        "targetId": "n8"
+      },
+      {
+        "sourceId": "n8",
+        "targetId": "n9"
+      },
+      {
+        "sourceId": "n9",
+        "targetId": "n10"
+      }
+    ]
+  }
+}

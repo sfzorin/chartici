@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "3.0.0"
+  },
+  "theme": "vibrant-rainbow",
+  "title": {
+    "text": "User Authentication Flow"
+  },
+  "data": {
+    "groups": [
+      {
+        "type": "oval",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "Start Login",
+            "nextSteps": "input"
+          },
+          {
+            "id": "success",
+            "label": "Login Success"
+          }
+        ],
+        "size": "S",
+        "color": 0
+      },
+      {
+        "type": "process",
+        "nodes": [
+          {
+            "id": "input",
+            "label": "Enter Credentials",
+            "nextSteps": "check_db"
+          },
+          {
+            "id": "mfa_input",
+            "label": "Enter OTP",
+            "nextSteps": "success"
+          },
+          {
+            "id": "error",
+            "label": "Show Error",
+            "nextSteps": "input"
+          }
+        ],
+        "size": "M",
+        "color": 0
+      },
+      {
+        "type": "process",
+        "label": "Auth Action",
+        "color": 4,
+        "nodes": [
+          {
+            "id": "check_db",
+            "label": "Verify DB",
+            "nextSteps": "valid"
+          }
+        ],
+        "size": "M"
+      },
+      {
+        "type": "rhombus",
+        "nodes": [
+          {
+            "id": "valid",
+            "label": "IsValid?",
+            "nextSteps": "error[No], mfa[Yes]"
+          },
+          {
+            "id": "mfa",
+            "label": "MFA Enabled?",
+            "nextSteps": "success[No], mfa_input[Yes]"
+          }
+        ],
+        "size": "M",
+        "color": 0
+      }
+    ]
+  }
+}

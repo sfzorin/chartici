@@ -40,7 +40,7 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
   const payload = {
     meta: {
       type: diagramType || 'flowchart',
-      version: "2.0.0"
+      version: "3.0.0"
     },
     title: {
        text: configRoot.title || '',

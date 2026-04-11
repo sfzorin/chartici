@@ -7,5 +7,5 @@
  */
 export function getGroupId(node) {
   if (!node) return null;
-  return node.groupId || node.group || null;
+  return node.groupId || null;
 }
