@@ -29,6 +29,8 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       const endNode = allNodes.find(n => n.id === toId);
       if (!startNode || !endNode) return;
       if (edge.style === 'invisible' || edge.logical || edge.isBlank) return;
+      // Suppress spine-to-spine edges (e.g. timeline chevron→chevron)
+      if (activeSchema?.engineManifest?.suppressSpineEdges && startNode.type === 'chevron' && endNode.type === 'chevron') return;
       const scx = startNode.x;
       const scy = startNode.y;
       const ecx = endNode.x;

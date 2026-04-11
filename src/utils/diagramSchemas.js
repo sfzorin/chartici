@@ -70,7 +70,7 @@ export const DIAGRAM_SCHEMAS = {
       "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
       "process -> chevron : Use 'solid' or 'dashed' (visible event links)"
     ],
-    engineManifest: { layout: 'timeline', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['chevron', 'process'], suppressSpineEdges: true, spineNodeType: 'chevron' }
+    engineManifest: { layout: 'timeline', edgeStyle: 'straight_clipped', isHorizontalFlow: true, nodeTypes: ['chevron', 'process'], suppressSpineEdges: true, spineNodeType: 'chevron' }
   },
   tree: {
     id: 'tree',
