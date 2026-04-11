@@ -1,12 +1,10 @@
-import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
+import { getEngine } from '../../engines/index.js';
 
 export const EdgeRoutingRegistry = {
   getStyle: (diagramType) => {
     const dt = diagramType === 'org_chart' ? 'tree' : diagramType;
-    const schema = DIAGRAM_SCHEMAS[dt];
-    if (schema && schema.engineManifest) {
-      return schema.engineManifest.edgeStyle; // 'orthogonal_astar', 'straight_clipped', 'none'
-    }
-    return 'orthogonal_astar'; // Default fallback
+    const engine = getEngine(dt);
+    if (engine?.layout?.edgeStyle) return engine.layout.edgeStyle;
+    return 'orthogonal_astar'; // safe fallback
   }
 };
