@@ -15,7 +15,6 @@ AVAILABLE DIAGRAM TYPES:
 ${getAvailableTypesText()}
 
 STRICT RULES:
-- Do NOT output any reasoning, commentary, or <thinking> blocks.
 - Do NOT explain your choices. Just output the three XML tags below.
 - Keep <prompt> under 150 words. Be dense and structural, not narrative.
 - Aim for 9-20 entities unless the user explicitly asks for more or fewer.
