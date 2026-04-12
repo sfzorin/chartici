@@ -24,6 +24,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   let mStart = 'none';
   let mEnd = 'none';
   let isLogical = style === 'none' || style === 'hidden';
+  const edgeColorStr = 'var(--diagram-edge)';
 
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const manifest = activeSchema.engineManifest || {};
