@@ -943,29 +943,43 @@ export default function DiagramRenderer({
           {showLegend && diagramType !== 'piechart' && activeSchema?.features?.supportsLegend && (() => {
             const legendGroups = (initialData.groups || [])
               .filter(g => g.label && g.id && g.type !== 'title')
-              .slice(0, 16); // max 16 строк
-            if (legendGroups.length < 2) return null; // 0-1 группа — не нужна
+              .slice(0, 16);
+            if (legendGroups.length < 2) return null;
 
-            const ROW_H   = 28;
-            const SWATCH  = 16;
-            const PAD_X   = 14;
-            const PAD_Y   = 10;
-            const TEXT_OFFSET = SWATCH + 8;
-            // Приблизительная ширина: swatch + longest label
+            // Размеры легенды: текст = M-нода (16px)
+            const FONT_SIZE  = 16;
+            const ROW_H      = 36;
+            const SWATCH     = 20;
+            const SWATCH_GAP = 10;
+            const PAD_X      = 16;
+            const PAD_Y      = 12;
+            const TEXT_OFFSET = SWATCH + SWATCH_GAP;
+            // ~9px per char at 16px font
             const maxLabelLen = Math.max(...legendGroups.map(g => (g.label || '').length));
-            const lgW   = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * 7, 180);
-            const lgH   = PAD_Y * 2 + legendGroups.length * ROW_H;
+            const lgW = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * 9, 220);
+            const lgH = PAD_Y * 2 + legendGroups.length * ROW_H;
 
-            // Позиция: нижний правый угол viewBox
-            const lgX = vMinX + vW - lgW - 20;
-            const lgY = vMinY + vH - lgH - 20;
+            // Позиция: прямо под нодами (не в углу viewBox)
+            const contentNodes = computedNodes.filter(n =>
+              n.type !== 'text' && n.type !== 'title' && n.id !== '__SYSTEM_TITLE__'
+            );
+            const nodesRight  = contentNodes.length
+              ? Math.max(...contentNodes.map(n => (n.x || 0) + getNodeDim(n).width  / 2))
+              : vMinX + vW;
+            const nodesBottom = contentNodes.length
+              ? Math.max(...contentNodes.map(n => (n.y || 0) + getNodeDim(n).height / 2))
+              : vMinY + vH;
+
+            // Легенда: нижний правый угол кластера нод + небольшой отступ
+            const lgX = nodesRight - lgW;
+            const lgY = nodesBottom + 24;
 
             return (
               <g transform={`translate(${lgX}, ${lgY})`}>
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
                   fill={resolvedLegendBg} stroke={resolvedLegendStroke}
-                  rx={8} opacity={0.96}
+                  rx={8} opacity={0.97}
                 />
                 {legendGroups.map((g, i) => {
                   const color = g.color || 1;
@@ -974,12 +988,12 @@ export default function DiagramRenderer({
                   return (
                     <g key={g.id} transform={`translate(${PAD_X}, ${PAD_Y + i * ROW_H + ROW_H / 2})`}>
                       <rect x={0} y={-SWATCH/2} width={SWATCH} height={SWATCH}
-                        fill={fill} rx={3}
+                        fill={fill} rx={4}
                       />
                       <text
                         x={TEXT_OFFSET} y={0}
                         dominantBaseline="central"
-                        fontSize={13} fontWeight={500} fill="var(--diagram-text)"
+                        fontSize={FONT_SIZE} fontWeight={500} fill="var(--diagram-text)"
                       >
                         {(g.label || g.id).replace(/_/g, ' ')}
                       </text>
