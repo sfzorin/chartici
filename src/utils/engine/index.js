@@ -50,17 +50,32 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 
       let pathD;
       if (curveStrength > 0) {
-        // Quadratic bezier: control point offset perpendicular to the line
-        const midX = (sp.x + ep.x) / 2;
-        const midY = (sp.y + ep.y) / 2;
         const segLen = Math.hypot(ep.x - sp.x, ep.y - sp.y);
+        // Amplitude scales with length, capped to prevent excessive curvature on long edges
+        const curveCap = pathStyleDef.curveCap ?? 120;
+        const amp = Math.min(segLen * curveStrength, curveCap);
         // Perpendicular direction (CCW): (-uy, ux)
-        const cpx = midX + (-uy) * segLen * curveStrength;
-        const cpy = midY + ( ux) * segLen * curveStrength;
-        pathD = `M ${sp.x} ${sp.y} Q ${cpx} ${cpy} ${ep.x} ${ep.y}`;
+        const px = -uy, py = ux;
+
+        if (pathStyleDef.curveStyle === 'flow') {
+          // S-curve: cp1 perpendicular CCW, cp2 perpendicular CW
+          const cp1x = sp.x * 0.75 + ep.x * 0.25 + px * amp;
+          const cp1y = sp.y * 0.75 + ep.y * 0.25 + py * amp;
+          const cp2x = sp.x * 0.25 + ep.x * 0.75 - px * amp;
+          const cp2y = sp.y * 0.25 + ep.y * 0.75 - py * amp;
+          pathD = `M ${sp.x} ${sp.y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${ep.x} ${ep.y}`;
+        } else {
+          // Arc (default): both control points offset same direction — true chord arc
+          const cp1x = sp.x * 0.67 + ep.x * 0.33 + px * amp;
+          const cp1y = sp.y * 0.67 + ep.y * 0.33 + py * amp;
+          const cp2x = sp.x * 0.33 + ep.x * 0.67 + px * amp;
+          const cp2y = sp.y * 0.33 + ep.y * 0.67 + py * amp;
+          pathD = `M ${sp.x} ${sp.y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${ep.x} ${ep.y}`;
+        }
       } else {
         pathD = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
       }
+
 
       // textPathD: always L-R or B-T for readable labels
       const isNearVertical = Math.abs(sp.x - ep.x) < Math.abs(sp.y - ep.y);

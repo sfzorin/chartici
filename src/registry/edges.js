@@ -70,8 +70,22 @@ export const PATH_STYLE_REGISTRY = {
   },
   curved: {
     label:         'Curved',
-    curveStrength:  0.15,  // perpendicular offset = lineLength * curveStrength
-    cornerRadius:   8,     // for multi-segment fallback paths
+    /**
+     * curveStyle:
+     *   'arc'  — кубический безье, обе точки в одну сторону (дуга, как струна).
+     *             Intensity варьируется по длине линии → короткие почти прямые,
+     *             длинные — заметная дуга. Лучший выбор для radial.
+     *   'flow' — S-образный кубический безье (точки в разные стороны).
+     *             Подходит для потоковых схем.
+     */
+    curveStyle:    'arc',
+    /**
+     * curveStrength — базовая сила изгиба как доля от длины линии.
+     * Итоговое смещение = min(len * curveStrength, curveCap).
+     */
+    curveStrength:  0.25,
+    curveCap:       120,   // максимальный изгиб в пикселях (ограничивает очень длинные рёбра)
+    cornerRadius:   8,
     jumpRadius:     0,
   },
   none: {
