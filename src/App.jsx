@@ -28,6 +28,7 @@ function App() {
   const [diagramType, setDiagramType] = useState('flowchart');
   const [bgColor, setBgColor] = useState('transparent-dark');
   const [showLegend, setShowLegend] = useState(false);
+  const [legendPos, setLegendPos] = useState(null); // null = auto, {x,y} = locked
   const [diagramTitle, setDiagramTitle] = useState('Untitled Project');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [panToNodeId, setPanToNodeId] = useState(null);
@@ -147,7 +148,7 @@ function App() {
   const handleDownloadChartici = async () => {
     // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
     const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
-      aspect, bgColor, theme: paletteTheme, diagramType, showLegend,
+      aspect, bgColor, theme: paletteTheme, diagramType, showLegend, legendPos,
       titleText:  diagramTitle,
       titleSize:  diagramData.config?.titleSize,
       titleX:     diagramData.config?.titleLock ? diagramData.config?.titleX : undefined,
@@ -189,6 +190,7 @@ function App() {
       // diagramType живёт в meta.type, а не в config
       setDiagramType(dt);
       if (parsed.config.showLegend !== undefined) setShowLegend(!!parsed.config.showLegend);
+      setLegendPos(parsed.config.legendX !== undefined ? { x: parsed.config.legendX, y: parsed.config.legendY } : null);
       
       let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
       if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
@@ -789,6 +791,11 @@ function App() {
             onConnect={handleConnectionDrag}
             onAddNode={addNewNode}
             showLegend={showLegend}
+            legendPos={legendPos}
+            onLegendMove={(pos) => {
+              setLegendPos(pos);
+              setDiagramData(prev => ({...prev, config: {...prev.config, legendX: pos.x, legendY: pos.y}}));
+            }}
             onGroupLabelChange={(groupId, newLabel) => {
               setDiagramData(prev => {
                 const groupIndex = prev.groups.findIndex(g => g.id === groupId);
@@ -840,6 +847,17 @@ function App() {
               onChangeShowLegend: (val) => {
                  setShowLegend(val);
                  setDiagramData(prev => ({...prev, config: {...prev.config, showLegend: val}}));
+              },
+              legendLocked: !!legendPos,
+              onToggleLegendLock: () => {
+                if (legendPos) {
+                  setLegendPos(null);
+                  setDiagramData(prev => {
+                    const c = {...prev.config};
+                    delete c.legendX; delete c.legendY;
+                    return {...prev, config: c};
+                  });
+                }
               },
             }}
           />

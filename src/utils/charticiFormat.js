@@ -106,6 +106,10 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
   if (restConfig.bgColor)                  dataConfig.bgColor = restConfig.bgColor;
   if (restConfig.theme)                    payload.theme = restConfig.theme; // theme — на верхнем уровне
   if (restConfig.showLegend)               dataConfig.showLegend = true;    // omit when false (shorter files)
+  if (restConfig.legendPos) {
+    dataConfig.legendX = restConfig.legendPos.x;
+    dataConfig.legendY = restConfig.legendPos.y;
+  }
 
   payload.data = {};
   if (Object.keys(dataConfig).length) payload.data.config = dataConfig;

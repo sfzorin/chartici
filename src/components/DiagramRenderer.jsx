@@ -37,6 +37,8 @@ export default function DiagramRenderer({
   fitTrigger,
   toolboxProps,
   showLegend = false,
+  legendPos = null,
+  onLegendMove,
 }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -946,7 +948,7 @@ export default function DiagramRenderer({
               .slice(0, 16);
             if (legendGroups.length < 2) return null;
 
-            // Размеры легенды: текст = M-нода (16px)
+            // ── Размеры легенды: текст = M-нода (16px) ────────────
             const FONT_SIZE  = 16;
             const ROW_H      = 36;
             const SWATCH     = 20;
@@ -954,28 +956,83 @@ export default function DiagramRenderer({
             const PAD_X      = 16;
             const PAD_Y      = 12;
             const TEXT_OFFSET = SWATCH + SWATCH_GAP;
-            // ~9px per char at 16px font
             const maxLabelLen = Math.max(...legendGroups.map(g => (g.label || '').length));
             const lgW = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * 9, 220);
             const lgH = PAD_Y * 2 + legendGroups.length * ROW_H;
 
-            // Позиция: прямо под нодами (не в углу viewBox)
-            const contentNodes = computedNodes.filter(n =>
-              n.type !== 'text' && n.type !== 'title' && n.id !== '__SYSTEM_TITLE__'
-            );
-            const nodesRight  = contentNodes.length
-              ? Math.max(...contentNodes.map(n => (n.x || 0) + getNodeDim(n).width  / 2))
-              : vMinX + vW;
-            const nodesBottom = contentNodes.length
-              ? Math.max(...contentNodes.map(n => (n.y || 0) + getNodeDim(n).height / 2))
-              : vMinY + vH;
+            // ── Авто-позиция или locked ──────────────────────────
+            let lgX, lgY;
+            if (legendPos) {
+              // Locked — используем сохранённые координаты
+              lgX = legendPos.x;
+              lgY = legendPos.y;
+            } else {
+              // Авто: выбираем где больше свободного места
+              const contentNodes = computedNodes.filter(n =>
+                n.type !== 'text' && n.type !== 'title' && n.id !== '__SYSTEM_TITLE__'
+              );
+              if (contentNodes.length === 0) {
+                lgX = vMinX + vW - lgW - 20;
+                lgY = vMinY + vH - lgH - 20;
+              } else {
+                const nodesLeft   = Math.min(...contentNodes.map(n => (n.x || 0) - getNodeDim(n).width  / 2));
+                const nodesRight  = Math.max(...contentNodes.map(n => (n.x || 0) + getNodeDim(n).width  / 2));
+                const nodesTop    = Math.min(...contentNodes.map(n => (n.y || 0) - getNodeDim(n).height / 2));
+                const nodesBottom = Math.max(...contentNodes.map(n => (n.y || 0) + getNodeDim(n).height / 2));
+                const clusterW = nodesRight - nodesLeft;
+                const clusterH = nodesBottom - nodesTop;
 
-            // Легенда: нижний правый угол кластера нод + небольшой отступ
-            const lgX = nodesRight - lgW;
-            const lgY = nodesBottom + 24;
+                // Свободное место: справа от нод до края viewBox vs снизу
+                const freeRight  = (vMinX + vW) - nodesRight;
+                const freeBottom = (vMinY + vH) - nodesBottom;
+
+                if (freeRight >= lgW + 40 || clusterW >= clusterH * 1.2) {
+                  // Справа от нод, вертикально по центру кластера
+                  lgX = nodesRight + 32;
+                  lgY = (nodesTop + nodesBottom) / 2 - lgH / 2;
+                } else {
+                  // Снизу нод, right-aligned
+                  lgX = nodesRight - lgW;
+                  lgY = nodesBottom + 24;
+                }
+              }
+            }
+
+            // ── Drag handler ──────────────────────────────────────
+            const handleLegendDragStart = (e) => {
+              e.stopPropagation();
+              const svg = svgRef.current;
+              const viewport = viewportRef.current;
+              if (!svg || !viewport) return;
+              const pt = svg.createSVGPoint();
+              pt.x = e.clientX; pt.y = e.clientY;
+              try {
+                const svgP = pt.matrixTransform(viewport.getScreenCTM().inverse());
+                const startOffset = { dx: lgX - svgP.x, dy: lgY - svgP.y };
+                const onMove = (me) => {
+                  pt.x = me.clientX; pt.y = me.clientY;
+                  try {
+                    const p = pt.matrixTransform(viewport.getScreenCTM().inverse());
+                    const nx = Math.round((p.x + startOffset.dx) / 10) * 10;
+                    const ny = Math.round((p.y + startOffset.dy) / 10) * 10;
+                    if (onLegendMove) onLegendMove({ x: nx, y: ny });
+                  } catch {}
+                };
+                const onUp = () => {
+                  window.removeEventListener('pointermove', onMove);
+                  window.removeEventListener('pointerup', onUp);
+                };
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+              } catch {}
+            };
 
             return (
-              <g transform={`translate(${lgX}, ${lgY})`}>
+              <g
+                transform={`translate(${lgX}, ${lgY})`}
+                style={{ cursor: 'grab' }}
+                onPointerDown={handleLegendDragStart}
+              >
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
                   fill={resolvedLegendBg} stroke={resolvedLegendStroke}

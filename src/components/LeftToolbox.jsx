@@ -81,6 +81,8 @@ export default function LeftToolbox({
   onChangeAspect,
   showLegend,
   onChangeShowLegend,
+  legendLocked,
+  onToggleLegendLock,
   onAddNode,
   paletteTheme,
   onChangeTheme,
@@ -667,6 +669,20 @@ export default function LeftToolbox({
               />
               Show Legend
             </label>
+            {showLegend && legendLocked && (
+              <button
+                onClick={onToggleLegendLock}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  marginTop: '4px', padding: '3px 8px',
+                  fontSize: '11px', fontWeight: 500,
+                  background: 'var(--bg-panel)', border: '1px solid var(--border-color-soft)',
+                  borderRadius: '4px', color: 'var(--text-muted)', cursor: 'pointer',
+                }}
+              >
+                <Icon name="lock" size={12} /> Reset Position
+              </button>
+            )}
           </div>
         </PopoverMenu>
 
