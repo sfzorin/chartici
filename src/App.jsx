@@ -654,7 +654,18 @@ function App() {
   };
 
   const deleteSelectedElement = useCallback(() => {
-    if (selectedNodeId === '__LEGEND__') { setSelectedNodeId(null); return; }
+    if (selectedNodeId === '__LEGEND__') {
+      setShowLegend(false);
+      setLegendPos(null);
+      setDiagramData(prev => {
+        const c = { ...prev.config };
+        delete c.showLegend; delete c.legendX; delete c.legendY;
+        if (c.legendSize) delete c.legendSize;
+        return { ...prev, config: c };
+      });
+      setSelectedNodeId(null);
+      return;
+    }
     if (selectedNodeId) {
       setDiagramData(prev => {
         let newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);

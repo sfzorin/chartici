@@ -138,7 +138,7 @@ export default function LeftToolbox({
   const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && (!isLegend || legendLocked);
   const isConnectActive    = !!selectedNode && !isTitle && !isLegend && diagramSchema.features.allowConnections;
   const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend;
-  const isTrashActive      = !!(selectedNode || selectedEdge) && !isLegend;
+  const isTrashActive      = !!(selectedNode || selectedEdge);
 
   const enforceMax = diagramSchema?.features?.enforceMaxNodes;
   const isAddDisabled = enforceMax && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= enforceMax;
@@ -656,27 +656,6 @@ export default function LeftToolbox({
                   {ar.label}
                 </button>
              ))}
-          </div>
-
-          <div className="toolbox-divider" style={{ margin: '8px 0' }} />
-          <div style={{ padding: '0 8px 10px' }}>
-            <label style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              fontSize: '13px', fontWeight: 500,
-              color: diagramSchema?.features?.supportsLegend !== false ? 'var(--diagram-text)' : 'var(--text-muted)',
-              cursor: diagramSchema?.features?.supportsLegend !== false ? 'pointer' : 'not-allowed',
-              opacity: diagramSchema?.features?.supportsLegend !== false ? 1 : 0.4,
-              userSelect: 'none',
-            }}>
-              <input
-                type="checkbox"
-                checked={!!showLegend}
-                disabled={!diagramSchema?.features?.supportsLegend}
-                onChange={e => diagramSchema?.features?.supportsLegend && onChangeShowLegend && onChangeShowLegend(e.target.checked)}
-                style={{ width: '14px', height: '14px', accentColor: 'var(--color-brand)', cursor: diagramSchema?.features?.supportsLegend !== false ? 'pointer' : 'not-allowed' }}
-              />
-              Show Legend
-            </label>
           </div>
         </PopoverMenu>
 
