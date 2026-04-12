@@ -62,7 +62,9 @@ export async function planDiagram(userPrompt) {
 
   const title = titleMatch ? titleMatch[1].trim() : 'Generated Diagram';
   const diagramType = typeMatch ? typeMatch[1].trim().toLowerCase() : 'flowchart';
-  const extendedPrompt = promptMatch ? promptMatch[1].trim() : p1Content;
+  // Strip any <thinking> blocks that DeepSeek may inject
+  const rawPrompt = promptMatch ? promptMatch[1].trim() : p1Content;
+  const extendedPrompt = rawPrompt.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
 
   // Log phase 1 output for debugging
   savePhase1Log(userPrompt, title, diagramType, extendedPrompt, p1Content);

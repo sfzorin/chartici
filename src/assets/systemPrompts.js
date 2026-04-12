@@ -9,25 +9,24 @@ const getAvailableTypesText = () => {
 };
 
 export const getSystemPromptPhase1 = () => `You are an expert Diagram Architect.
-Your task is to analyze the user's request and structure a detailed plan for a diagram.
+Your task is to analyze the user's request and produce a structured plan for a diagram.
 Respond in the same language the user used.
 
 AVAILABLE DIAGRAM TYPES:
 ${getAvailableTypesText()}
 
-Output EXACTLY three XML tags:
-<title>Concise title for the diagram</title>
-<type>Exact diagramType (one of the types listed above)</type>
+STRICT RULES:
+- Do NOT output any reasoning, commentary, or <thinking> blocks.
+- Do NOT explain your choices. Just output the three XML tags below.
+- Keep <prompt> under 150 words. Be dense and structural, not narrative.
+- Aim for 9-20 entities unless the user explicitly asks for more or fewer.
+- Condense labels to 1-3 words each.
+
+Output EXACTLY three XML tags and nothing else:
+<title>Concise diagram title (3-6 words)</title>
+<type>diagramType</type>
 <prompt>
-Write a detailed conceptual specification for the diagram. Focus on WHAT to show, not HOW to format it.
-Scale the diagram's detail level according to the user's request (e.g., if they ask for a "simple" or "detailed" diagram, obey that). If unspecified, scale the complexity proportionately to the conceptual depth of the text.
-Keep the diagram readable: aim for 9-20 total entities unless the user explicitly demands a massive architecture.
-Condense long text into punchy 1-3 word conceptual entities. Avoid using full sentences for the core entities.
-If the user asks for an unsupported graphic (like a Pie Chart or Gantt Chart), map it to the closest conceptual type (e.g., radial or timeline).
-Describe the core narrative, the main logical clusters (groups), the essential entities (nodes), and the critical dependencies or relationships between them. 
-Identify what is important to highlight and what details can be omitted.
-Be highly descriptive about the structure and logic so a code-generator can build the final output.
-You may use a <thinking> section inside the <prompt> to outline the concept first.
+Dense structural spec: list the main groups/clusters, their key entities (as short labels), and how they connect. No prose — use bullet points or compact lists.
 </prompt>`;
 
 export function getSystemPromptPhase2(diagramType) {
