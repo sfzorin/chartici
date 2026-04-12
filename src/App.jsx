@@ -55,14 +55,6 @@ function App() {
     // ── Ноды: оставляем только разрешённые типы ─────────────────────────
     // Системные ноды (title, text) показываем всегда - это структурные элементы
     let outNodes = (diagramData.nodes || [])
-      .map(n => {
-        // Если тип диаграммы использует плоские ноды (piechart) — конвертируем все
-        // контентные ноды в разрешённый тип (allowedNodes[0])
-        if (ioFormat?.flatNodes && n.type !== 'title' && n.type !== 'text' && n.id !== '__SYSTEM_TITLE__') {
-          return { ...n, type: allowedNodes[0] };
-        }
-        return n;
-      })
       .filter(n =>
         n.type === 'title'        ||   // заголовок диаграммы (id=__SYSTEM_TITLE__) — всегда
         n.type === 'text'         ||   // аннотации — всегда
@@ -343,12 +335,8 @@ function App() {
     }
     
     // Find highest 'New Group N' to increment, or just create a unique one
-    // flatNodes-движки (piechart): каждая нода — своя группа (для корректной работы color/size)
-    const isFlatNodes = activeSchema?.ioFormat?.flatNodes;
     let newGroupId;
-    if (isFlatNodes) {
-      newGroupId = `g_slice_${Date.now()}`;
-    } else {
+    {
       let maxNewGroupNum = 0;
       if (diagramData.groups) {
         diagramData.groups.forEach(g => {
@@ -661,6 +649,16 @@ function App() {
         const c = { ...prev.config };
         delete c.showLegend; delete c.legendX; delete c.legendY;
         if (c.legendSize) delete c.legendSize;
+        return { ...prev, config: c };
+      });
+      setSelectedNodeId(null);
+      return;
+    }
+    if (selectedNodeId === '__SYSTEM_TITLE__') {
+      setDiagramTitle('');
+      setDiagramData(prev => {
+        const c = { ...prev.config };
+        delete c.titleSize; delete c.titleX; delete c.titleY; delete c.titleLock;
         return { ...prev, config: c };
       });
       setSelectedNodeId(null);

@@ -23,8 +23,8 @@ export default {
             autoIncrementColors: true,
             recalculateOnEdit: true,
             enforceMaxNodes: 9, supportsLegend: true},
-        // Кодировка в .cci: плоский data.nodes[] без групп и рёбер
-        ioFormat: { edgeEncoding: 'none', flatNodes: true },
+        // Кодировка в .cci: стандартные группы (1 нода = 1 группа), без рёбер
+        ioFormat: { edgeEncoding: 'none' },
 
         engineManifest: {
             layout: 'piechart',

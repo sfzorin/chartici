@@ -9,38 +9,11 @@
   },
   "data": {
     "groups": [
-      {
-        "type": "pie_slice",
-        "nodes": [
-          {
-            "id": "p1",
-            "label": "Employee Salaries",
-            "value": 45
-          },
-          {
-            "id": "p2",
-            "label": "Cloud Infrastructure",
-            "value": 25
-          },
-          {
-            "id": "p3",
-            "label": "Software Licenses",
-            "value": 15
-          },
-          {
-            "id": "p4",
-            "label": "Hardware & Equipment",
-            "value": 10
-          },
-          {
-            "id": "p5",
-            "label": "Training & Courses",
-            "value": 5
-          }
-        ],
-        "size": "M",
-        "color": 0
-      }
+      { "id": "p1", "type": "pie_slice", "color": 1, "nodes": [{ "id": "p1", "label": "Employee Salaries", "value": 45 }] },
+      { "id": "p2", "type": "pie_slice", "color": 2, "nodes": [{ "id": "p2", "label": "Cloud Infrastructure", "value": 25 }] },
+      { "id": "p3", "type": "pie_slice", "color": 3, "nodes": [{ "id": "p3", "label": "Software Licenses", "value": 15 }] },
+      { "id": "p4", "type": "pie_slice", "color": 4, "nodes": [{ "id": "p4", "label": "Hardware & Equipment", "value": 10 }] },
+      { "id": "p5", "type": "pie_slice", "color": 5, "nodes": [{ "id": "p5", "label": "Training & Courses", "value": 5 }] }
     ]
   }
 }

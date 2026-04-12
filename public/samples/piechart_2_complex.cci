@@ -8,56 +8,14 @@
     "text": "Global Mobile OS Market Share 2026"
   },
   "data": {
-    "nodes": [
-      {
-        "id": "os1",
-        "label": "Android 15+",
-        "type": "pie_slice",
-        "value": 35.2,
-        "color": 1
-      },
-      {
-        "id": "os2",
-        "label": "Android Legacy",
-        "type": "pie_slice",
-        "value": 28.1,
-        "color": 2
-      },
-      {
-        "id": "os3",
-        "label": "iOS 18+",
-        "type": "pie_slice",
-        "value": 22.4,
-        "color": 3
-      },
-      {
-        "id": "os4",
-        "label": "iOS 17 & Older",
-        "type": "pie_slice",
-        "value": 6.8,
-        "color": 4
-      },
-      {
-        "id": "os5",
-        "label": "HarmonyOS",
-        "type": "pie_slice",
-        "value": 5.9,
-        "color": 5
-      },
-      {
-        "id": "os6",
-        "label": "KaiOS",
-        "type": "pie_slice",
-        "value": 1.2,
-        "color": 6
-      },
-      {
-        "id": "os7",
-        "label": "Others",
-        "type": "pie_slice",
-        "value": 0.4,
-        "color": 7
-      }
+    "groups": [
+      { "id": "os1", "type": "pie_slice", "color": 1, "nodes": [{ "id": "os1", "label": "Android 15+", "value": 35.2 }] },
+      { "id": "os2", "type": "pie_slice", "color": 2, "nodes": [{ "id": "os2", "label": "Android Legacy", "value": 28.1 }] },
+      { "id": "os3", "type": "pie_slice", "color": 3, "nodes": [{ "id": "os3", "label": "iOS 18+", "value": 22.4 }] },
+      { "id": "os4", "type": "pie_slice", "color": 4, "nodes": [{ "id": "os4", "label": "iOS 17 & Older", "value": 6.8 }] },
+      { "id": "os5", "type": "pie_slice", "color": 5, "nodes": [{ "id": "os5", "label": "HarmonyOS", "value": 5.9 }] },
+      { "id": "os6", "type": "pie_slice", "color": 6, "nodes": [{ "id": "os6", "label": "KaiOS", "value": 1.2 }] },
+      { "id": "os7", "type": "pie_slice", "color": 7, "nodes": [{ "id": "os7", "label": "Others", "value": 0.4 }] }
     ]
   }
 }

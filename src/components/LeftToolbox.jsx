@@ -130,15 +130,14 @@ export default function LeftToolbox({
   const isTitle = selectedNode?.type === 'title' || selectedNode?.id === '__SYSTEM_TITLE__';
   const isLegend = selectedNode?.id === '__LEGEND__';
 
-  const isFlatNodes = diagramSchema?.ioFormat?.flatNodes;
-  const isShapeToolActive  = !!selectedNode && !isTitle && !isLegend && !isFlatNodes;
+  const isShapeToolActive  = !!selectedNode && !isTitle && !isLegend && diagramSchema.allowedNodes.length > 1;
   const isSizeToolActive   = !!selectedNode;
   const isColorToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive      = (!!selectedNode && !isLegend) || (!!selectedEdge && eContext.lineStyle !== 'none');
   const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && (!isLegend || legendLocked);
   const isConnectActive    = !!selectedNode && !isTitle && !isLegend && diagramSchema.features.allowConnections;
-  const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend && !isFlatNodes;
+  const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isTrashActive      = !!(selectedNode || selectedEdge);
 
   const enforceMax = diagramSchema?.features?.enforceMaxNodes;

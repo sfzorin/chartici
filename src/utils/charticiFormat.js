@@ -139,22 +139,8 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
 
     case 'none':
     default:
-      if (ioFmt.flatNodes) {
-        // piechart: плоский data.nodes[], без групп и рёбер
-        const flatNodes = [];
-        exportGroups.forEach(g => g.nodes.forEach(n => {
-          const sn = { id: n.id };
-          if (n.label) sn.label = n.label;
-          if (n.size || g.size) sn.size = n.size || g.size;
-          if (n.value != null) sn.value = n.value;
-          if (n.color != null) sn.color = n.color;
-          flatNodes.push(sn);
-        }));
-        payload.data.nodes = flatNodes;
-      } else {
-        // matrix: группы без рёбер
-        payload.data.groups = exportGroups.filter(g => g.nodes?.length > 0);
-      }
+      // piechart, matrix: группы без рёбер
+      payload.data.groups = exportGroups.filter(g => g.nodes?.length > 0);
       break;
   }
 
@@ -206,36 +192,23 @@ export function parseCharticiFile(fileContent) {
     const flatNodes   = [];
     const cleanGroups = [];
 
-    // piechart: плоский data.nodes без групп → каждая нода = своя группа
-    if (Array.isArray(coreData.nodes) && !coreData.groups) {
-      coreData.nodes.forEach((n, i) => {
-        const gId = `g_slice_${i}`;
-        cleanGroups.push({ id: gId, type: 'pie_slice', color: n.color });
+    (coreData.groups || []).forEach(g => {
+      const { nodes: childNodes, ...groupStyles } = g;
+      groupStyles.id = groupStyles.id || `group_${Math.random().toString(36).substr(2, 9)}`;
+      cleanGroups.push(groupStyles);
+
+      (childNodes || []).forEach(n => {
         flatNodes.push({
           ...n,
-          groupId: gId,
-          type: 'pie_slice',
+          groupId:  groupStyles.id,
+          type:     n.type  || groupStyles.type,
+          size:     n.size  !== undefined ? n.size  : groupStyles.size,
+          lockPos:  n.lockPos,
+          x: n.x,
+          y: n.y,
         });
       });
-    } else {
-      (coreData.groups || []).forEach(g => {
-        const { nodes: childNodes, ...groupStyles } = g;
-        groupStyles.id = groupStyles.id || `group_${Math.random().toString(36).substr(2, 9)}`;
-        cleanGroups.push(groupStyles);
-
-        (childNodes || []).forEach(n => {
-          flatNodes.push({
-            ...n,
-            groupId:  groupStyles.id,
-            type:     n.type  || groupStyles.type,
-            size:     n.size  !== undefined ? n.size  : groupStyles.size,
-            lockPos:  n.lockPos,
-            x: n.x,
-            y: n.y,
-          });
-        });
-      });
-    }
+    });
 
     // ── Конфиг ───────────────────────────────────────────────────────────
     const configFromData  = coreData.config || {};
