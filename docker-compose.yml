@@ -4,11 +4,7 @@ services:
     container_name: chartici-web
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - certbot-conf:/etc/letsencrypt
-      - certbot-www:/var/www/certbot
+      - "8090:80"
     networks:
       - internal
 
@@ -21,18 +17,6 @@ services:
       - PORT=3001
     networks:
       - internal
-
-  certbot:
-    image: certbot/certbot
-    container_name: chartici-certbot
-    volumes:
-      - certbot-conf:/etc/letsencrypt
-      - certbot-www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'"
-
-volumes:
-  certbot-conf:
-  certbot-www:
 
 networks:
   internal:
