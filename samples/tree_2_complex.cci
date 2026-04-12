@@ -1,116 +1,197 @@
 {
   "meta": {
     "type": "tree",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "title": {
-    "text": "Directory Structure Schema"
+    "text": "Bank Microservices Topology",
+    "size": "M"
   },
+  "theme": "blue-orange",
   "data": {
+    "config": {
+      "aspect": "16:9",
+      "bgColor": "white"
+    },
     "groups": [
       {
+        "label": "Edge Layer",
+        "color": 1,
         "type": "process",
-        "size": "M",
+        "size": "L",
+        "parentId": "root",
         "nodes": [
           {
-            "id": "f_root",
-            "label": "src/"
+            "id": "root",
+            "label": "Global Traffic Manager",
+            "type": "process",
+            "size": "L",
+            "color": 1
           },
           {
-            "id": "f_com",
-            "label": "components/"
+            "id": "gw_auth",
+            "label": "Auth Gateway",
+            "type": "process",
+            "size": "L",
+            "color": 1
           },
           {
-            "id": "f_btn",
-            "label": "Button.jsx"
+            "id": "gw_api",
+            "label": "API Gateway",
+            "type": "process",
+            "size": "L",
+            "color": 1
           },
           {
-            "id": "f_nav",
-            "label": "Navbar.jsx"
+            "id": "gw_admin",
+            "label": "Admin Gateway",
+            "type": "process",
+            "size": "L",
+            "color": 1
           },
           {
-            "id": "f_util",
-            "label": "utils/"
+            "id": "gw_b2b",
+            "label": "B2B Gateway",
+            "type": "process",
+            "size": "L",
+            "color": 1
           },
           {
-            "id": "f_hlp",
-            "label": "helpers.js"
-          },
-          {
-            "id": "f_api",
-            "label": "api.js"
-          },
-          {
-            "id": "f_st",
-            "label": "store/"
-          },
-          {
-            "id": "f_rdx",
-            "label": "index.js"
-          },
-          {
-            "id": "f_auth",
-            "label": "auth.js"
+            "id": "gw_events",
+            "label": "Event Gateway",
+            "type": "process",
+            "size": "L",
+            "color": 1
           }
-        ],
-        "color": "1",
-        "label": "Repository"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "f_root",
-        "targetId": "f_com",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        ]
       },
       {
-        "sourceId": "f_root",
-        "targetId": "f_util",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        "label": "Identity Provider",
+        "color": 2,
+        "type": "process",
+        "size": "M",
+        "parentId": "gw_auth",
+        "nodes": [
+          {
+            "id": "svc_auth",
+            "label": "SSO Service",
+            "type": "process",
+            "size": "M",
+            "color": 2
+          },
+          {
+            "id": "svc_mfa",
+            "label": "MFA Validator",
+            "type": "process",
+            "size": "M",
+            "color": 2
+          }
+        ]
       },
       {
-        "sourceId": "f_root",
-        "targetId": "f_st",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_com",
-        "targetId": "f_btn",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_com",
-        "targetId": "f_nav",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_util",
-        "targetId": "f_hlp",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_util",
-        "targetId": "f_api",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_st",
-        "targetId": "f_rdx",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "f_st",
-        "targetId": "f_auth",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        "label": "Core Banking Mesh",
+        "color": 5,
+        "type": "process",
+        "size": "S",
+        "parentId": "gw_events",
+        "nodes": [
+          {
+            "id": "m1",
+            "label": "User Profile",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m2",
+            "label": "Account Ledgers",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m3",
+            "label": "Transactions",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m4",
+            "label": "Cards Engine",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m5",
+            "label": "Loan Orig",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m6",
+            "label": "Fraud Detect",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m7",
+            "label": "Notification",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m8",
+            "label": "Audit Logs",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "m9",
+            "label": "Data Export",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "svc_admin",
+            "label": "Backoffice UI",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "svc_b2b",
+            "label": "Partner Integrations",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          },
+          {
+            "id": "svc_events",
+            "label": "Message Broker",
+            "type": "process",
+            "size": "S",
+            "color": 5,
+            "_stackEntry": "Left"
+          }
+        ]
       }
     ]
   }

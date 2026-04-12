@@ -18,10 +18,10 @@ export default {
         allowedNodes: ['chevron', 'process'],
         connectionRules: [
             "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
-            "process -> chevron : Use 'solid' or 'dashed' (visible event links)",
+            "process -> chevron : Use 'dashed' (visible event links), no arrows",
         ],
-        allowedLineStyles: ['solid', 'dashed', 'none'],
-        allowedArrowTypes: ['target', 'none'],
+        allowedLineStyles: ['dashed', 'none'],
+        allowedArrowTypes: ['none'],
         features: { hasNodeValue: false, allowConnections: true, supportsLegend: true},
         // Кодировка связей в .cci: событие-нода хранит ID шеврона в поле spineId
         ioFormat: { edgeEncoding: 'spineId', connectionField: 'spineId', level: 'node' },
