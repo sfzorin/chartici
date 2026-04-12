@@ -135,7 +135,7 @@ export default function LeftToolbox({
   const isColorToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive      = (!!selectedNode && !isLegend) || (!!selectedEdge && eContext.lineStyle !== 'none');
-  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && !isLegend;
+  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && (!isLegend || legendLocked);
   const isConnectActive    = !!selectedNode && !isTitle && !isLegend && diagramSchema.features.allowConnections;
   const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isTrashActive      = !!(selectedNode || selectedEdge) && !isLegend;
@@ -577,11 +577,17 @@ export default function LeftToolbox({
           {/* Lock Pos */}
           <div style={getStyle(isLockActive)}>
             <button 
-               className={`toolbox-btn ${nContext.lockPos ? 'locked' : ''}`} 
-               onClick={() => updateSelectedNode('lockPos', !nContext.lockPos)}
-               data-tooltip={nContext.lockPos ? "Unlock Position" : "Lock Auto-Layout"}
+               className={`toolbox-btn ${(isLegend ? legendLocked : nContext.lockPos) ? 'locked' : ''}`} 
+               onClick={() => {
+                 if (isLegend) {
+                   if (legendLocked && onToggleLegendLock) onToggleLegendLock();
+                 } else {
+                   updateSelectedNode('lockPos', !nContext.lockPos);
+                 }
+               }}
+               data-tooltip={isLegend ? (legendLocked ? 'Reset to Auto Position' : 'Position Locked') : (nContext.lockPos ? 'Unlock Position' : 'Lock Auto-Layout')}
             >
-              <Icon name={nContext.lockPos ? 'lock' : 'unlock'} size={20} />
+              <Icon name={(isLegend ? legendLocked : nContext.lockPos) ? 'lock' : 'unlock'} size={20} />
             </button>
           </div>
 
@@ -670,20 +676,6 @@ export default function LeftToolbox({
               />
               Show Legend
             </label>
-            {showLegend && legendLocked && (
-              <button
-                onClick={onToggleLegendLock}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  marginTop: '4px', padding: '3px 8px',
-                  fontSize: '11px', fontWeight: 500,
-                  background: 'var(--bg-panel)', border: '1px solid var(--border-color-soft)',
-                  borderRadius: '4px', color: 'var(--text-muted)', cursor: 'pointer',
-                }}
-              >
-                <Icon name="lock" size={12} /> Reset Position
-              </button>
-            )}
           </div>
         </PopoverMenu>
 
