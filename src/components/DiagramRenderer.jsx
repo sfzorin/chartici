@@ -594,7 +594,7 @@ export default function DiagramRenderer({
       }
 
       if (diagramType === 'piechart') {
-          const pieLegSz = LEGEND_SIZES.pie[legendSize] || LEGEND_SIZES.pie.M;
+          const pieLegSz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
           maxX += pieLegSz.maxLabelW + pieLegSz.textOff + pieLegSz.padX * 2 + PIE_CONSTS.legendOffset;
           const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
           if (pSlicesCount > 0) {
@@ -931,7 +931,7 @@ export default function DiagramRenderer({
           {diagramType === 'piechart' && showLegend && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
 
-             const sz = LEGEND_SIZES.pie[legendSize] || LEGEND_SIZES.pie.M;
+             const sz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
              const maxLabelLen = Math.max(...slices.map(s => ((s.label || 'Item') + (s.value != null ? ` (${s.value})` : '')).length));
              const lgW = sz.padX * 2 + sz.textOff + Math.min(maxLabelLen * sz.charW, sz.maxLabelW);
              const lgH = sz.padY * 2 + slices.length * sz.rowH;
@@ -1030,7 +1030,7 @@ export default function DiagramRenderer({
             if (legendGroups.length < 2) return null;
 
             // ── Размеры легенды из централизованной таблицы ────
-            const sz = LEGEND_SIZES.group[legendSize] || LEGEND_SIZES.group.M;
+            const sz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
             const FONT_SIZE   = sz.fontSize;
             const ROW_H       = sz.rowH;
             const SWATCH      = sz.swatch;

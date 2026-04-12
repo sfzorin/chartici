@@ -461,20 +461,10 @@ export const PIE_CONSTS = {
   explodePad:   Math.round(_pieM.width / 2 * 0.133),      // 40  (explode extra)
 };
 
-// ─── Legend size tables (shared between piechart and group legends) ──────────
 export const LEGEND_SIZES = {
-  // Group legend (flowchart, tree, radial, etc.)
-  group: {
-    S: { fontSize: 16, rowH: 36, swatch: 20, swatchGap: 10, padX: 16, padY: 12, charW: 9,  maxLabelW: 220 },
-    M: { fontSize: 22, rowH: 50, swatch: 28, swatchGap: 12, padX: 20, padY: 16, charW: 13, maxLabelW: 300 },
-    L: { fontSize: 28, rowH: 64, swatch: 36, swatchGap: 14, padX: 24, padY: 20, charW: 17, maxLabelW: 400 },
-  },
-  // Piechart legend (same base sizes, different swatch shape)
-  pie: {
-    S: { fontSize: 16, rowH: 36, swW: 20, swH: 14, swRx: 2, padX: 16, padY: 12, charW: 9,  maxLabelW: 220, textOff: 30 },
-    M: { fontSize: 22, rowH: 50, swW: 28, swH: 20, swRx: 3, padX: 20, padY: 16, charW: 13, maxLabelW: 300, textOff: 42 },
-    L: { fontSize: 28, rowH: 64, swW: 36, swH: 26, swRx: 4, padX: 24, padY: 20, charW: 17, maxLabelW: 400, textOff: 54 },
-  },
+  S: { fontSize: 16, rowH: 36, padX: 16, padY: 12, charW: 9,  maxLabelW: 220, swatch: 20, swatchGap: 10, swW: 20, swH: 14, swRx: 2, textOff: 30 },
+  M: { fontSize: 22, rowH: 50, padX: 20, padY: 16, charW: 13, maxLabelW: 300, swatch: 28, swatchGap: 12, swW: 28, swH: 20, swRx: 3, textOff: 42 },
+  L: { fontSize: 28, rowH: 64, padX: 24, padY: 20, charW: 17, maxLabelW: 400, swatch: 36, swatchGap: 14, swW: 36, swH: 26, swRx: 4, textOff: 54 },
 };
 
 /**
