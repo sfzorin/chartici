@@ -150,13 +150,17 @@ export function renderToSVG(cciJson) {
   for (const edge of edges) {
     const pd = pathData[edge.id];
     if (!pd) continue;
-    
-    const { pathD, textPathD } = pd;
+
+    // Hidden / logical edges are visual helpers only — skip in export
     const style = edge.lineStyle || 'solid';
+    if (style === 'none' || style === 'hidden' || edge.logical || edge.isBlank) continue;
+
+    const { pathD, textPathD } = pd;
     let dashArray = '';
     if (style === 'dashed') dashArray = ' stroke-dasharray="5,5"';
     if (style === 'dotted') dashArray = ' stroke-dasharray="2,4"';
     const sw = 2;
+
     
     const ct = edge.arrowType || edge.connectionType || edge.cardinality || 'target';
     let markerEnd = '', markerStart = '';
