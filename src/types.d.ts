@@ -5,7 +5,7 @@
  */
 export interface DiagramNode {
   id: string;
-  type: 'rect' | 'oval' | 'circle' | 'rhombus' | 'chevron' | 'text' | 'title';
+  type: 'rect' | 'oval' | 'circle' | 'rhombus' | 'chevron' | 'pie_slice' | 'text' | 'title';
   label: string;
   size: 'S' | 'M' | 'L' | 'AUTO';
   color?: number | string;
@@ -80,7 +80,7 @@ export interface DiagramConfig {
   aspect?: string;
   bgColor?: string;
   theme?: string;
-  diagramType?: 'flowchart' | 'tree' | 'sequence' | 'erd' | 'radial' | 'timeline' | 'matrix';
+  diagramType?: 'flowchart' | 'tree' | 'sequence' | 'erd' | 'radial' | 'timeline' | 'matrix' | 'piechart';
   title?: string;
   titleSize?: string;
   titleX?: number;
