@@ -16,7 +16,7 @@ export default {
         allowedNodes: ['process', 'circle'],
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['target', 'reverse', 'both', 'none'],
-        features: { hasNodeValue: false, allowConnections: true },
+        features: { hasNodeValue: false, allowConnections: true, supportsLegend: false},
         // Кодировка связей в .cci: явные рёбра в data.messages[]
         ioFormat: { edgeEncoding: 'explicit', edgeKey: 'messages' },
         engineManifest: {

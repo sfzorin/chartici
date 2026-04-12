@@ -100,11 +100,12 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
     if (titleY !== undefined) payload.title.y = titleY;
   }
 
-  // Дополнительный конфиг (aspect, bgColor, theme…)
+  // Дополнительный конфиг (aspect, bgColor, theme, showLegend…)
   const dataConfig = {};
-  if (restConfig.aspect)  dataConfig.aspect  = restConfig.aspect;
-  if (restConfig.bgColor) dataConfig.bgColor = restConfig.bgColor;
-  if (restConfig.theme)   payload.theme = restConfig.theme; // theme — на верхнем уровне
+  if (restConfig.aspect)                   dataConfig.aspect  = restConfig.aspect;
+  if (restConfig.bgColor)                  dataConfig.bgColor = restConfig.bgColor;
+  if (restConfig.theme)                    payload.theme = restConfig.theme; // theme — на верхнем уровне
+  if (restConfig.showLegend)               dataConfig.showLegend = true;    // omit when false (shorter files)
 
   payload.data = {};
   if (Object.keys(dataConfig).length) payload.data.config = dataConfig;

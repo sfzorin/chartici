@@ -79,6 +79,8 @@ export default function LeftToolbox({
   onChangeBgColor,
   aspect,
   onChangeAspect,
+  showLegend,
+  onChangeShowLegend,
   onAddNode,
   paletteTheme,
   onChangeTheme,
@@ -90,6 +92,7 @@ export default function LeftToolbox({
   toggleConnectionMode,
   setDiagramType
 }) {
+  const diagramSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const { groupId: nodeGroupId, group: nodeGroup } = useNodeGroup(selectedNode, groupsList);
 
   const [activePopover, setActivePopover] = useState(null); // 'add', 'shape', 'color', 'size', 'label', 'edge-style', 'edge-type', 'group'
@@ -644,6 +647,27 @@ export default function LeftToolbox({
                   {ar.label}
                 </button>
              ))}
+          </div>
+
+          <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+          <div style={{ padding: '0 8px 10px' }}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              fontSize: '13px', fontWeight: 500,
+              color: diagramSchema?.features?.supportsLegend !== false ? 'var(--diagram-text)' : 'var(--text-muted)',
+              cursor: diagramSchema?.features?.supportsLegend !== false ? 'pointer' : 'not-allowed',
+              opacity: diagramSchema?.features?.supportsLegend !== false ? 1 : 0.4,
+              userSelect: 'none',
+            }}>
+              <input
+                type="checkbox"
+                checked={!!showLegend}
+                disabled={!diagramSchema?.features?.supportsLegend}
+                onChange={e => diagramSchema?.features?.supportsLegend && onChangeShowLegend && onChangeShowLegend(e.target.checked)}
+                style={{ width: '14px', height: '14px', accentColor: 'var(--color-brand)', cursor: diagramSchema?.features?.supportsLegend !== false ? 'pointer' : 'not-allowed' }}
+              />
+              Show Legend
+            </label>
           </div>
         </PopoverMenu>
 

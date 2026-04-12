@@ -35,7 +35,8 @@ export default function DiagramRenderer({
   onAddNode,
   panToNodeId,
   fitTrigger,
-  toolboxProps
+  toolboxProps,
+  showLegend = false,
 }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -901,7 +902,7 @@ export default function DiagramRenderer({
               </g>
             );
           })()}
-          {diagramType === 'piechart' && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
+          {diagramType === 'piechart' && showLegend && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
              // Параметры из engineManifest (с fallback на безопасные дефолты)
              const lg = activeSchema?.engineManifest?.legend || {};
@@ -936,6 +937,57 @@ export default function DiagramRenderer({
                  ))}
                </g>
              );
+          })()}
+
+          {/* ─── Universal Group Legend (non-piechart) ───────── */}
+          {showLegend && diagramType !== 'piechart' && activeSchema?.features?.supportsLegend && (() => {
+            const legendGroups = (initialData.groups || [])
+              .filter(g => g.label && g.id && g.type !== 'title')
+              .slice(0, 16); // max 16 строк
+            if (legendGroups.length < 2) return null; // 0-1 группа — не нужна
+
+            const ROW_H   = 28;
+            const SWATCH  = 16;
+            const PAD_X   = 14;
+            const PAD_Y   = 10;
+            const TEXT_OFFSET = SWATCH + 8;
+            // Приблизительная ширина: swatch + longest label
+            const maxLabelLen = Math.max(...legendGroups.map(g => (g.label || '').length));
+            const lgW   = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * 7, 180);
+            const lgH   = PAD_Y * 2 + legendGroups.length * ROW_H;
+
+            // Позиция: нижний правый угол viewBox
+            const lgX = vMinX + vW - lgW - 20;
+            const lgY = vMinY + vH - lgH - 20;
+
+            return (
+              <g transform={`translate(${lgX}, ${lgY})`}>
+                <rect
+                  x={0} y={0} width={lgW} height={lgH}
+                  fill={resolvedLegendBg} stroke={resolvedLegendStroke}
+                  rx={8} opacity={0.96}
+                />
+                {legendGroups.map((g, i) => {
+                  const color = g.color || 1;
+                  const isHex = String(color).startsWith('#');
+                  const fill  = isHex ? color : `var(--color-${color})`;
+                  return (
+                    <g key={g.id} transform={`translate(${PAD_X}, ${PAD_Y + i * ROW_H + ROW_H / 2})`}>
+                      <rect x={0} y={-SWATCH/2} width={SWATCH} height={SWATCH}
+                        fill={fill} rx={3}
+                      />
+                      <text
+                        x={TEXT_OFFSET} y={0}
+                        dominantBaseline="central"
+                        fontSize={13} fontWeight={500} fill="var(--diagram-text)"
+                      >
+                        {(g.label || g.id).replace(/_/g, ' ')}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
+            );
           })()}
 
           {/* Edges Layer */}

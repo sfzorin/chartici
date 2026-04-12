@@ -27,6 +27,7 @@ function App() {
   const [aspect, setAspect] = useState('16:9');
   const [diagramType, setDiagramType] = useState('flowchart');
   const [bgColor, setBgColor] = useState('transparent-dark');
+  const [showLegend, setShowLegend] = useState(false);
   const [diagramTitle, setDiagramTitle] = useState('Untitled Project');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [panToNodeId, setPanToNodeId] = useState(null);
@@ -146,7 +147,7 @@ function App() {
   const handleDownloadChartici = async () => {
     // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
     const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
-      aspect, bgColor, theme: paletteTheme, diagramType,
+      aspect, bgColor, theme: paletteTheme, diagramType, showLegend,
       titleText:  diagramTitle,
       titleSize:  diagramData.config?.titleSize,
       titleX:     diagramData.config?.titleLock ? diagramData.config?.titleX : undefined,
@@ -187,6 +188,7 @@ function App() {
       if (parsed.config.aspect) setAspect(parsed.config.aspect);
       // diagramType живёт в meta.type, а не в config
       setDiagramType(dt);
+      if (parsed.config.showLegend !== undefined) setShowLegend(!!parsed.config.showLegend);
       
       let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
       if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
@@ -786,6 +788,7 @@ function App() {
             setDiagramType={setDiagramType}
             onConnect={handleConnectionDrag}
             onAddNode={addNewNode}
+            showLegend={showLegend}
             onGroupLabelChange={(groupId, newLabel) => {
               setDiagramData(prev => {
                 const groupIndex = prev.groups.findIndex(g => g.id === groupId);
@@ -832,7 +835,12 @@ function App() {
               onChangeTheme: (newTheme) => {
                  setPaletteTheme(newTheme);
                  setDiagramData(prev => ({...prev, config: {...prev.config, theme: newTheme}}));
-              }
+              },
+              showLegend,
+              onChangeShowLegend: (val) => {
+                 setShowLegend(val);
+                 setDiagramData(prev => ({...prev, config: {...prev.config, showLegend: val}}));
+              },
             }}
           />
 

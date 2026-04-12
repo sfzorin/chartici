@@ -17,7 +17,7 @@ export default {
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: [],
         allowedConnectionTypes: ['1:1', '1:N', 'N:1', 'N:M'],
-        features: { hasNodeValue: false, allowConnections: true },
+        features: { hasNodeValue: false, allowConnections: true, supportsLegend: true},
         // Кодировка связей в .cci: явные рёбра в data.relationships[]
         ioFormat: { edgeEncoding: 'explicit', edgeKey: 'relationships' },
         engineManifest: {

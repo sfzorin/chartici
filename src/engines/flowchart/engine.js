@@ -18,7 +18,7 @@ export default {
         allowedNodes: ['process', 'circle', 'oval', 'rhombus'],
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['target', 'reverse', 'both', 'none'],
-        features: { hasNodeValue: false, allowConnections: true },
+        features: { hasNodeValue: false, allowConnections: true, supportsLegend: true},
         // Кодировка связей в .cci файле: нода хранит исходящие связи в поле nextSteps
         ioFormat: {
             edgeEncoding: 'nextSteps',  // node.nextSteps = "id1[label], id2"

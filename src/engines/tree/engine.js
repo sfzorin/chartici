@@ -18,7 +18,7 @@ export default {
         allowedNodes: ['process'],
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['none', 'target'],
-        features: { hasNodeValue: false, allowConnections: true },
+        features: { hasNodeValue: false, allowConnections: true, supportsLegend: true},
         // Кодировка связей в .cci: группа хранит ID родительской ноды в поле parentId
         ioFormat: { edgeEncoding: 'parentId', connectionField: 'parentId', level: 'group' },
         engineManifest: {

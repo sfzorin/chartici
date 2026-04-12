@@ -17,7 +17,7 @@ export default {
         connectionRules: ['Edges MUST NOT be used in matrices.'],
         allowedLineStyles: [],
         allowedArrowTypes: [],
-        features: { hasNodeValue: false, allowConnections: false },
+        features: { hasNodeValue: false, allowConnections: false, supportsLegend: false},
         // Кодировка связей в .cci: рёбра запрещены
         ioFormat: { edgeEncoding: 'none' },
         engineManifest: {
