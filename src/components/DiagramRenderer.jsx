@@ -3,6 +3,7 @@ import { SIZES, getNodeDim } from '../utils/constants';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
+import { getCanvasColors } from '../registry/colors.js';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
 import LeftToolbox from './LeftToolbox';
@@ -687,39 +688,18 @@ export default function DiagramRenderer({
     }
   }, [pendingZoom, vW, vH, handleZoomFit]);
 
-  let fillStr = 'transparent';
-  let gridColorStr = 'rgba(255, 255, 255, 0.08)';
-  let dEdge = '#cbd5e1';
-  let dText = '#f8fafc';
-  let dGroup = '#64748b'; 
-  let isCanvasDark = true;
+  const ct = getCanvasColors(bgColor);
+  const fillStr            = ct.canvasFill;
+  const gridColorStr       = ct.gridColor;
+  const isCanvasDark       = ct.isDark;
+  const dEdge              = ct.diagramEdge;
+  const dText              = ct.diagramText;
+  const dGroup             = ct.diagramGroup;
+  const resolvedCanvasColor = ct.resolvedBg;
+  const resolvedLegendBg   = ct.legendBg;
+  const resolvedLegendStroke = ct.legendStroke;
 
-  if (bgColor === 'white') {
-    fillStr = '#FFFFFF';
-    gridColorStr = 'rgba(0, 0, 0, 0.05)';
-    dEdge = '#475569';
-    dText = '#0f172a';
-    dGroup = '#94a3b8';
-    isCanvasDark = false;
-  } else if (bgColor === 'black') {
-    fillStr = '#000000';
-    gridColorStr = 'rgba(255, 255, 255, 0.08)';
-    dEdge = '#cbd5e1';
-    dText = '#f8fafc';
-    dGroup = '#64748b'; 
-    isCanvasDark = true;
-  } else if (bgColor === 'transparent-light') {
-    fillStr = 'transparent';
-    gridColorStr = 'rgba(0, 0, 0, 0.05)';
-    dEdge = '#475569';
-    dText = '#0f172a';
-    dGroup = '#94a3b8';
-    isCanvasDark = false;
-  }
 
-  const resolvedCanvasColor = isCanvasDark ? (bgColor === 'black' ? '#000000' : '#0f172a') : '#ffffff';
-  const resolvedLegendBg = isCanvasDark ? '#1e293b' : '#f8fafc';
-  const resolvedLegendStroke = isCanvasDark ? '#334155' : '#e2e8f0';
 
   return (
     <>

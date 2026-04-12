@@ -167,11 +167,73 @@ export const PALETTES = {
 };
 
 /**
- * Получить CSS-переменные для конкретного режима (light/dark).
- * Полезно для headless рендеринга и unit-тестов.
- * @param {'light'|'dark'} mode
- * @returns {Record<string, string>}
+ * CANVAS_COLORS — семантические токены для каждого варианта фона холста.
+ *
+ * Потребители:
+ *   DiagramRenderer.jsx — dEdge, dText, dGroup, resolvedLegendBg, resolvedLegendStroke
+ *   nodes.jsx           — pie_slice separator (pieSliceSeparator = stroke между сегментами)
+ *   exportSVG.js        — resolvedBg (fallback для --canvas-bg)
+ *
+ * bgColor значения: 'white' | 'black' | 'transparent-light' | undefined (dark по умолчанию)
  */
-export function getThemeVars(mode = 'light') {
-  return CANVAS_THEMES[mode] ?? CANVAS_THEMES.light;
+export const CANVAS_COLORS = {
+  white: {
+    canvasFill:        '#ffffff',
+    gridColor:         'rgba(0, 0, 0, 0.05)',
+    isDark:            false,
+    resolvedBg:        '#ffffff',
+    diagramText:       '#0f172a',
+    diagramEdge:       '#475569',
+    diagramGroup:      '#94a3b8',
+    legendBg:          '#f8fafc',
+    legendStroke:      '#e2e8f0',
+    pieSliceSeparator: '#ffffff',
+  },
+  black: {
+    canvasFill:        '#000000',
+    gridColor:         'rgba(255, 255, 255, 0.08)',
+    isDark:            true,
+    resolvedBg:        '#000000',
+    diagramText:       '#f8fafc',
+    diagramEdge:       '#cbd5e1',
+    diagramGroup:      '#64748b',
+    legendBg:          '#1e293b',
+    legendStroke:      '#334155',
+    pieSliceSeparator: '#000000',
+  },
+  'transparent-light': {
+    canvasFill:        'transparent',
+    gridColor:         'rgba(0, 0, 0, 0.05)',
+    isDark:            false,
+    resolvedBg:        '#ffffff',
+    diagramText:       '#0f172a',
+    diagramEdge:       '#475569',
+    diagramGroup:      '#94a3b8',
+    legendBg:          '#f8fafc',
+    legendStroke:      '#e2e8f0',
+    pieSliceSeparator: '#ffffff',
+  },
+  // default: тёмный прозрачный холст (когда bgColor не задан или неизвестен)
+  default: {
+    canvasFill:        'transparent',
+    gridColor:         'rgba(255, 255, 255, 0.08)',
+    isDark:            true,
+    resolvedBg:        '#0f172a',
+    diagramText:       '#f8fafc',
+    diagramEdge:       '#cbd5e1',
+    diagramGroup:      '#64748b',
+    legendBg:          '#1e293b',
+    legendStroke:      '#334155',
+    pieSliceSeparator: '#0f172a',
+  },
+};
+
+/**
+ * Получить цветовую схему для конкретного фона холста.
+ * @param {string|undefined} bgColor — 'white' | 'black' | 'transparent-light' | undefined
+ * @returns {typeof CANVAS_COLORS.default}
+ */
+export function getCanvasColors(bgColor) {
+  return CANVAS_COLORS[bgColor] ?? CANVAS_COLORS.default;
 }
+
