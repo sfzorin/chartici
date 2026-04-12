@@ -1,9 +1,12 @@
 export function layoutPiechart(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];
-  
+
+  // L-\u0441\u0435\u043a\u0442\u043e\u0440 \u0432\u044b\u0434\u0432\u0438\u0433\u0430\u0435\u0442\u0441\u044f \u043d\u0430\u0440\u0443\u0436\u0443 \u043f\u043e mid-angle \u043d\u0430 \u044d\u0442\u043e \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043f\u0438\u043a\u0441\u0435\u043b\u0435\u0439
+  const EXPLODE_DIST = 28;
+
   const sizeVal = (size) => {
-    const sizeMap = { 'S': 1, 'M': 2, 'L': 4 };
-    return sizeMap[size] || 2;
+    // S \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f — \u0442\u043e\u043b\u044c\u043a\u043e M \u0438 L
+    return size === 'L' ? 4 : 2;
   };
 
   const sortedNodes = [...nodes].sort((a, b) => {
@@ -31,15 +34,22 @@ export function layoutPiechart(nodes, edges, layoutRules) {
     const startAngle = currentAngle;
     const endAngle = currentAngle + angleSpan;
     currentAngle += angleSpan;
-    
+
+    // Explode: L-\u0441\u0435\u043a\u0442\u043e\u0440 \u0441\u043c\u0435\u0449\u0430\u0435\u0442\u0441\u044f \u043e\u0442 \u0446\u0435\u043d\u0442\u0440\u0430 \u043f\u0438\u0440\u043e\u0433\u0430 \u043f\u043e \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044e mid-angle
+    const midAngle = (startAngle + endAngle) / 2;
+    const explodeX = n.size === 'L' ? Math.cos(midAngle - Math.PI / 2) * EXPLODE_DIST : 0;
+    const explodeY = n.size === 'L' ? Math.sin(midAngle - Math.PI / 2) * EXPLODE_DIST : 0;
+
     return {
       ...n,
-      x: 0,              // Snap to center
-      y: 0,
+      x: explodeX,
+      y: explodeY,
       pieStartAngle: startAngle,
-      pieEndAngle: endAngle
+      pieEndAngle: endAngle,
+      pieExploded: n.size === 'L',
     };
   });
+
 
   // Second pass: Rigorous angular collision detection
   const R = 150; // Inner approx radius

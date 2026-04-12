@@ -328,9 +328,10 @@ export const NODE_REGISTRY = {
     label: 'Slice',
     icon:  'shape-slice',
     sizes: {
-      S: { width: 240, height: 240, fontSize: 14 },
+      // M = нормальный сектор; L = "выдвинутый" (explode-смещение наружу)
+      // Размеры одинаковые — радиус всех секторов 200px; size влияет только на explode
       M: { width: 400, height: 400, fontSize: 16 },
-      L: { width: 560, height: 560, fontSize: 18 },
+      L: { width: 400, height: 400, fontSize: 16 },
     },
     ports: 'none',
     portCatalog: [],

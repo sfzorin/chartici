@@ -877,7 +877,9 @@ export default function DiagramRenderer({
           })()}
           {diagramType === 'piechart' && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
-             const pieBaseRadius = slices[0]?.size === 'S' ? 120 : slices[0]?.size === 'L' ? 280 : 200;
+             // \u0411\u0430\u0437\u043e\u0432\u044b\u0439 \u0440\u0430\u0434\u0438\u0443\u0441 200px \u2014 \u0432\u0441\u0435\u0433\u0434\u0430 \u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0435\u043d. L-\u0441\u0435\u043a\u0442\u043e\u0440\u044b \u0432\u044b\u0434\u0432\u0438\u0433\u0430\u044e\u0442\u0441\u044f \u043e\u0442 \u0446\u0435\u043d\u0442\u0440\u0430 \u0447\u0435\u0440\u0435\u0437 x/y, +30 \u0431\u0443\u0444\u0435\u0440 \u0434\u043b\u044f \u043b\u0435\u0433\u0435\u043d\u0434\u044b
+             const hasExploded = slices.some(s => s.size === 'L');
+             const pieBaseRadius = hasExploded ? 230 : 200;
              const legendX = pieBaseRadius + 160;
              const legendBoxHeight = slices.length * 40 + 24;
              // The pie is rendered from Y = -pieBaseRadius to Y = pieBaseRadius.
