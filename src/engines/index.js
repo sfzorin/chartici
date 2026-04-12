@@ -12,3 +12,4 @@ export const ENGINES = {
 };
 
 export const getEngine = (type) => ENGINES[type] || ENGINES.flowchart;
+export const getAllEngines = () => ENGINES;

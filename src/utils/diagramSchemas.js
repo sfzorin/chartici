@@ -1,103 +1,21 @@
-export const DIAGRAM_SCHEMAS = {
-  flowchart: {
-    id: 'flowchart',
-    name: 'Flowchart',
-    description: 'logical step-by-step processes or algorithms.',
-    allowedNodes: ['process', 'circle', 'oval', 'rhombus'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps.",
-    semanticScale: { L: 'system', M: 'process', S: 'step' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle', 'oval', 'rhombus'] }
-  },
-  sequence: {
-    id: 'sequence',
-    name: 'Sequence',
-    description: 'chronological interactions between systems or actors.',
-    allowedNodes: ['process', 'circle'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls.",
-    semanticScale: { L: 'system', M: 'action', S: 'state' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process', 'circle'], matrixGridOverlays: true }
-  },
-  erd: {
-    id: 'erd',
-    name: 'Entity-Relationship',
-    description: 'database schemas, entities, and relationships.',
-    allowedNodes: ['process'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true, erdMarkers: true },
-    promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible.",
-    semanticScale: { L: 'schema', M: 'table', S: 'column' },
-    engineManifest: { layout: 'sugiyama', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'] }
-  },
-  radial: {
-    id: 'radial',
-    name: 'Radial',
-    description: 'mind-maps, concentric layers, or hub-and-spoke architectures.',
-    allowedNodes: ['process'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Choose node 'lineStyle' that best represent the logic described. Place the core concept at the center (or as the main node), and radiating sub-concepts pointing outwards.",
-    semanticScale: { L: 'core', M: 'ring1', S: 'leaf' },
-    engineManifest: { layout: 'radial', edgeStyle: 'straight_clipped', isHorizontalFlow: false, nodeTypes: ['process'], suppressEdgeMarkers: true, suppressEdgeLabels: true }
-  },
-  matrix: {
-    id: 'matrix',
-    name: 'Matrix',
-    description: 'grid-like comparisons, or categorization into distinct cluster zones/cells.',
-    allowedNodes: ['process'],
-    allowedEdges: ['none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use groups to represent the distinct grid cells or zones. Place related items inside their respective cell group. Cross-connections between cells are allowed.",
-    semanticScale: { L: 'zone', M: 'cell', S: 'item' },
-    connectionRules: [
-      "Edges MUST NOT be used in matrices."
-    ],
-    engineManifest: { layout: 'matrix', edgeStyle: 'orthogonal_astar', isHorizontalFlow: true, nodeTypes: ['process'], matrixGridOverlays: true }
-  },
-  timeline: {
-    id: 'timeline',
-    name: 'Timeline',
-    description: 'events plotted on a generic chronological spine.',
-    allowedNodes: ['chevron', 'process'],
-    allowedEdges: ['solid', 'dashed', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Use 'chevron' node type for the central chronological spine periods. Use 'process' for specific events attached to the spine. 5. This diagram maintains topological order without drawing visible links on the spine.",
-    semanticScale: { L: 'era', M: 'event', S: 'sub-event' },
-    connectionRules: [
-      "chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)",
-      "process -> chevron : Use 'solid' or 'dashed' (visible event links)"
-    ],
-    engineManifest: { layout: 'timeline', edgeStyle: 'straight_clipped', isHorizontalFlow: true, nodeTypes: ['chevron', 'process'], suppressSpineEdges: true, spineNodeType: 'chevron' }
-  },
-  tree: {
-    id: 'tree',
-    name: 'Tree',
-    description: 'hierarchical structure with one or few roots branching downwards.',
-    allowedNodes: ['process'],
-    allowedEdges: ['solid', 'dashed', 'bold', 'none'],
-    features: { hasNodeValue: false, allowConnections: true },
-    promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections.",
-    semanticScale: { L: 'parent', M: 'branch', S: 'leaf' },
-    engineManifest: { layout: 'tree', edgeStyle: 'orthogonal_astar', isHorizontalFlow: false, nodeTypes: ['process'], isTree: true, enableBusRouting: true }
-  },
-  piechart: {
-    id: 'piechart',
-    name: 'Pie Chart',
-    description: 'breakdown of items into proportional circular slices.',
-    allowedNodes: ['pie_slice'],
-    allowedEdges: ['none'],
-    features: { hasNodeValue: true, allowConnections: false, autoIncrementColors: true, recalculateOnEdit: true, enforceMaxNodes: 9 },
-    promptRule: "4. Create a single group with 'Type: pie_slice'. The nodes represent the items inside it, providing 'id', 'label', and 'value' fields.",
-    semanticScale: { L: 'highlight', M: 'standard', S: 'muted' },
-    connectionRules: [
-      "Edges MUST NOT be used in piecharts."
-    ],
-    engineManifest: { layout: 'piechart', edgeStyle: 'none', isHorizontalFlow: false, nodeTypes: ['pie_slice'] }
-  }
-};
+/**
+ * diagramSchemas.js — thin aggregator over engine plugins.
+ *
+ * Each engine plugin owns its schema data in src/engines/<type>/schema.js.
+ * This file builds DIAGRAM_SCHEMAS by merging all engine schemas together.
+ *
+ * DEPENDENCY RULE: This file MAY import from src/engines/ because engines/* 
+ * are pure data modules with zero imports from src/utils/.
+ * No circular dependency is possible.
+ */
+import { getAllEngines } from '../engines/index.js';
+
+const engines = getAllEngines();
+
+// Build DIAGRAM_SCHEMAS from engine plugins — each engine.schema is the full data object
+export const DIAGRAM_SCHEMAS = Object.fromEntries(
+  Object.entries(engines).map(([key, engine]) => [key, engine.schema])
+);
 
 export const DIAGRAM_TYPES = Object.keys(DIAGRAM_SCHEMAS)
   .map(key => ({
