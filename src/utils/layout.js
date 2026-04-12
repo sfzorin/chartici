@@ -1,3 +1,4 @@
+import { SMART_ALIGN } from '../diagram/canvas.js';
 import { getNodeDim } from './constants.js';
 
 export function smartAlign(nodes) {
@@ -47,8 +48,8 @@ export function smartAlign(nodes) {
     });
   };
 
-  alignAxis('y', 40, 20); // Group nodes within 40px vertically, snap to 20px grid
-  alignAxis('x', 40, 20); // Group nodes within 40px horizontally, snap to 20px grid
+  alignAxis('y', SMART_ALIGN.groupThreshold, SMART_ALIGN.snapStep);
+  alignAxis('x', SMART_ALIGN.groupThreshold, SMART_ALIGN.snapStep);
 
   return result;
 }

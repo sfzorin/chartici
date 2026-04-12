@@ -1,6 +1,7 @@
 import { getDiagramRules } from './diagramRules.js';
 import { getNodeDim } from './constants.js';
 import { NODE_REGISTRY } from '../diagram/nodes.jsx';
+import { GRID } from '../diagram/canvas.js';
 import { EngineRegistry } from './layouts/engines/EngineRegistry.js';
 import { layoutPiechart } from './layouts/layoutPiechart.js';
 export function layoutNodesHeuristically(nodes, edges, config = {}) {
@@ -76,8 +77,8 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
       if (pieProxyMap[n.id]) {
           // This is a pie proxy! 
           const proxy = pieProxyMap[n.id];
-          const cx = Math.round(n.x / 20) * 20;
-          const cy = Math.round(n.y / 20) * 20;
+          const cx = Math.round(n.x / GRID.step) * GRID.step;
+          const cy = Math.round(n.y / GRID.step) * GRID.step;
           
           // Layout the pie slices using layoutPiechart logic, and assign them cx, cy
           const slices = layoutPiechart(proxy.childNodes, [], layoutRules);
@@ -100,8 +101,8 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
              out.x = out.x || 0;
              out.y = out.y || 0;
           } else {
-             out.x = Math.round(out.x / 20) * 20;
-             out.y = Math.round(out.y / 20) * 20;
+             out.x = Math.round(out.x / GRID.step) * GRID.step;
+             out.y = Math.round(out.y / GRID.step) * GRID.step;
           }
 
           // Restore locked position (override layout result)
@@ -131,8 +132,8 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
              const np = newPositions[parentId];
              return {
                  ...tn,
-                 x: Math.round((np.x + dx)/20) * 20,
-                 y: Math.round((np.y + dy)/20) * 20
+                 x: Math.round((np.x + dx)/GRID.step) * GRID.step,
+                 y: Math.round((np.y + dy)/GRID.step) * GRID.step
              };
          }
       }

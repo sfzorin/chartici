@@ -5,6 +5,7 @@ import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
 import { NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/nodes.jsx';
+import { GRID, EMPTY_CANVAS } from '../diagram/canvas.js';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
 import LeftToolbox from './LeftToolbox';
@@ -581,7 +582,7 @@ export default function DiagramRenderer({
         });
      }
      if (minX === Infinity) {
-        minX = 600; minY = 420; maxX = 1000; maxY = 480;
+        minX = EMPTY_CANVAS.minX; minY = EMPTY_CANVAS.minY; maxX = EMPTY_CANVAS.maxX; maxY = EMPTY_CANVAS.maxY;
      }
 
      const titleCx = (minX + maxX) / 2;
@@ -622,8 +623,8 @@ export default function DiagramRenderer({
          }
      }
 
-     if (maxX - minX < 200) { minX -= 100; maxX += 100; }
-     if (maxY - minY < 200) { minY -= 100; maxY += 100; }
+     if (maxX - minX < EMPTY_CANVAS.minViewW) { minX -= EMPTY_CANVAS.minViewW/2; maxX += EMPTY_CANVAS.minViewW/2; }
+     if (maxY - minY < EMPTY_CANVAS.minViewH) { minY -= EMPTY_CANVAS.minViewH/2; maxY += EMPTY_CANVAS.minViewH/2; }
      
      const graphW = maxX - minX;
      const graphH = maxY - minY;

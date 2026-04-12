@@ -3,6 +3,7 @@ import { RoutingContext } from './RoutingContext.js';
 import { getTrueBox, isBlockedPointCheck, getNodePorts, getClipDist } from './geometry.js';
 import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
+import { GRID } from '../../diagram/canvas.js';
 import { assignPorts } from './portAssigner.js';
 import { EdgeRoutingRegistry } from './routingEngines.js';
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
@@ -219,13 +220,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
         return; // Bypass A* and avoid registering as obstacle
     }
 
-    const fallbackTiers = [
-      { gridStep: 20, allowOverlap: false, allowCrossing: false, ignorePadding: false },
-      { gridStep: 20, allowOverlap: false, allowCrossing: true, ignorePadding: false },
-      { gridStep: 10, allowOverlap: false, allowCrossing: true, ignorePadding: false },
-      { gridStep: 10, allowOverlap: true, allowCrossing: true, ignorePadding: false },
-      { gridStep: 10, allowOverlap: true, allowCrossing: true, ignorePadding: true }
-    ];
+    const fallbackTiers = GRID.routingTiers;
 
     let finalPts = null;
     let fallbackPts = null;

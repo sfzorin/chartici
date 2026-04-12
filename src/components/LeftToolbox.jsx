@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PALETTES } from '../diagram/colors.js';
 import { LINE_STYLE_REGISTRY, ARROW_TYPE_REGISTRY } from '../diagram/edges.js';
 import { NODE_REGISTRY } from '../diagram/nodes.jsx';
+import { BG_OPTIONS, ASPECT_OPTIONS } from '../diagram/canvas.js';
 import { DIAGRAM_TYPES, DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import { useNodeGroup } from '../hooks/useNodeGroup';
 import { getGroupId } from '../utils/groupUtils';
@@ -621,26 +622,19 @@ export default function LeftToolbox({
         <PopoverMenu isOpen={activePopover === 'bg'} onClose={() => setActivePopover(null)} anchorRef={bgBtnRef}>
           <div className="popover-title">Background</div>
           <div className="popover-list">
-             {[
-               {id: 'black', label: 'Solid Black'},
-               {id: 'white', label: 'Solid White'},
-             ].map(bg => (
+             {BG_OPTIONS.map(bg => (
                 <button key={bg.id} className={bgColor === bg.id ? 'active' : ''} onClick={() => {
                    if (onChangeBgColor) onChangeBgColor(bg.id);
                 }}>
                   {bg.label}
                 </button>
-             ))}
+              ))}
           </div>
           
           <div className="toolbox-divider" style={{ margin: '8px 0' }} />
           <div className="popover-title">Aspect Ratio</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
-             {[
-               {id: '16:9', label: '16:9'},
-               {id: '4:3',  label: '4:3'},
-               {id: '1:1',  label: '1:1'}
-             ].map(ar => (
+             {ASPECT_OPTIONS.map(ar => (
                 <button 
                   key={ar.id} 
                   className={`toolbox-btn ${aspect === ar.id ? 'active' : ''}`}
