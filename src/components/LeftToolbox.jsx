@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PALETTES } from '../utils/constants';
+import { PALETTES } from '../diagram/colors.js';
+import { LINE_STYLE_REGISTRY, ARROW_TYPE_REGISTRY } from '../diagram/edges.js';
+import { NODE_REGISTRY } from '../diagram/nodes.jsx';
 import { DIAGRAM_TYPES, DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import { useNodeGroup } from '../hooks/useNodeGroup';
 import { getGroupId } from '../utils/groupUtils';
@@ -109,17 +111,8 @@ export default function LeftToolbox({
     setActivePopover(prev => prev === id ? null : id);
   };
 
-  const getShapeIcon = (type) => {
-    switch (type) {
-      case 'circle': return 'shape-circle';
-      case 'oval': return 'shape-oval';
-      case 'rhombus': return 'shape-diamond';
-      case 'text': return 'text-shape'; 
-      case 'chevron': return 'shape-chevron';
-      case 'pie_slice': return 'shape-slice';
-      default: return 'shape-rect'; // includes 'process'
-    }
-  };
+  // Иконка формы ноды — берётся из NODE_REGISTRY
+  const getShapeIcon = (type) => NODE_REGISTRY[type]?.icon || 'shape-rect';
 
   const mockNode = { type: 'process', size: 'M', color: 1, lockPos: false, id: '' };
   const mockEdge = { lineStyle: 'solid', connectionType: 'target', label: '' };
@@ -227,7 +220,7 @@ export default function LeftToolbox({
               <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
                 <div className="popover-title">Node Size</div>
                 <div className="popover-list">
-                  {['S', 'M', 'L'].map(s => {
+                  {Object.keys(NODE_REGISTRY[nContext.type]?.sizes || NODE_REGISTRY.process.sizes).map(s => {
                     const labels = { S: 'Small', M: 'Medium', L: 'Large' };
                     return (
                       <button key={s} className={(nContext.size === s || (!nContext.size && s === 'M') || (nContext.size === 'AUTO' && s === 'M')) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
@@ -433,10 +426,10 @@ export default function LeftToolbox({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
                  {(diagramSchema.allowedLineStyles || [])
                     .map(style => {
-                    let dash = 'none';
-                    let sw = 2;
-                    if (style === 'dashed') dash = '6 6';
-                    if (style === 'bold') sw = 4;
+                    // Параметры отображения — из LINE_STYLE_REGISTRY
+                    const lsDef = LINE_STYLE_REGISTRY[style] || {};
+                    const dash  = lsDef.dashArray   ?? 'none';
+                    const sw    = lsDef.strokeWidth ?? 2;
                     return (
                        <button 
                          key={style} 
@@ -471,35 +464,40 @@ export default function LeftToolbox({
               <div className="toolbox-divider" style={{ margin: '8px 0' }} />
               <div className="popover-title">Arrows</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
-                 {[
-                   {val: 'target', render: <svg width="40" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                   {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                   {val: 'both', render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                   {val: 'none', render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
-                 ].filter(a => (diagramSchema.allowedArrowTypes || []).includes(a.val))
-                 .map(arrow => {
-                   const isHiddenLine = eContext.lineStyle === 'none';
-                   const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both');
-                   return (
-                     <button 
-                        key={arrow.val} 
-                        className={`toolbox-btn ${currentAt === arrow.val ? 'active' : ''}`} 
-                        style={{ 
-                           width: '100%', height: '32px', padding: 0,
-                           opacity: isArrowDisabled ? 0.3 : 1,
-                           pointerEvents: isArrowDisabled ? 'none' : 'auto',
-                           background: currentAt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                           border: `1px solid ${currentAt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                        }}
-                        onClick={() => { 
-                           if (arrow.val === 'reverse') reverseSelectedEdge();
-                           else updateSelectedEdge('arrowType', arrow.val); 
-                        }}
-                     >
-                        {arrow.render}
-                     </button>
-                   )
-                 })}
+                 {/* Стрелки — порядок из ARROW_TYPE_REGISTRY, фильтр из schema */}
+                 {(() => {
+                   const ARROW_SVG = {
+                     target:  <svg width="40" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                     reverse: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                     both:    <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                     none:    <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
+                   };
+                   return Object.entries(ARROW_TYPE_REGISTRY)
+                     .filter(([val]) => (diagramSchema.allowedArrowTypes || []).includes(val))
+                     .map(([val]) => {
+                       const isHiddenLine    = eContext.lineStyle === 'none';
+                       const isArrowDisabled = isHiddenLine && (val === 'none' || val === 'both');
+                       return (
+                         <button
+                            key={val}
+                            className={`toolbox-btn ${currentAt === val ? 'active' : ''}`}
+                            style={{
+                               width: '100%', height: '32px', padding: 0,
+                               opacity: isArrowDisabled ? 0.3 : 1,
+                               pointerEvents: isArrowDisabled ? 'none' : 'auto',
+                               background: currentAt === val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                               border: `1px solid ${currentAt === val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                            }}
+                            onClick={() => {
+                               if (val === 'reverse') reverseSelectedEdge();
+                               else updateSelectedEdge('arrowType', val);
+                            }}
+                         >
+                            {ARROW_SVG[val]}
+                         </button>
+                       );
+                     });
+                 })()}
                  {/* ERD cardinality — shown only when allowedConnectionTypes is non-empty */}
                  {(diagramSchema.allowedConnectionTypes || []).length > 0 && (
                    <>
