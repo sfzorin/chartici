@@ -462,9 +462,9 @@ export const PIE_CONSTS = {
 };
 
 export const LEGEND_SIZES = {
-  S: { fontSize: 16, rowH: 36, padX: 16, padY: 12, charW: 9,  maxLabelW: 220, swatch: 20, swatchGap: 10, swW: 20, swH: 14, swRx: 2, textOff: 30 },
-  M: { fontSize: 22, rowH: 50, padX: 20, padY: 16, charW: 13, maxLabelW: 300, swatch: 28, swatchGap: 12, swW: 28, swH: 20, swRx: 3, textOff: 42 },
-  L: { fontSize: 28, rowH: 64, padX: 24, padY: 20, charW: 17, maxLabelW: 400, swatch: 36, swatchGap: 14, swW: 36, swH: 26, swRx: 4, textOff: 54 },
+  S: { fontSize: 16, rowH: 36, padX: 16, padY: 12, charW: 9,  maxLabelW: 220, swW: 20, swH: 14, swRx: 2, textOff: 30 },
+  M: { fontSize: 22, rowH: 50, padX: 20, padY: 16, charW: 13, maxLabelW: 300, swW: 28, swH: 20, swRx: 3, textOff: 42 },
+  L: { fontSize: 28, rowH: 64, padX: 24, padY: 20, charW: 17, maxLabelW: 400, swW: 36, swH: 26, swRx: 4, textOff: 54 },
 };
 
 /**

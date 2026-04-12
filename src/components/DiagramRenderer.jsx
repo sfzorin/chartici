@@ -1033,11 +1033,9 @@ export default function DiagramRenderer({
             const sz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
             const FONT_SIZE   = sz.fontSize;
             const ROW_H       = sz.rowH;
-            const SWATCH      = sz.swatch;
-            const SWATCH_GAP  = sz.swatchGap;
             const PAD_X       = sz.padX;
             const PAD_Y       = sz.padY;
-            const TEXT_OFFSET  = SWATCH + SWATCH_GAP;
+            const TEXT_OFFSET  = sz.textOff;
             const maxLabelLen = Math.max(...legendGroups.map(g => (g.label || '').length));
             const lgW = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * sz.charW, sz.maxLabelW);
             const lgH = PAD_Y * 2 + legendGroups.length * ROW_H;
@@ -1157,8 +1155,8 @@ export default function DiagramRenderer({
                   const fill  = isHex ? color : `var(--color-${color})`;
                   return (
                     <g key={g.id} transform={`translate(${PAD_X}, ${PAD_Y + i * ROW_H + ROW_H / 2})`}>
-                      <rect x={0} y={-SWATCH/2} width={SWATCH} height={SWATCH}
-                        fill={fill} rx={4}
+                      <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH}
+                        fill={fill} rx={sz.swRx}
                       />
                       <text
                         x={TEXT_OFFSET} y={0}
