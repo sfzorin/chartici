@@ -1,8 +1,13 @@
+// SIZES is kept for legacy consumers that read SIZES.M.width etc.
+// Source of truth has moved to src/registry/nodes.js → NODE_REGISTRY[type].sizes
+import { NODE_REGISTRY, getNodeDim as _getNodeDimFromRegistry } from '../registry/nodes.js';
+
 export const SIZES = {
-  S: { width: 120, height: 60, fontSize: 12 },
-  M: { width: 160, height: 80, fontSize: 16 },
-  L: { width: 240, height: 120, fontSize: 22 }
+  S: NODE_REGISTRY.process.sizes.S,
+  M: NODE_REGISTRY.process.sizes.M,
+  L: NODE_REGISTRY.process.sizes.L,
 };
+
 
 const monoRules = { 2: [1,4], 3: [1,4,7], 4: [1,3,5,8], 5: [1,3,5,7,9], 6: [1,2,4,6,8,9], 7: [1,2,3,5,7,8,9], 8: [1,2,3,4,6,7,8,9] };
 const dualRules = { 2: [2,7], 3: [1,3,7], 4: [1,2,7,8], 5: [1,2,4,7,8], 6: [1,3,5,6,7,9], 7: [1,2,4,5,6,7,9], 8: [1,2,4,5,6,7,8,9] };
@@ -68,57 +73,6 @@ export const PALETTES = {
 
 
 
-export const DEFAULT_SIZE = "M";
-
-export function getNodeDim(node) {
-  if (!node) return { ...SIZES.M };
-  
-  let resolvedSize = node?.size || 'M';
-  if (resolvedSize === 'XS') resolvedSize = 'S';
-  if (resolvedSize === 'XL') resolvedSize = 'L';
-  const dim = { ...(SIZES[resolvedSize] || SIZES.M) };
-  
-  if (node.type === 'pie_slice') {
-    const pSize = (resolvedSize === 'S' ? 240 : resolvedSize === 'L' ? 560 : 400);
-    dim.width = pSize;
-    dim.height = pSize;
-  } else if (node.type === 'oval') {
-    dim.width = Math.round((dim.width + dim.height / 4) / 40) * 40; // Add half a radius
-  } else if (node.type === 'title') {
-    if (resolvedSize === 'S') dim.fontSize = 40;
-    else if (resolvedSize === 'M') dim.fontSize = 56;
-    else if (resolvedSize === 'L') dim.fontSize = 80;
-    else dim.fontSize = 56;
-
-    const text = node.label || "Text";
-    const lines = text.split('\n');
-    const longestLine = Math.max(...lines.map(line => line.length));
-    
-    const estWidth = (longestLine * dim.fontSize * 0.62);
-    const estHeight = (lines.length * dim.fontSize * 1.2);
-    
-    dim.width = Math.max(Math.ceil(estWidth / 40) * 40, 40);
-    dim.height = Math.max(Math.ceil(estHeight / 40) * 40, 40);
-  } else if (node.type === 'text') {
-    // Override font size specifically for text annotations to have a wider scale
-    if (resolvedSize === 'S') dim.fontSize = 14;
-    else if (resolvedSize === 'M') dim.fontSize = 18;
-    else if (resolvedSize === 'L') dim.fontSize = 28;
-    else dim.fontSize = 18;
-
-    // Dynamic sizing for text-only nodes based on content, snapping to 40px grid
-    const text = node.label || "Text";
-    const lines = text.split('\n');
-    const longestLine = Math.max(...lines.map(line => line.length));
-    
-    // Approximation: ~0.6em width per character, 1.2em height per line, ZERO padding
-    const estWidth = (longestLine * dim.fontSize * 0.62);
-    const estHeight = (lines.length * dim.fontSize * 1.2);
-    
-    dim.width = Math.max(Math.ceil(estWidth / 40) * 40, 40);
-    dim.height = Math.max(Math.ceil(estHeight / 40) * 40, 40);
-  }
-  
-  return dim;
-}
-
+// getNodeDim is now implemented in src/registry/nodes.js
+// Re-exported here for backward compatibility with all existing imports.
+export { _getNodeDimFromRegistry as getNodeDim };

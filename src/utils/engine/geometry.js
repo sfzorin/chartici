@@ -1,4 +1,6 @@
 import { getNodeDim } from '../constants';
+import { NODE_REGISTRY } from '../../registry/nodes.js';
+
 
 export function getTrueBox(node) {
   const dim = getNodeDim(node);
@@ -58,108 +60,76 @@ export function getClipDist(node, cx, cy, dirX, dirY) {
 export function getNodePorts(node, box) {
   const w = box.right - box.left;
   const h = box.bottom - box.top;
+  const nodeDef = NODE_REGISTRY[node.type] || NODE_REGISTRY.process;
+  const portMode = nodeDef.ports; // 'all' | 'topbottom' | 'radial' | 'none'
+
+  if (portMode === 'none') return [];
 
   // Universal Off-Grid Snapper
-  const gyTop = Math.floor(box.top / 20) * 20;
-  const gyBottom = Math.ceil(box.bottom / 20) * 20;
-  const gxLeft = Math.floor(box.left / 20) * 20;
-  const gxRight = Math.ceil(box.right / 20) * 20;
+  const gyTop    = Math.floor(box.top    / 20) * 20;
+  const gyBottom = Math.ceil (box.bottom / 20) * 20;
+  const gxLeft   = Math.floor(box.left   / 20) * 20;
+  const gxRight  = Math.ceil (box.right  / 20) * 20;
 
   // 4 Primary cardinal ports (always present, penalty 0)
   let ports = [
-    { pt: { x: box.cx, y: gyTop }, anchorPt: { x: box.cx, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: 0 },
-    { pt: { x: box.cx, y: gyBottom }, anchorPt: { x: box.cx, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: 0 },
-    { pt: { x: gxRight, y: box.cy }, anchorPt: { x: box.right, y: box.cy }, axis: 'H', sign: 1, dir: 'Right', penalty: 0 },
-    { pt: { x: gxLeft, y: box.cy }, anchorPt: { x: box.left, y: box.cy }, axis: 'H', sign: -1, dir: 'Left', penalty: 0 }
+    { pt: { x: box.cx, y: gyTop    }, anchorPt: { x: box.cx,    y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: 0 },
+    { pt: { x: box.cx, y: gyBottom }, anchorPt: { x: box.cx,    y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: 0 },
+    { pt: { x: gxRight, y: box.cy  }, anchorPt: { x: box.right, y: box.cy     }, axis: 'H', sign:  1, dir: 'Right',  penalty: 0 },
+    { pt: { x: gxLeft,  y: box.cy  }, anchorPt: { x: box.left,  y: box.cy     }, axis: 'H', sign: -1, dir: 'Left',   penalty: 0 },
   ];
 
-  if (node.isTimelineSpine || node.type === 'chevron') {
-    // Chevron uses only Top and Bottom ports (no side ports)
-    ports = ports.filter(p => p.dir === 'Top' || p.dir === 'Bottom');
+  // topbottom: keep only Top and Bottom
+  if (portMode === 'topbottom') {
+    return ports.filter(p => p.dir === 'Top' || p.dir === 'Bottom');
   }
 
-  const isCurved = node.type === 'oval' || node.type === 'circle' || node.type === 'decision' || node.type === 'rhombus';
-
-  // Lateral Bifurcation ("Where it fits" h >= 80px) -> Add 2 outer ports
-  if (h >= 80 && !isCurved && !node.isTimelineSpine && node.type !== 'chevron') {
-      const sidePenalty = h * 2;
-      let y1 = box.cy - 20;
-      let y2 = box.cy + 20;
-      // If cy were perfectly offset somehow, we ensure we don't fall off
-      y1 = Math.floor(y1 / 20) * 20;
-      y2 = Math.ceil(y2 / 20) * 20;
-      
-      ports.push({ pt: { x: gxRight, y: y1 }, anchorPt: { x: box.right, y: y1 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
-      ports.push({ pt: { x: gxRight, y: y2 }, anchorPt: { x: box.right, y: y2 }, axis: 'H', sign: 1, dir: 'Right', penalty: sidePenalty });
-      ports.push({ pt: { x: gxLeft, y: y1 }, anchorPt: { x: box.left, y: y1 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
-      ports.push({ pt: { x: gxLeft, y: y2 }, anchorPt: { x: box.left, y: y2 }, axis: 'H', sign: -1, dir: 'Left', penalty: sidePenalty });
-  }
-
-  // Vertical Bifurcation ("Where it fits" w >= 80px) -> Add 2 outer ports
-  if (w >= 80 && node.type !== 'circle' && node.type !== 'decision' && node.type !== 'rhombus') {
-      const bifPenaltyX = w * 2;
-      let x1 = box.cx - 20;
-      let x2 = box.cx + 20;
-      x1 = Math.floor(x1 / 20) * 20;
-      x2 = Math.ceil(x2 / 20) * 20;
-
-      ports.push({ pt: { x: x1, y: gyTop }, anchorPt: { x: x1, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
-      ports.push({ pt: { x: x2, y: gyTop }, anchorPt: { x: x2, y: box.top }, axis: 'V', sign: -1, dir: 'Top', penalty: bifPenaltyX });
-      ports.push({ pt: { x: x1, y: gyBottom }, anchorPt: { x: x1, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
-      ports.push({ pt: { x: x2, y: gyBottom }, anchorPt: { x: x2, y: box.bottom }, axis: 'V', sign: 1, dir: 'Bottom', penalty: bifPenaltyX });
-
-  }
-
-  // Circle diagonal ports: 4 exits at 45°/135°/225°/315°
-  // Placed exactly one grid step (20px) outside the vBox boundary.
-  // This guarantees the port never falls on the vBox corner (which triggers the corner ban).
-  // Penalty = 0 so A* treats them as primary exits.
-  if (node.type === 'circle') {
-    const r = (box.right - box.left) / 2;
-    const step = 20;
-
-    // 4 standard cardinal exits
-    // (Already added at the beginning of the function: Top, Right, Bottom, Left)
-
-    // 8 Elegant Radial Swoops (30-deg and 60-deg from vertical)
-    const quadrants = [
-        { dxSign: 1, dySign: -1, hDir: 'Right', vDir: 'Top' },
-        { dxSign: -1, dySign: -1, hDir: 'Left', vDir: 'Top' },
-        { dxSign: 1, dySign: 1, hDir: 'Right', vDir: 'Bottom' },
-        { dxSign: -1, dySign: 1, hDir: 'Left', vDir: 'Bottom' }
-    ];
-
-    quadrants.forEach(q => {
-        // 1. Steep Swoop (~30 degrees from vertical, exits vertically)
-        const px1 = box.cx + q.dxSign * r * 0.5;
-        const py1 = box.cy + q.dySign * r * 0.866;
-        const targetX1 = 20 * (q.dxSign > 0 ? Math.ceil(px1 / 20 + 0.001) : Math.floor(px1 / 20 - 0.001));
-        const intY1 = py1 + q.dySign * Math.abs(targetX1 - px1) * Math.sqrt(3);
-        const snapY1 = 20 * (q.dySign > 0 ? Math.ceil(intY1 / 20) : Math.floor(intY1 / 20));
-        
-        ports.push({ 
-            pt: { x: targetX1, y: snapY1 }, 
-            axis: 'V', sign: q.dySign, dir: q.vDir, penalty: 0, 
-            anchorPt: [{ x: px1, y: py1 }, { x: targetX1, y: snapY1 }] 
-        });
-
-        // 2. Shallow Swoop (~60 degrees from vertical, exits horizontally)
-        const px2 = box.cx + q.dxSign * r * 0.866;
-        const py2 = box.cy + q.dySign * r * 0.5;
-        const targetY2 = 20 * (q.dySign > 0 ? Math.ceil(py2 / 20 + 0.001) : Math.floor(py2 / 20 - 0.001));
-        const intX2 = px2 + q.dxSign * Math.abs(targetY2 - py2) * Math.sqrt(3);
-        const snapX2 = 20 * (q.dxSign > 0 ? Math.ceil(intX2 / 20) : Math.floor(intX2 / 20));
-
-        ports.push({ 
-            pt: { x: snapX2, y: targetY2 }, 
-            axis: 'H', sign: q.dxSign, dir: q.hDir, penalty: 0, 
-            anchorPt: [{ x: px2, y: py2 }, { x: snapX2, y: targetY2 }] 
-        });
+  // radial (circle): replace side bifurcations with precomputed diagonal swoops
+  if (portMode === 'radial') {
+    const size = node.size || 'M';
+    const resolvedSize = (size === 'XS' ? 'S' : size === 'XL' ? 'L' : size);
+    const swoopDefs = nodeDef.diagonalPorts?.[resolvedSize] || nodeDef.diagonalPorts?.M || [];
+    swoopDefs.forEach(d => {
+      ports.push({
+        pt:       { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy },
+        anchorPt: [
+          { x: box.cx + d.anchor.dx, y: box.cy + d.anchor.dy },
+          { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy   },
+        ],
+        axis: d.axis, sign: d.sign, dir: d.dir, penalty: 0,
+      });
     });
+    return ports;
+  }
+
+  // 'all': add bifurcation offsets for large nodes
+  const isCurved = node.type === 'oval' || node.type === 'rhombus';
+
+  // Lateral Bifurcation — add 2 outer ports per side when h >= 80px
+  if (h >= 80 && !isCurved) {
+    const sidePenalty = h * 2;
+    let y1 = Math.floor((box.cy - 20) / 20) * 20;
+    let y2 = Math.ceil ((box.cy + 20) / 20) * 20;
+    ports.push({ pt: { x: gxRight, y: y1 }, anchorPt: { x: box.right, y: y1 }, axis: 'H', sign:  1, dir: 'Right', penalty: sidePenalty });
+    ports.push({ pt: { x: gxRight, y: y2 }, anchorPt: { x: box.right, y: y2 }, axis: 'H', sign:  1, dir: 'Right', penalty: sidePenalty });
+    ports.push({ pt: { x: gxLeft,  y: y1 }, anchorPt: { x: box.left,  y: y1 }, axis: 'H', sign: -1, dir: 'Left',  penalty: sidePenalty });
+    ports.push({ pt: { x: gxLeft,  y: y2 }, anchorPt: { x: box.left,  y: y2 }, axis: 'H', sign: -1, dir: 'Left',  penalty: sidePenalty });
+  }
+
+  // Vertical Bifurcation — add 2 outer ports per side when w >= 80px
+  if (w >= 80 && node.type !== 'rhombus') {
+    const bifPenaltyX = w * 2;
+    let x1 = Math.floor((box.cx - 20) / 20) * 20;
+    let x2 = Math.ceil ((box.cx + 20) / 20) * 20;
+    ports.push({ pt: { x: x1, y: gyTop    }, anchorPt: { x: x1, y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: bifPenaltyX });
+    ports.push({ pt: { x: x2, y: gyTop    }, anchorPt: { x: x2, y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: bifPenaltyX });
+    ports.push({ pt: { x: x1, y: gyBottom }, anchorPt: { x: x1, y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: bifPenaltyX });
+    ports.push({ pt: { x: x2, y: gyBottom }, anchorPt: { x: x2, y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: bifPenaltyX });
   }
 
   return ports;
 }
+
 
 export function isSegmentBlockedCheck(x1, y1, x2, y2, allowObsId1, allowObsId2, ignorePadding, ctx) {
     const minX = Math.min(x1, x2);
