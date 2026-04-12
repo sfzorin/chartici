@@ -575,7 +575,7 @@ function App() {
              return { ...n, size: newVal };
          };
          
-         if (gId) {
+         if (gId && !activeSchema?.ioFormat?.flatNodes) {
              const groupNodesOrig = newNodes.filter(n => getGroupId(n) === gId);
              const groupNodesNew = groupNodesOrig.map(n => applySize(n, value));
              // Allow overlapping sizes by default without blocking user
