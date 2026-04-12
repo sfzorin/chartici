@@ -48,8 +48,8 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
   });
 
   // ── 2. Распределяем ноды по группам ─────────────────────────────────────
-  // Системные ноды (__SYSTEM_TITLE__, type=title) хранятся в payload.title, не в data.groups
-  const SKIP_NODE = n => n.id === '__SYSTEM_TITLE__' || n.type === 'title';
+  // Заголовок диаграммы (type: 'title', id: '__SYSTEM_TITLE__') хранится в payload.title, не в data.groups
+  const SKIP_NODE = n => n.type === 'title';
 
   (diagramData.nodes || []).filter(n => !SKIP_NODE(n)).forEach(n => {
     const parentGroupId = getGroupId(n) || `g_${n.id}`;

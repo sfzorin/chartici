@@ -61,10 +61,9 @@ function App() {
         return n;
       })
       .filter(n =>
-        n.id === '__SYSTEM_TITLE__' ||   // системный заголовок — всегда
-        n.type === 'title'            ||   // title нода — всегда
-        n.type === 'text'             ||   // text нода — всегда
-        allowedNodes.includes(n.type)      // разрешённый тип для этого engine
+        n.type === 'title'        ||   // заголовок диаграммы (id=__SYSTEM_TITLE__) — всегда
+        n.type === 'text'         ||   // аннотации — всегда
+        allowedNodes.includes(n.type)  // разрешённый тип для этого engine
       );
 
     // ── Рёбра: только между видимыми нодами, если соединения разрешены ──
