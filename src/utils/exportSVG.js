@@ -1,4 +1,5 @@
-import { PALETTES } from './constants.js';
+import { PALETTES, EXPORT_DEFAULTS } from '../registry/colors.js';
+
 
 /**
  * Export the diagram SVG canvas to a downloadable file.
@@ -54,16 +55,17 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
     const rootStyles = getComputedStyle(document.documentElement);
     const paletteVars = PALETTES[paletteTheme].colors;
     const colorMap = {
-        '--canvas-bg': rootStyles.getPropertyValue('--canvas-bg').trim() || '#ffffff',
-        '--border-color-active': rootStyles.getPropertyValue('--border-color-active').trim() || '#000000',
-        '--color-text-main': rootStyles.getPropertyValue('--color-text-main').trim() || '#1A1A1A',
-        '--color-secondary': rootStyles.getPropertyValue('--color-secondary').trim() || '#000000',
-        '--grid-line-color': rootStyles.getPropertyValue('--grid-line-color').trim() || 'rgba(0,0,0,0.05)',
-        '--diagram-text': svgElement.style.getPropertyValue('--diagram-text').trim() || '#1a1a1a',
-        '--diagram-edge': svgElement.style.getPropertyValue('--diagram-edge').trim() || '#475569',
-        '--diagram-group': svgElement.style.getPropertyValue('--diagram-group').trim() || '#64748b',
-        '--unfilled-text-color': PALETTES[paletteTheme].unfilledText
+        '--canvas-bg':           rootStyles.getPropertyValue('--canvas-bg').trim()           || EXPORT_DEFAULTS['--canvas-bg'],
+        '--border-color-active': rootStyles.getPropertyValue('--border-color-active').trim() || EXPORT_DEFAULTS['--border-color-active'],
+        '--color-text-main':     rootStyles.getPropertyValue('--color-text-main').trim()     || EXPORT_DEFAULTS['--color-text-main'],
+        '--color-secondary':     rootStyles.getPropertyValue('--color-secondary').trim()     || EXPORT_DEFAULTS['--color-secondary'],
+        '--grid-line-color':     rootStyles.getPropertyValue('--grid-line-color').trim()     || EXPORT_DEFAULTS['--grid-line-color'],
+        '--diagram-text':        svgElement.style.getPropertyValue('--diagram-text').trim()  || EXPORT_DEFAULTS['--diagram-text'],
+        '--diagram-edge':        svgElement.style.getPropertyValue('--diagram-edge').trim()  || EXPORT_DEFAULTS['--diagram-edge'],
+        '--diagram-group':       svgElement.style.getPropertyValue('--diagram-group').trim() || EXPORT_DEFAULTS['--diagram-group'],
+        '--unfilled-text-color': PALETTES[paletteTheme].unfilledText,
     };
+
 
     for (let i = 0; i < paletteVars.length; i++) {
       const hex = paletteVars[i];

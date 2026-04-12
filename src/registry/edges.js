@@ -24,12 +24,12 @@
  * logicalOpacity — прозрачность для hidden/none стилей
  */
 export const LINE_STYLE_REGISTRY = {
-  solid:  { label: 'Solid',  dashArray: 'none', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
-  dashed: { label: 'Dashed', dashArray: '5, 5', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
-  dotted: { label: 'Dotted', dashArray: '2, 4', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
-  bold:   { label: 'Bold',   dashArray: 'none', strokeWidth: 4, opacity: 1.0, exportable: true,  print: { strokeWidth: 2 } },
+  solid: { label: 'Solid', dashArray: 'none', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
+  dashed: { label: 'Dashed', dashArray: '5, 5', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
+  dotted: { label: 'Dotted', dashArray: '2, 4', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
+  bold: { label: 'Bold', dashArray: 'none', strokeWidth: 4, opacity: 1.0, exportable: true, print: { strokeWidth: 2 } },
   hidden: { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
-  none:   { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
+  none: { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
 };
 
 // ─── Path routing/rendering styles ──────────────────────────────────────────
@@ -53,23 +53,23 @@ export const LINE_STYLE_REGISTRY = {
  */
 export const PATH_STYLE_REGISTRY = {
   orthogonal_astar: {
-    label:        'Orthogonal',
+    label: 'Orthogonal',
     cornerRadius: 4,
-    jumpRadius:   6,
+    jumpRadius: 6,
   },
   straight: {
-    label:        'Straight',
+    label: 'Straight',
     cornerRadius: 0,
-    jumpRadius:   0,
+    jumpRadius: 0,
   },
   // straight_clipped is an alias for 'straight' (legacy compat)
   straight_clipped: {
-    label:        'Straight',
+    label: 'Straight',
     cornerRadius: 0,
-    jumpRadius:   0,
+    jumpRadius: 0,
   },
   curved: {
-    label:         'Curved',
+    label: 'Curved',
     /**
      * curveStyle:
      *   'arc'  — кубический безье, обе точки в одну сторону (дуга, как струна).
@@ -78,15 +78,15 @@ export const PATH_STYLE_REGISTRY = {
      *   'flow' — S-образный кубический безье (точки в разные стороны).
      *             Подходит для потоковых схем.
      */
-    curveStyle:    'arc',
+    curveStyle: 'flow',
     /**
      * curveStrength — базовая сила изгиба как доля от длины линии.
      * Итоговое смещение = min(len * curveStrength, curveCap).
      */
-    curveStrength:  0.25,
-    curveCap:       120,   // максимальный изгиб в пикселях (ограничивает очень длинные рёбра)
-    cornerRadius:   8,
-    jumpRadius:     0,
+    curveStrength: 0.1,
+    curveCap: 120,   // максимальный изгиб в пикселях (ограничивает очень длинные рёбра)
+    cornerRadius: 8,
+    jumpRadius: 0,
   },
   none: {
     label: 'Hidden',
@@ -99,10 +99,10 @@ export const PATH_STYLE_REGISTRY = {
  * DiagramEdge.jsx использует charWidth и padding для проверки вхождения.
  */
 export const EDGE_LABEL_STYLE = {
-  fontSize:     16,    // px, SVG text font-size
-  fontWeight:   'bold',
-  charWidth:    9.6,   // px per character (font-size 16, average width)
-  basePadding:  10,    // min clearance at ends of the text segment
+  fontSize: 16,    // px, SVG text font-size
+  fontWeight: 'bold',
+  charWidth: 9.6,   // px per character (font-size 16, average width)
+  basePadding: 10,    // min clearance at ends of the text segment
   arrowPadding: 15,    // extra clearance per arrow tip
 };
 
@@ -112,17 +112,17 @@ export const EDGE_LABEL_STYLE = {
  * DiagramEdge.jsx инстанцирует <marker> с этими параметрами.
  */
 export const ARROW_MARKER = {
-  width:  10,
+  width: 10,
   height: 6.4,
-  refX:   8,
-  refY:   3.2,
+  refX: 8,
+  refY: 3.2,
   orient: 'auto-start-reverse',
   // d: path для заполненной стрелки (isLogical=false)
-  solidD:   'M 0 0 L 8 3.2 L 0 6.4 z',
+  solidD: 'M 0 0 L 8 3.2 L 0 6.4 z',
   // для пунктирной/логической стрелки (isLogical=true)
   logicalD: 'M 0 0 L 8 3.2 L 0 6.4 z',
   logicalStrokeWidth: 1,
-  logicalDashArray:   '1,1',
+  logicalDashArray: '1,1',
 };
 
 // ─── ERD crow's-foot marker geometry ─────────────────────────────────────────
@@ -142,25 +142,25 @@ export const CF_MARKERS = {
     width: 14, height: 14, refX: 12, refY: 7,
     orient: 'auto-start-reverse',
     lines: [
-      { x1: 12, y1: 1,  x2: 4, y2: 7,  strokeWidth: 1.5 },
-      { x1: 12, y1: 13, x2: 4, y2: 7,  strokeWidth: 1.5 },
-      { x1: 12, y1: 7,  x2: 4, y2: 7,  strokeWidth: 1.5 },
+      { x1: 12, y1: 1, x2: 4, y2: 7, strokeWidth: 1.5 },
+      { x1: 12, y1: 13, x2: 4, y2: 7, strokeWidth: 1.5 },
+      { x1: 12, y1: 7, x2: 4, y2: 7, strokeWidth: 1.5 },
     ],
   },
 };
 
 // ─── Arrow direction ─────────────────────────────────────────────────────────
 export const ARROW_TYPE_REGISTRY = {
-  target:  { label: '→', markerStart: null,    markerEnd: 'arrow'  },
-  reverse: { label: '←', markerStart: 'arrow', markerEnd: null     },
-  both:    { label: '↔', markerStart: 'arrow', markerEnd: 'arrow'  },
-  none:    { label: '—', markerStart: null,    markerEnd: null     },
+  target: { label: '→', markerStart: null, markerEnd: 'arrow' },
+  reverse: { label: '←', markerStart: 'arrow', markerEnd: null },
+  both: { label: '↔', markerStart: 'arrow', markerEnd: 'arrow' },
+  none: { label: '—', markerStart: null, markerEnd: null },
 };
 
 // ─── ERD semantic cardinality ─────────────────────────────────────────────────
 export const CONNECTION_TYPE_REGISTRY = {
-  '1:1': { label: '1:1', markerStart: 'cf-one',  markerEnd: 'cf-one'  },
-  '1:N': { label: '1:N', markerStart: 'cf-one',  markerEnd: 'cf-many' },
-  'N:1': { label: 'N:1', markerStart: 'cf-many', markerEnd: 'cf-one'  },
+  '1:1': { label: '1:1', markerStart: 'cf-one', markerEnd: 'cf-one' },
+  '1:N': { label: '1:N', markerStart: 'cf-one', markerEnd: 'cf-many' },
+  'N:1': { label: 'N:1', markerStart: 'cf-many', markerEnd: 'cf-one' },
   'N:M': { label: 'N:M', markerStart: 'cf-many', markerEnd: 'cf-many' },
 };
