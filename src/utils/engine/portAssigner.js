@@ -24,6 +24,7 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   //   'dynamic'  — L-ray obstacle avoidance for freeform diagrams
   //   'none'     — no A* (straight_clipped or no-edge diagrams)
   const portStrategy = engine?.routing?.portStrategy || 'dynamic';
+  const penaltyFn = engine?.routing?.portPenalty?.bind(engine?.routing) || undefined;
   const isTopdown = portStrategy === 'topdown';
 
   // For 'topdown' strategy: pre-compute shared golden ports first
@@ -67,8 +68,8 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
     const srcBox = getTrueBox(src);
     const tgtBox = getTrueBox(tgt);
 
-    let startPorts = getNodePorts(src, srcBox);
-    let endPorts = getNodePorts(tgt, tgtBox);
+    let startPorts = getNodePorts(src, srcBox, penaltyFn);
+    let endPorts = getNodePorts(tgt, tgtBox, penaltyFn);
 
     if (isTopdown) {
       // 'topdown' strategy: golden-port penalty (preferred top/bottom exit per edge)

@@ -155,8 +155,11 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 
     // Use pre-assigned ports from Phase 1
     const assigned = portMap.get(edge.id);
-    let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox);
-    let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox);
+    const engineRouting = getEngine(diagramType)?.routing;
+    const penaltyFn = engineRouting?.portPenalty?.bind(engineRouting) || undefined;
+    let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox, penaltyFn);
+    let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox, penaltyFn);
+
 
     if (edge.lineStyle === 'none' || edge.lineStyle === 'hidden') {
         const scx = startBox.cx;

@@ -54,26 +54,29 @@ const OUTLINE = {
 /**
  * PORT_CATALOG primitives — reused across node types.
  *
- * Primary ports (penalty: 0):   Top, Bottom, Left, Right
- * Bifurcation ports (penalty: dimension × 2):
- *   BifTop / BifBottom — two V-axis exits offset ±20px horizontally
- *                        active when node width  ≥ threshold.w
- *   BifLeft / BifRight — two H-axis exits offset ±20px vertically
- *                        active when node height ≥ threshold.h
+ * Each entry describes PORT GEOMETRY only — no routing cost.
+ * Penalty (routing cost) is defined per engine in each engine's routing.js -> portPenalty().
  *
- * count: 2 means geometry.js generates two ports (at cx-20 and cx+20,
- *        or cy-20 and cy+20) for each catalog entry with a threshold.
+ * Primary ports:    no threshold — always generated
+ * Bifurcation ports: threshold — generated when node dimension ≥ value
+ *   BifTop / BifBottom  active when w ≥ 80px (node is wide enough to bifurcate Top/Bottom)
+ *   BifLeft / BifRight  active when h ≥ 80px (node is tall enough to bifurcate Left/Right)
+ *   count: 2 → geometry generates 2 ports: at cx-20 and cx+20 (or cy-20 and cy+20)
  */
 const P = {
-  Top:       { id: 'Top',       axis: 'V', sign: -1, penalty: 0 },
-  Bottom:    { id: 'Bottom',    axis: 'V', sign:  1, penalty: 0 },
-  Left:      { id: 'Left',      axis: 'H', sign: -1, penalty: 0 },
-  Right:     { id: 'Right',     axis: 'H', sign:  1, penalty: 0 },
-  BifTop:    { id: 'BifTop',    axis: 'V', sign: -1, penalty: 'w*2', threshold: { w: 80 }, count: 2 },
-  BifBottom: { id: 'BifBottom', axis: 'V', sign:  1, penalty: 'w*2', threshold: { w: 80 }, count: 2 },
-  BifLeft:   { id: 'BifLeft',   axis: 'H', sign: -1, penalty: 'h*2', threshold: { h: 80 }, count: 2 },
-  BifRight:  { id: 'BifRight',  axis: 'H', sign:  1, penalty: 'h*2', threshold: { h: 80 }, count: 2 },
+  Top:       { id: 'Top',       axis: 'V', sign: -1 },
+  Bottom:    { id: 'Bottom',    axis: 'V', sign:  1 },
+  Left:      { id: 'Left',      axis: 'H', sign: -1 },
+  Right:     { id: 'Right',     axis: 'H', sign:  1 },
+  BifTop:    { id: 'BifTop',    axis: 'V', sign: -1, threshold: { w: 80 }, count: 2 },
+  BifBottom: { id: 'BifBottom', axis: 'V', sign:  1, threshold: { w: 80 }, count: 2 },
+  BifLeft:   { id: 'BifLeft',   axis: 'H', sign: -1, threshold: { h: 80 }, count: 2 },
+  BifRight:  { id: 'BifRight',  axis: 'H', sign:  1, threshold: { h: 80 }, count: 2 },
 };
+
+// Full standard port set (primary + bifurcation) — used by process, circle, oval*, rhombus*
+// *oval and rhombus suppress some entries via their own portCatalog
+const ALL_PORTS = [P.Top, P.Bottom, P.Left, P.Right, P.BifTop, P.BifBottom, P.BifLeft, P.BifRight];
 
 export const NODE_REGISTRY = {
 
@@ -87,7 +90,7 @@ export const NODE_REGISTRY = {
       L: { width: 240, height: 120, fontSize: 22 },
     },
     ports: 'all',
-    portCatalog: [P.Top, P.Bottom, P.Left, P.Right, P.BifTop, P.BifBottom, P.BifLeft, P.BifRight],
+    portCatalog: ALL_PORTS,
     outline:  OUTLINE.thick,
     selection: SEL.rect,
   },
@@ -102,9 +105,10 @@ export const NODE_REGISTRY = {
       M: { width:  80, height:  80, fontSize: 14 }, // r = 40
       L: { width: 120, height: 120, fontSize: 18 }, // r = 60
     },
-    ports: 'radial',
-    // Cardinal ports are implicit for 'radial'; diagonal swoops are precomputed below
-    portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
+    // Same bifurcation structure as any other node.
+    // diagonalPorts are ADDITIONAL primary exits added on top by geometry.js.
+    ports: 'all',
+    portCatalog: ALL_PORTS,
     outline:  OUTLINE.thick,
     selection: SEL.circle,
 
