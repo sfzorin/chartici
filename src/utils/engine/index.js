@@ -5,7 +5,7 @@ import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
 import { GRID } from '../../diagram/canvas.js';
 import { assignPorts } from './portAssigner.js';
-import { EdgeRoutingRegistry } from './routingEngines.js';
+
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 import { getEngine } from '../../engines/index.js';
 import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
@@ -16,7 +16,8 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 
   const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
-  const routingStyle = EdgeRoutingRegistry.getStyle(diagramType);
+  const engine = getEngine(diagramType);
+  const routingStyle = engine?.layout?.edgeStyle || 'orthogonal_astar';
 
   if (routingStyle === 'none') {
       return result; // Edges are hidden natively (e.g. Pie chart)
