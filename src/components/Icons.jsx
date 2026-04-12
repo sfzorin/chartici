@@ -46,6 +46,26 @@ const iconPaths = {
       <rect x="7.5" y="8.5" width="6" height="4" />
     </>
   ),
+  // Header: bold H between two horizontal bars
+  'heading': (
+    <>
+      <line x1="4" y1="5" x2="20" y2="5" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="8" y1="10" x2="8" y2="18" strokeWidth="2" strokeLinecap="round" />
+      <line x1="16" y1="10" x2="16" y2="18" strokeWidth="2" strokeLinecap="round" />
+      <line x1="8" y1="14" x2="16" y2="14" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  // Legend: mini list with swatch squares + text lines
+  'legend': (
+    <>
+      <rect x="4" y="5" width="5" height="4" rx="1" fill="currentColor" stroke="none" />
+      <line x1="12" y1="7" x2="20" y2="7" strokeWidth="1.8" strokeLinecap="round" />
+      <rect x="4" y="11" width="5" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.6" />
+      <line x1="12" y1="13" x2="18" y2="13" strokeWidth="1.8" strokeLinecap="round" />
+      <rect x="4" y="17" width="5" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.35" />
+      <line x1="12" y1="19" x2="19" y2="19" strokeWidth="1.8" strokeLinecap="round" />
+    </>
+  ),
   'text-shape': (
     <>
       <polyline points="5 20 12 4 19 20" strokeWidth="1.5" strokeLinejoin="miter" />

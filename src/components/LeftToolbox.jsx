@@ -182,8 +182,8 @@ export default function LeftToolbox({
         <PopoverMenu isOpen={activePopover === 'add'} onClose={() => setActivePopover(null)} anchorRef={addBtnRef}>
           <div className="popover-title">Create Node</div>
           <div className="popover-grid">
-             {(!diagramTitle || diagramTitle.trim() === '') && <button onClick={() => { setDiagramTitle('Diagram Header'); setActivePopover(null); }}><Icon name="text-shape" /> Header</button>}
-             {!showLegend && diagramSchema?.features?.supportsLegend && <button onClick={() => { onChangeShowLegend && onChangeShowLegend(true); setActivePopover(null); }}><Icon name="palette" /> Legend</button>}
+             {(!diagramTitle || diagramTitle.trim() === '') && <button onClick={() => { setDiagramTitle('Diagram Header'); setActivePopover(null); }}><Icon name="heading" /> Header</button>}
+             {!showLegend && diagramSchema?.features?.supportsLegend && <button onClick={() => { onChangeShowLegend && onChangeShowLegend(true); setActivePopover(null); }}><Icon name="legend" /> Legend</button>}
              {diagramSchema.allowedNodes.includes('process') && <button onClick={() => { onAddNode('process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>}
              {diagramSchema.allowedNodes.includes('circle') && <button onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>}
              {diagramSchema.allowedNodes.includes('oval') && <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
