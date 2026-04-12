@@ -183,7 +183,7 @@ export const NODE_REGISTRY = {
     },
     ports:    'none',
     outline:  OUTLINE.normal, // outlines not used in piechart, kept for completeness
-    selection: SEL.circle,
+    selection: { shape: 'slice', padding: 4, haloWidth: 10, haloOpacity: 0.3, ringWidth: 2 },
 
     // Piechart-specific: external label positioned at slice midpoint
     externalLabel: {
