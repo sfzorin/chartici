@@ -1,5 +1,4 @@
-import { getNodeDim } from '../../diagram/nodes.jsx';
-import { NODE_REGISTRY } from '../../diagram/nodes.jsx';
+import { getNodeDim, NODE_REGISTRY } from '../../diagram/nodes.jsx';
 
 
 

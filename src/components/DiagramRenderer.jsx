@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getNodeDim } from '../diagram/nodes.jsx';
+import { getNodeDim, NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/nodes.jsx';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
-import { NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/nodes.jsx';
 import { GRID, EMPTY_CANVAS } from '../diagram/canvas.js';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
