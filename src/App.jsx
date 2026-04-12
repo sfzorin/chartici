@@ -432,7 +432,7 @@ function App() {
                 to: parentNodeId, 
                 label: '', 
                 lineStyle: 'none',
-                connectionType: 'target'
+                arrowType: 'target'
             };
             return { ...prev, edges: [...filteredEdges, newEdge], layoutTrigger: Date.now() };
         });

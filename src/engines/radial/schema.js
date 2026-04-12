@@ -5,7 +5,8 @@ export default {
     name: "Radial",
     description: "mind-maps, concentric layers, or hub-and-spoke architectures.",
     allowedNodes: ["process"],
-    allowedEdges: ["solid", "dashed", "bold", "none"],
+    allowedLineStyles: ["solid", "dashed", "bold", "none"],
+    allowedArrowTypes: ["none"],
     features: {
         hasNodeValue: false,
         allowConnections: true

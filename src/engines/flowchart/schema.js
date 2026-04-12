@@ -5,7 +5,8 @@ export default {
     name: "Flowchart",
     description: "logical step-by-step processes or algorithms.",
     allowedNodes: ["process", "circle", "oval", "rhombus"],
-    allowedEdges: ["solid", "dashed", "bold", "none"],
+    allowedLineStyles: ["solid", "dashed", "bold", "none"],
+    allowedArrowTypes: ["target", "reverse", "both", "none"],
     features: {
         hasNodeValue: false,
         allowConnections: true

@@ -27,7 +27,7 @@ export default {
                 if (!m) return;
                 const targetId = m[1].trim();
                 const label = m[2] ? m[2].trim() : undefined;
-                edges.push({ id: idGen(), from: String(n.id), to: targetId, label, lineStyle: 'solid', connectionType: 'target' });
+                edges.push({ id: idGen(), from: String(n.id), to: targetId, label, lineStyle: 'solid', arrowType: 'target' });
             });
         });
         return edges;

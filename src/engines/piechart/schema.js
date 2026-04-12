@@ -5,7 +5,9 @@ export default {
     name: "Pie Chart",
     description: "breakdown of items into proportional circular slices.",
     allowedNodes: ["pie_slice"],
-    allowedEdges: ["none"],
+    connectionRules: ["Edges MUST NOT be used in piecharts."],
+    allowedLineStyles: [],
+    allowedArrowTypes: [],
     features: {
         hasNodeValue: true,
         allowConnections: false,
@@ -13,7 +15,6 @@ export default {
         recalculateOnEdit: true,
         enforceMaxNodes: 9
     },
-    connectionRules: ["Edges MUST NOT be used in piecharts."],
     engineManifest: {
         layout: "piechart",
         edgeStyle: "none",

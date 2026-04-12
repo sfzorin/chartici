@@ -126,7 +126,8 @@ export default function LeftToolbox({
   const nContext = selectedNode || mockNode;
   const eContext = selectedEdge || mockEdge;
   
-  const currentCt = eContext.connectionType || eContext.cardinality || eContext.arrowType || 'target';
+  const currentCt = eContext.connectionType; // ERD cardinality only
+  const currentAt = eContext.arrowType || eContext.connectionType || 'target'; // arrow direction
 
   const isShapeToolActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
   const isSizeToolActive = !!selectedNode;
@@ -424,13 +425,12 @@ export default function LeftToolbox({
             <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
               <div className="popover-title">Line Style</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
-                 {['solid', 'dashed', 'none']
-                    .filter(style => diagramSchema.allowedEdges.includes(style))
+                 {(diagramSchema.allowedLineStyles || [])
                     .map(style => {
-                    let dash = "none";
+                    let dash = 'none';
                     let sw = 2;
-                    if (style.includes('dashed')) dash = "6 6";
-                    
+                    if (style === 'dashed') dash = '6 6';
+                    if (style === 'bold') sw = 4;
                     return (
                        <button 
                          key={style} 
@@ -482,25 +482,57 @@ export default function LeftToolbox({
                    const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both' || isErdType);
 
                    return (
-                   <button 
-                      key={arrow.val} 
-                      className={`toolbox-btn ${currentCt === arrow.val ? 'active' : ''}`} 
-                      style={{ 
-                         width: '100%', height: '32px', padding: 0,
-                         opacity: isArrowDisabled ? 0.3 : 1,
-                         pointerEvents: isArrowDisabled ? 'none' : 'auto',
-                         background: currentCt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                         border: `1px solid ${currentCt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                      }}
-                      onClick={() => { 
-                         if (arrow.val === 'reverse') reverseSelectedEdge();
-                         else updateSelectedEdge('connectionType', arrow.val); 
-                      }}
-                   >
-                      {arrow.render}
-                   </button>
-                 )})}
-              </div>
+                  {[
+                    {val: 'target',  render: <svg width="40" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                    {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                    {val: 'both',    render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                    {val: 'none',    render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
+                  ].filter(a => (diagramSchema.allowedArrowTypes || []).includes(a.val))
+                  .map(arrow => {
+                    const isHiddenLine = eContext.lineStyle === 'none';
+                    const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both');
+
+                    return (
+                    <button 
+                       key={arrow.val} 
+                       className={`toolbox-btn ${currentAt === arrow.val ? 'active' : ''}`} 
+                       style={{ 
+                          width: '100%', height: '32px', padding: 0,
+                          opacity: isArrowDisabled ? 0.3 : 1,
+                          pointerEvents: isArrowDisabled ? 'none' : 'auto',
+                          background: currentAt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                          border: `1px solid ${currentAt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                       }}
+                       onClick={() => { 
+                          if (arrow.val === 'reverse') reverseSelectedEdge();
+                          else updateSelectedEdge('arrowType', arrow.val); 
+                       }}
+                    >
+                       {arrow.render}
+                    </button>
+                  )})
+                  }
+                  {/* ERD cardinality picker — shown when allowedConnectionTypes is non-empty */}
+                  {(diagramSchema.allowedConnectionTypes || []).length > 0 && (
+                    <>
+                      <div className="toolbox-divider" style={{ margin: '8px 0', gridColumn: '1/-1' }} />
+                      <div className="popover-title" style={{ gridColumn: '1/-1' }}>Cardinality</div>
+                      {(diagramSchema.allowedConnectionTypes || []).map(ct => (
+                        <button
+                          key={ct}
+                          className={`toolbox-btn ${currentCt === ct ? 'active' : ''}`}
+                          style={{
+                            width: '100%', height: '32px', padding: 0,
+                            background: currentCt === ct ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                            border: `1px solid ${currentCt === ct ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                          }}
+                          onClick={() => updateSelectedEdge('connectionType', ct)}
+                        >
+                          <div style={{fontSize:'12px',fontWeight:600}}>{ct}</div>
+                        </button>
+                      ))}
+                    </>
+                  )}              </div>
             </PopoverMenu>
           </div>
 

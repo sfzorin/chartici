@@ -5,12 +5,13 @@ export default {
     name: "Timeline",
     description: "events plotted on a generic chronological spine.",
     allowedNodes: ["chevron", "process"],
-    allowedEdges: ["solid", "dashed", "none"],
+    connectionRules: ["chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)", "process -> chevron : Use 'solid' or 'dashed' (visible event links)"],
+    allowedLineStyles: ["solid", "dashed", "none"],
+    allowedArrowTypes: ["target", "none"],
     features: {
         hasNodeValue: false,
         allowConnections: true
     },
-    connectionRules: ["chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)", "process -> chevron : Use 'solid' or 'dashed' (visible event links)"],
     engineManifest: {
         layout: "timeline",
         edgeStyle: "straight_clipped",

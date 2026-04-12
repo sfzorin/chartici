@@ -158,7 +158,7 @@ export function renderToSVG(cciJson) {
     if (style === 'dotted') dashArray = ' stroke-dasharray="2,4"';
     const sw = 2;
     
-    const ct = edge.connectionType || edge.cardinality || edge.arrowType || 'target';
+    const ct = edge.arrowType || edge.connectionType || edge.cardinality || 'target';
     let markerEnd = '', markerStart = '';
     if (ct === 'target' || ct === 'both') markerEnd = ' marker-end="url(#arrow)"';
     if (ct === 'source' || ct === 'both') markerStart = ' marker-start="url(#arrow)"';

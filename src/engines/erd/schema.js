@@ -5,11 +5,12 @@ export default {
     name: "Entity-Relationship",
     description: "database schemas, entities, and relationships.",
     allowedNodes: ["process"],
-    allowedEdges: ["solid", "dashed", "bold", "none"],
+    allowedLineStyles: ["solid", "dashed", "none"],
+    allowedArrowTypes: [],
+    allowedConnectionTypes: ["1:1", "1:N", "N:1", "N:M"],
     features: {
         hasNodeValue: false,
-        allowConnections: true,
-        erdMarkers: true
+        allowConnections: true
     },
     engineManifest: {
         layout: "sugiyama",

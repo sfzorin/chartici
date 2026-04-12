@@ -5,7 +5,8 @@ export default {
     name: "Sequence",
     description: "chronological interactions between systems or actors.",
     allowedNodes: ["process", "circle"],
-    allowedEdges: ["solid", "dashed", "bold", "none"],
+    allowedLineStyles: ["solid", "dashed", "none"],
+    allowedArrowTypes: ["target", "reverse", "both", "none"],
     features: {
         hasNodeValue: false,
         allowConnections: true

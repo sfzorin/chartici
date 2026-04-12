@@ -5,7 +5,8 @@ export default {
     name: "Tree",
     description: "hierarchical structure with one or few roots branching downwards.",
     allowedNodes: ["process"],
-    allowedEdges: ["solid", "dashed", "bold", "none"],
+    allowedLineStyles: ["solid", "dashed", "bold", "none"],
+    allowedArrowTypes: ["none", "target"],
     features: {
         hasNodeValue: false,
         allowConnections: true

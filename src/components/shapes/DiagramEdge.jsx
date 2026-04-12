@@ -1,65 +1,48 @@
 import React from 'react';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
+import { ARROW_TYPE_REGISTRY, CONNECTION_TYPE_REGISTRY } from '../../registry/edges.js';
 
 const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType, onEdgeSelect, onEdgeDoubleClick }) => {
   if (!pathData) return null;
   
   const { pathD, textPathD, textPathLen } = pathData;
-  let ct = edge.connectionType || (diagramType === 'erd' ? "1:1" : "target");
-  
-  // Handle case where AI or legacy Sequence puts lineStyle into connectionType
-  let style = edge.lineStyle || "solid";
-  if (ct === "solid" || ct === "dashed" || ct === "dotted") {
-      style = ct;
-      ct = "target"; // default arrow
-  }
-  
-  let dashArray = "none";
+
+  // --- Line style ---
+  let style = edge.lineStyle || 'solid';
+  // Legacy compat: if AI put lineStyle into connectionType
+  if (['solid','dashed','dotted','bold'].includes(edge.connectionType)) style = edge.connectionType;
+
+  let dashArray = 'none';
   const isPrintTheme = theme === 'print-book';
-  
-  let strokeW = isPrintTheme ? "1" : "2";
-  
+  let strokeW = isPrintTheme ? '1' : '2';
+  if (style === 'dashed') dashArray = '5, 5';
+  if (style === 'dotted') dashArray = '2, 4';
+  if (style === 'bold') strokeW = isPrintTheme ? '2' : '4';
+  if (style === 'none' || style === 'hidden') { strokeW = '2'; dashArray = '4, 4'; }
 
-  
-  if (style === "dashed") dashArray = "5, 5";
-  if (style === "dotted") dashArray = "2, 4";
-  
-  if (style === "none" || style === "hidden") {
-     strokeW = "2"; 
-     dashArray = "4, 4";
-  }
-
-  let edgeColorStr = "var(--diagram-edge)";
   const markerId = `url(#arrow-${edge.id})`;
-
-  let mStart = "none";
-  let mEnd = "none";
-  let isLogical = style === "none" || style === "hidden";
-  
-  if (ct.includes(':')) {
-    // ERD crow's foot notation: "1:N", "N:M", "1:1", etc.
-    const parts = ct.toUpperCase().split(':');
-    const cfMarker = (side) => {
-      if (side === '1') return `url(#cf-one-${edge.id})`;
-      if (side === 'N' || side === 'M') return `url(#cf-many-${edge.id})`;
-      return 'none';
-    };
-    if (parts.length === 2) {
-      mStart = cfMarker(parts[0]);
-      mEnd = cfMarker(parts[1]);
-    }
-  } else {
-     if (ct === "target") mEnd = markerId;
-     else if (ct === "source") mStart = markerId;
-     else if (ct === "both") { mStart = markerId; mEnd = markerId; }
-  }
+  let mStart = 'none';
+  let mEnd = 'none';
+  let isLogical = style === 'none' || style === 'hidden';
 
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const manifest = activeSchema.engineManifest || {};
-  
-  if (manifest.suppressEdgeMarkers) {
-      mStart = "none";
-      mEnd = "none";
+
+  if (!manifest.suppressEdgeMarkers) {
+    if (edge.connectionType && CONNECTION_TYPE_REGISTRY[edge.connectionType]) {
+      // ERD crow's-foot markers from registry
+      const ctDef = CONNECTION_TYPE_REGISTRY[edge.connectionType];
+      mStart = ctDef.markerStart === 'cf-one'  ? `url(#cf-one-${edge.id})`
+             : ctDef.markerStart === 'cf-many' ? `url(#cf-many-${edge.id})` : 'none';
+      mEnd   = ctDef.markerEnd   === 'cf-one'  ? `url(#cf-one-${edge.id})`
+             : ctDef.markerEnd   === 'cf-many' ? `url(#cf-many-${edge.id})` : 'none';
+    } else {
+      // Arrow direction from arrowType (default: 'target')
+      const at = edge.arrowType || edge.connectionType || 'target'; // connectionType fallback for legacy
+      const atDef = ARROW_TYPE_REGISTRY[at] || ARROW_TYPE_REGISTRY.target;
+      if (atDef.markerStart) mStart = markerId;
+      if (atDef.markerEnd)   mEnd   = markerId;
+    }
   }
 
   let displayLabel = edge.label;

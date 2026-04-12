@@ -5,12 +5,13 @@ export default {
     name: "Matrix",
     description: "grid-like comparisons, or categorization into distinct cluster zones/cells.",
     allowedNodes: ["process"],
-    allowedEdges: ["none"],
+    connectionRules: ["Edges MUST NOT be used in matrices."],
+    allowedLineStyles: [],
+    allowedArrowTypes: [],
     features: {
         hasNodeValue: false,
-        allowConnections: true
+        allowConnections: false
     },
-    connectionRules: ["Edges MUST NOT be used in matrices."],
     engineManifest: {
         layout: "matrix",
         edgeStyle: "orthogonal_astar",

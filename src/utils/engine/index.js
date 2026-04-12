@@ -225,7 +225,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 
     for (let tierIdx = 0; tierIdx < fallbackTiers.length; tierIdx++) {
        const tier = fallbackTiers[tierIdx];
-       const fullEdgeType = `${edge.lineStyle || 'solid'}-${edge.connectionType || 'target'}`;
+       const fullEdgeType = `${edge.lineStyle || 'solid'}-${edge.arrowType || edge.connectionType || 'target'}`;
        const res = runAStar(rStartPorts, rEndPorts, rStartNodeId, rEndNodeId, textSpaceReq, fullEdgeType, tier.gridStep, tier.allowOverlap, tier.allowCrossing, 0, ctx, deadlineMs, tier.ignorePadding);
        if (res && res.pts.length > 0) {
            if (res.timedOut) timedOut = true;
@@ -267,7 +267,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
          startNodeId: startNode.id,
          endNodeId: endNode.id,
          edgeId: edge.id,
-         edgeType: `${edge.lineStyle || 'solid'}-${edge.connectionType || 'target'}`,
+         edgeType: `${edge.lineStyle || 'solid'}-${edge.arrowType || edge.connectionType || 'target'}`,
          routeOrder: idx,
          startPortKey: chosenStartPt ? `${chosenStartPt.x},${chosenStartPt.y}` : null
        });

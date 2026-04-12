@@ -287,23 +287,28 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const targetId = cols[1];
         const label = cols[2];
         
-        let connectionType = cols[3] || 'target';
+        const rawType = cols[3] || 'target';
+        let arrowType = 'target';
+        let connectionType = undefined; // only for ERD cardinality
         let lineStyle = 'solid';
         const dt = diagramType.toLowerCase();
 
-        // Enforce specific styles based on diagram type logic
-        if (dt === 'timeline') {
+        // ERD cardinality values go into connectionType; everything else is arrowType
+        if (['1:1','1:N','N:1','N:M'].includes(rawType)) {
+            connectionType = rawType;
+        } else if (dt === 'timeline') {
             lineStyle = 'dashed';
-            connectionType = 'none';
+            arrowType = 'none';
         } else if (dt === 'radial' || dt === 'tree') {
-            connectionType = 'none';
+            arrowType = 'none';
+        } else {
+            arrowType = rawType;
         }
         
-        parsed.data.edges.push({
-           sourceId, targetId,
-           label: (label && label !== '-') ? label : undefined,
-           lineStyle, connectionType
-        });
+        const edge = { sourceId, targetId, arrowType, lineStyle };
+        if (label && label !== '-') edge.label = label;
+        if (connectionType) edge.connectionType = connectionType;
+        parsed.data.edges.push(edge);
       }
     }
   }
