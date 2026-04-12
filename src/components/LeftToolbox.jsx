@@ -135,7 +135,7 @@ export default function LeftToolbox({
   const isColorToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive      = (!!selectedNode && !isLegend) || (!!selectedEdge && eContext.lineStyle !== 'none');
-  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && (!isLegend || legendLocked);
+  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && (!isTitle || selectedNode?.lockPos) && (!isLegend || legendLocked);
   const isConnectActive    = !!selectedNode && !isTitle && !isLegend && diagramSchema.features.allowConnections;
   const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isTrashActive      = !!(selectedNode || selectedEdge);

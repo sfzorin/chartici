@@ -802,9 +802,10 @@ function App() {
                 let nextConfig = { ...diagramData.config };
                 if (sysTitleIndex > -1) {
                     const sysTitle = nextNodes.splice(sysTitleIndex, 1)[0];
-                    // Always preserve manual drag, but let Auto Layout reset it if not locked
+                    // Auto-lock position on drag (like legend)
                     nextConfig.titleX = sysTitle.x;
                     nextConfig.titleY = sysTitle.y;
+                    nextConfig.titleLock = true;
                     nextConfig.titleSize = sysTitle.size;
                     nextConfig.title = sysTitle.label;
                     setDiagramTitle(sysTitle.label || '');
