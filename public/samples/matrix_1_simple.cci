@@ -24,7 +24,7 @@
             "type": "process"
           }
         ],
-        "color": "0",
+        "color": "4",
         "label": "Q1"
       },
       {
@@ -65,7 +65,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "bg1",

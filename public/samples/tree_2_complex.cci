@@ -123,7 +123,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "vp_hr",
@@ -141,7 +141,7 @@
             "type": "process"
           }
         ],
-        "color": "0",
+        "color": "4",
         "label": "HR Branch",
         "parentId": "ceo"
       }

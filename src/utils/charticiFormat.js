@@ -243,8 +243,6 @@ export function parseCharticiFile(fileContent) {
 
     // Не включаем diagramType в finalConfig — он живёт в useState
     const finalConfig = { ...configFromData };
-    // Очищаем legacy diagramType из config если попал туда при старом формате
-    delete finalConfig.diagramType;
 
     // Заголовок из корневого объекта title
     if (rootTitle && typeof rootTitle === 'object') {

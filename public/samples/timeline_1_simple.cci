@@ -42,7 +42,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "ev1",
@@ -91,7 +91,7 @@
             "type": "process"
           }
         ],
-        "color": "0",
+        "color": "3",
         "label": "Mobile & SPA"
       },
       {

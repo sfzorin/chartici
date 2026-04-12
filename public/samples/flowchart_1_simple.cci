@@ -25,7 +25,7 @@
             "type": "oval"
           }
         ],
-        "color": "0",
+        "color": "5",
         "label": "Triggers"
       },
       {
@@ -82,7 +82,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "err_cart",

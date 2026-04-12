@@ -116,12 +116,12 @@
             "type": "process"
           }
         ],
-        "color": "0",
+        "color": "4",
         "label": "Mid Perf / Mid Pot (Core Players)"
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "inc1",
@@ -180,7 +180,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "rsk1",

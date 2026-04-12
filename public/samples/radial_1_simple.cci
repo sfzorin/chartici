@@ -19,7 +19,7 @@
             "type": "process"
           }
         ],
-        "color": "0",
+        "color": "3",
         "label": "Core"
       },
       {
@@ -67,7 +67,7 @@
       },
       {
         "type": "process",
-        "size": "S",
+        "size": "M",
         "nodes": [
           {
             "id": "a1",
