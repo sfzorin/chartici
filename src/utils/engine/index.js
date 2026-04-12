@@ -6,6 +6,7 @@ import { generateSVGPaths } from './svgPaths.js';
 import { assignPorts } from './portAssigner.js';
 import { EdgeRoutingRegistry } from './routingEngines.js';
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
+import { getEngine } from '../../engines/index.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
@@ -122,12 +123,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   });
 
   // ─── Port Assignment (Phase 1) ─────────────────────────────
-  let isHorizontalFlow = false;
-  if (['tree', 'radial'].includes(config.diagramType)) {
-      isHorizontalFlow = false;
-  } else {
-      isHorizontalFlow = true;
-  }
+  const isHorizontalFlow = getEngine(diagramType)?.layout?.isHorizontalFlow ?? true;
 
   const portMap = assignPorts(
     edgeInfos.map(i => i.edge),

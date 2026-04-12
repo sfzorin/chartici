@@ -14,7 +14,6 @@ export default {
     engineManifest: {
         layout: "timeline",
         edgeStyle: "straight_clipped",
-        isHorizontalFlow: true,
         nodeTypes: ["chevron", "process"],
         suppressSpineEdges: true,
         spineNodeType: "chevron"

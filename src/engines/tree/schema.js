@@ -13,7 +13,6 @@ export default {
     engineManifest: {
         layout: "tree",
         edgeStyle: "orthogonal_astar",
-        isHorizontalFlow: false,
         nodeTypes: ["process"],
         isTree: true,
         enableBusRouting: true

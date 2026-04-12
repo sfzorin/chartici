@@ -4,20 +4,9 @@ import { layoutTimeline } from '../layoutTimeline.js';
 import { layoutMatrix } from '../layoutMatrix.js';
 import { layoutTree } from '../layoutTree.js';
 import { layoutPiechart } from '../layoutPiechart.js';
+import { getAllEngines } from '../../../engines/index.js';
 
-// Layout manifest — intentionally NOT importing diagramSchemas.js to avoid a circular dependency:
-// diagramSchemas → engines/index → [any plugin layout.js if it imported utils] → EngineRegistry → diagramSchemas
-const LAYOUT_MANIFEST = {
-  flowchart: { layout: 'sugiyama', isHorizontalFlow: true  },
-  sequence:  { layout: 'sugiyama', isHorizontalFlow: true  },
-  erd:       { layout: 'sugiyama', isHorizontalFlow: true  },
-  tree:      { layout: 'tree',     isHorizontalFlow: false },
-  radial:    { layout: 'radial',   isHorizontalFlow: false },
-  timeline:  { layout: 'timeline', isHorizontalFlow: true  },
-  matrix:    { layout: 'matrix',   isHorizontalFlow: true  },
-  piechart:  { layout: 'piechart', isHorizontalFlow: false },
-};
-
+// engines/* are pure data modules with no utils imports — safe to import here, no circular dependency.
 const layoutFunctions = {
   sugiyama: layoutSugiyamaDAG,
   radial:   layoutRadial,
@@ -29,11 +18,12 @@ const layoutFunctions = {
 
 export const EngineRegistry = {};
 
-Object.entries(LAYOUT_MANIFEST).forEach(([key, manifest]) => {
-  const layoutFn = layoutFunctions[manifest.layout];
+Object.entries(getAllEngines()).forEach(([key, engine]) => {
+  const { algorithm, isHorizontalFlow } = engine.layout;
+  const layoutFn = layoutFunctions[algorithm];
+  if (!layoutFn) return;
   EngineRegistry[key] = {
-    isHorizontalFlow: manifest.isHorizontalFlow,
-    execute: (nodes, edges, rules) =>
-      layoutFn(nodes, edges, rules, manifest.isHorizontalFlow, key)
+    isHorizontalFlow,
+    execute: (nodes, edges, rules) => layoutFn(nodes, edges, rules, isHorizontalFlow, key)
   };
 });

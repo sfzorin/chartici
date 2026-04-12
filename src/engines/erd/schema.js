@@ -14,7 +14,6 @@ export default {
     engineManifest: {
         layout: "sugiyama",
         edgeStyle: "orthogonal_astar",
-        isHorizontalFlow: true,
         nodeTypes: ["process"]
     },
 };

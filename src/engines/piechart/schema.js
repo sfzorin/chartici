@@ -17,7 +17,6 @@ export default {
     engineManifest: {
         layout: "piechart",
         edgeStyle: "none",
-        isHorizontalFlow: false,
         nodeTypes: ["pie_slice"]
     },
 };

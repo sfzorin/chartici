@@ -14,7 +14,6 @@ export default {
     engineManifest: {
         layout: "matrix",
         edgeStyle: "orthogonal_astar",
-        isHorizontalFlow: true,
         nodeTypes: ["process"],
         matrixGridOverlays: true
     },

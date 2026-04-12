@@ -13,7 +13,6 @@ export default {
     engineManifest: {
         layout: "radial",
         edgeStyle: "straight_clipped",
-        isHorizontalFlow: false,
         nodeTypes: ["process"],
         suppressEdgeMarkers: true,
         suppressEdgeLabels: true
