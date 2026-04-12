@@ -77,8 +77,8 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
       spineSet.forEach(u => {
         const n = nodeMap.get(u);
         if (!n) return;
-        const isCurved = n.type === 'oval' || n.type === 'circle' || n.type === 'decision' || n.type === 'rhombus' || n.type === 'text' || n.type === 'title';
-        if (!isCurved) {
+        const isSpineShape = n.type === 'rect' || n.type === 'process' || n.type === 'chevron';
+        if (isSpineShape) {
             rectSpineSet.add(u);
         }
       });

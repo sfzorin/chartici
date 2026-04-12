@@ -27,7 +27,7 @@ export function getClipDist(node, cx, cy, dirX, dirY) {
   const box = getTrueBox(node);
   const w = (box.right - box.left) / 2, h = (box.bottom - box.top) / 2;
   if (node.type === 'circle') return Math.max(w, h);
-  if (node.type === 'decision' || node.type === 'rhombus') {
+  if (node.type === 'rhombus') {
      return 1 / (Math.abs(dirX) / w + Math.abs(dirY) / h);
   }
   if (node.type === 'oval' || node.type === 'element') {
