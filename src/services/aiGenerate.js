@@ -288,26 +288,24 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const label = cols[2];
         
         const rawType = cols[3] || 'target';
-        let arrowType = 'target';
-        let connectionType = undefined; // only for ERD cardinality
+        let connectionType = 'target';
         let lineStyle = 'solid';
         const dt = diagramType.toLowerCase();
 
-        // ERD cardinality values go into connectionType; everything else is arrowType
+        // Кардинальность ERD (1:N etc.) и направление стрелки — оба в connectionType
         if (['1:1','1:N','N:1','N:M'].includes(rawType)) {
             connectionType = rawType;
         } else if (dt === 'timeline') {
             lineStyle = 'dashed';
-            arrowType = 'none';
+            connectionType = 'none';
         } else if (dt === 'radial' || dt === 'tree') {
-            arrowType = 'none';
+            connectionType = 'none';
         } else {
-            arrowType = rawType;
+            connectionType = rawType;
         }
         
-        const edge = { sourceId, targetId, arrowType, lineStyle };
+        const edge = { sourceId, targetId, connectionType, lineStyle };
         if (label && label !== '-') edge.label = label;
-        if (connectionType) edge.connectionType = connectionType;
         parsed.data.edges.push(edge);
       }
     }

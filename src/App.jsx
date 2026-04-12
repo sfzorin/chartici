@@ -159,7 +159,8 @@ function App() {
 
   
   const loadParsedData = (parsed, fallbackName = 'Imported Project') => {
-    const dt = parsed.meta?.type || parsed.config?.diagramType || 'flowchart';
+    // diagramType: единственный источник истины — meta.type (config.diagramType удалён из парсера)
+    const dt = parsed.meta?.type || 'flowchart';
     const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: dt, groups: parsed.groups });
     const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
       ? parsed.config.theme : 'muted-rainbow';
@@ -184,7 +185,8 @@ function App() {
     
     if (parsed.config && Object.keys(parsed.config).length > 0) {
       if (parsed.config.aspect) setAspect(parsed.config.aspect);
-      if (parsed.config.diagramType) setDiagramType(parsed.config.diagramType);
+      // diagramType живёт в meta.type, а не в config
+      setDiagramType(dt);
       
       let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
       if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
@@ -453,7 +455,7 @@ function App() {
                 to: parentNodeId, 
                 label: '', 
                 lineStyle: 'none',
-                arrowType: 'target'
+                connectionType: 'target'
             };
             return { ...prev, edges: [...filteredEdges, newEdge], layoutTrigger: Date.now() };
         });

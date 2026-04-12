@@ -58,7 +58,7 @@ export default {
             const edges = [];
             flatNodes.forEach(n => {
                 if (!n.spineId) return;
-                edges.push({ id: idGen(), from: String(n.spineId), to: String(n.id), lineStyle: 'dashed', arrowType: 'none' });
+                edges.push({ id: idGen(), from: String(n.spineId), to: String(n.id), lineStyle: 'dashed', connectionType: 'none' });
             });
             return edges;
         },

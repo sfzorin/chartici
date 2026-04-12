@@ -52,8 +52,18 @@ export default {
             Object.keys(gMap).forEach(gId => {
                 gMap[gId].nodes.forEach(n => {
                     const outgoings = edges.filter(e => String(e.sourceId) === String(n.id));
-                    if (outgoings.length > 0)
-                        n.nextSteps = outgoings.map(e => e.label ? `${e.targetId}[${e.label}]` : e.targetId).join(', ');
+                    if (outgoings.length > 0) {
+                        n.nextSteps = outgoings.map(e => {
+                            const ls = e.lineStyle || 'solid';
+                            const ct = e.connectionType || 'target';
+                            const label = e.label || '';
+                            // Скрываем дефолты (solid/target) — короткая форма; недефолты — расширенная
+                            const needsStyle = ls !== 'solid' || ct !== 'target';
+                            if (!label && !needsStyle) return e.targetId;
+                            if (!needsStyle) return `${e.targetId}[${label}]`;
+                            return `${e.targetId}[${label}|${ls}|${ct}]`;
+                        }).join(', ');
+                    }
                 });
             });
         },
@@ -64,7 +74,14 @@ export default {
                 String(n.nextSteps).split(',').map(s => s.trim()).filter(Boolean).forEach(step => {
                     const m = step.match(/^([^\[]+)(?:\[([^\]]*)\])?$/);
                     if (!m) return;
-                    edges.push({ id: idGen(), from: String(n.id), to: m[1].trim(), label: m[2]?.trim(), lineStyle: 'solid', arrowType: 'target' });
+                    const targetId = m[1].trim();
+                    const [label, lineStyle, connectionType] = (m[2] || '').split('|').map(s => s?.trim());
+                    edges.push({
+                        id: idGen(), from: String(n.id), to: targetId,
+                        label:          label          || undefined,
+                        lineStyle:      lineStyle      || 'solid',
+                        connectionType: connectionType || 'target',
+                    });
                 });
             });
             return edges;

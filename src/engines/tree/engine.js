@@ -70,7 +70,7 @@ export default {
                 if (!g.parentId) return;
                 (g.nodes || []).forEach(n => {
                     if (String(g.parentId) === String(n.id)) return;
-                    edges.push({ id: idGen(), from: String(g.parentId), to: String(n.id), lineStyle: 'solid', arrowType: 'none' });
+                    edges.push({ id: idGen(), from: String(g.parentId), to: String(n.id), lineStyle: 'solid', connectionType: 'none' });
                 });
             });
             flatNodes.forEach(n => {
@@ -78,7 +78,7 @@ export default {
                 String(n.nextSteps).split(',').map(s => s.trim()).filter(Boolean).forEach(step => {
                     const m = step.match(/^([^\[]+)(?:\[([^\]]*)\])?$/);
                     if (!m) return;
-                    edges.push({ id: idGen(), from: String(n.id), to: m[1].trim(), label: m[2]?.trim(), lineStyle: 'solid', arrowType: 'none' });
+                    edges.push({ id: idGen(), from: String(n.id), to: m[1].trim(), label: m[2]?.trim(), lineStyle: 'solid', connectionType: 'none' });
                 });
             });
             return edges;

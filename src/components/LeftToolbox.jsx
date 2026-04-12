@@ -490,7 +490,11 @@ export default function LeftToolbox({
                             }}
                             onClick={() => {
                                if (val === 'reverse') reverseSelectedEdge();
-                               else updateSelectedEdge('arrowType', val);
+                               else {
+                                    updateSelectedEdge('connectionType', val);
+                                    // Чистим устаревшее поле если было
+                                    if (eContext.arrowType) updateSelectedEdge('arrowType', null);
+                                }
                             }}
                          >
                             {ARROW_SVG[val]}

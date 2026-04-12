@@ -4,10 +4,19 @@ import { getEngine } from '../engines/index.js';
 // ─── Вспомогательные функции ─────────────────────────────────────────────────
 
 /**
- * Поля, которые хранятся только в рантайме и не должны попасть в .cci файл.
- * Удаляются из нод и групп при экспорте.
+ * RUNTIME_NODE_FIELDS — поля, которые НЕ сохраняются в .cci файл:
+ * - вычисляемые layout-алгоритмами (pie angles, stagger)
+ * - рантайм ссылки (groupId, bindTo)
+ * - вспомогательные рендер-пропы (_activeTheme, _canvasBg)
+ * - геометрия (w, h, x, y) — x/y сохраняются только при lockPos (см. ниже)
  */
-const RUNTIME_NODE_FIELDS  = new Set(['groupId', 'bindTo', 'offsetX', 'offsetY', 'isPieSlice', 'w', 'h']);
+const RUNTIME_NODE_FIELDS = new Set([
+  'groupId', 'bindTo', 'offsetX', 'offsetY', 'isPieSlice', 'w', 'h',
+  'x', 'y', 'lockPos',               // сохраняются вручную только при lockPos
+  'pieStartAngle', 'pieEndAngle',    // layout piechart — не сохранять
+  'pieLabelStagger', 'pieLabelAngle', 'pieExploded',  // label placement — не сохранять
+  '_activeTheme', '_canvasBg',       // rendering mutation — не сохранять
+]);
 const RUNTIME_GROUP_FIELDS = new Set(['id', 'text', 'groupLabel', 'nodeLabel']);
 
 /** Нормализует ребро к формату с sourceId/targetId (для передачи в exportEdges). */
@@ -59,15 +68,14 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
       exportGroups.push(gMap[parentGroupId]);
     }
 
-    const nodeExport = { id: n.id };
-    if (n.label)      nodeExport.label       = n.label;
-    if (n.type)       nodeExport.type        = n.type;
-    if (n.size)       nodeExport.size        = n.size;
-    if (n.color)      nodeExport.color       = n.color;
-    if (n.value  != null) nodeExport.value   = n.value;
-    if (n.fontStyle)  nodeExport.fontStyle   = n.fontStyle;
-    if (n.borderStyle) nodeExport.borderStyle = n.borderStyle;
-    if (n.lockPos)    { nodeExport.x = n.x; nodeExport.y = n.y; nodeExport.lockPos = true; }
+    // Blacklist-driven export: копируем все персистентные поля, кроме рантайм-полей.
+    // Новые поля (value, nextSteps, spineId, etc.) сохраняются автоматически.
+    const nodeExport = {};
+    for (const [k, v] of Object.entries(n)) {
+      if (!RUNTIME_NODE_FIELDS.has(k) && v !== undefined && v !== null) nodeExport[k] = v;
+    }
+    // x/y: сохраняем только при lockPos (иначе layout пересчитает)
+    if (n.lockPos) { nodeExport.lockPos = true; nodeExport.x = n.x; nodeExport.y = n.y; }
 
     gMap[parentGroupId].nodes.push(nodeExport);
   });
@@ -226,14 +234,16 @@ export function parseCharticiFile(fileContent) {
     // ── Конфиг ───────────────────────────────────────────────────────────
     const configFromData  = coreData.config || {};
     const rootTitle       = data.title;
-    const diagramType     = metaData.type || configFromData.diagramType || 'flowchart';
+    // diagramType читается из meta.type — App.jsx вызывает setDiagramType(parsed.meta.type)
+    // Не дублируем в finalConfig, чтобы не было двух источников истины
+    const diagramType     = metaData.type || 'flowchart';
     const engine          = getEngine(diagramType);
     const ioFmt           = engine?.schema?.ioFormat || {};
 
-    const finalConfig = {
-      ...configFromData,
-      diagramType,
-    };
+    // Не включаем diagramType в finalConfig — он живёт в useState
+    const finalConfig = { ...configFromData };
+    // Очищаем legacy diagramType из config если попал туда при старом формате
+    delete finalConfig.diagramType;
 
     // Заголовок из корневого объекта title
     if (rootTitle && typeof rootTitle === 'object') {
