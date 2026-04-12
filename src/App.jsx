@@ -45,38 +45,56 @@ function App() {
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
 
   const filteredData = useMemo(() => {
-    let outNodes = diagramData.nodes || [];
-    let outEdges = diagramData.edges || [];
-    
-    if (activeSchema) {
-        // Hide nodes that are not supported by the current schema (except title/text attachments if applicable)
-        outNodes = outNodes.map(n => {
-            if (diagramType === 'piechart' && n.type !== 'text' && n.type !== 'title') return { ...n, type: 'pie_slice' };
-            return n;
-        }).filter(n => activeSchema.allowedNodes.includes(n.type) || n.type === 'title' || n.type === 'text');
-        
-        // Hide edges if the diagram does not support connections, or if they connect to unsupported hidden nodes
-        if (!activeSchema.features.allowConnections) {
-            outEdges = [];
-        } else {
-            const allowedIds = new Set(outNodes.map(n => n.id));
-            outEdges = outEdges.filter(e => allowedIds.has(e.from) && allowedIds.has(e.to));
-        }
+    if (!activeSchema) return diagramData;
 
-        // Enforce maximum node limits (e.g. piechart)
-        if (activeSchema.features.enforceMaxNodes !== undefined) {
-            const max = activeSchema.features.enforceMaxNodes;
-            let count = 0;
-            outNodes = outNodes.filter(n => {
-                if (n.type === 'title' || n.type === 'text') return true;
-                if (count < max) { count++; return true; }
-                return false;
-            });
+    const { allowedNodes, features, ioFormat } = activeSchema;
+
+    // ── Ноды: оставляем только разрешённые типы ─────────────────────────
+    // Системные ноды (title, text) показываем всегда - это структурные элементы
+    let outNodes = (diagramData.nodes || [])
+      .map(n => {
+        // Если тип диаграммы использует плоские ноды (piechart) — конвертируем все
+        // контентные ноды в разрешённый тип (allowedNodes[0])
+        if (ioFormat?.flatNodes && n.type !== 'title' && n.type !== 'text' && n.id !== '__SYSTEM_TITLE__') {
+          return { ...n, type: allowedNodes[0] };
         }
+        return n;
+      })
+      .filter(n =>
+        n.id === '__SYSTEM_TITLE__' ||   // системный заголовок — всегда
+        n.type === 'title'            ||   // title нода — всегда
+        n.type === 'text'             ||   // text нода — всегда
+        allowedNodes.includes(n.type)      // разрешённый тип для этого engine
+      );
+
+    // ── Рёбра: только между видимыми нодами, если соединения разрешены ──
+    let outEdges = [];
+    if (features.allowConnections) {
+      const visibleIds = new Set(outNodes.map(n => n.id));
+      outEdges = (diagramData.edges || []).filter(e =>
+        visibleIds.has(e.from) && visibleIds.has(e.to)
+      );
     }
-    
-    return { ...diagramData, nodes: outNodes, edges: outEdges };
+
+    // ── Лимит нод (piechart: max 9) ──────────────────────────────────────
+    if (features.enforceMaxNodes !== undefined) {
+      let count = 0;
+      outNodes = outNodes.filter(n => {
+        if (n.type === 'title' || n.type === 'text') return true;
+        if (count < features.enforceMaxNodes) { count++; return true; }
+        return false;
+      });
+    }
+
+    // ── Группы: показываем только те, у которых есть видимые ноды ────────
+    const visibleGroupIds = new Set(
+      outNodes.map(n => n.groupId).filter(Boolean)
+    );
+    const outGroups = (diagramData.groups || []).filter(g => visibleGroupIds.has(g.id));
+
+    return { ...diagramData, nodes: outNodes, edges: outEdges, groups: outGroups };
   }, [diagramData, activeSchema]);
+
 
   useEffect(() => {
     document.documentElement.setAttribute('data-app-theme', appTheme);
