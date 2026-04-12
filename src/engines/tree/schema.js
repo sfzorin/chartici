@@ -14,7 +14,5 @@ export default {
         layout: "tree",
         edgeStyle: "orthogonal_astar",
         nodeTypes: ["process"],
-        isTree: true,
-        enableBusRouting: true
     },
 };

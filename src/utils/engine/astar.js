@@ -1,5 +1,5 @@
 import { isBlockedPointCheck, isSegmentBlockedCheck, checkPathOverlap } from './geometry.js';
-import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
+import { getEngine } from '../../engines/index.js';
 
 // Binary min-heap keyed on f-score for O(log n) extract-min
 class MinHeap {
@@ -250,9 +250,9 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
         const overlapCheck = checkPathOverlap(current.x, current.y, n.x, n.y, ctx);
 
         
-        const manifest = DIAGRAM_SCHEMAS[ctx.diagramType]?.engineManifest || {};
-        const isTree = !!manifest.isTree;
-        const allowBusPremium = !!manifest.enableBusRouting;
+        const routing = getEngine(ctx.diagramType)?.routing || {};
+        const isTree = !!routing.allowSiblingCrossings;
+        const allowBusPremium = !!routing.enableBusRouting;
         let overlapPenalty = 0;
         let isBusOverlap = false;
 
