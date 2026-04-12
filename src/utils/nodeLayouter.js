@@ -94,8 +94,14 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
           }
           delete out.subTreeBreadth;
           
-          out.x = Math.round(out.x / 20) * 20;
-          out.y = Math.round(out.y / 20) * 20;
+          // Skip grid snapping for pie_slice (explode offset must be precise)
+          if (out.type === 'pie_slice') {
+             out.x = out.x || 0;
+             out.y = out.y || 0;
+          } else {
+             out.x = Math.round(out.x / 20) * 20;
+             out.y = Math.round(out.y / 20) * 20;
+          }
 
           // Restore locked position (override layout result)
           if (originalPositions[out.id]) {

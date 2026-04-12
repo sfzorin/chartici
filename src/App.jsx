@@ -578,6 +578,12 @@ function App() {
              const proposedNode = applySize(targetNode, value);
              newNodes[targetIndex] = proposedNode;
          }
+
+         // Recalculate layout after size change (piechart explode, etc.)
+         if (activeSchema?.features?.recalculateOnEdit) {
+             newNodes = layoutNodesHeuristically(newNodes, prev.edges, { diagramType, groups: newGroups });
+         }
+
          return { ...prev, nodes: newNodes, groups: newGroups, layoutTrigger: Date.now() };
       }
 
