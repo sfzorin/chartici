@@ -599,6 +599,26 @@ export default function DiagramRenderer({
          }
      }
 
+     // Expand for universal legend (when visible)
+     if (showLegend && diagramType !== 'piechart') {
+         const lgGroupCount = (initialData?.groups || []).filter(g => g.label && g.type !== 'title').length;
+         if (lgGroupCount >= 2) {
+             const lgW = 250, lgH = 12 * 2 + lgGroupCount * 36; // approximate
+             if (legendPos) {
+                 // Locked — ensure that box includes legend
+                 const lR = legendPos.x + lgW, lB = legendPos.y + lgH;
+                 if (legendPos.x < minX) minX = legendPos.x - 10;
+                 if (legendPos.y < minY) minY = legendPos.y - 10;
+                 if (lR > maxX) maxX = lR + 10;
+                 if (lB > maxY) maxY = lB + 10;
+             } else {
+                 // Auto — expand by ~legend size to give placement room
+                 maxX += lgW + 50;
+                 maxY += lgH + 40;
+             }
+         }
+     }
+
      if (maxX - minX < 200) { minX -= 100; maxX += 100; }
      if (maxY - minY < 200) { minY -= 100; maxY += 100; }
      
@@ -659,7 +679,7 @@ export default function DiagramRenderer({
         titleCx,
         titleY
      };
-   }, [computedNodes, aspectRatio, diagramTitle, computedPaths, initialData]);
+   }, [computedNodes, aspectRatio, diagramTitle, computedPaths, initialData, showLegend, legendPos]);
 
   const handleZoomFit = useCallback(() => {
     if (!svgRef.current) return;
