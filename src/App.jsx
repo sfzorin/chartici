@@ -337,17 +337,24 @@ function App() {
     }
     
     // Find highest 'New Group N' to increment, or just create a unique one
-    let maxNewGroupNum = 0;
-    if (diagramData.groups) {
-      diagramData.groups.forEach(g => {
-        const match = g.id.match(/^New Group (\d+)$/i);
-        if (match) {
-           const num = parseInt(match[1], 10);
-           if (num > maxNewGroupNum) maxNewGroupNum = num;
-        }
-      });
+    // flatNodes-движки (piechart): все ноды в одной группе
+    const isFlatNodes = activeSchema?.ioFormat?.flatNodes;
+    let newGroupId;
+    if (isFlatNodes) {
+      newGroupId = 'g_piechart_data';
+    } else {
+      let maxNewGroupNum = 0;
+      if (diagramData.groups) {
+        diagramData.groups.forEach(g => {
+          const match = g.id.match(/^New Group (\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNewGroupNum) maxNewGroupNum = num;
+          }
+        });
+      }
+      newGroupId = `New Group ${maxNewGroupNum + 1}`;
     }
-    const newGroupId = `New Group ${maxNewGroupNum + 1}`;
 
     const newNode = {
       id: generateSimpleId(diagramData.nodes),

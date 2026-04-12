@@ -25,6 +25,17 @@ export default {
             edgeStyle: 'orthogonal_astar',
             nodeTypes: ['process'],
             matrixGridOverlays: true,
+            overlay: {
+                // Бокс вокруг нод в группе
+                groupPad: 30,
+                // Доп. отступы единого bbox (поверх groupPad)
+                globalLeftMargin: 50,
+                globalRightMargin: 30,
+                // Граница группы
+                stroke: { width: 2, dash: '6, 6', opacity: 0.6 },
+                // Подпись группы
+                label: { fontSize: 20, fontWeight: 700, opacity: 0.85 },
+            },
         },
     },
 

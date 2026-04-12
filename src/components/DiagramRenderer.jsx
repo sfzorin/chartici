@@ -792,19 +792,45 @@ export default function DiagramRenderer({
           {activeSchema?.engineManifest?.matrixGridOverlays && initialData.groups && initialData.groups.length > 1 && (() => {
             const realNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
             if (realNodes.length === 0) return null;
+
+            // ── Параметры рендеринга из engineManifest (с fallback) ──────────
+            const ov = activeSchema.engineManifest.overlay || {};
+            const groupPad         = ov.groupPad         ?? 30;
+            const globalLeftMargin = ov.globalLeftMargin  ?? 50;
+            const globalRightMargin= ov.globalRightMargin ?? 30;
+            // matrix
+            const mStroke   = ov.stroke || {};
+            const mLabel    = ov.label  || {};
+            const mStrokeW  = mStroke.width   ?? 2;
+            const mStrokeDash = mStroke.dash  ?? '6, 6';
+            const mStrokeOp = mStroke.opacity ?? 0.6;
+            const mLabelFs  = mLabel.fontSize  ?? 20;
+            const mLabelFw  = mLabel.fontWeight ?? 700;
+            const mLabelOp  = mLabel.opacity    ?? 0.85;
+            // sequence
+            const lane      = ov.lane  || {};
+            const laneStroke= lane.stroke || {};
+            const sLabel    = ov.label  || {};
+            const laneFillOp  = lane.fillOpacity ?? 0.04;
+            const laneStW   = laneStroke.width ?? 2;
+            const laneStDash= laneStroke.dash  ?? '4 4';
+            const laneRx    = laneStroke.rx    ?? 4;
+            const sLabelFs  = sLabel.fontSize  ?? 15;
+            const sLabelFw  = sLabel.fontWeight ?? 600;
+            const sLabelOp  = sLabel.opacity    ?? 0.8;
+
             // Compute group bounding boxes
             const groupBoxes = {};
             initialData.groups.forEach(g => {
               const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
               if (gNodes.length === 0) return;
               const dims = gNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
-              const pad = 30;
               groupBoxes[g.id] = {
                 id: String(g.id || ''),
-                left: Math.min(...dims.map(d => d.x - d.w/2)) - pad,
-                right: Math.max(...dims.map(d => d.x + d.w/2)) + pad,
-                top: Math.min(...dims.map(d => d.y - d.h/2)) - pad,
-                bottom: Math.max(...dims.map(d => d.y + d.h/2)) + pad,
+                left: Math.min(...dims.map(d => d.x - d.w/2)) - groupPad,
+                right: Math.max(...dims.map(d => d.x + d.w/2)) + groupPad,
+                top: Math.min(...dims.map(d => d.y - d.h/2)) - groupPad,
+                bottom: Math.max(...dims.map(d => d.y + d.h/2)) + groupPad,
                 label: String(g.label || g.id || ''),
                 color: g.color
               };
@@ -812,9 +838,8 @@ export default function DiagramRenderer({
             const boxes = Object.values(groupBoxes);
             if (boxes.length < 2) return null;
             
-            // Boxes already have pad=30. We want 80px total left margin and 60px right margin.
-            const globalLeft = Math.min(...boxes.map(b => b.left)) - 50;
-            const globalRight = Math.max(...boxes.map(b => b.right)) + 30;
+            const globalLeft = Math.min(...boxes.map(b => b.left)) - globalLeftMargin;
+            const globalRight = Math.max(...boxes.map(b => b.right)) + globalRightMargin;
             
             return (
               <g className="matrix-grid">
@@ -825,8 +850,8 @@ export default function DiagramRenderer({
                         <rect
                           x={globalLeft} y={box.top}
                           width={globalRight - globalLeft} height={box.bottom - box.top}
-                          fill="var(--diagram-group)" fillOpacity="0.04"
-                          stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="4 4" rx="4"
+                          fill="var(--diagram-group)" fillOpacity={laneFillOp}
+                          stroke="var(--diagram-group)" strokeWidth={laneStW} strokeDasharray={laneStDash} rx={laneRx}
                         />
                         {(!box.label.toLowerCase().startsWith('void')) && (
                           <foreignObject
@@ -838,8 +863,9 @@ export default function DiagramRenderer({
                              <div xmlns="http://www.w3.org/1999/xhtml" style={{
                                 width: '100%', height: '100%',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: 'var(--diagram-group)', fontSize: '15px', fontWeight: '600',
-                                textAlign: 'center', opacity: 0.8,
+                                color: 'var(--diagram-group)',
+                                fontSize: `${sLabelFs}px`, fontWeight: sLabelFw, opacity: sLabelOp,
+                                textAlign: 'center',
                                 cursor: 'text', pointerEvents: 'all', userSelect: 'none',
                                 lineHeight: '1.2'
                              }}
@@ -853,15 +879,15 @@ export default function DiagramRenderer({
                       <g>
                         <path
                           d={`M ${(box.left + box.right) / 2 + Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top} L ${box.right - 8} ${box.top} Q ${box.right} ${box.top} ${box.right} ${box.top + 8} L ${box.right} ${box.bottom - 8} Q ${box.right} ${box.bottom} ${box.right - 8} ${box.bottom} L ${box.left + 8} ${box.bottom} Q ${box.left} ${box.bottom} ${box.left} ${box.bottom - 8} L ${box.left} ${box.top + 8} Q ${box.left} ${box.top} ${box.left + 8} ${box.top} L ${(box.left + box.right) / 2 - Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top}`}
-                          fill="none" stroke="var(--diagram-group)" strokeWidth="2" strokeDasharray="6, 6"
-                          opacity="0.6"
+                          fill="none" stroke="var(--diagram-group)" strokeWidth={mStrokeW} strokeDasharray={mStrokeDash}
+                          opacity={mStrokeOp}
                         />
                         {(!box.label.toLowerCase().startsWith('void')) && (
                           <text
                             id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
                             x={(box.left + box.right) / 2} y={box.top + 6}
-                            fontSize="20" fill="var(--diagram-group)" opacity="0.85"
-                            fontWeight="700" textAnchor="middle"
+                            fontSize={mLabelFs} fill="var(--diagram-group)" opacity={mLabelOp}
+                            fontWeight={mLabelFw} textAnchor="middle"
                             style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
                             onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
                           >
@@ -877,22 +903,33 @@ export default function DiagramRenderer({
           })()}
           {diagramType === 'piechart' && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
-             // \u0411\u0430\u0437\u043e\u0432\u044b\u0439 \u0440\u0430\u0434\u0438\u0443\u0441 200px \u2014 \u0432\u0441\u0435\u0433\u0434\u0430 \u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0435\u043d. L-\u0441\u0435\u043a\u0442\u043e\u0440\u044b \u0432\u044b\u0434\u0432\u0438\u0433\u0430\u044e\u0442\u0441\u044f \u043e\u0442 \u0446\u0435\u043d\u0442\u0440\u0430 \u0447\u0435\u0440\u0435\u0437 x/y, +30 \u0431\u0443\u0444\u0435\u0440 \u0434\u043b\u044f \u043b\u0435\u0433\u0435\u043d\u0434\u044b
+             // Параметры из engineManifest (с fallback на безопасные дефолты)
+             const lg = activeSchema?.engineManifest?.legend || {};
+             const gapFromPie  = lg.gapFromPie  ?? 160;
+             const rowHeight   = lg.rowHeight   ?? 40;
+             const boxPadding  = lg.boxPadding  ?? 24;
+             const boxWidth    = lg.boxWidth    ?? 325;
+             const cornerRadius= lg.cornerRadius ?? 8;
+             const sw          = lg.swatch      || {};
+             const swW = sw.width ?? 24, swH = sw.height ?? 18, swRx = sw.cornerRadius ?? 2;
+             const tx          = lg.text        || {};
+             const textFs  = tx.fontSize ?? 20;
+             const textXOff= tx.xOffset  ?? 38;
+             // Радиус пирога + отступ для L-explode
+             const PIE_RADIUS = 200;
              const hasExploded = slices.some(s => s.size === 'L');
-             const pieBaseRadius = hasExploded ? 230 : 200;
-             const legendX = pieBaseRadius + 160;
-             const legendBoxHeight = slices.length * 40 + 24;
-             // The pie is rendered from Y = -pieBaseRadius to Y = pieBaseRadius.
-             // To center the legend on the bottom edge (Y = pieBaseRadius),
-             // its top Y must be pieBaseRadius - (legendBoxHeight / 2).
-             const legendY = pieBaseRadius - (legendBoxHeight / 2);
+             const pieBaseRadius = hasExploded ? PIE_RADIUS + 30 : PIE_RADIUS;
+             const legendX = pieBaseRadius + gapFromPie;
+             const legendBoxHeight = slices.length * rowHeight + boxPadding;
+             // Центрировано по Y относительно центра пирога
+             const legendY = -(legendBoxHeight / 2);
              return (
                <g transform={`translate(${legendX}, ${legendY})`}>
-                 <rect x={0} y={0} width={325} height={legendBoxHeight} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={8} />
+                 <rect x={0} y={0} width={boxWidth} height={legendBoxHeight} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={cornerRadius} />
                  {slices.map((slice, i) => (
-                    <g key={i} transform={`translate(20, ${28 + i * 40})`}>
-                       <rect x={0} y={-9} width={24} height={18} fill={`var(--color-${slice.color || 5})`} rx={2} />
-                       <text x={38} y={1} fontSize="20" fill="var(--diagram-text)" dominantBaseline="central">
+                    <g key={i} transform={`translate(20, ${boxPadding / 2 + 8 + i * rowHeight})`}>
+                       <rect x={0} y={-swH/2} width={swW} height={swH} fill={`var(--color-${slice.color || 5})`} rx={swRx} />
+                       <text x={textXOff} y={0} fontSize={textFs} fill="var(--diagram-text)" dominantBaseline="central">
                          {`${slice.label || 'Item'}${(slice.value !== undefined && slice.value !== null) ? ` (${slice.value})` : ''}`}
                        </text>
                     </g>

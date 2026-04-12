@@ -24,6 +24,17 @@ export default {
             edgeStyle: 'orthogonal_astar',
             nodeTypes: ['process', 'circle'],
             matrixGridOverlays: true,
+            overlay: {
+                // Бокс вокруг нод в дорожке
+                groupPad: 30,
+                // Доп. отступы единого bbox
+                globalLeftMargin: 50,
+                globalRightMargin: 30,
+                // Граница дорожки (рамка)
+                lane: { fillOpacity: 0.04, stroke: { width: 2, dash: '4 4', rx: 4 } },
+                // Подпись дорожки (вертикальная)
+                label: { fontSize: 15, fontWeight: 600, opacity: 0.8 },
+            },
         },
     },
 

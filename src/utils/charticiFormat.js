@@ -200,14 +200,14 @@ export function parseCharticiFile(fileContent) {
     const flatNodes   = [];
     const cleanGroups = [];
 
-    // piechart: плоский data.nodes без групп
+    // piechart: плоский data.nodes без групп → одна синтетическая группа на весь пирог
     if (Array.isArray(coreData.nodes) && !coreData.groups) {
+      const PIE_GROUP_ID = 'g_piechart_data';
+      cleanGroups.push({ id: PIE_GROUP_ID, type: 'pie_slice' });
       coreData.nodes.forEach(n => {
-        const syntheticGroupId = `g_${n.id}`;
-        cleanGroups.push({ id: syntheticGroupId, type: 'pie_slice', color: n.color || 1 });
         flatNodes.push({
           ...n,
-          groupId: syntheticGroupId,
+          groupId: PIE_GROUP_ID,
           type: 'pie_slice',
         });
       });
