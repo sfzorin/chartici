@@ -10,6 +10,7 @@ import { SIZES, PALETTES, getNodeDim } from './constants.js';
 import { parseCharticiFile } from './charticiFormat.js';
 import { getGroupId } from './groupUtils.js';
 import { DIAGRAM_SCHEMAS } from './diagramSchemas.js';
+import { LINE_STYLE_REGISTRY } from '../registry/edges.js';
 
 /**
  * Render a .cci JSON string to SVG
@@ -151,9 +152,10 @@ export function renderToSVG(cciJson) {
     const pd = pathData[edge.id];
     if (!pd) continue;
 
-    // Hidden / logical edges are visual helpers only — skip in export
+    // Skip non-exportable edges (hidden/logical — visual helpers only)
     const style = edge.lineStyle || 'solid';
-    if (style === 'none' || style === 'hidden' || edge.logical || edge.isBlank) continue;
+    const styleDef = LINE_STYLE_REGISTRY[style] || LINE_STYLE_REGISTRY.solid;
+    if (styleDef.exportable === false || edge.logical || edge.isBlank) continue;
 
     const { pathD, textPathD } = pd;
     let dashArray = '';
