@@ -19,14 +19,18 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   const nodeMap = new Map(nodes.map(n => [n.id, n]));
   const result = new Map();
   const engine = getEngine(diagramType);
-  const penaltyMode = engine?.routing?.penaltyMode || 'flowchart';
-  const isTree = penaltyMode === 'tree';
+  // Plugin declares which port penalty strategy to use:
+  //   'topdown'  — golden-port assignment for strict top→bottom trees
+  //   'dynamic'  — L-ray obstacle avoidance for freeform diagrams
+  //   'none'     — no A* (straight_clipped or no-edge diagrams)
+  const portStrategy = engine?.routing?.portStrategy || 'dynamic';
+  const isTopdown = portStrategy === 'topdown';
 
-  // For trees ONLY: we need to find the shared Golden port
+  // For 'topdown' strategy: pre-compute shared golden ports first
   const treeExitAssignments = new Map();
   const treeEntryAssignments = new Map();
 
-  if (isTree) {
+  if (isTopdown) {
     const outgoing = new Map();
     const incoming = new Map();
     for (const edge of edges) {
@@ -66,16 +70,13 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
     let startPorts = getNodePorts(src, srcBox);
     let endPorts = getNodePorts(tgt, tgtBox);
 
-    if (isTree) {
-      // Tree Penalty Assignment
+    if (isTopdown) {
+      // 'topdown' strategy: golden-port penalty (preferred top/bottom exit per edge)
       applyTreePenalties(startPorts, treeExitAssignments.get(edge.id), srcBox, src);
       applyTreePenalties(endPorts, treeEntryAssignments.get(edge.id), tgtBox, tgt);
-      
-      // We used to rigidly filter to [goldenStart] here, but that broke the Port Saturation Rule
-      // (A* had no alternatives to pick if the golden port was occupied by a different edge Type).
-      // Now we keep all ports; applyTreePenalties already assigned +4D/+8D to non-golden ports!
+      // Note: we keep all ports so A* can fall back if the golden port is saturated
     } else {
-      // Flowchart (Dynamic Penalty) Assignment
+      // 'dynamic' strategy: L-ray obstacle-aware penalties (default for freeform graphs)
       applyFlowchartPenalties(startPorts, src, tgtBox, ctx, src.id, tgt.id);
       applyFlowchartPenalties(endPorts, tgt, srcBox, ctx, src.id, tgt.id);
     }

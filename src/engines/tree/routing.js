@@ -1,7 +1,7 @@
 // Routing config for tree
-// penaltyMode: 'tree' | 'flowchart' | 'none'
-// Used by portAssigner.js to select the correct penalty strategy
+// portStrategy: 'topdown' | 'topdown' | 'none'
+// Used by portAssigner.js to select the correct port penalty strategy
 export default {
-    penaltyMode: 'tree',
+    portStrategy: 'topdown',
     isHorizontalFlow: false
 };
