@@ -105,22 +105,23 @@ const DiagramNode = React.memo(({
   const fontWeight = node.fontStyle === 'bold' ? 'bold' : 'normal';
   const fontStyle = node.fontStyle === 'italic' ? 'italic' : 'normal';
   
-  let strokeW = isPrintTheme ? "1" : (isOutlined ? "3" : "2");
+  // Base stroke width — outline value comes from NODE_REGISTRY after shapePlugins resolved below
+  let strokeW = isPrintTheme ? '1' : '2';
   
   if (isDraggingNode) {
     strokeColor = 'var(--color-primary-dark)';
-    strokeW = "4";
+    strokeW = '4';
   }
 
   const numColor = Number(baseColorToken);
-  
+
   // Override for Text Only nodes
   if (node.type === 'text' || node.type === 'title') {
     textColor = 'var(--diagram-text)';
   }
 
   if (!isNaN(numColor) && numColor >= 11 && numColor <= 19) {
-    strokeW = isPrintTheme ? "2" : "4";
+    strokeW = isPrintTheme ? '2' : '4';
   }
   const shadowFilter = 'none';
 
@@ -140,6 +141,11 @@ const DiagramNode = React.memo(({
   const limits = shapePlugins.getTextLimits(NODE_WIDTH, NODE_HEIGHT);
   const textMaxWidth = limits.maxWidth;
   const textMaxHeight = limits.maxHeight;
+
+  // Apply outline stroke width from registry (must be after shapePlugins resolved)
+  if (isOutlined && !isDraggingNode) {
+    strokeW = String(shapePlugins.outline?.strokeWidth ?? 3);
+  }
 
   node._activeTheme = activeTheme || 'light';
   node._canvasBg = resolvedCanvasColor || (activeTheme === 'dark' ? '#0f172a' : '#ffffff');
@@ -278,33 +284,17 @@ const DiagramNode = React.memo(({
     ));
   };
 
-  const SEL_PADDING = 5;
-  const SEL_COLOR = "#3b82f6";
-  let selectionBound = (
-    <g>
-      <rect x={-SEL_PADDING} y={-SEL_PADDING} width={NODE_WIDTH+(SEL_PADDING*2)} height={NODE_HEIGHT+(SEL_PADDING*2)} fill="none" stroke={SEL_COLOR} strokeWidth="10" opacity="0.3" rx="10" />
-      <rect x={-SEL_PADDING} y={-SEL_PADDING} width={NODE_WIDTH+(SEL_PADDING*2)} height={NODE_HEIGHT+(SEL_PADDING*2)} fill="none" stroke={SEL_COLOR} strokeWidth="2" rx="10" />
-    </g>
-  );
-  if (shapePlugins.getSelectionBounds) {
-     selectionBound = shapePlugins.getSelectionBounds(NODE_WIDTH, NODE_HEIGHT, SEL_PADDING, SEL_COLOR, node);
-  } else if (node.type === 'circle') {
-     const r = Math.min(NODE_WIDTH, NODE_HEIGHT) / 2;
-     selectionBound = (
-        <g>
-          <circle cx={NODE_WIDTH/2} cy={NODE_HEIGHT/2} r={r + SEL_PADDING} fill="none" stroke={SEL_COLOR} strokeWidth="10" opacity="0.3" />
-          <circle cx={NODE_WIDTH/2} cy={NODE_HEIGHT/2} r={r + SEL_PADDING} fill="none" stroke={SEL_COLOR} strokeWidth="2" />
-        </g>
-     );
-  } else if (node.type === 'oval') {
-     const ovalRx = (Math.min(NODE_WIDTH, NODE_HEIGHT)/2)+SEL_PADDING;
-     selectionBound = (
-        <g>
-          <rect x={-SEL_PADDING} y={-SEL_PADDING} width={NODE_WIDTH+(SEL_PADDING*2)} height={NODE_HEIGHT+(SEL_PADDING*2)} rx={ovalRx} fill="none" stroke={SEL_COLOR} strokeWidth="10" opacity="0.3" />
-          <rect x={-SEL_PADDING} y={-SEL_PADDING} width={NODE_WIDTH+(SEL_PADDING*2)} height={NODE_HEIGHT+(SEL_PADDING*2)} rx={ovalRx} fill="none" stroke={SEL_COLOR} strokeWidth="2" />
-        </g>
-     );
-  }
+  // Selection / hover highlight — geometry and stroke widths from NODE_REGISTRY.selection
+  const selCfg = shapePlugins.selection ?? {};
+  const SEL_PADDING  = selCfg.padding   ?? 5;
+  const SEL_HALO     = selCfg.haloWidth  ?? 10;
+  const SEL_HALO_OP  = selCfg.haloOpacity ?? 0.3;
+  const SEL_RING     = selCfg.ringWidth  ?? 2;
+  const SEL_COLOR    = '#3b82f6';
+
+  const selectionBound = shapePlugins.getSelectionBounds
+    ? shapePlugins.getSelectionBounds(NODE_WIDTH, NODE_HEIGHT, SEL_PADDING, SEL_COLOR, node)
+    : null;
 
   return (
     <g transform={`translate(${(node.x || 0) - NODE_WIDTH / 2}, ${(node.y || 0) - NODE_HEIGHT / 2})`} filter={shadowFilter} {...commonProps}
