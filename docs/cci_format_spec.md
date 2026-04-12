@@ -60,7 +60,6 @@
 |------|-----|----------|
 | `aspect` | String | Соотношение сторон холста: `"16:9"`, `"4:3"`, `"1:1"`, `"free"` |
 | `bgColor` | String | Цвет фона: `"light"`, `"dark"` или CSS hex |
-| `title` | String | Альтернативное место для текста заголовка (legacy) |
 
 ---
 
@@ -145,8 +144,7 @@
   "targetId": "auth_2",
   "label": "Yes",
   "lineStyle": "solid",
-  "connectionType": "target",
-  "arrowType": "target"
+  "connectionType": "target"
 }
 ```
 
@@ -156,8 +154,7 @@
 | `targetId` | String | **Обязательно.** ID целевой ноды |
 | `label` | String | Текст на ребре (опционально) |
 | `lineStyle` | String | Стиль линии — см. таблицу ниже |
-| `connectionType` | String | Направление стрелки или кардинальность ERD |
-| `arrowType` | String | Явное направление стрелки (если отличается от connectionType) |
+| `connectionType` | String | Направление стрелки (`target`/`reverse`/`both`/`none`) или кардинальность ERD (`1:1`, `1:N`…) |
 
 ### `lineStyle` (из `LINE_STYLE_REGISTRY`)
 
@@ -165,14 +162,12 @@
 |----------|-----|---------------------|
 | `solid` | Сплошная 2px | ✓ |
 | `dashed` | Пунктир `5,5` 2px | ✓ |
-| `dotted` | Точки `2,4` 2px | ✓ |
-| `bold` | Сплошная 4px | ✓ |
 | `hidden` | Пунктир 40% прозрачности | ✗ (только визуально, не в SVG) |
 | `none` | Пунктир 40% прозрачности | ✗ (только визуально, не в SVG) |
 
 > `hidden` / `none` — технические рёбра (топологические связи). Для timeline: spine-to-spine рёбра должны иметь `lineStyle: "none"`.
 
-### `connectionType` / `arrowType`
+### `connectionType` — направление стрелок и кардинальность ERD
 
 **Направление стрелок:**
 
@@ -183,7 +178,7 @@
 | `both` | ↔ |
 | `none` | — (без стрелок) |
 
-**Кардинальность ERD** (только `type: "erd"`):
+**Кардинальность ERD** (только `meta.type: "erd"`):
 
 | Значение | Маркеры |
 |----------|---------|

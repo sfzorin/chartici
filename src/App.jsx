@@ -175,7 +175,7 @@ function App() {
       setBgColor(appTheme === 'dark' ? 'black' : 'white');
     }
 
-    const resolvedTitle = parsed.config?.title || parsed.header || '';
+    const resolvedTitle = parsed.config?.titleText || '';
     setDiagramTitle(resolvedTitle !== 'Untitled Project' ? resolvedTitle : '');
     setPaletteTheme(activeTheme);
     setSelectedNodeId(null);

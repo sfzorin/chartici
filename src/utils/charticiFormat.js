@@ -222,19 +222,20 @@ export function parseCharticiFile(fileContent) {
     const { type, data: _d, version, meta, ...restConfig } = data;
     let finalConfig = { ...configFromData, ...restConfig };
     
-    // Convert new root title object format into flat config schema expected by App state
+    // Convert root title object format into flat config schema expected by App state
     if (finalConfig.title && typeof finalConfig.title === 'object') {
        finalConfig.titleText = finalConfig.title.text || finalConfig.title.label || '';
        if (finalConfig.title.size) finalConfig.titleSize = finalConfig.title.size;
        if (finalConfig.title.x !== undefined) finalConfig.titleX = finalConfig.title.x;
        if (finalConfig.title.y !== undefined) finalConfig.titleY = finalConfig.title.y;
        finalConfig.titleLock = finalConfig.title.x !== undefined;
-       finalConfig.title = finalConfig.titleText; // Replace the object reference with string for compat
+       delete finalConfig.title; // убираем объект — используем titleText
+    } else if (typeof finalConfig.title === 'string' && finalConfig.title && !finalConfig.titleText) {
+       // legacy compat: data.config.title как строка (старый формат до v3)
+       finalConfig.titleText = finalConfig.title;
+       delete finalConfig.title;
     }
-    
-    // Old format uses 'header' instead of 'title'
-    if (data.header && !finalConfig.title) finalConfig.title = data.header;
-    
+
     if (metaData.type && !finalConfig.diagramType) {
        finalConfig.diagramType = metaData.type;
     }

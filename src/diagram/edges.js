@@ -24,12 +24,10 @@
  * logicalOpacity — прозрачность для hidden/none стилей
  */
 export const LINE_STYLE_REGISTRY = {
-  solid: { label: 'Solid', dashArray: 'none', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
-  dashed: { label: 'Dashed', dashArray: '5, 5', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
-  dotted: { label: 'Dotted', dashArray: '2, 4', strokeWidth: 2, opacity: 1.0, exportable: true, print: { strokeWidth: 1 } },
-  bold: { label: 'Bold', dashArray: 'none', strokeWidth: 4, opacity: 1.0, exportable: true, print: { strokeWidth: 2 } },
+  solid:  { label: 'Solid',  dashArray: 'none', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
+  dashed: { label: 'Dashed', dashArray: '5, 5', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
   hidden: { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
-  none: { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
+  none:   { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
 };
 
 // ─── Path routing/rendering styles ──────────────────────────────────────────

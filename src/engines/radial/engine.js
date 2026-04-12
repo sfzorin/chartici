@@ -16,7 +16,7 @@ export default {
         name: 'Radial',
         description: 'mind-maps, concentric layers, or hub-and-spoke architectures.',
         allowedNodes: ['process'],
-        allowedLineStyles: ['solid', 'dashed', 'bold', 'none'],
+        allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['none'],
         features: { hasNodeValue: false, allowConnections: true },
         engineManifest: {

@@ -397,7 +397,7 @@ export const NODE_REGISTRY = {
   // ── text (free annotation) ─────────────────────────────────────────────────
   text: {
     label: 'Annotation',
-    icon:  'shape-text',
+    icon:  'text-shape',
     dynamicSize: true,
     sizes: {
       S: { fontSize: 14 },
@@ -418,7 +418,7 @@ export const NODE_REGISTRY = {
   // ── title (diagram heading) ────────────────────────────────────────────────
   title: {
     label: 'Heading',
-    icon:  'shape-title',
+    icon:  'text-shape',
     dynamicSize: true,
     defaultSize: 'M',         // размер по умолчанию при создании
     sizes: {
