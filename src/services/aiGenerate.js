@@ -88,7 +88,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   }
 
   const rawContent = phase2Data.content
-    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '') // Strip DeepSeek thinking blocks
+    .replace(/<\/?(?:thinking|reasoning|analysis|output|response|result)[^>]*>[\s\S]*?(?:<\/(?:thinking|reasoning|analysis|output|response|result)>|$)/gi, '') // Strip any XML wrapper blocks
+    .replace(/```[\w]*\n?/g, '')   // Strip code fence markers
     .trim();
   
   // PARSING ALGORITHM
@@ -178,15 +179,17 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       if (cols[0] === '') cols.shift();
       if (cols[cols.length - 1] === '') cols.pop();
       
-      // row bypass format: | ID |
+      // Skip rows with < 2 real columns
+      if (cols.length < 2) continue;
+
+      // Skip header rows — detect by common header keywords in first two columns
       const c0 = cols[0].toLowerCase();
       const c1 = cols[1] ? cols[1].toLowerCase() : '';
-      if (
-          cols.length === 0 || 
-          c0 === 'id' || c0 === 'source id' || c0 === 'target id' || c0.endsWith(' id') || 
-          c0 === 'title' || 
-          c1 === 'label'
-      ) continue;
+      const headerWords = ['id', 'source id', 'target id', 'spine id', 'title', 'title (label)'];
+      if (headerWords.includes(c0) || c0.endsWith(' id') || c1 === 'label' || c1 === 'phase/era label') continue;
+
+      // Skip rows where first column is empty or whitespace
+      if (!cols[0] || !cols[0].trim()) continue;
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
@@ -316,7 +319,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   }
   
   if (parsed.data.groups.length === 0) {
-      return { success: false, error: 'AI failed to generate structural graph data' };
+      console.error('Phase 2 parse failure. Raw content:', rawContent.substring(0, 500));
+      return { success: false, error: 'AI returned unexpected format — try again' };
   }
 
   // Debug local log
