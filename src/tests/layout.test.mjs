@@ -13,7 +13,7 @@
 import fs from 'fs';
 import path from 'path';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
-import { SIZES } from '../utils/constants.js';
+import { getNodeDim } from '../diagram/nodes.jsx';
 import { parseCharticiFile } from '../utils/charticiFormat.js';
 
 // ─── Load sample ─────────────────────────────────────────────
@@ -29,7 +29,7 @@ function loadSample(filePath) {
   const nodes = [];
   parsed.nodes.forEach(n => {
     const sz = n.size || 'M';
-    const dim = SIZES[sz] || SIZES.M;
+    const dim = getNodeDim({ type: n.type || 'process', size: sz });
     nodes.push({
       ...n,
       type: n.type || 'rect',

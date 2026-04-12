@@ -1,4 +1,4 @@
-import { getNodeDim } from '../constants.js';
+import { getNodeDim } from '../../diagram/nodes.jsx';
 
 export function layoutRadial(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];

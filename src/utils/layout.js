@@ -1,5 +1,5 @@
 import { SMART_ALIGN } from '../diagram/canvas.js';
-import { getNodeDim } from './constants.js';
+import { getNodeDim } from '../diagram/nodes.jsx';
 
 export function smartAlign(nodes) {
   const result = nodes.map(n => ({ ...n }));

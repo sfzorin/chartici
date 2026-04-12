@@ -2,7 +2,7 @@
  * COLOR_REGISTRY — единственный источник истины для всех цветов приложения.
  *
  * Потребители:
- *   constants.js      — PALETTES (re-export для обратной совместимости)
+ *   (direct imports)  — PALETTES
  *   exportSVG.js      — EXPORT_DEFAULTS (дефолты CSS-переменных при экспорте)
  *   svgRenderer.js    — PALETTES (headless SVG рендеринг)
  *   index.css         — CSS custom properties (UI тема — остаётся в CSS)

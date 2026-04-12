@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getNodeDim } from '../utils/constants';
+import { getNodeDim } from '../diagram/nodes.jsx';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';

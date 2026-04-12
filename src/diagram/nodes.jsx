@@ -4,7 +4,7 @@ import React from 'react';
  * NODE_REGISTRY — единственный источник истины для всех типов нод.
  *
  * Потребители:
- *   constants.js      -> getNodeDim()
+ *   (direct imports)  -> getNodeDim()
  *   geometry.js       -> getNodePorts()
  *   DiagramNode.jsx   -> shapePlugins (render, getTextLimits, getSelectionBounds)
  *                        + outline, selection, text colors

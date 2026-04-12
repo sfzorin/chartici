@@ -1,5 +1,5 @@
 import dagre from 'dagre';
-import { getNodeDim } from '../constants.js';
+import { getNodeDim } from '../../diagram/nodes.jsx';
 import { getGroupId } from '../groupUtils.js';
 
 export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, dt = 'flowchart') {

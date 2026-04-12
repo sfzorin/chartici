@@ -1,4 +1,4 @@
-import { getNodeDim } from '../constants.js';
+import { getNodeDim } from '../../diagram/nodes.jsx';
 import { getGroupId } from '../groupUtils.js';
 
 export function layoutMatrix(nodes, edges, layoutRules) {

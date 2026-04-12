@@ -1,4 +1,4 @@
-import { getNodeDim } from '../constants.js';
+import { getNodeDim } from '../../diagram/nodes.jsx';
 
 export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
   if (nodes.length === 0) return [];

@@ -1,5 +1,5 @@
 import { getDiagramRules } from './diagramRules.js';
-import { getNodeDim } from './constants.js';
+import { getNodeDim } from '../diagram/nodes.jsx';
 import { NODE_REGISTRY } from '../diagram/nodes.jsx';
 import { GRID } from '../diagram/canvas.js';
 import { EngineRegistry } from './layouts/engines/EngineRegistry.js';
