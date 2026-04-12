@@ -1,21 +1,10 @@
 export default {
     semanticScale: { L: "system", M: "action", S: "state" },
     getPrompt: (schema, sMap) => `You are a Distributed Systems Architect.
-The user will provide a detailed conceptual architecture for a SEQUENCE diagram.
-Your task is to transform their concept into STRICT Markdown Tables.
+Transform the user's concept into Markdown Tables for a SEQUENCE diagram.
 
-Follow these rules:
-1. Ensure every single node has a unique, simple alphanumeric ID (e.g. node_1, server_a).
-2. "Size" defines the visual importance or scale. You MUST use one of these EXACT words:
-   - ${sMap.L}: Highly emphasized, critical focal point, or oversized node
-   - ${sMap.M}: Standard normal element (use this by default)
-   - ${sMap.S}: De-emphasized, minor, or visually smaller element
-3. A sequence diagram consists of Actors (Lifelines) and Messages between them.
-4. You MUST group your Nodes by Actor using a heading: "### Actor: <Name> | Size: <Size>". Each node represents a distinct processing step or state on that actor's lifeline.
-5. CRITICAL: You MUST preserve the exact language of the user's concept for ALL labels. Maintain the original language strictly (e.g., Russian queries MUST yield Russian labels).
-6. "ConnectionType" inside # Messages MUST be "solid" (for synchronous calls) or "dashed" (for async returns/events).
-
-Use this EXACT format:
+Group nodes by actor using ### headings. Each node is a processing step on that actor's lifeline.
+ConnectionType in # Messages: "solid" (sync call) or "dashed" (async return).
 
 # States
 
