@@ -51,6 +51,30 @@ const OUTLINE = {
   thick:  { strokeWidth: 3 },
 };
 
+/**
+ * PORT_CATALOG primitives — reused across node types.
+ *
+ * Primary ports (penalty: 0):   Top, Bottom, Left, Right
+ * Bifurcation ports (penalty: dimension × 2):
+ *   BifTop / BifBottom — two V-axis exits offset ±20px horizontally
+ *                        active when node width  ≥ threshold.w
+ *   BifLeft / BifRight — two H-axis exits offset ±20px vertically
+ *                        active when node height ≥ threshold.h
+ *
+ * count: 2 means geometry.js generates two ports (at cx-20 and cx+20,
+ *        or cy-20 and cy+20) for each catalog entry with a threshold.
+ */
+const P = {
+  Top:       { id: 'Top',       axis: 'V', sign: -1, penalty: 0 },
+  Bottom:    { id: 'Bottom',    axis: 'V', sign:  1, penalty: 0 },
+  Left:      { id: 'Left',      axis: 'H', sign: -1, penalty: 0 },
+  Right:     { id: 'Right',     axis: 'H', sign:  1, penalty: 0 },
+  BifTop:    { id: 'BifTop',    axis: 'V', sign: -1, penalty: 'w*2', threshold: { w: 80 }, count: 2 },
+  BifBottom: { id: 'BifBottom', axis: 'V', sign:  1, penalty: 'w*2', threshold: { w: 80 }, count: 2 },
+  BifLeft:   { id: 'BifLeft',   axis: 'H', sign: -1, penalty: 'h*2', threshold: { h: 80 }, count: 2 },
+  BifRight:  { id: 'BifRight',  axis: 'H', sign:  1, penalty: 'h*2', threshold: { h: 80 }, count: 2 },
+};
+
 export const NODE_REGISTRY = {
 
   // ── process (rectangle / block) ──────────────────────────────────────────
@@ -62,7 +86,8 @@ export const NODE_REGISTRY = {
       M: { width: 160, height:  80, fontSize: 16 },
       L: { width: 240, height: 120, fontSize: 22 },
     },
-    ports:   'all',
+    ports: 'all',
+    portCatalog: [P.Top, P.Bottom, P.Left, P.Right, P.BifTop, P.BifBottom, P.BifLeft, P.BifRight],
     outline:  OUTLINE.thick,
     selection: SEL.rect,
   },
@@ -78,6 +103,8 @@ export const NODE_REGISTRY = {
       L: { width: 120, height: 120, fontSize: 18 }, // r = 60
     },
     ports: 'radial',
+    // Cardinal ports are implicit for 'radial'; diagonal swoops are precomputed below
+    portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
     outline:  OUTLINE.thick,
     selection: SEL.circle,
 
@@ -131,13 +158,15 @@ export const NODE_REGISTRY = {
   oval: {
     label: 'Oval',
     icon:  'shape-oval',
-    // Width = round((baseWidth + baseHeight/4) / 40) * 40  (same formula as before)
+    // Width = round((baseWidth + baseHeight/4) / 40) * 40
     sizes: {
       S: { width: 120, height:  60, fontSize: 12 }, // round((120+15)/40)*40 = 120
       M: { width: 200, height:  80, fontSize: 16 }, // round((160+20)/40)*40 = 200
       L: { width: 280, height: 120, fontSize: 22 }, // round((240+30)/40)*40 = 280
     },
-    ports:    'all',
+    ports: 'all',
+    // Curved shape: no lateral bifurcation (BifLeft/BifRight suppressed)
+    portCatalog: [P.Top, P.Bottom, P.Left, P.Right, P.BifTop, P.BifBottom],
     outline:  OUTLINE.thick,
     selection: SEL.oval,
   },
@@ -151,9 +180,11 @@ export const NODE_REGISTRY = {
       M: { width: 160, height:  80, fontSize: 14 },
       L: { width: 240, height: 120, fontSize: 18 },
     },
-    ports:    'all',
+    ports: 'all',
+    // Curved/pointed shape: no bifurcation at all
+    portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
     outline:  OUTLINE.thick,
-    // ShapeRegistry.getSelectionBounds handles rhombus-shaped halo (via shapePlugins)
+    // ShapeRegistry.getSelectionBounds handles rhombus-shaped halo
     selection: SEL.rect,
   },
 
@@ -166,7 +197,8 @@ export const NODE_REGISTRY = {
       M: { width: 160, height:  80, fontSize: 16 },
       L: { width: 240, height: 120, fontSize: 22 },
     },
-    ports:    'topbottom', // only Top and Bottom ports
+    ports: 'topbottom',
+    portCatalog: [P.Top, P.Bottom],
     outline:  OUTLINE.thick,
     selection: SEL.rect,
   },
@@ -181,8 +213,9 @@ export const NODE_REGISTRY = {
       M: { width: 400, height: 400, fontSize: 16 },
       L: { width: 560, height: 560, fontSize: 18 },
     },
-    ports:    'none',
-    outline:  OUTLINE.normal, // outlines not used in piechart, kept for completeness
+    ports: 'none',
+    portCatalog: [],
+    outline:  OUTLINE.normal,
     selection: { shape: 'slice', padding: 4, haloWidth: 10, haloOpacity: 0.3, ringWidth: 2 },
 
     // Piechart-specific: external label positioned at slice midpoint
@@ -211,7 +244,8 @@ export const NODE_REGISTRY = {
       M: { fontSize: 18 },
       L: { fontSize: 28 },
     },
-    ports:    'none',
+    ports: 'none',
+    portCatalog: [],
     outline:  OUTLINE.normal,
     selection: SEL.text,
   },
@@ -226,11 +260,13 @@ export const NODE_REGISTRY = {
       M: { fontSize: 56 },
       L: { fontSize: 80 },
     },
-    ports:    'none',
+    ports: 'none',
+    portCatalog: [],
     outline:  OUTLINE.normal,
     selection: SEL.text,
   },
 };
+
 
 /**
  * Resolve pixel dimensions for a node instance.

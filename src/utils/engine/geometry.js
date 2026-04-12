@@ -61,7 +61,9 @@ export function getNodePorts(node, box) {
   const w = box.right - box.left;
   const h = box.bottom - box.top;
   const nodeDef = NODE_REGISTRY[node.type] || NODE_REGISTRY.process;
-  const portMode = nodeDef.ports; // 'all' | 'topbottom' | 'radial' | 'none'
+
+  // Runtime override: timeline spine nodes behave like chevron (topbottom)
+  const portMode = node.isTimelineSpine ? 'topbottom' : nodeDef.ports;
 
   if (portMode === 'none') return [];
 
@@ -71,24 +73,26 @@ export function getNodePorts(node, box) {
   const gxLeft   = Math.floor(box.left   / 20) * 20;
   const gxRight  = Math.ceil (box.right  / 20) * 20;
 
-  // 4 Primary cardinal ports (always present, penalty 0)
-  let ports = [
-    { pt: { x: box.cx, y: gyTop    }, anchorPt: { x: box.cx,    y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: 0 },
-    { pt: { x: box.cx, y: gyBottom }, anchorPt: { x: box.cx,    y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: 0 },
-    { pt: { x: gxRight, y: box.cy  }, anchorPt: { x: box.right, y: box.cy     }, axis: 'H', sign:  1, dir: 'Right',  penalty: 0 },
-    { pt: { x: gxLeft,  y: box.cy  }, anchorPt: { x: box.left,  y: box.cy     }, axis: 'H', sign: -1, dir: 'Left',   penalty: 0 },
-  ];
+  // Helper: cardinal port position from catalog entry
+  const cardinalPos = (def) => {
+    if (def.axis === 'V') {
+      const y = def.sign === -1 ? gyTop : gyBottom;
+      const ay = def.sign === -1 ? box.top : box.bottom;
+      return { pt: { x: box.cx, y }, anchorPt: { x: box.cx, y: ay }, axis: 'V', sign: def.sign, dir: def.id, penalty: 0 };
+    } else {
+      const x = def.sign === 1 ? gxRight : gxLeft;
+      const ax = def.sign === 1 ? box.right : box.left;
+      return { pt: { x, y: box.cy }, anchorPt: { x: ax, y: box.cy }, axis: 'H', sign: def.sign, dir: def.id, penalty: 0 };
+    }
+  };
 
-  // topbottom: keep only Top and Bottom
-  if (portMode === 'topbottom') {
-    return ports.filter(p => p.dir === 'Top' || p.dir === 'Bottom');
-  }
-
-  // radial (circle): replace side bifurcations with precomputed diagonal swoops
+  // radial (circle): cardinal ports + precomputed diagonal swoops
   if (portMode === 'radial') {
     const size = node.size || 'M';
-    const resolvedSize = (size === 'XS' ? 'S' : size === 'XL' ? 'L' : size);
-    const swoopDefs = nodeDef.diagonalPorts?.[resolvedSize] || nodeDef.diagonalPorts?.M || [];
+    const sz = (size === 'XS' ? 'S' : size === 'XL' ? 'L' : size);
+    const catalog = nodeDef.portCatalog || [];
+    const ports = catalog.map(def => cardinalPos(def));
+    const swoopDefs = nodeDef.diagonalPorts?.[sz] || nodeDef.diagonalPorts?.M || [];
     swoopDefs.forEach(d => {
       ports.push({
         pt:       { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy },
@@ -102,33 +106,52 @@ export function getNodePorts(node, box) {
     return ports;
   }
 
-  // 'all': add bifurcation offsets for large nodes
-  const isCurved = node.type === 'oval' || node.type === 'rhombus';
+  // topbottom and all: drive entirely from portCatalog
+  const catalog = (node.isTimelineSpine
+    ? [{ id: 'Top', axis: 'V', sign: -1, penalty: 0 }, { id: 'Bottom', axis: 'V', sign: 1, penalty: 0 }]
+    : nodeDef.portCatalog) || [];
 
-  // Lateral Bifurcation — add 2 outer ports per side when h >= 80px
-  if (h >= 80 && !isCurved) {
-    const sidePenalty = h * 2;
-    let y1 = Math.floor((box.cy - 20) / 20) * 20;
-    let y2 = Math.ceil ((box.cy + 20) / 20) * 20;
-    ports.push({ pt: { x: gxRight, y: y1 }, anchorPt: { x: box.right, y: y1 }, axis: 'H', sign:  1, dir: 'Right', penalty: sidePenalty });
-    ports.push({ pt: { x: gxRight, y: y2 }, anchorPt: { x: box.right, y: y2 }, axis: 'H', sign:  1, dir: 'Right', penalty: sidePenalty });
-    ports.push({ pt: { x: gxLeft,  y: y1 }, anchorPt: { x: box.left,  y: y1 }, axis: 'H', sign: -1, dir: 'Left',  penalty: sidePenalty });
-    ports.push({ pt: { x: gxLeft,  y: y2 }, anchorPt: { x: box.left,  y: y2 }, axis: 'H', sign: -1, dir: 'Left',  penalty: sidePenalty });
-  }
+  const ports = [];
 
-  // Vertical Bifurcation — add 2 outer ports per side when w >= 80px
-  if (w >= 80 && node.type !== 'rhombus') {
-    const bifPenaltyX = w * 2;
-    let x1 = Math.floor((box.cx - 20) / 20) * 20;
-    let x2 = Math.ceil ((box.cx + 20) / 20) * 20;
-    ports.push({ pt: { x: x1, y: gyTop    }, anchorPt: { x: x1, y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: bifPenaltyX });
-    ports.push({ pt: { x: x2, y: gyTop    }, anchorPt: { x: x2, y: box.top    }, axis: 'V', sign: -1, dir: 'Top',    penalty: bifPenaltyX });
-    ports.push({ pt: { x: x1, y: gyBottom }, anchorPt: { x: x1, y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: bifPenaltyX });
-    ports.push({ pt: { x: x2, y: gyBottom }, anchorPt: { x: x2, y: box.bottom }, axis: 'V', sign:  1, dir: 'Bottom', penalty: bifPenaltyX });
+  for (const def of catalog) {
+    if (!def.threshold) {
+      // Primary port — single cardinal exit
+      ports.push(cardinalPos(def));
+      continue;
+    }
+
+    // Bifurcation port — active only when dimension meets threshold
+    const dimVal  = def.threshold.w !== undefined ? w : h;
+    const thresh  = def.threshold.w ?? def.threshold.h;
+    if (dimVal < thresh) continue;
+
+    const penalty = def.penalty === 'w*2' ? w * 2 : h * 2;
+    const isV     = def.axis === 'V';
+
+    // Two offset exits (±20px from center axis)
+    const c1 = isV
+      ? Math.floor((box.cx - 20) / 20) * 20
+      : Math.floor((box.cy - 20) / 20) * 20;
+    const c2 = isV
+      ? Math.ceil ((box.cx + 20) / 20) * 20
+      : Math.ceil ((box.cy + 20) / 20) * 20;
+
+    if (isV) {
+      const gridY  = def.sign === -1 ? gyTop    : gyBottom;
+      const anchY  = def.sign === -1 ? box.top  : box.bottom;
+      ports.push({ pt: { x: c1, y: gridY }, anchorPt: { x: c1, y: anchY }, axis: 'V', sign: def.sign, dir: def.id, penalty });
+      ports.push({ pt: { x: c2, y: gridY }, anchorPt: { x: c2, y: anchY }, axis: 'V', sign: def.sign, dir: def.id, penalty });
+    } else {
+      const gridX  = def.sign === 1 ? gxRight   : gxLeft;
+      const anchX  = def.sign === 1 ? box.right : box.left;
+      ports.push({ pt: { x: gridX, y: c1 }, anchorPt: { x: anchX, y: c1 }, axis: 'H', sign: def.sign, dir: def.id, penalty });
+      ports.push({ pt: { x: gridX, y: c2 }, anchorPt: { x: anchX, y: c2 }, axis: 'H', sign: def.sign, dir: def.id, penalty });
+    }
   }
 
   return ports;
 }
+
 
 
 export function isSegmentBlockedCheck(x1, y1, x2, y2, allowObsId1, allowObsId2, ignorePadding, ctx) {
