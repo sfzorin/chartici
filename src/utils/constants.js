@@ -1,6 +1,7 @@
 // SIZES is kept for legacy consumers that read SIZES.M.width etc.
 // Source of truth has moved to src/registry/nodes.js → NODE_REGISTRY[type].sizes
-import { NODE_REGISTRY, getNodeDim as _getNodeDimFromRegistry } from '../registry/nodes.js';
+import { NODE_REGISTRY, getNodeDim as _getNodeDimFromRegistry } from '../registry/nodes.jsx';
+
 
 export const SIZES = {
   S: NODE_REGISTRY.process.sizes.S,

@@ -1,8 +1,9 @@
 import React from 'react';
 import { getNodeDim } from '../../utils/constants';
 import { getFittedText } from '../../utils/textUtils';
-import { ShapeRegistry } from './ShapeRegistry';
+import { NODE_REGISTRY } from '../../registry/nodes.jsx';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
+
 
 const DiagramNode = React.memo(({ 
   node, 
@@ -131,11 +132,11 @@ const DiagramNode = React.memo(({
   if (node.isPieSlice) {
       actualType = 'pie_slice';
   }
-  if (!ShapeRegistry[actualType]) {
+  if (!NODE_REGISTRY[actualType]) {
       actualType = 'process';
   }
 
-  const shapePlugins = ShapeRegistry[actualType];
+  const shapePlugins = NODE_REGISTRY[actualType];
   const limits = shapePlugins.getTextLimits(NODE_WIDTH, NODE_HEIGHT);
   const textMaxWidth = limits.maxWidth;
   const textMaxHeight = limits.maxHeight;

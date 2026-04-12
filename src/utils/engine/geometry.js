@@ -1,5 +1,6 @@
 import { getNodeDim } from '../constants';
-import { NODE_REGISTRY } from '../../registry/nodes.js';
+import { NODE_REGISTRY } from '../../registry/nodes.jsx';
+
 
 
 export function getTrueBox(node) {
