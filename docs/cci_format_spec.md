@@ -1,229 +1,294 @@
-# Chartici AI Intermediate Format
+# Chartici .CCI Format Specification
 
-Этот документ описывает **промежуточный Markdown-формат**, который LLM возвращает при генерации диаграммы через AI.  
-Формат не является финальным JSON — он обрабатывается парсером (`src/services/aiGenerate.js`) и конвертируется во внутренний `.cci` формат.
-
-> **Важно:** LLM не знает про JSON. Он возвращает Markdown-таблицы. Парсер — в `aiGenerate.js`.
+Формат `.cci` (Chartici Concept Interchange) — JSON-документ для сохранения, загрузки и обмена диаграммами.  
+Версия: **3.0.0** (актуальная). Версии 1.x принимаются без изменений — парсер обратно совместим.
 
 ---
 
-## Общие правила
+## 1. Структура верхнего уровня
 
-- Ответ начинается с `<thinking>...</thinking>` блока (цепочка рассуждений, не парсится).
-- Далее идут секции с `#` заголовками и `###` подсекциями.
-- Каждая подсекция содержит Markdown-таблицу нод.
-- В заголовке подсекции кодируются метаданные группы (имя, размер, цвет, родитель).
-- **Язык меток:** LLM обязан сохранять язык запроса (русский → русские метки).
-
----
-
-## Размеры (Size)
-
-Каждый тип диаграммы имеет **семантическую шкалу** размеров, определённую в `engine.js → ai_prompt.semanticScale`:
-
-| Ключ | Semantic (flowchart) | Semantic (tree) | Semantic (piechart) |
-|------|---------------------|-----------------|---------------------|
-| `L`  | system | parent | (highlighted slice) |
-| `M`  | process | branch | (standard slice) |
-| `S`  | step | leaf | (minor slice) |
-
-В промпте LLM видит слово (например, "process"), а в таблице пишет его. Парсер маппит обратно в `S/M/L`.
-
----
-
-## Flowchart
-
-```markdown
-# Steps
-
-### Subsystem: Core Auth | Size: process
-| ID | Label | Type | Next Steps |
-|---|---|---|---|
-| p_1 | Start | terminal | d_1 |
-| d_1 | Validate Token | decision | p_2[Yes], e_1[No] |
-| e_1 | Return 401 | event | |
-| p_2 | Process Request | process | p_3 |
-| p_3 | End | terminal | |
+```json
+{
+  "meta": {
+    "type": "flowchart",
+    "version": "3.0.0"
+  },
+  "theme": "default",
+  "title": {
+    "text": "My Diagram",
+    "size": "M",
+    "x": 800,
+    "y": 40
+  },
+  "data": {
+    "config": {
+      "aspect": "16:9",
+      "bgColor": "dark"
+    },
+    "groups": [],
+    "edges": []
+  }
+}
 ```
 
-**Поля:**
-- `ID` — уникальный ID (напр. `p_1`, `server_a`)
-- `Label` — текст ноды
-- `Type` — `terminal` | `decision` | `process` | `event`
-- `Next Steps` — список ID через запятую; опционально метка: `target_id[Label]`
-- Заголовок подсекции: `### Subsystem: <Имя> | Size: <size>`
+### `meta` (обязательно)
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `type` | String | Тип диаграммы. Значения: `flowchart`, `tree`, `radial`, `sequence`, `erd`, `matrix`, `timeline`, `piechart` |
+| `version` | String | Версия формата. Актуальная: `"3.0.0"` |
+
+### `theme` (опционально)
+
+Строка — ключ палитры из `PALETTES` (`src/diagram/colors.js`).  
+Примеры: `"default"`, `"muted-rainbow"`, `"ocean"`. Если отсутствует — используется тема по умолчанию.
+
+### `title` (опционально)
+
+Блок заголовка диаграммы. Рендерится как нода типа `title` с ID `__SYSTEM_TITLE__`.
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `text` | String | Текст заголовка |
+| `size` | String | `S`, `M` (default), `L` |
+| `x` | Number | Явная X-координата. Если отсутствует — позиция вычисляется авто-лэйаутом |
+| `y` | Number | Явная Y-координата |
+
+### `data.config` (опционально)
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `aspect` | String | Соотношение сторон холста: `"16:9"`, `"4:3"`, `"1:1"`, `"free"` |
+| `bgColor` | String | Цвет фона: `"light"`, `"dark"` или CSS hex |
+| `title` | String | Альтернативное место для текста заголовка (legacy) |
 
 ---
 
-## Tree
+## 2. Группы (`data.groups`)
 
-```markdown
-# Root
-| ID | Label | Size |
-|---|---|---|
-| root_1 | CEO | parent |
+Все ноды живут внутри групп. Группа определяет контейнер и лэйаут для дочерних нод.
 
-# Branches
-
-### Branch: Engineering | Parent ID: root_1 | Size: process
-| ID | Label |
-|---|---|
-| vp_1 | VP Engineering |
-| cto_1 | CTO |
+```json
+{
+  "id": "g_abc123",
+  "label": "Authentication",
+  "type": "rect",
+  "size": "M",
+  "color": 3,
+  "outlined": false,
+  "nodeType": "process",
+  "nodes": [ ... ]
+}
 ```
 
-**Поля:**
-- Секция `# Root` — одна строка с корневой нодой
-- `### Branch: <Имя> | Parent ID: <ID> | Size: <size>` — каждая ветка автоматически подключается к указанному родителю
-- Нода в ветке — только `ID` и `Label` (связи задаются заголовком)
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | String | Уникальный ID группы. Если отсутствует — генерируется при загрузке |
+| `label` | String | Заголовок группы (опционально) |
+| `type` | String | Форма контейнера: `rect`, `ellipse`, `none`, `piechart`. По умолчанию `rect` |
+| `size` | String | Размер группы: `S`, `M`, `L`. Наследуется нодами если `node.size` не задан |
+| `color` | Number | Индекс палитры 1–9 (0 = чёрный, 10 = прозрачный) |
+| `outlined` | Boolean | Если `true` — контур вместо заливки у всей группы |
+| `nodeType` | String | Подсказка для авто-лэйаута какой тип нод в группе (опционально) |
+| `nodes` | Array | Список нод (см. раздел 3) |
 
 ---
 
-## Radial
+## 3. Ноды (`group.nodes[]`)
 
-Аналогичен Tree (те же секции `# Root` / `# Branches`), но рёбра отображаются как безье-дуги без стрелок.
-
----
-
-## Sequence
-
-```markdown
-# States
-
-### Actor: Client | Size: action
-| ID | Label |
-|---|---|
-| c_1 | Init Request |
-| c_2 | Display Results |
-
-### Actor: API Server | Size: action
-| ID | Label |
-|---|---|
-| s_1 | Validate Auth |
-| s_2 | Query DB |
-
-# Messages
-| Source ID | Target ID | Label | ConnectionType |
-|---|---|---|---|
-| c_1 | s_1 | POST /data | solid |
-| s_1 | s_2 | Read DB | solid |
-| s_2 | c_2 | 200 OK | dashed |
+```json
+{
+  "id": "auth_1",
+  "label": "Validate Token",
+  "type": "rhombus",
+  "size": "M",
+  "color": 2,
+  "x": 400,
+  "y": 200,
+  "lockPos": true
+}
 ```
 
-**Поля:**
-- `### Actor: <Имя> | Size: <size>` — группа акторов (lifelines)
-- Секция `# Messages` — явные рёбра; `ConnectionType`: `solid` (синхронный вызов) или `dashed` (асинхронный возврат)
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | String | **Обязательно.** Уникальный ID среди всех нод диаграммы |
+| `label` | String | Текст ноды. Переносы через `\n` |
+| `type` | String | Тип ноды — см. таблицу ниже |
+| `size` | String | `S`, `M`, `L`. При отсутствии наследуется от группы |
+| `color` | Number/String | Индекс палитры 0–10, или CSS hex-строка (`"#ff5533"`) |
+| `value` | Number | Численное значение (обязательно для `pie_slice`) |
+| `x`, `y` | Number | Явные логические координаты (опционально) |
+| `lockPos` | Boolean | Если `true` — авто-лэйаут не двигает ноду |
+| `fontStyle` | String | `"bold"`, `"italic"` |
+| `borderStyle` | String | `"dashed"` — пунктирная обводка |
+
+### Типы нод (`type`)
+
+| Значение | Форма | Примечания |
+|----------|-------|------------|
+| `process` | Прямоугольник | Основная универсальная нода |
+| `circle` | Круг | |
+| `oval` | Овал / Pill | |
+| `rhombus` | Ромб | |
+| `text` | Только текст | Без рамки, без заливки; динамический размер |
+| `title` | Заголовок | Крупный текст; цвет/группа не меняются в UI |
+| `chevron` | Шеврон-стрелка | Только для `timeline` |
+| `pie_slice` | Сектор пирога | Только для `piechart`; требует `value` |
 
 ---
 
-## ERD
+## 4. Рёбра (`data.edges[]`)
 
-```markdown
-# Entities
-
-### Schema: Core Auth | Size: table
-| ID | Label | Type |
-|---|---|---|
-| t_users | Users Table | table |
-| c_id | ID | attribute |
-| c_name | Profile Name | attribute |
-
-# Relationships
-| Source ID | Target ID | Label | ConnectionType |
-|---|---|---|---|
-| t_users | c_id | Primary Key | 1:1 |
-| t_users | c_name | - | 1:1 |
+```json
+{
+  "sourceId": "auth_1",
+  "targetId": "auth_2",
+  "label": "Yes",
+  "lineStyle": "solid",
+  "connectionType": "target",
+  "arrowType": "target"
+}
 ```
 
-**Поля:**
-- `Type` ноды — `table` | `attribute`
-- `### Schema: <Имя> | Size: <size>` — группировка по схеме
-- `ConnectionType` в Relationships — кардинальность: `1:1`, `1:N`, `N:1`, `N:M`
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `sourceId` | String | **Обязательно.** ID исходной ноды |
+| `targetId` | String | **Обязательно.** ID целевой ноды |
+| `label` | String | Текст на ребре (опционально) |
+| `lineStyle` | String | Стиль линии — см. таблицу ниже |
+| `connectionType` | String | Направление стрелки или кардинальность ERD |
+| `arrowType` | String | Явное направление стрелки (если отличается от connectionType) |
+
+### `lineStyle` (из `LINE_STYLE_REGISTRY`)
+
+| Значение | Вид | Экспортируется в SVG |
+|----------|-----|---------------------|
+| `solid` | Сплошная 2px | ✓ |
+| `dashed` | Пунктир `5,5` 2px | ✓ |
+| `dotted` | Точки `2,4` 2px | ✓ |
+| `bold` | Сплошная 4px | ✓ |
+| `hidden` | Пунктир 40% прозрачности | ✗ (только визуально, не в SVG) |
+| `none` | Пунктир 40% прозрачности | ✗ (только визуально, не в SVG) |
+
+> `hidden` / `none` — технические рёбра (топологические связи). Для timeline: spine-to-spine рёбра должны иметь `lineStyle: "none"`.
+
+### `connectionType` / `arrowType`
+
+**Направление стрелок:**
+
+| Значение | Стрелка |
+|----------|---------|
+| `target` | → |
+| `reverse` | ← |
+| `both` | ↔ |
+| `none` | — (без стрелок) |
+
+**Кардинальность ERD** (только `type: "erd"`):
+
+| Значение | Маркеры |
+|----------|---------|
+| `1:1` | one — one |
+| `1:N` | one — many |
+| `N:1` | many — one |
+| `N:M` | many — many |
 
 ---
 
-## Matrix
+## 5. Особенности по типам диаграмм
 
-```markdown
-# Elements
+### Flowchart
 
-### Zone: High Priority | Size: cell
-| ID | Label |
-|---|---|
-| t_1 | Fix Database |
-| t_2 | Patch Auth |
+Стандартная структура groups + edges. Группы = логические подсистемы.
 
-### Zone: Low Priority | Size: cell
-| ID | Label |
-|---|---|
-| t_3 | Update CSS |
+### Tree / Radial
+
+Иерархия задаётся через рёбра от родителя ко всем детям. Движок сам вычисляет глубину и раскладку.
+
+### Sequence
+
+Группы = актёры (Lifelines). Рёбра между нодами разных актёров = сообщения.  
+`lineStyle: "solid"` — синхронный вызов, `"dashed"` — асинхронный возврат.
+
+### ERD
+
+Рёбра используют `connectionType` для кардинальности (`1:1`, `1:N`, `N:M`).  
+В группах обычно одна нода-таблица + несколько `text`-нод-атрибутов.
+
+### Timeline
+
+```json
+{ "lineStyle": "none", "sourceId": "chevron_1", "targetId": "chevron_2" }
 ```
 
-**Поля:**
-- `### Zone: <Имя> | Size: <size>` — ячейка матрицы (кластер)
-- Рёбра запрещены; нет секции Connections
+- Шеврон-ноды (`type: "chevron"`) — спина таймлайна. Их рёбра **обязательно** `lineStyle: "none"`.
+- Event-ноды привязаны к шеврону через рёбра `"dashed"` или `"solid"`.
 
----
+### Matrix
 
-## Timeline
+Рёбра строго запрещены (`edges: []`). Группы = ячейки матрицы.
 
-```markdown
-# Timeline Spine
-| ID | Phase/Era Label | Color (0-11) |
-|---|---|---|
-| e1 | Q1 Phase | 0 |
-| e2 | Q2 Phase | 2 |
+### Piechart
 
-# Events
+Плоская структура — группировки нет, только `data.nodes[]` (без `data.groups`):
 
-### Phase: Engineering Tasks | Size: sub-event
-| Spine ID | Label |
-|---|---|
-| e1 | Bootstrapping |
-| e1 | First Deploy |
+```json
+{
+  "meta": { "type": "piechart", "version": "3.0.0" },
+  "data": {
+    "nodes": [
+      { "id": "s1", "label": "Android", "type": "pie_slice", "value": 63.3, "color": 1 },
+      { "id": "s2", "label": "iOS", "type": "pie_slice", "value": 28.7, "color": 2 }
+    ]
+  }
+}
 ```
 
-**Поля:**
-- `# Timeline Spine` — плоский список шеврон-фаз; `Color` — индекс палитры (0–9)
-- `### Phase: <Имя> | Size: <size>` — подсекция событий фазы
-- `Spine ID` — ID шеврона к которому привязано событие
-
----
-
-## Pie Chart
-
-```markdown
-# Pie Slices
-| Title (Label) | Size | Value |
-|---|---|---|
-| Revenue | system | 45.5 |
-| Costs | process | 30 |
-| Other | step | 24.5 |
-```
-
-**Поля:**
-- Единственная секция `# Pie Slices`
-- `Value` — числовое (может быть дробным); парсер нормализует в проценты
-- `Size` — семантика: `system` (выделенный) / `process` (стандарт) / `step` (приглушённый)
+- `value` — числовое, нормализуется в проценты автоматически
 - Максимум 9 секторов (`enforceMaxNodes: 9`)
+- `color` — обычно задаётся авто-инкрементом, но можно указать явно
 
 ---
 
-## Сводная таблица секций по типам
+## 6. Полный пример (flowchart)
 
-| Тип | Главные секции | Подсекции |
-|-----|---------------|-----------|
-| `flowchart` | `# Steps` | `### Subsystem: <N> \| Size: <S>` |
-| `tree` | `# Root`, `# Branches` | `### Branch: <N> \| Parent ID: <ID> \| Size: <S>` |
-| `radial` | `# Root`, `# Branches` | `### Branch: <N> \| Parent ID: <ID> \| Size: <S>` |
-| `sequence` | `# States`, `# Messages` | `### Actor: <N> \| Size: <S>` |
-| `erd` | `# Entities`, `# Relationships` | `### Schema: <N> \| Size: <S>` |
-| `matrix` | `# Elements` | `### Zone: <N> \| Size: <S>` |
-| `timeline` | `# Timeline Spine`, `# Events` | `### Phase: <N> \| Size: <S>` |
-| `piechart` | `# Pie Slices` | *(нет)* |
+```json
+{
+  "meta": { "type": "flowchart", "version": "3.0.0" },
+  "theme": "default",
+  "title": { "text": "Auth Flow", "size": "M" },
+  "data": {
+    "config": { "aspect": "16:9" },
+    "groups": [
+      {
+        "id": "g_1",
+        "label": "Entry",
+        "color": 1,
+        "nodes": [
+          { "id": "n_start", "label": "Request", "type": "oval", "size": "M" },
+          { "id": "n_check", "label": "Valid token?", "type": "rhombus", "size": "M" }
+        ]
+      },
+      {
+        "id": "g_2",
+        "label": "Results",
+        "color": 3,
+        "nodes": [
+          { "id": "n_ok", "label": "200 OK", "type": "oval", "size": "S" },
+          { "id": "n_err", "label": "401 Denied", "type": "oval", "size": "S" }
+        ]
+      }
+    ],
+    "edges": [
+      { "sourceId": "n_start", "targetId": "n_check", "lineStyle": "solid", "connectionType": "target" },
+      { "sourceId": "n_check", "targetId": "n_ok", "lineStyle": "solid", "connectionType": "target", "label": "Yes" },
+      { "sourceId": "n_check", "targetId": "n_err", "lineStyle": "dashed", "connectionType": "target", "label": "No" }
+    ]
+  }
+}
+```
 
 ---
 
-*Промпты: `src/engines/<тип>/ai_prompt.js → getPrompt(schema, sMap)`*  
-*Парсер: `src/services/aiGenerate.js`*  
+*Реестры: `src/diagram/nodes.jsx` (NODE_REGISTRY), `src/diagram/edges.js` (LINE_STYLE_REGISTRY), `src/diagram/colors.js` (PALETTES)*  
+*Экспорт в файл: `src/utils/charticiFormat.js`*  
 *Актуально: апрель 2026.*
