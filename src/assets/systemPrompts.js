@@ -37,11 +37,11 @@ export function getSystemPromptPhase2(diagramType) {
     throw new Error(`Engine plugin "${dt}" is missing ai_prompt.getPrompt(). Define it in src/engines/${dt}/ai_prompt.js`);
   }
 
-  const prefix = `GLOBAL RULES (apply to ALL diagram types):
+  const prefix = `Rules:
 - Every node needs a unique alphanumeric ID (e.g. n1, srv_a).
 - Preserve the user's language for ALL labels exactly.
-- Size scale: ${sMap.L}(emphasized) / ${sMap.M}(default) / ${sMap.S || 'minor'}(de-emphasized).
-- Output ONLY Markdown tables and ### headings. No prose, no explanations.
+- Size: ${sMap.L}(emphasized) / ${sMap.M}(default) / ${sMap.S || 'minor'}(de-emphasized).
+- Output ONLY Markdown tables and ### headings. No prose.
 `;
 
   return prefix + '\n' + engine.ai_prompt.getPrompt(schema, sMap);
