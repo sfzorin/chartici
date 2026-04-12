@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "zone", M: "cell", S: "item" },
     getPrompt: (schema, sMap) => `You are a Categorization Architect.
 The user will provide a detailed conceptual architecture for a MATRIX diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "system", M: "action", S: "state" },
     getPrompt: (schema, sMap) => `You are a Distributed Systems Architect.
 The user will provide a detailed conceptual architecture for a SEQUENCE diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

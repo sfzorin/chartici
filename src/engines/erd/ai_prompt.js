@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "schema", M: "table", S: "column" },
     getPrompt: (schema, sMap) => `You are a Database Systems Engineer.
 The user will provide a detailed conceptual architecture for an ERD diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

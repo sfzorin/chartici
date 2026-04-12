@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "system", M: "process", S: "step" },
     getPrompt: (schema, sMap) => `You are a Process Flow Engineer.
 The user will provide a detailed conceptual architecture for a FLOWCHART diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "highlight", M: "standard", S: "muted" },
     getPrompt: (schema, sMap) => `You are a Data Visualization Analyst.
 The user will provide a detailed conceptual architecture for a PIECHART diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

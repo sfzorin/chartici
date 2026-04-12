@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "core", M: "ring1", S: "leaf" },
     getPrompt: (schema, sMap) => `You are a Centralized Architecture Analyst.
 The user will provide a detailed conceptual architecture for a RADIAL diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

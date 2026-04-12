@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "parent", M: "branch", S: "leaf" },
     getPrompt: (schema, sMap) => `You are an Information Hierarchy Architect.
 The user will provide a detailed conceptual architecture for a TREE structure diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

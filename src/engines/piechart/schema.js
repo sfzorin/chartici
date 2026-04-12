@@ -13,12 +13,6 @@ export default {
         recalculateOnEdit: true,
         enforceMaxNodes: 9
     },
-    promptRule: "4. Create a single group with 'Type: pie_slice'. The nodes represent the items inside it, providing 'id', 'label', and 'value' fields.",
-    semanticScale: {
-        L: "highlight",
-        M: "standard",
-        S: "muted"
-    },
     connectionRules: ["Edges MUST NOT be used in piecharts."],
     engineManifest: {
         layout: "piechart",

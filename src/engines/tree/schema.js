@@ -10,12 +10,6 @@ export default {
         hasNodeValue: false,
         allowConnections: true
     },
-    promptRule: "4. Ensure a strict hierarchy with one root (or a few top-level roots) branching downwards. Do not route cyclic connections.",
-    semanticScale: {
-        L: "parent",
-        M: "branch",
-        S: "leaf"
-    },
     engineManifest: {
         layout: "tree",
         edgeStyle: "orthogonal_astar",

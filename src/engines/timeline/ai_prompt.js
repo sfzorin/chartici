@@ -1,4 +1,5 @@
 export default {
+    semanticScale: { L: "era", M: "event", S: "sub-event" },
     getPrompt: (schema, sMap) => `You are a Chronological Planner.
 The user will provide a detailed conceptual architecture for a TIMELINE diagram.
 Your task is to transform their concept into STRICT Markdown Tables.

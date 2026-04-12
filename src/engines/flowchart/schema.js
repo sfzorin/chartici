@@ -10,12 +10,6 @@ export default {
         hasNodeValue: false,
         allowConnections: true
     },
-    promptRule: "4. Use 'oval' ONLY for start/end nodes. Use 'rhombus' for decisions/conditions. Use 'process' for regular steps.",
-    semanticScale: {
-        L: "system",
-        M: "process",
-        S: "step"
-    },
     engineManifest: {
         layout: "sugiyama",
         edgeStyle: "orthogonal_astar",

@@ -33,10 +33,10 @@ You may use a <thinking> section inside the <prompt> to outline the concept firs
 export function getSystemPromptPhase2(diagramType) {
   const dt = diagramType.toLowerCase();
   const schema = DIAGRAM_SCHEMAS[dt] || DIAGRAM_SCHEMAS.flowchart;
-  const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
 
-  // Delegate to plugin — each engine owns its own AI prompt
+  // Delegate to plugin — each engine owns its own AI prompt and semanticScale
   const engine = getEngine(dt);
+  const sMap = engine?.ai_prompt?.semanticScale || schema.semanticScale || { L: 'large', M: 'medium', S: 'small' };
   if (engine?.ai_prompt?.getPrompt) {
     return engine.ai_prompt.getPrompt(schema, sMap);
   }

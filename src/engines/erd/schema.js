@@ -11,12 +11,6 @@ export default {
         allowConnections: true,
         erdMarkers: true
     },
-    promptRule: "4. Use groups for Tables. Use 'process' nodes for columns. Use standard 1:1, 1:N relations where possible.",
-    semanticScale: {
-        L: "schema",
-        M: "table",
-        S: "column"
-    },
     engineManifest: {
         layout: "sugiyama",
         edgeStyle: "orthogonal_astar",

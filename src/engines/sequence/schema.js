@@ -10,12 +10,6 @@ export default {
         hasNodeValue: false,
         allowConnections: true
     },
-    promptRule: "4. Create interaction blocks between systems. Use lineStyle appropriately for synchronous (solid) vs asynchronous (dashed) calls.",
-    semanticScale: {
-        L: "system",
-        M: "action",
-        S: "state"
-    },
     engineManifest: {
         layout: "sugiyama",
         edgeStyle: "orthogonal_astar",
