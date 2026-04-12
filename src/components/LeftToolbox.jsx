@@ -130,7 +130,6 @@ export default function LeftToolbox({
   const isShapeToolActive  = !!selectedNode && !isTitle;
   const isSizeToolActive   = !!selectedNode;
   const isColorToolActive  = !!selectedNode && !isTitle;
-  const diagramSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
   const isLabelActive      = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
   const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle;
