@@ -343,11 +343,11 @@ function App() {
     }
     
     // Find highest 'New Group N' to increment, or just create a unique one
-    // flatNodes-движки (piechart): все ноды в одной группе
+    // flatNodes-движки (piechart): каждая нода — своя группа (для корректной работы color/size)
     const isFlatNodes = activeSchema?.ioFormat?.flatNodes;
     let newGroupId;
     if (isFlatNodes) {
-      newGroupId = 'g_piechart_data';
+      newGroupId = `g_slice_${Date.now()}`;
     } else {
       let maxNewGroupNum = 0;
       if (diagramData.groups) {
@@ -575,7 +575,7 @@ function App() {
              return { ...n, size: newVal };
          };
          
-         if (gId && !activeSchema?.ioFormat?.flatNodes) {
+         if (gId) {
              const groupNodesOrig = newNodes.filter(n => getGroupId(n) === gId);
              const groupNodesNew = groupNodesOrig.map(n => applySize(n, value));
              // Allow overlapping sizes by default without blocking user
