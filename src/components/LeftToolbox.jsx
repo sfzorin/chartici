@@ -171,9 +171,9 @@ export default function LeftToolbox({
         <button 
           ref={addBtnRef}
           className="toolbox-btn" 
-          style={{ background: isAddDisabled ? '#888' : '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none', opacity: isAddDisabled ? 0.3 : 1, pointerEvents: isAddDisabled ? 'none' : 'auto' }}
+          style={{ background: '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none' }}
           onClick={() => togglePopover('add')}
-          data-tooltip={isAddDisabled ? "Max 9 slices reached" : "Add New Element"}
+          data-tooltip="Add New Element"
         >
           <Icon name="plus" size={24} />
         </button>
@@ -183,13 +183,13 @@ export default function LeftToolbox({
           <div className="popover-grid">
              {(!diagramTitle || diagramTitle.trim() === '') && <button onClick={() => { setDiagramTitle('Diagram Header'); setActivePopover(null); }}><Icon name="heading" /> Header</button>}
              {!showLegend && diagramSchema?.features?.supportsLegend && <button onClick={() => { onChangeShowLegend && onChangeShowLegend(true); setActivePopover(null); }}><Icon name="legend" /> Legend</button>}
-             {diagramSchema.allowedNodes.includes('process') && <button onClick={() => { onAddNode('process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>}
-             {diagramSchema.allowedNodes.includes('circle') && <button onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>}
-             {diagramSchema.allowedNodes.includes('oval') && <button onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
-             {diagramSchema.allowedNodes.includes('rhombus') && <button onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
+             {diagramSchema.allowedNodes.includes('process') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('process'); setActivePopover(null); }}><Icon name="shape-rect" /> Block</button>}
+             {diagramSchema.allowedNodes.includes('circle') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('circle'); setActivePopover(null); }}><Icon name="shape-circle" /> Circle</button>}
+             {diagramSchema.allowedNodes.includes('oval') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('oval'); setActivePopover(null); }}><Icon name="shape-oval" /> Oval</button>}
+             {diagramSchema.allowedNodes.includes('rhombus') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('rhombus'); setActivePopover(null); }}><Icon name="shape-diamond" /> Rhombus</button>}
              <button onClick={() => { onAddNode('text'); setActivePopover(null); }}><Icon name="text-shape" /> Text</button>
-             {diagramSchema.allowedNodes.includes('chevron') && <button onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><Icon name="shape-chevron" /> Chevron</button>}
-             {diagramSchema.allowedNodes.includes('pie_slice') && <button onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><Icon name="shape-slice" /> Slice</button>}
+             {diagramSchema.allowedNodes.includes('chevron') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('chevron'); setActivePopover(null); }}><Icon name="shape-chevron" /> Chevron</button>}
+             {diagramSchema.allowedNodes.includes('pie_slice') && <button disabled={isAddDisabled} style={isAddDisabled ? {opacity: 0.35} : {}} onClick={() => { onAddNode('pie_slice'); setActivePopover(null); }}><Icon name="shape-slice" /> Slice</button>}
           </div>
         </PopoverMenu>
 
