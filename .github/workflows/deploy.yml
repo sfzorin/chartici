@@ -30,5 +30,6 @@ jobs:
             cd /opt/chartici
             docker compose build --no-cache
             docker compose up -d chartici api
+            docker network connect chartici_internal caddy-proxy 2>/dev/null || true
             docker image prune -f
             echo "✅ Deployed at $(date)"
