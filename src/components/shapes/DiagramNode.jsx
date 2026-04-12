@@ -22,12 +22,9 @@ const DiagramNode = React.memo(({
   resolvedCanvasColor
 }) => {
   const dim = getNodeDim(node);
-  const NODE_WIDTH = node.type === 'pie_slice'
-     ? (node.size === 'S' ? 240 : node.size === 'L' ? 560 : 400)
-     : (node.w || dim.width);
-  const NODE_HEIGHT = node.type === 'pie_slice'
-     ? (node.size === 'S' ? 240 : node.size === 'L' ? 560 : 400)
-     : (node.h || dim.height);
+  // pie_slice: uniform 600×600 from NODE_REGISTRY; L = explode offset, not bigger
+  const NODE_WIDTH  = node.w || dim.width;
+  const NODE_HEIGHT = node.h || dim.height;
   const FONT_SIZE = dim.fontSize;
   
   const isDraggingNode = dragStateId === node.id;
