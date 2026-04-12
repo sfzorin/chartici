@@ -129,7 +129,11 @@ function App() {
   const handleDownloadChartici = async () => {
     // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
     const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
-      aspect, bgColor, theme: paletteTheme, diagramType, title: diagramTitle 
+      aspect, bgColor, theme: paletteTheme, diagramType,
+      titleText:  diagramTitle,
+      titleSize:  diagramData.config?.titleSize,
+      titleX:     diagramData.config?.titleLock ? diagramData.config?.titleX : undefined,
+      titleY:     diagramData.config?.titleLock ? diagramData.config?.titleY : undefined,
     });
     if (savedName) {
       setDiagramTitle(savedName);

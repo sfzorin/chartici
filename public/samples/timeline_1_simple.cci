@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "timeline",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "blue-teal-slate",
   "title": {
@@ -16,22 +16,26 @@
           {
             "id": "era1",
             "label": "The 1990s",
-            "type": "chevron"
+            "type": "chevron",
+            "spineId": "ev2"
           },
           {
             "id": "era2",
             "label": "The 2000s",
-            "type": "chevron"
+            "type": "chevron",
+            "spineId": "ev4"
           },
           {
             "id": "era3",
             "label": "The 2010s",
-            "type": "chevron"
+            "type": "chevron",
+            "spineId": "ev6"
           },
           {
             "id": "era4",
             "label": "The 2020s",
-            "type": "chevron"
+            "type": "chevron",
+            "spineId": "ev8"
           }
         ],
         "color": "5"
@@ -107,74 +111,6 @@
         ],
         "color": "1",
         "label": "AI Era"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "era1",
-        "targetId": "era2",
-        "connectionType": "none",
-        "lineStyle": "none"
-      },
-      {
-        "sourceId": "era2",
-        "targetId": "era3",
-        "connectionType": "none",
-        "lineStyle": "none"
-      },
-      {
-        "sourceId": "era3",
-        "targetId": "era4",
-        "connectionType": "none",
-        "lineStyle": "none"
-      },
-      {
-        "sourceId": "ev1",
-        "targetId": "era1",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev2",
-        "targetId": "era1",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev3",
-        "targetId": "era2",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev4",
-        "targetId": "era2",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev5",
-        "targetId": "era3",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev6",
-        "targetId": "era3",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev7",
-        "targetId": "era4",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "ev8",
-        "targetId": "era4",
-        "connectionType": "none",
-        "lineStyle": "dashed"
       }
     ]
   }

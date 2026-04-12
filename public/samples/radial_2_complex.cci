@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "radial",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "vibrant-rainbow",
   "title": {
@@ -43,7 +43,8 @@
           }
         ],
         "color": "5",
-        "label": "Ingress Orbit"
+        "label": "Ingress Orbit",
+        "parentId": "hub"
       },
       {
         "type": "process",
@@ -66,7 +67,8 @@
           }
         ],
         "color": "6",
-        "label": "Mesh Nodes"
+        "label": "Mesh Nodes",
+        "parentId": "in3"
       },
       {
         "type": "process",
@@ -84,69 +86,8 @@
           }
         ],
         "color": "7",
-        "label": "Observability Orbit"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "hub",
-        "targetId": "in1",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "in2",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "in3",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "n1",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "n2",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "n3",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "o1",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "hub",
-        "targetId": "o2",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "n1",
-        "targetId": "n2",
-        "connectionType": "none",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "in3",
-        "targetId": "n1",
-        "connectionType": "none",
-        "lineStyle": "dashed"
+        "label": "Observability Orbit",
+        "parentId": "hub"
       }
     ]
   }

@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "erd",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "blue-orange",
   "title": {
@@ -92,13 +92,13 @@
         "label": "Alerts"
       }
     ],
-    "edges": [
+    "relationships": [
       {
         "sourceId": "t_dev",
         "targetId": "c_mac",
+        "label": "PK",
         "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_dev",
@@ -109,9 +109,9 @@
       {
         "sourceId": "t_tel",
         "targetId": "c_ts",
+        "label": "PK",
         "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_tel",
@@ -134,23 +134,23 @@
       {
         "sourceId": "t_site",
         "targetId": "t_dev",
+        "label": "hosts",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "hosts"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_dev",
         "targetId": "t_tel",
+        "label": "emits",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "emits"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_tel",
         "targetId": "t_alert",
+        "label": "triggers",
         "connectionType": "N:M",
-        "lineStyle": "solid",
-        "label": "triggers"
+        "lineStyle": "solid"
       }
     ]
   }

@@ -17,6 +17,8 @@ export default {
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['target', 'reverse', 'both', 'none'],
         features: { hasNodeValue: false, allowConnections: true },
+        // Кодировка связей в .cci: явные рёбра в data.messages[]
+        ioFormat: { edgeEncoding: 'explicit', edgeKey: 'messages' },
         engineManifest: {
             layout: 'sugiyama',
             edgeStyle: 'orthogonal_astar',

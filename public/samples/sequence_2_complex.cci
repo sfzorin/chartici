@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "sequence",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "muted-rainbow",
   "title": {
@@ -87,62 +87,62 @@
         "label": "Consumer B"
       }
     ],
-    "edges": [
+    "messages": [
       {
         "sourceId": "p1",
         "targetId": "k1",
-        "connectionType": "target",
+        "label": "Topic(Order)",
         "lineStyle": "solid",
-        "label": "Topic(Order)"
+        "connectionType": "target"
       },
       {
         "sourceId": "k1",
         "targetId": "k2",
-        "connectionType": "target",
+        "label": "I/O",
         "lineStyle": "solid",
-        "label": "I/O"
+        "connectionType": "target"
       },
       {
         "sourceId": "k2",
         "targetId": "ca1",
-        "connectionType": "target",
+        "label": "Pull Request A",
         "lineStyle": "solid",
-        "label": "Pull Request A"
+        "connectionType": "target"
       },
       {
         "sourceId": "ca1",
         "targetId": "ca2",
-        "connectionType": "target",
+        "label": "DB Transaction",
         "lineStyle": "solid",
-        "label": "DB Transaction"
+        "connectionType": "target"
       },
       {
         "sourceId": "ca2",
         "targetId": "k3",
-        "connectionType": "target",
+        "label": "ACK Offset A",
         "lineStyle": "dashed",
-        "label": "ACK Offset A"
+        "connectionType": "target"
       },
       {
         "sourceId": "k3",
         "targetId": "cb1",
-        "connectionType": "target",
+        "label": "Push to B",
         "lineStyle": "solid",
-        "label": "Push to B"
+        "connectionType": "target"
       },
       {
         "sourceId": "cb1",
         "targetId": "cb2",
-        "connectionType": "target",
+        "label": "SMTP",
         "lineStyle": "solid",
-        "label": "SMTP"
+        "connectionType": "target"
       },
       {
         "sourceId": "cb2",
         "targetId": "p2",
-        "connectionType": "target",
+        "label": "Final End-to-End ACK",
         "lineStyle": "dashed",
-        "label": "Final End-to-End ACK"
+        "connectionType": "target"
       }
     ]
   }

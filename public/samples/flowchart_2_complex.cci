@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "flowchart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "blue-teal-slate",
   "title": {
@@ -16,7 +16,8 @@
           {
             "id": "c_req",
             "label": "Client Request",
-            "type": "oval"
+            "type": "oval",
+            "nextSteps": "g_auth"
           },
           {
             "id": "c_res",
@@ -34,12 +35,14 @@
           {
             "id": "g_auth",
             "label": "Rate Limited?",
-            "type": "rhombus"
+            "type": "rhombus",
+            "nextSteps": "c_res[Yes (429)], g_token[No]"
           },
           {
             "id": "g_token",
             "label": "Valid JWT?",
-            "type": "rhombus"
+            "type": "rhombus",
+            "nextSteps": "c_res[No (401)], o_start[Yes]"
           }
         ],
         "color": "5",
@@ -52,17 +55,20 @@
           {
             "id": "o_start",
             "label": "Initiate Saga",
-            "type": "circle"
+            "type": "circle",
+            "nextSteps": "s_pay, s_inv, s_ship"
           },
           {
             "id": "o_wait",
             "label": "Wait All Tasks",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "o_commit[Success]"
           },
           {
             "id": "o_commit",
             "label": "Commit Transactions",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "c_res[200 OK]"
           }
         ],
         "color": "6",
@@ -75,17 +81,20 @@
           {
             "id": "s_pay",
             "label": "Process Payment",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "o_wait[Done], comp_pay[Failed]"
           },
           {
             "id": "s_inv",
             "label": "Update Inventory",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "o_wait[Done], comp_inv[Failed]"
           },
           {
             "id": "s_ship",
             "label": "Schedule Shipping",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "o_wait[Wait]"
           }
         ],
         "color": "7",
@@ -98,143 +107,24 @@
           {
             "id": "comp_pay",
             "label": "Refund Payment",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "comp_all"
           },
           {
             "id": "comp_inv",
             "label": "Restore Stock",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "comp_all"
           },
           {
             "id": "comp_all",
             "label": "Rollback State",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "c_res[Error (500)]"
           }
         ],
         "color": "0",
         "label": "Compensation"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "c_req",
-        "targetId": "g_auth",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "g_auth",
-        "targetId": "c_res",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes (429)"
-      },
-      {
-        "sourceId": "g_auth",
-        "targetId": "g_token",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "g_token",
-        "targetId": "c_res",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No (401)"
-      },
-      {
-        "sourceId": "g_token",
-        "targetId": "o_start",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "o_start",
-        "targetId": "s_pay",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "o_start",
-        "targetId": "s_inv",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "o_start",
-        "targetId": "s_ship",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "s_pay",
-        "targetId": "o_wait",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Done"
-      },
-      {
-        "sourceId": "s_inv",
-        "targetId": "o_wait",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Done"
-      },
-      {
-        "sourceId": "s_ship",
-        "targetId": "o_wait",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Wait"
-      },
-      {
-        "sourceId": "s_pay",
-        "targetId": "comp_pay",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Failed"
-      },
-      {
-        "sourceId": "s_inv",
-        "targetId": "comp_inv",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Failed"
-      },
-      {
-        "sourceId": "comp_pay",
-        "targetId": "comp_all",
-        "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "comp_inv",
-        "targetId": "comp_all",
-        "connectionType": "target",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "comp_all",
-        "targetId": "c_res",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Error (500)"
-      },
-      {
-        "sourceId": "o_wait",
-        "targetId": "o_commit",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Success"
-      },
-      {
-        "sourceId": "o_commit",
-        "targetId": "c_res",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "200 OK"
       }
     ]
   }

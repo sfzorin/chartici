@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "tree",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "slate-rose",
   "title": {
@@ -25,7 +25,8 @@
           }
         ],
         "color": "5",
-        "label": "Executive"
+        "label": "Executive",
+        "parentId": "board"
       },
       {
         "type": "process",
@@ -83,7 +84,8 @@
           }
         ],
         "color": "6",
-        "label": "Engineering Branch"
+        "label": "Engineering Branch",
+        "parentId": "ceo"
       },
       {
         "type": "process",
@@ -116,7 +118,8 @@
           }
         ],
         "color": "7",
-        "label": "Sales Branch"
+        "label": "Sales Branch",
+        "parentId": "ceo"
       },
       {
         "type": "process",
@@ -139,123 +142,8 @@
           }
         ],
         "color": "0",
-        "label": "HR Branch"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "board",
-        "targetId": "ceo",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "ceo",
-        "targetId": "vp_eng",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "ceo",
-        "targetId": "vp_sales",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "ceo",
-        "targetId": "vp_hr",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng2",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng3",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng4",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng5",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng6",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng7",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng8",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_eng",
-        "targetId": "eng9",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_sales",
-        "targetId": "sales1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_sales",
-        "targetId": "sales2",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_sales",
-        "targetId": "sales3",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_sales",
-        "targetId": "sales4",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_hr",
-        "targetId": "hr1",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "vp_hr",
-        "targetId": "hr2",
-        "connectionType": "target",
-        "lineStyle": "solid"
+        "label": "HR Branch",
+        "parentId": "ceo"
       }
     ]
   }

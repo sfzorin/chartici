@@ -23,6 +23,8 @@ export default {
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['target', 'none'],
         features: { hasNodeValue: false, allowConnections: true },
+        // Кодировка связей в .cci: событие-нода хранит ID шеврона в поле spineId
+        ioFormat: { edgeEncoding: 'spineId', connectionField: 'spineId', level: 'node' },
         engineManifest: {
             layout: 'timeline',
             edgeStyle: 'straight_clipped',

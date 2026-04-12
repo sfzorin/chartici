@@ -18,6 +18,8 @@ export default {
         allowedLineStyles: [],
         allowedArrowTypes: [],
         features: { hasNodeValue: false, allowConnections: false },
+        // Кодировка связей в .cci: рёбра запрещены
+        ioFormat: { edgeEncoding: 'none' },
         engineManifest: {
             layout: 'matrix',
             edgeStyle: 'orthogonal_astar',

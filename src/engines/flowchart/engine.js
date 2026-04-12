@@ -19,6 +19,12 @@ export default {
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['target', 'reverse', 'both', 'none'],
         features: { hasNodeValue: false, allowConnections: true },
+        // Кодировка связей в .cci файле: нода хранит исходящие связи в поле nextSteps
+        ioFormat: {
+            edgeEncoding: 'nextSteps',  // node.nextSteps = "id1[label], id2"
+            connectionField: 'nextSteps',
+            level: 'node',
+        },
         engineManifest: {
             layout: 'sugiyama',
             edgeStyle: 'orthogonal_astar',

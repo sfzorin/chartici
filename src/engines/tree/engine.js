@@ -19,6 +19,8 @@ export default {
         allowedLineStyles: ['solid', 'dashed', 'none'],
         allowedArrowTypes: ['none', 'target'],
         features: { hasNodeValue: false, allowConnections: true },
+        // Кодировка связей в .cci: группа хранит ID родительской ноды в поле parentId
+        ioFormat: { edgeEncoding: 'parentId', connectionField: 'parentId', level: 'group' },
         engineManifest: {
             layout: 'tree',
             edgeStyle: 'orthogonal_astar',

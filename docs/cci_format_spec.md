@@ -193,90 +193,99 @@
 
 ### Flowchart
 
-Стандартная структура groups + edges. Группы = логические подсистемы.
+## 5. Матрица форматов по типам
 
-### Tree / Radial
+Каждый тип диаграммы имеет тип-специфичную кодировку связей, описанную в `engine.schema.ioFormat`.  
+Подробный JSON-пример и правила — в `format.md` каждого плагина.
 
-Иерархия задаётся через рёбра от родителя ко всем детям. Движок сам вычисляет глубину и раскладку.
+| Тип | Кодировка связей | Ключ в `data` | Документация |
+|-----|------------------|---------------|--------------|
+| `flowchart` | `nextSteps` на ноде | `data.groups` | [`src/engines/flowchart/format.md`](../src/engines/flowchart/format.md) |
+| `tree` | `parentId` на группе | `data.groups` | [`src/engines/tree/format.md`](../src/engines/tree/format.md) |
+| `radial` | `parentId` на группе | `data.groups` | [`src/engines/radial/format.md`](../src/engines/radial/format.md) |
+| `sequence` | явные рёбра | `data.messages[]` | [`src/engines/sequence/format.md`](../src/engines/sequence/format.md) |
+| `erd` | явные рёбра | `data.relationships[]` | [`src/engines/erd/format.md`](../src/engines/erd/format.md) |
+| `matrix` | нет рёбер | `data.groups` | [`src/engines/matrix/format.md`](../src/engines/matrix/format.md) |
+| `timeline` | `spineId` на ноде | `data.groups` | [`src/engines/timeline/format.md`](../src/engines/timeline/format.md) |
+| `piechart` | нет рёбер | `data.nodes[]` плоский | [`src/engines/piechart/format.md`](../src/engines/piechart/format.md) |
 
-### Sequence
+### `ioFormat` в схеме плагина
 
-Группы = актёры (Lifelines). Рёбра между нодами разных актёров = сообщения.  
-`lineStyle: "solid"` — синхронный вызов, `"dashed"` — асинхронный возврат.
+```js
+// Пример: flowchart
+ioFormat: { edgeEncoding: 'nextSteps', connectionField: 'nextSteps', level: 'node' }
 
-### ERD
+// Пример: sequence
+ioFormat: { edgeEncoding: 'explicit', edgeKey: 'messages' }
 
-Рёбра используют `connectionType` для кардинальности (`1:1`, `1:N`, `N:M`).  
-В группах обычно одна нода-таблица + несколько `text`-нод-атрибутов.
-
-### Timeline
-
-```json
-{ "lineStyle": "none", "sourceId": "chevron_1", "targetId": "chevron_2" }
+// Пример: piechart
+ioFormat: { edgeEncoding: 'none', flatNodes: true }
 ```
 
-- Шеврон-ноды (`type: "chevron"`) — спина таймлайна. Их рёбра **обязательно** `lineStyle: "none"`.
-- Event-ноды привязаны к шеврону через рёбра `"dashed"` или `"solid"`.
+### Круговорот данных
 
-### Matrix
-
-Рёбра строго запрещены (`edges: []`). Группы = ячейки матрицы.
-
-### Piechart
-
-Плоская структура — группировки нет, только `data.nodes[]` (без `data.groups`):
-
-```json
-{
-  "meta": { "type": "piechart", "version": "3.0.0" },
-  "data": {
-    "nodes": [
-      { "id": "s1", "label": "Android", "type": "pie_slice", "value": 63.3, "color": 1 },
-      { "id": "s2", "label": "iOS", "type": "pie_slice", "value": 28.7, "color": 2 }
-    ]
-  }
-}
 ```
-
-- `value` — числовое, нормализуется в проценты автоматически
-- Максимум 9 секторов (`enforceMaxNodes: 9`)
-- `color` — обычно задаётся авто-инкрементом, но можно указать явно
+.cci файл
+  ↓ parseCharticiFile()
+    → resolveImplicitEdges(flatNodes, groups)   ← engine.parser
+    → explicit edges (data.messages / data.relationships)
+  → внутренний граф {nodes, edges, groups}
+  → DiagramRenderer
+  ↑ downloadCharticiFile()
+    → engine.parser.exportEdges(gMap, edges, explicitEdges)
+    → тип-специфичный payload
+.cci файл
+```
 
 ---
 
-## 6. Полный пример (flowchart)
+## 6. Пример по типам
+
+### Flowchart — `nextSteps` в ноде
 
 ```json
 {
   "meta": { "type": "flowchart", "version": "3.0.0" },
-  "theme": "default",
   "title": { "text": "Auth Flow", "size": "M" },
   "data": {
-    "config": { "aspect": "16:9" },
     "groups": [
       {
-        "id": "g_1",
-        "label": "Entry",
-        "color": 1,
+        "id": "g_1", "label": "Entry", "color": 1,
         "nodes": [
-          { "id": "n_start", "label": "Request", "type": "oval", "size": "M" },
-          { "id": "n_check", "label": "Valid token?", "type": "rhombus", "size": "M" }
+          { "id": "n_start", "label": "Request",       "type": "oval",    "nextSteps": "n_check" },
+          { "id": "n_check", "label": "Valid token?",  "type": "rhombus", "nextSteps": "n_ok[Yes], n_err[No]" }
         ]
       },
       {
-        "id": "g_2",
-        "label": "Results",
-        "color": 3,
+        "id": "g_2", "label": "Results", "color": 3,
         "nodes": [
-          { "id": "n_ok", "label": "200 OK", "type": "oval", "size": "S" },
+          { "id": "n_ok",  "label": "200 OK",     "type": "oval", "size": "S" },
           { "id": "n_err", "label": "401 Denied", "type": "oval", "size": "S" }
         ]
       }
-    ],
-    "edges": [
-      { "sourceId": "n_start", "targetId": "n_check", "lineStyle": "solid", "connectionType": "target" },
-      { "sourceId": "n_check", "targetId": "n_ok", "lineStyle": "solid", "connectionType": "target", "label": "Yes" },
-      { "sourceId": "n_check", "targetId": "n_err", "lineStyle": "dashed", "connectionType": "target", "label": "No" }
+    ]
+  }
+}
+```
+
+### Tree — `parentId` на группе
+
+```json
+{
+  "meta": { "type": "tree", "version": "3.0.0" },
+  "data": {
+    "groups": [
+      {
+        "id": "g_root", "label": "Root", "color": 1,
+        "nodes": [ { "id": "ceo", "label": "CEO", "size": "L" } ]
+      },
+      {
+        "id": "g_eng", "label": "Engineering", "parentId": "ceo", "color": 2,
+        "nodes": [
+          { "id": "vp_eng", "label": "VP Engineering" },
+          { "id": "cto_1",  "label": "CTO" }
+        ]
+      }
     ]
   }
 }
@@ -284,6 +293,7 @@
 
 ---
 
-*Реестры: `src/diagram/nodes.jsx` (NODE_REGISTRY), `src/diagram/edges.js` (LINE_STYLE_REGISTRY), `src/diagram/colors.js` (PALETTES)*  
-*Экспорт в файл: `src/utils/charticiFormat.js`*  
+*Реестры: `src/diagram/nodes.jsx` (NODE_REGISTRY), `src/diagram/edges.js` (LINE_STYLE_REGISTRY)*  
+*Движки: `src/engines/<type>/engine.js` — schema.ioFormat*  
+*Экспорт/импорт: `src/utils/charticiFormat.js`*  
 *Актуально: апрель 2026.*

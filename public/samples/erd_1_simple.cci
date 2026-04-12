@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "erd",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "indigo-green-red",
   "title": {
@@ -87,13 +87,13 @@
         "label": "Assignments"
       }
     ],
-    "edges": [
+    "relationships": [
       {
         "sourceId": "t_e",
         "targetId": "c_eid",
+        "label": "PK",
         "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_e",
@@ -104,16 +104,16 @@
       {
         "sourceId": "t_d",
         "targetId": "c_did",
+        "label": "PK",
         "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_p",
         "targetId": "c_pid",
+        "label": "PK",
         "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_a",
@@ -124,23 +124,23 @@
       {
         "sourceId": "t_d",
         "targetId": "t_e",
+        "label": "employs",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "employs"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_e",
         "targetId": "t_a",
+        "label": "assigned",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "assigned"
+        "lineStyle": "solid"
       },
       {
         "sourceId": "t_p",
         "targetId": "t_a",
+        "label": "includes",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "includes"
+        "lineStyle": "solid"
       }
     ]
   }

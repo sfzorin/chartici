@@ -24,6 +24,9 @@ export default {
             recalculateOnEdit: true,
             enforceMaxNodes: 9,
         },
+        // Кодировка в .cci: плоский data.nodes[] без групп и рёбер
+        ioFormat: { edgeEncoding: 'none', flatNodes: true },
+
         engineManifest: {
             layout: 'piechart',
             edgeStyle: 'none',

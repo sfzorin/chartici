@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "tree",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "indigo-green-red",
   "title": {
@@ -42,7 +42,8 @@
           }
         ],
         "color": "1",
-        "label": "Execs"
+        "label": "Execs",
+        "parentId": "ceo"
       },
       {
         "type": "process",
@@ -60,7 +61,8 @@
           }
         ],
         "color": "2",
-        "label": "Eng"
+        "label": "Eng",
+        "parentId": "cto"
       },
       {
         "type": "process",
@@ -78,7 +80,8 @@
           }
         ],
         "color": "3",
-        "label": "Fin"
+        "label": "Fin",
+        "parentId": "cfo"
       },
       {
         "type": "process",
@@ -96,63 +99,8 @@
           }
         ],
         "color": "4",
-        "label": "Mkt"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "ceo",
-        "targetId": "cto",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "ceo",
-        "targetId": "cfo",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "ceo",
-        "targetId": "cmo",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cto",
-        "targetId": "e_fe",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cto",
-        "targetId": "e_be",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cfo",
-        "targetId": "f_acc",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cfo",
-        "targetId": "f_tax",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cmo",
-        "targetId": "m_seo",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "cmo",
-        "targetId": "m_ads",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        "label": "Mkt",
+        "parentId": "cmo"
       }
     ]
   }

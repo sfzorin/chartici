@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "sequence",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "blue-orange",
   "title": {
@@ -79,62 +79,62 @@
         "label": "OAuth Provider"
       }
     ],
-    "edges": [
+    "messages": [
       {
         "sourceId": "w1",
         "targetId": "a1",
-        "connectionType": "target",
+        "label": "Click Login",
         "lineStyle": "solid",
-        "label": "Click Login"
+        "connectionType": "target"
       },
       {
         "sourceId": "a1",
         "targetId": "o1",
-        "connectionType": "target",
+        "label": "Redirect to Provider",
         "lineStyle": "solid",
-        "label": "Redirect to Provider"
+        "connectionType": "target"
       },
       {
         "sourceId": "o1",
         "targetId": "o2",
-        "connectionType": "target",
+        "label": "User Accepts",
         "lineStyle": "dashed",
-        "label": "User Accepts"
+        "connectionType": "target"
       },
       {
         "sourceId": "o2",
         "targetId": "w2",
-        "connectionType": "target",
+        "label": "302 Redirect ?code=",
         "lineStyle": "dashed",
-        "label": "302 Redirect ?code="
+        "connectionType": "target"
       },
       {
         "sourceId": "w2",
         "targetId": "a2",
-        "connectionType": "target",
+        "label": "POST Code",
         "lineStyle": "solid",
-        "label": "POST Code"
+        "connectionType": "target"
       },
       {
         "sourceId": "a2",
         "targetId": "o3",
-        "connectionType": "target",
+        "label": "Exchange code",
         "lineStyle": "solid",
-        "label": "Exchange code"
+        "connectionType": "target"
       },
       {
         "sourceId": "o3",
         "targetId": "a3",
-        "connectionType": "target",
+        "label": "200 OK JWT",
         "lineStyle": "dashed",
-        "label": "200 OK JWT"
+        "connectionType": "target"
       },
       {
         "sourceId": "a3",
         "targetId": "w3",
-        "connectionType": "target",
+        "label": "Set-Cookie",
         "lineStyle": "dashed",
-        "label": "Set-Cookie"
+        "connectionType": "target"
       }
     ]
   }

@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "flowchart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "vibrant-rainbow",
   "title": {
@@ -16,7 +16,8 @@
           {
             "id": "t_start",
             "label": "User Clicks Checkout",
-            "type": "oval"
+            "type": "oval",
+            "nextSteps": "d_cart"
           },
           {
             "id": "t_end",
@@ -34,17 +35,20 @@
           {
             "id": "d_cart",
             "label": "Cart Empty?",
-            "type": "rhombus"
+            "type": "rhombus",
+            "nextSteps": "err_cart[Yes], d_stock[No]"
           },
           {
             "id": "d_stock",
             "label": "Items in Stock?",
-            "type": "rhombus"
+            "type": "rhombus",
+            "nextSteps": "err_stock[No], p_reserve[Yes]"
           },
           {
             "id": "d_pay",
             "label": "Payment Approved?",
-            "type": "rhombus"
+            "type": "rhombus",
+            "nextSteps": "err_pay[No], p_db[Yes]"
           }
         ],
         "color": "1",
@@ -57,17 +61,20 @@
           {
             "id": "p_reserve",
             "label": "Reserve Inventory",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "p_charge[Initiate Pay]"
           },
           {
             "id": "p_charge",
             "label": "Stripe API Charge",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "d_pay"
           },
           {
             "id": "p_db",
             "label": "Log Order DB",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "t_end"
           }
         ],
         "color": "2",
@@ -90,87 +97,12 @@
           {
             "id": "err_pay",
             "label": "Show Decline Msg",
-            "type": "process"
+            "type": "process",
+            "nextSteps": "p_charge[Retry]"
           }
         ],
         "color": "3",
         "label": "Error Handling"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "t_start",
-        "targetId": "d_cart",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_cart",
-        "targetId": "err_cart",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "d_cart",
-        "targetId": "d_stock",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "d_stock",
-        "targetId": "err_stock",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "d_stock",
-        "targetId": "p_reserve",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "p_reserve",
-        "targetId": "p_charge",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "Initiate Pay"
-      },
-      {
-        "sourceId": "p_charge",
-        "targetId": "d_pay",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_pay",
-        "targetId": "err_pay",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "No"
-      },
-      {
-        "sourceId": "err_pay",
-        "targetId": "p_charge",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Retry"
-      },
-      {
-        "sourceId": "d_pay",
-        "targetId": "p_db",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "p_db",
-        "targetId": "t_end",
-        "connectionType": "target",
-        "lineStyle": "solid"
       }
     ]
   }
