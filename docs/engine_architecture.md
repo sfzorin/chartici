@@ -1,154 +1,194 @@
-# Diagram Engine Architecture
+# Архитектура движка Chartici
 
-This document describes the complete lifecycle of generating a diagram — from the logical placement of node rectangles to the final vector rendering of orthogonal routing with intersecting line jumps.
-
----
-
-## Unified Pipeline (Architectural Invariant)
-
-All diagram types undergo an **identical** processing pipeline. The process is divided into 4 sequential stages. **Only the first stage** varies, as it is unique to each topology.
-
-`[Stage 1: Macro-Layout] → [Stage 2: Port Assignment] → [Stage 3: A* Routing] → [Stage 4: SVG Vector]`
-
-1. **Macro-Layout:** Depends on `diagramType`. Uses Dagre for flowcharts, RT-algorithm for trees, and Kahn top-sort for timelines. After coordinate calculation, nodes are rigidly snapped to a `20px` grid.
-2. **Port Assignment:** Every edge (prior to routing) receives explicit exit and entry ports (Top/Bottom/Left/Right) based on a geometric penalty matrix.
-3. **A* Routing:** A unified algorithm lays down orthogonal polylines along the free cells of the grid, avoiding obstacles. Only variables like port gravity and busing are toggled. Exception: radial uses direct math vectors without A*.
-4. **SVG Post-processing:** Insertion of engineering gaps (jumps), corner fillets, and specific markers.
+Этот документ описывает полный жизненный цикл генерации диаграммы — от логического размещения прямоугольников нод до финального векторного рендеринга ортогонального маршрутизатора с перепрыжками пересечений.
 
 ---
 
-## STAGE 1. Macro-Layout and Topologies (Node Placement)
+## Структура проекта
 
-The objective is to calculate `(x, y)` for all nodes to minimize intersections.
+```
+src/
+├── diagram/                  ← реестры типов диаграммы (единственный источник истины)
+│   ├── nodes.jsx             — NODE_REGISTRY: формы нод, размеры, порты, рендер
+│   ├── edges.js              — LINE_STYLE_REGISTRY, PATH_STYLE_REGISTRY, маркеры стрелок
+│   └── colors.js             — PALETTES, CANVAS_COLORS, BRAND, EXPORT_DEFAULTS
+├── engines/                  ← плагины для каждого типа диаграммы
+│   ├── index.js              — ENGINES, getEngine(), getAllEngines()
+│   ├── flowchart/
+│   │   ├── engine.js         — schema + layout + routing + parser (единый файл плагина)
+│   │   └── ai_prompt.js      — шаблон LLM промпта
+│   └── ... (tree, erd, radial, sequence, timeline, matrix, piechart)
+├── utils/
+│   ├── engine/               — ядро маршрутизатора
+│   │   ├── index.js          — calculateAllPaths(): главная точка входа
+│   │   ├── astar.js          — A* алгоритм маршрутизации
+│   │   ├── geometry.js       — getTrueBox, getNodePorts, clipDist
+│   │   ├── svgPaths.js       — генерация SVG path строк (скругления, перепрыжки)
+│   │   ├── portAssigner.js   — предварительное назначение портов
+│   │   ├── routingEngines.js — EdgeRoutingRegistry (выбор стиля по типу диаграммы)
+│   │   └── RoutingContext.js — контекст маршрутизации (препятствия, занятые линии)
+│   ├── diagramSchemas.js     — DIAGRAM_SCHEMAS (собирается из engine.schema каждого плагина)
+│   ├── svgRenderer.js        — headless SVG рендер (экспорт без DOM)
+│   └── exportSVG.js          — экспорт в .svg файл (бэкинг CSS переменных)
+└── components/
+    ├── DiagramRenderer.jsx   — главный React компонент отрисовки
+    └── shapes/
+        ├── DiagramNode.jsx   — рендер ноды (читает NODE_REGISTRY)
+        └── DiagramEdge.jsx   — рендер ребра (читает edges.js реестр)
+```
 
-### 1.1. Core Rules
-- **Unified Flow Direction:** Dynamic orientation based on canvas size was removed for predictability. General direction is now strictly hardcoded to the semantic `diagramType`:
-  - **Vertical Flow (Top-Down, TB):** Trees (`tree`) and Radial Maps (`radial`).
-  - **Horizontal Flow (Left-Right, LR):** Flowcharts (`flowchart`), ER Diagrams (`erd`), Timelines, and Matrices.
-- **Coordinate Freezing:** If a node has `lockPos === true`, it is excluded from auto-algorithms and maintains its manual coordinates.
-- **Text Spacing Constraints:** Edges with long text are translated into invisible "spacer nodes", forcing Dagre to spread out accommodating the width *before* lines are drawn.
-- **Swiss Snapping (20px Grid):** Final coordinates are always multiples of 20. This guarantees ports align perfectly across axes.
+---
 
-### 1.2. Topology Specifications
+## Унифицированный пайплайн
+
+Все типы диаграмм проходят **идентичный** пайплайн из 4 этапов. Только первый этап специфичен для каждой топологии.
+
+```
+[Stage 1: Макро-лэйаут] → [Stage 2: Назначение портов] → [Stage 3: A* маршрутизатор] → [Stage 4: SVG вектор]
+```
+
+1. **Макро-лэйаут:** зависит от `diagramType`. Использует Dagre для флоучартов, RT-алгоритм для деревьев, Kahn top-sort для таймлайнов. Координаты защёлкиваются на сетку 20px.
+2. **Назначение портов:** каждое ребро до маршрутизации получает явные порты выхода/входа (Top/Bottom/Left/Right) на основе матрицы геометрических штрафов.
+3. **A* маршрутизатор:** единый алгоритм прокладывает ортогональные полилинии по свободным ячейкам сетки, огибая препятствия. Только такие переменные как гравитация портов и бэссинг переключаются. Исключение: radial использует прямые математические векторы (или bezier) без A*.
+4. **SVG постобработка:** вставка технических разрывов (перепрыжки), скруглений углов и маркеров.
+
+---
+
+## Этап 1. Макро-лэйаут и топологии (размещение нод)
+
+Цель — вычислить `(x, y)` всех нод с минимумом пересечений.
+
+### 1.1 Базовые правила
+- **Унифицированное направление потока:** направление жёстко зафиксировано по семантике `diagramType`:
+  - **Вертикальный поток (Top-Down):** деревья (`tree`) и радиальные карты (`radial`).
+  - **Горизонтальный поток (Left-Right):** флоучарты (`flowchart`), ERD (`erd`), таймлайны, матрицы.
+- **Заморозка координат:** если у ноды `lockPos === true` — авто-алгоритм не трогает её `x,y`.
+- **Текстовые ограничения:** рёбра с длинными подписями превращаются в невидимые «спейсер-ноды», принуждая Dagre раздвигаться до рендеринга линий.
+- **Привязка к сетке 20px:** финальные координаты всегда кратны 20. Гарантирует совпадение осей портов.
+
+### 1.2 Топологии
 
 #### 1. Flowchart
-- **Layout:** Dagre (Sugiyama DAG) with an active **Happy Path (`weight=100`)**. The engine finds the longest logical DFS path and forces it into a perfect straight axis. Secondary cycle handlers are pushed to the side.
-- **Cycle-safe:** Back-edges are detected via `color 0/1/2` depth searches and hidden from Dagre to prevent breaking layout layers.
-- **Swimlane Heuristic:** With small grouped node counts, the engine automatically clusters them horizontally, mimicking classic swimlanes.
-- **Gaps:** `MIN_GAP = 40`. Edge bundling/busing is banned (every link is individual).
+- **Алгоритм:** Dagre (Sugiyama DAG) с активным **Happy Path (weight=100)**. Движок находит длиннейший DFS-путь и выравнивает его по прямой оси. Вторичные ветки уходят в стороны.
+- **Устойчивость к циклам:** обратные рёбра определяются через `color 0/1/2` обход и скрываются от Dagre.
 
-#### 2. Tree / Hierarchy (Org Charts)
-- **Layout:** Custom Bottom-Up Engine (Reingold-Tilford). Inverted axis logic relative to Flowcharts.
-- **Layer Logic:**
-  - **Multi-roots & Orphans:** The engine builds a Forest of independent trees. "Orphans" are stacked in a matrix grid on the side.
-  - **Children (Depth 1):** Always arrayed in a wide horizontal row (up to 10 in a row). If exceeded, staggers into a checkerboard up to 19.
-  - **Grandchildren (Depth 2+):** Packed into vertical cascading columns (up to 5 blocks high, max 3 columns) to prevent an infinitely wide canopy. Forces `_stackEntry = 'Left'`.
-- **Edges:** **Absolute Busing Dominance (`allowBusPremium = true`)**. Branches merge into a single trunk (T-fork). Gaps: `MIN_GAP = 80`.
+#### 2. Tree / Org Chart
+- **Алгоритм:** Custom Bottom-Up (Reingold-Tilford). Инвертированная ось относительно флоучартов.
+- **Многокорневые леса:** «Сироты» укладываются в матрицу сбоку.
+- **Дети (глубина 1):** горизонтальный ряд до 10. При превышении — шахматная укладка до 19.
+- **Внуки (глубина 2+):** вертикальные каскады, принудительный `_stackEntry = 'Left'`.
+- **Рёбра:** абсолютное доминирование бэссинга (`allowBusPremium = true`). T-fork ветви сливаются в один ствол.
 
-#### 3. Sequence Diagram
-- **Logic:** Extended horizontal gaps `MIN_GAP_X = 120` for lifelines. `MIN_GAP_Y = 80` defines the chronological (vertical) message step.
-- **Edges:** Orthogonal Z-shapes. Busing banned.
+#### 3. Sequence
+- Расширенные горизонтальные зазоры `MIN_GAP_X = 120` для линий жизни. `MIN_GAP_Y = 80` — хронологический шаг сообщений.
 
-#### 4. Entity-Relationship (ERD & Architecture)
-- **Layout:** Dagre without Happy Path. Nodes distribute into "islands" with `MIN_GAP = 80` to keep links readable.
-- **Edges:** A* routes lines "like streets", navigating around rectangles. Free port choice from all faces.
+#### 4. ERD
+- Dagre без Happy Path. Ноды расходятся в «острова» с `MIN_GAP = 80`. Маркеры crow's-foot (`cf-one`, `cf-many`).
 
 #### 5. Radial / Mind Map
-- **Logic:** The node with maximum `degree` becomes the center. Others radiate outward in concentric circles.
-- **Layout:**
-  - Angular sector of children is proportional to the depth of their subtree (children = x0.4 weight, grandchildren = x0.1).
-  - Cone spreads dynamically (±45° for children, ±28° for grandchildren).
-  - Uses a physics engine (20 iterations of relaxation) pushing overlapping nodes apart along radii and tangents.
-- **Edges (Direct-Line Routing):** Direct vectors cutting through bounding box or oval intersections (no grid).
+- Нода с maximum `degree` становится центром. Остальные расходятся концентрическими кольцами.
+- Угловой сектор дочерних пропорционален глубине поддерева.
+- **Рёбра:** кубические bezier-дуги (`curveStyle: 'arc'`), масштабируемые по длине ребра — короткие почти прямые, длинные — заметная дуга. Конфигурируется в `src/diagram/edges.js → PATH_STYLE_REGISTRY.curved`.
 
 #### 6. Timeline
-- **Layout:** Topological sorting (Kahn). Elements snake back and forth, alternating `+` and `-` `crossOffset` from the baseline axis. Busing banned. Expanded gaps: 120/80.
+- Топологическая сортировка (Kahn). Элементы змейкой чередуют `+`/`-` `crossOffset` от оси.
 
-#### 7. Matrix / Grid
-- **Layout:** Sorted by `groupId`. Modules are clustered into `ceil(√N) × ceil(√M)` cells. Groups receive SVG bounding frames.
+#### 7. Matrix
+- Сортировка по `groupId`. Модули кластеризованы в `ceil(√N) × ceil(√M)` ячеек. Группы получают SVG-рамки.
 
-#### 8. Array
-- **Layout:** Standard Sugiyama DAG (Dagre) without the constraints of a Happy Path. Nodes naturally flow linearly from left-to-right due to graph connectedness.
-- **Edges:** Orthogonal. Suitable for visualizing tight buffers or sequential access memory logic.
-
-#### 9. Pie Chart (Group Context Layout)
-- **Logic:** Pie Charts are NOT standalone diagram layouts. They are a specific `group` type (`type="piechart"`) that can exist within ANY diagram topology (Flowchart, Tree, etc.).
-- **Layout:** 
-  - Before the main Sugiyama (or RT) layout begins, all children of a `piechart` group are extracted and temporarily replaced by a single massive **Proxy Node** matching the mathematical diameter of the group.
-  - This allows the parent diagram topology to route lines and place the Pie Chart block seamlessly among other standard flowchart boxes.
-  - Post-layout, the Proxy Node's `(cx, cy)` coordinates are distributed back to the inner pie slices. `layoutPiechart.js` then mathematically computes their angular sweeps (`pieStartAngle`, `pieEndAngle`) based purely on their `value` properties. Let DiagramRenderer draw it as a singular cohesive disk SVG.
-- **Edges:** Routing is permitted TO the Pie Chart group (Proxy Node boundary), but edges inside the pie slices are banned.
+#### 8. Pie Chart
+- **Не самостоятельная топология.** Тип группы `piechart` в любой диаграмме.
+- Дочерние ноды извлекаются и временно заменяются одной **Proxy Node** диаметром, равным диаметру пирога.
+- После лэйаута координаты Proxy Node распределяются обратно по секторам. `layoutPiechart.js` вычисляет угловые развёртки по `value`.
 
 ---
 
-## STAGE 2. Port Assignment (Port Assigner)
+## Этап 2. Назначение портов (Port Assigner)
 
-Orchestrated by `portAssigner.js` before router initialization. It creates a dynamic penalty matrix.
+Оркестрировано `portAssigner.js` до инициализации маршрутизатора. Создаёт динамическую матрицу штрафов.
 
-### Base Penalties (L-Rays Matrix)
-Checks all 4 faces (ports) of the node.
-- **Ideal Port (Line of Sight, `0 penalty`):** An L-Ray to the target does not collide with obstacles.
-- **Lateral Port (`1 × D penalty`):** Requires wrapping around another object (where D is width/height).
-- **Rear Port (`2 × D penalty`):** Requires wrapping around its *own* node.
+### Базовые штрафы (матрица L-лучей)
+- **Идеальный порт (прямая видимость, 0 штраф):** L-луч к цели не пересекает препятствий.
+- **Боковой порт (1×D штраф):** требует обхода другого объекта (D = ширина/высота).
+- **Задний порт (2×D штраф):** требует обхода *собственной* ноды.
 
-### Specific Modifiers
-- **Bifurcation logic:** Nodes dynamically scale their port availability based on dimensions:
-  - **Vertical (Top/Bottom):** If `w >= 80px` (Sizes XS and up), 2 backup ports are added (offset ±20px from the center) alongside the main center port. Heavily penalized `+2 × D` so they are only used when the central port is saturated or buses branch out.
-  - **Lateral (Left/Right):** If `h >= 80px` (Sizes M, L, XL), the single center port is REMOVED and REPLACED by exactly 2 equidistant grid-snapped ports (never three) to visually distribute lines and prevent central overcrowding. 
-  - **Exceptions:** Ovals, Circles, and Rhombuses never bifurcate on their curved/slanted lateral (Left/Right) edges. However, Ovals **are** permitted to bifurcate up to 3 ports vertically (Top/Bottom) due to their flat caps. Small rectangular sizes (XS/S) maintain exactly one central lateral port.
-- **Circle Diagonal Ports:** Circles (`circle`) receive diagonal 45° escape routes placed 20px outside boundaries. Penalty = diameter.
-- **Port Saturation Rule:** Two edges with distinct visual styles (e.g. solid vs dashed) cannot share the same port to prevent visual merging. If `edgeType` mismatches, the occupied port receives a blocking `+10 × D` penalty, forcing A* to divert the dashed line into a bifurcation port.
-- **Tree _stackEntry Override:** For vertically collapsed list nodes (Tree depth 2+), `_stackEntry = 'Left'` is intercepted, obligating the line to enter from the side instead of penetrating the block from the top.
+### Специфические модификаторы
+- **Логика бифуркации:** ноды динамически масштабируют доступность портов по размерам:
+  - **Вертикаль (Top/Bottom):** при `w >= 80px` добавляются 2 запасных порта (±20px от центра) с тяжёлым штрафом `+2×D`.
+  - **Горизонталь (Left/Right):** при `h >= 80px` единственный центральный порт **заменяется** двумя равноотстоящими.
+  - **Исключения:** Овалы/Круги/Ромбы — нет бифуркации на боковых рёбрах.
+- **Диагональные порты Circle:** 4 угловых выхода 45°, штраф = диаметр.
+- **Штрафы по типу движка:** `engine.routing.portPenalty(portId, w, h)` — определяется в `src/engines/<тип>/engine.js`. Позволяет задавать разную стратегию для каждой топологии.
 
 ---
 
-## STAGE 3. Routing Core (A* Routing & Penalties)
+## Этап 3. Ядро маршрутизатора (A\*)
 
-The heart of the system is `astar.js`. Every polyline minimizes the function: `fScore = gScore (real distance) + hScore (Distance to safeTarget)`. 
-All nodes are enveloped in a **padBox** (+20px margin), through which lines cannot travel (except to their own ports via `allowObsId`).
+Реализован в `astar.js`. Функция минимизации: `fScore = gScore (реальное расстояние) + hScore (до safeTarget)`.  
+Все ноды обёрнуты в **padBox** (+20px), через который линии не проходят (кроме собственных портов `allowObsId`).
 
-The Routing Queue (Edge Prioritization) sorts from shortest edges to longest so local clusters route first without blocking transit highways.
+### 3.1 Каскадная деградация тиров
+- **Тиры 1-2 (сетка 20px):** идеально. Строгий запрет на наложение линий.
+- **Тир 3 (сетка 10px + пересечение разрешено):** разрешено перпендикулярное пересечение с огромным штрафом Crossing Penalty.
+- **Тир 4 (наложение разрешено):** сетка 10px, запрет наложения снят.
+- **Fallback:** прямой вектор.
 
-### 3.1 Tier Degradation
-If an ideal path is blocked, constraints relax sequentially:
-- **Tiers 1-2 (20px Grid):** Ideal. Strict ban on line overlapping.
-- **Tier 3 (10px Grid + Crossing Allowed):** Allowed to punch through other lines perpendicularly at 90° (triggers massive Crossing Penalty).
-- **Tier 4 (Overlap Allowed):** 10px Grid. Ban on overlapping orphan lines is lifted.
-- **Fallback:** Direct line vectors are rendered as a last resort.
+### 3.2 Штрафы и запреты
+- **Bend Penalty (100):** за поворот 90°. Устраняет Z-лестницы.
+- **Backtrack Penalty (200):** за движение от цели.
+- **Crossing Penalty (1500):** на тире 3 за пробивание чужой линии.
+- **Топологический запрет разворота:** абсолютный запрет U-поворотов в одной ячейке.
+- **Text Abbreviation Penalty (100):** если маршрут не может вместить `edge.label` ни на одном прямом сегменте.
 
-### 3.2. Bans and Taxes
-- **Bend Penalty (100):** Tax for making a 90° turn. Cleans out Z-staircases.
-- **Backtrack Penalty (200):** Tax for moving away from the target.
-- **Crossing Penalty (1500):** Applied on Tier 3 for piercing a foreign line.
-- **Strict Bundling Ban:** Lines of varying `edgeType` physically cannot fuse, even under extreme spatial constraints.
-- **Topological U-turn Ban:** Absolute ban on 180° turns within a single grid cell.
-- **Text Abbreviation Penalty (100):** Heuristic tax. If a route cannot harbor the length of `edge.label` on any single straight segment, a flat 100 penalty is incurred. A* prefers routes with longer straightways but won't orbit infinitely just for text.
-
-### 3.3. Premiums and Discounts
-Mechanics forcing A* to make aesthetic, "human-like" choices:
-- **Z-alignment (Median Bend = 20):** Discount applied if the sole Z-kink happens strictly at the mathematical midpoint between figures.
-- **T-Fork / Busing (100):** Active only for Org Charts (`tree`). Permits lines to fuse into a single "Trunk Buss" (cost drops from 20 to 0.5 per cell step).
+### 3.3 Бонусы и скидки
+- **Z-выравнивание (Median Bend = 20):** скидка если единственный излом строго в математической середине.
+- **T-Fork / Busing (100):** активно только для `tree`. Линии сливаются в «ствол-бас» (стоимость 0.5 на шаг вместо 20).
 
 ---
 
-## STAGE 4. Vector Post-Processing (SVG)
+## Этап 4. Постобработка векторов (SVG)
 
-Final touches before coordinates convert to React components:
-1. Pruning of collinear coordinates.
-2. **Fillets:** For every 90° corner, a quadratic Bezier (`Q`) curve is injected to create a smooth engineering angle.
-3. **Jumps:** Scans `ctx.occupiedLines`. Coordinates derived from Tier 3 crossings receive a micro-gap — the line interrupts pixels prior to intersection and resumes after (using the path `M` command).
+После маршрутизации координаты преобразуются в React-компоненты:
 
-### Text Truncation Rules
-Post-processing and React-UI strictly obey three laws of geometrical text rendering:
-1. **Orientation Strictness:** Text exclusively reads Left-to-Right. Vertical lines read Bottom-to-Top.
-2. **No Bundle Zone:** Text physically disappears on segments where the line fuses/buses with another.
-3. **Hard Truncate:** If the entire text string does not fit on the maximum available straight segment (accounting for ±20px intersection margins), it is **completely hidden**. Ellipses are banned.
-4. **Radial Exemption:** On Radial/Mind Maps, edge text labels are forcibly deactivated for visual cleanliness as radii are typically short and dense.
+1. **Обрезка коллинеарных точек.**
+2. **Скругления (Fillets):** для каждого угла 90° вставляется квадратичный bezier `Q`, радиус из `PATH_STYLE_REGISTRY.orthogonal_astar.cornerRadius`.
+3. **Перепрыжки (Jumps):** сканирует `ctx.occupiedLines`. Тир-3 пересечения получают микро-разрыв `M` в SVG path.
+4. **Безье для radial:** рёбра с `edgeStyle: 'curved'` строятся как кубический bezier `C`, управляемый `curveStyle`, `curveStrength`, `curveCap` из `PATH_STYLE_REGISTRY.curved`.
 
-### Topology-Specific Visual Layers (`DiagramRenderer.jsx`)
-- **Sequence (Lifelines):** Every node drops a vertical dashed line (`6, 4`) downward by 2000px.
-- **Matrix (Groups):** Matrix cell clusters receive an SVG dashed bounding frame (`rx=8`) with the group name centered at the top.
-- **ERD (Crow's Foot):** Endpoints (vectors) mount appropriate SVG markers. A vertical tick (`cf-one`) means 1. A 3-pronged fork (`cf-many`) indicates M:N relationships.
+### Правила размещения текста
+1. **Строгость ориентации:** текст исключительно Left-to-Right. Вертикальные линии — Bottom-to-Top.
+2. **Запрет зоны бэссинга:** текст исчезает там, где линия сливается с другой.
+3. **Жёсткое отсечение:** если строка не помещается на максимальном прямом сегменте (с учётом ±20px маршей пересечений) — полностью скрывается. Многоточия запрещены.
+4. **Исключение radial:** текстовые метки рёбер принудительно отключены для визуальной чистоты.
+
+### Топологические визуальные слои (`DiagramRenderer.jsx`)
+- **Sequence (линии жизни):** каждая нода опускает вертикальную пунктирную линию `6, 4` на 2000px вниз.
+- **Matrix (группы):** матричные кластеры получают SVG пунктирную рамку `rx=8` с названием группы вверху.
+- **ERD (Crow's Foot):** конечные точки монтируют SVG маркеры. Вертикальная метка (`cf-one`) = 1. Трёхзубый вилок (`cf-many`) = M:N. Геометрия маркеров в `src/diagram/edges.js → CF_MARKERS`.
 
 ---
-*Document up to date: `cci_project` engine.*
+
+## Реестры данных (`src/diagram/`)
+
+| Файл | Экспорты | Назначение |
+|---|---|---|
+| `nodes.jsx` | `NODE_REGISTRY` | Формы нод, размеры, порты, рендер, selection bounds |
+| `edges.js` | `LINE_STYLE_REGISTRY`, `PATH_STYLE_REGISTRY`, `ARROW_MARKER`, `CF_MARKERS`, `ARROW_TYPE_REGISTRY`, `CONNECTION_TYPE_REGISTRY`, `EDGE_LABEL_STYLE` | Все параметры рёбер |
+| `colors.js` | `PALETTES`, `CANVAS_COLORS`, `BRAND`, `CANVAS_THEMES`, `EXPORT_DEFAULTS` | Все цвета приложения |
+
+---
+
+## Плагины движков (`src/engines/<тип>/`)
+
+Каждый плагин состоит из **двух файлов**:
+
+| Файл | Содержит |
+|---|---|
+| `engine.js` | `schema` (схема типа), `layout` (алгоритм и edgeStyle), `routing` (portStrategy + portPenalty), `parser` (импорт/экспорт рёбер) |
+| `ai_prompt.js` | Шаблон LLM промпта для AI-генерации |
+
+Мастер-реестр `src/engines/index.js` экспортирует `ENGINES`, `getEngine(type)`, `getAllEngines()`.
+
+---
+
+*Актуально: рефакторинг engine registry, апрель 2026.*

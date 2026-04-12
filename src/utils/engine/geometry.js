@@ -59,7 +59,8 @@ export function getClipDist(node, cx, cy, dirX, dirY) {
 }
 
 // Default port penalty — matches previous hardcoded behaviour.
-// Overridden by engines/*/routing.js → portPenalty(portId, w, h).
+// Переопределяется плагинами движков engines/*/engine.js → routing.portPenalty(portId, w, h).
+
 const defaultPortPenalty = (portId, w, h) => {
   if (portId === 'BifTop'  || portId === 'BifBottom') return w * 2;
   if (portId === 'BifLeft' || portId === 'BifRight')  return h * 2;

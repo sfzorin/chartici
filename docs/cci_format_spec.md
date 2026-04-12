@@ -1,8 +1,11 @@
-# Chartici .CCI Format Specification
+# Спецификация формата Chartici .CCI
 
-The `.cci` (Chartici Concept Interchange) file format is a strict JSON blueprint used for generating, validating, and layout-rendering dynamic diagrams.
+Формат `.cci` (Chartici Concept Interchange) — строгий JSON-блюпринт для генерации, валидации и лэйаут-рендеринга диаграмм.
 
-## 1. Top-Level Structure
+---
+
+## 1. Структура верхнего уровня
+
 ```json
 {
   "data": {
@@ -16,86 +19,175 @@ The `.cci` (Chartici Concept Interchange) file format is a strict JSON blueprint
 }
 ```
 
-## 2. Groups & Nodes
-In the Chartici architecture, all nodes are strictly grouped. A `group` defines the physical container shape and the layout rules for its children. Nodes inherit visual properties (color, size) from their parent group unless explicitly overridden.
+---
 
-### Group Properties
-- **`id`** (String): Unique identifier.
-- **`type`** (String): Visual shape/layout strategy of the group container. Allowed: `rect`, `ellipse`, `none`, `piechart`.
-- **`label`** (String): The title of the group.
-- **`color`** (Number): 1-9 palette index.
-- **`size`** (String): Typography and padding sizing (AUTO, XS, S, M, L, XL).
-- **`nodes`** (Array): The list of nodes belonging to this group.
+## 2. Группы и ноды
 
-### Node Properties (inside group.nodes)
-- **`id`** (String): Unique identifier.
-- **`type`** (String): Visual shape. Must be one of: `process, circle, oval, rhombus, text, chevron, pie_slice`.
-- **`label`** (String): Content of the node. Newlines `\n` are supported.
-- **`value`** (Number): Quantitative value. Required when `type` is `"pie_slice"`.
-- **`x`**, **`y`** (Number): Optional explicit logical coordinates.
-- **`lockPos`** (Boolean): If `true`, the Auto-Layout engine will NOT touch or move this node from its `x,y` position.
+В архитектуре Chartici все ноды строго сгруппированы. `group` определяет форму контейнера и правила лэйаута для дочерних нод. Ноды наследуют визуальные свойства (цвет, размер) от родительской группы, если не переопределены явно.
 
-## 3. General Edge Properties
-- **`id`** (String): Unique edge ID.
-- **`sourceId`**, **`targetId`** (String): Must match existing node `id`s from any group.
-- **`label`** (String): Optional textual badge centered on the edge.
-- **`lineStyle`** (String): `solid, dashed, dotted, bold, bold-dashed, none`.
-- **`connectionType`** (String): Arrow mapping: `target, both, reverse, none` or ERD specifics like `1:1, 1:N, N:M`.
+### Свойства группы (`group`)
 
-## 4. Diagram Type Matrix
-Chartici supports specialized validation and rendering logic depending on the active diagram type.
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | String | Уникальный идентификатор |
+| `type` | String | Форма/стратегия контейнера: `rect`, `ellipse`, `none`, `piechart` |
+| `label` | String | Заголовок группы |
+| `color` | Number | Индекс палитры 1–9 |
+| `outlined` | Boolean | Если `true` — контур вместо заливки (толщина из `NODE_REGISTRY`) |
+| `size` | String | Типографика и отступы: `AUTO`, `XS`, `S`, `M`, `L`, `XL` |
+| `parentId` | String | ID ноды-родителя (для tree/radial) |
+| `nodes` | Array | Список нод группы |
+
+### Свойства ноды (`group.nodes[*]`)
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | String | Уникальный идентификатор |
+| `type` | String | Форма ноды — см. реестр ниже |
+| `label` | String | Содержимое ноды. Поддерживаются переносы `\n` |
+| `value` | Number | Число (обязательно для `pie_slice`) |
+| `color` | Number | Индекс палитры 1–9 (переопределяет группу) |
+| `size` | String | Размер ноды (`AUTO`, `XS`, `S`, `M`, `L`, `XL`) |
+| `x`, `y` | Number | Явные логические координаты (опционально) |
+| `lockPos` | Boolean | Если `true` — авто-лэйаут не двигает ноду |
+| `nextSteps` | String | Список ID через запятую для неявных рёбер (flowchart, tree, radial) |
+| `spineId` | String | ID шеврона-спины (только timeline) |
+| `fontStyle` | String | `bold`, `italic` |
+| `borderStyle` | String | `dashed` — пунктирная обводка ноды |
+
+### Реестр форм нод (`src/diagram/nodes.jsx → NODE_REGISTRY`)
+
+| `type` | Форма | Примечания |
+|--------|-------|------------|
+| `process` | Прямоугольник | Базовая универсальная нода |
+| `circle` | Круг | Диагональные порты, нет бифуркации по горизонтали |
+| `oval` | Овал | Бифуркация по вертикали |
+| `rhombus` | Ромб | Нет бифуркации |
+| `text` | Только текст | Без рамки, без заливки |
+| `title` | Заголовок | Крупный текст |
+| `chevron` | Шеврон-стрелка | Только timeline |
+| `pie_slice` | Сектор пирога | Только piechart, требует `value` |
+
+---
+
+## 3. Рёбра
+
+### Общие свойства
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | String | Уникальный ID ребра |
+| `sourceId` | String | ID исходной ноды |
+| `targetId` | String | ID целевой ноды |
+| `label` | String | Текст на ребре (опционально) |
+| `lineStyle` | String | Стиль линии — см. таблицу ниже |
+| `arrowType` | String | Тип стрелки — см. таблицу ниже |
+| `connectionType` | String | Кардинальность ERD — см. таблицу ниже |
+
+### Стили линий (`src/diagram/edges.js → LINE_STYLE_REGISTRY`)
+
+| `lineStyle` | Вид | Экспортируется? |
+|-------------|-----|-----------------|
+| `solid` | Сплошная | ✓ |
+| `dashed` | Пунктирная `5,5` | ✓ |
+| `dotted` | Точечная `2,4` | ✓ |
+| `bold` | Жирная (4px) | ✓ |
+| `hidden` | Пунктир 20% прозрачности | ✗ (только визуальная) |
+| `none` | Аналог `hidden` | ✗ (только визуальная) |
+
+> **Важно:** `hidden` и `none` — технические вспомогательные рёбра (топологические связи, спина таймлайна). В SVG экспорт **не попадают**. Флаг `exportable: false` в `LINE_STYLE_REGISTRY`.
+
+### Типы стрелок (`ARROW_TYPE_REGISTRY`)
+
+| `arrowType` | Стрелка |
+|-------------|---------|
+| `target` | → (по умолчанию) |
+| `reverse` | ← |
+| `both` | ↔ |
+| `none` | — (без стрелок) |
+
+### Кардинальность ERD (`CONNECTION_TYPE_REGISTRY`)
+
+Используется только в диаграммах типа `erd`. Устанавливается через поле `connectionType`.
+
+| `connectionType` | Маркер начало | Маркер конец |
+|------------------|---------------|--------------|
+| `1:1` | cf-one | cf-one |
+| `1:N` | cf-one | cf-many |
+| `N:1` | cf-many | cf-one |
+| `N:M` | cf-many | cf-many |
+
+---
+
+## 4. Матрица типов диаграмм
+
+Актуальная конфигурация берётся из `src/engines/<тип>/engine.js → schema`. Ниже — сводная таблица.
 
 ### Flowchart (`type: "flowchart"`)
-**Purpose**: logical step-by-step processes or algorithms.
-- **Allowed Nodes**: `process, circle, oval, rhombus, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
-
-### Sequence (`type: "sequence"`)
-**Purpose**: chronological interactions between systems or actors.
-- **Allowed Nodes**: `process, circle, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
-
-### Entity-Relationship (`type: "erd"`)
-**Purpose**: database schemas, entities, and relationships.
-- **Allowed Nodes**: `process, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
-
-### Radial (`type: "radial"`)
-**Purpose**: mind-maps, concentric layers, or hub-and-spoke architectures.
-- **Allowed Nodes**: `process, circle, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
-
-### Array (`type: "array"`)
-**Purpose**: memory buffers, queues, or sequential data structures.
-- **Allowed Nodes**: `process, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
-
-### Matrix (`type: "matrix"`)
-**Purpose**: grid-like comparisons, or categorization into distinct cluster zones/cells.
-- **Allowed Nodes**: `process, text`
-- **Allowed Edges**: `none, solid`
-- **Strict Connection Rules**:
-   - process -> process : Allowed across different groups/cells using 'solid'.
-
-### Timeline (`type: "timeline"`)
-**Purpose**: events plotted on a generic chronological spine.
-- **Allowed Nodes**: `chevron, process, circle, text`
-- **Allowed Edges**: `solid, dashed, none`
-- **Strict Connection Rules**:
-   - chevron -> chevron : MUST use 'lineStyle': 'none' (invisible topological spine)
-   - circle/process -> chevron : Use 'solid' or 'dashed' (visible event links)
-   - text -> any : Use 'none' (invisible text binding)
+**Назначение:** логические пошаговые процессы или алгоритмы.
+- **Ноды:** `process`, `circle`, `oval`, `rhombus`
+- **Рёбра:** `solid`, `dashed`, `bold`, `none`
+- **Стрелки:** `target`, `reverse`, `both`, `none`
+- **Неявные рёбра:** `node.nextSteps` → исходящие рёбра
 
 ### Tree (`type: "tree"`)
-**Purpose**: strict hierarchical org-charts or breakdowns.
-- **Allowed Nodes**: `process, circle, text`
-- **Allowed Edges**: `solid, dashed, bold, none`
+**Назначение:** строгие иерархии, org-charts.
+- **Ноды:** `process`
+- **Рёбра:** `solid`, `dashed`, `bold`, `none`
+- **Стрелки:** `none`, `target`
+- **Неявные рёбра:** `group.parentId` → рёбра к дочерним нодам
+
+### Radial (`type: "radial"`)
+**Назначение:** mind-maps, концентрические слои, hub-and-spoke.
+- **Ноды:** `process`
+- **Рёбра:** `solid`, `dashed`, `bold`, `none`
+- **Стрелки:** `none` (маркеры подавлены)
+- **Визуализация:** кубические bezier-дуги (конфиг в `edges.js → PATH_STYLE_REGISTRY.curved`)
+
+### Sequence (`type: "sequence"`)
+**Назначение:** хронологические взаимодействия между системами/актёрами.
+- **Ноды:** `process`, `circle`
+- **Рёбра:** `solid`, `dashed`, `none`
+- **Стрелки:** `target`, `reverse`, `both`, `none`
+
+### ERD (`type: "erd"`)
+**Назначение:** схемы БД, сущности и связи.
+- **Ноды:** `process`
+- **Рёбра:** `solid`, `dashed`, `none`
+- **Стрелки:** не используются (`allowedArrowTypes: []`)
+- **Кардинальность:** `1:1`, `1:N`, `N:1`, `N:M`
+
+### Timeline (`type: "timeline"`)
+**Назначение:** события на хронологической оси.
+- **Ноды:** `chevron`, `process`
+- **Рёбра:** `solid`, `dashed`, `none`
+- **Стрелки:** `target`, `none`
+- **Правила:**
+  - `chevron → chevron`: **обязательно** `lineStyle: "none"` (невидимая топологическая спина)
+  - `process → chevron`: `solid` или `dashed` (видимые связи с событиями)
+
+### Matrix (`type: "matrix"`)
+**Назначение:** сеточные сравнения, кластеризация в ячейки.
+- **Ноды:** `process`
+- **Рёбра:** запрещены (`connectionRules: ["Edges MUST NOT be used in matrices."]`)
 
 ### Pie Chart (`type: "piechart"`)
-**Purpose**: breakdown of items into proportional circular slices.
-- **Allowed Nodes**: `pie_slice`
-- **Allowed Edges**: `none`
-- **Feature Flags**: Data Values Required | No Connections Allowed | No Grouping Allowed
-- **Strict Connection Rules**:
-   - Edges MUST NOT be used in piecharts.
+**Назначение:** разбивка значений на пропорциональные секторы.
+- **Ноды:** `pie_slice` (только, обязательно с `value`)
+- **Рёбра:** запрещены
+- **Флаги:** `hasNodeValue: true`, `autoIncrementColors: true`, `enforceMaxNodes: 9`
 
+---
+
+## 5. Цветовые палитры
+
+Цветовой индекс ноды/группы — число от 0 до 10:
+- `0` — чёрный
+- `1–9` — solid-цвета активной палитры (конфигурируются в `src/diagram/colors.js → PALETTES`)
+- `10` — прозрачный (нет заливки, текст через `unfilledText`)
+
+Активная палитра задаётся в мета-настройках диаграммы (`meta.palette`).
+
+---
+
+*Актуально: рефакторинг engine registry, апрель 2026.*

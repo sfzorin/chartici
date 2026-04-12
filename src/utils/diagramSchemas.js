@@ -1,18 +1,18 @@
 /**
- * diagramSchemas.js — thin aggregator over engine plugins.
+ * diagramSchemas.js — тонкий агрегатор поверх плагинов движков.
  *
- * Each engine plugin owns its schema data in src/engines/<type>/schema.js.
- * This file builds DIAGRAM_SCHEMAS by merging all engine schemas together.
+ * Каждый плагин хранит схему в src/engines/<тип>/engine.js → поле .schema.
+ * Этот файл строит DIAGRAM_SCHEMAS, объединяя схемы всех движков.
  *
- * DEPENDENCY RULE: This file MAY import from src/engines/ because engines/* 
- * are pure data modules with zero imports from src/utils/.
- * No circular dependency is possible.
+ * ПРАВИЛО ЗАВИСИМОСТЕЙ: этот файл МОЖЕТ импортировать из src/engines/,
+ * так как engines/* являются чистыми модулями данных без импортов из src/utils/.
+ * Циклических зависимостей не возникает.
  */
 import { getAllEngines } from '../engines/index.js';
 
 const engines = getAllEngines();
 
-// Build DIAGRAM_SCHEMAS from engine plugins — each engine.schema is the full data object
+// Строим DIAGRAM_SCHEMAS из плагинов — engine.schema является полным объектом данных
 export const DIAGRAM_SCHEMAS = Object.fromEntries(
   Object.entries(engines).map(([key, engine]) => [key, engine.schema])
 );
