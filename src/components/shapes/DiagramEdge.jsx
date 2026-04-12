@@ -23,7 +23,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   const isPrintTheme = theme === 'print-book';
   const dashArray = styleDef.dashArray;
   const strokeW   = String(isPrintTheme ? (styleDef.print?.strokeWidth ?? styleDef.strokeWidth) : styleDef.strokeWidth);
-  const isLogical = styleKey === 'none' || styleKey === 'hidden';
+  const isLogical = styleKey === 'none';
   const baseOpacity = isLogical ? (styleDef.logicalOpacity ?? 0.4) : styleDef.opacity ?? 1;
 
   // ── Markers ────────────────────────────────────────────────────────────────

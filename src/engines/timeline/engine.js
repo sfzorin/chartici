@@ -27,7 +27,7 @@ export default {
         ioFormat: { edgeEncoding: 'spineId', connectionField: 'spineId', level: 'node' },
         engineManifest: {
             layout: 'timeline',
-            edgeStyle: 'straight_clipped',
+            edgeStyle: 'straight',
             nodeTypes: ['chevron', 'process'],
             suppressSpineEdges: true,
             spineNodeType: 'chevron',
@@ -37,7 +37,7 @@ export default {
     layout: {
         algorithm: 'timeline',
         isHorizontalFlow: true,
-        edgeStyle: 'straight_clipped',
+        edgeStyle: 'straight',
     },
 
     routing: {

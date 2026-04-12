@@ -397,14 +397,14 @@ export default function DiagramRenderer({
       // Cascade movement to logically connected text nodes
       dragState.initialNodes.filter(n => n.type === 'text').forEach(tn => {
           const isConnectedToX = edges.some(e => 
-             (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+             e.lineStyle === 'none' &&
              ((e.from === tn.id && movingXIds.includes(e.to)) ||
               (e.to === tn.id && movingXIds.includes(e.from)))
           );
           if (isConnectedToX && !movingXIds.includes(tn.id)) movingXIds.push(tn.id);
           
           const isConnectedToY = edges.some(e => 
-             (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+             e.lineStyle === 'none' &&
              ((e.from === tn.id && movingYIds.includes(e.to)) ||
               (e.to === tn.id && movingYIds.includes(e.from)))
           );

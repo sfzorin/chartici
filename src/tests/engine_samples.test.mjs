@@ -15,7 +15,7 @@ import path from 'path';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
 import { getTrueBox } from '../utils/engine/geometry.js';
-import { SIZES, getNodeDim } from '../utils/constants.js';
+import { getNodeDim } from '../diagram/nodes.jsx';
 
 // ─── Load sample ─────────────────────────────────────────────
 function loadSample(filePath) {
@@ -28,7 +28,7 @@ function loadSample(filePath) {
     data.groups.forEach(g => {
       (g.nodes || []).forEach(n => {
         const sz = n.size || g.size || 'M';
-        const dim = SIZES[sz] || SIZES.M;
+        const dim = getNodeDim({ type: n.type || g.type || 'process', size: sz });
         nodes.push({
           ...n,
           type: n.type || g.type || 'rect',

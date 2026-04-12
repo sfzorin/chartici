@@ -22,7 +22,7 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   // Plugin declares which port penalty strategy to use:
   //   'topdown'  — golden-port assignment for strict top→bottom trees
   //   'dynamic'  — L-ray obstacle avoidance for freeform diagrams
-  //   'none'     — no A* (straight_clipped or no-edge diagrams)
+  //   'none'     — no A* (straight or no-edge diagrams)
   const portStrategy = engine?.routing?.portStrategy || 'dynamic';
   const penaltyFn = engine?.routing?.portPenalty?.bind(engine?.routing) || undefined;
   const isTopdown = portStrategy === 'topdown';

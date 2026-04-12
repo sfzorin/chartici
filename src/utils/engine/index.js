@@ -23,7 +23,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   }
 
   // Shared helper for straight/curved 2-point clip paths
-  const isStraightStyle = routingStyle === 'straight_clipped' || routingStyle === 'straight' || routingStyle === 'curved';
+  const isStraightStyle = routingStyle === 'straight' || routingStyle === 'curved';
   if (isStraightStyle) {
     const pathStyleDef = PATH_STYLE_REGISTRY[routingStyle] || PATH_STYLE_REGISTRY.straight;
     const curveStrength = pathStyleDef.curveStrength || 0;
@@ -189,7 +189,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox, penaltyFn);
 
 
-    if (edge.lineStyle === 'none' || edge.lineStyle === 'hidden') {
+    if (edge.lineStyle === 'none') {
         const scx = startBox.cx;
         const scy = startBox.cy;
         const ecx = endBox.cx;

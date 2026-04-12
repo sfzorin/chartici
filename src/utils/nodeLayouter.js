@@ -120,7 +120,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
   
   const updatedTextNodes = textNodes.map(tn => {
       const edge = edges.find(e => 
-         (e.lineStyle === 'none' || e.lineStyle === 'hidden') &&
+         e.lineStyle === 'none' &&
          (e.from === tn.id || e.to === tn.id)
       );
       if (edge) {

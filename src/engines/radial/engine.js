@@ -23,7 +23,7 @@ export default {
         ioFormat: { edgeEncoding: 'parentId', connectionField: 'parentId', level: 'group' },
         engineManifest: {
             layout: 'radial',
-            edgeStyle: 'straight_clipped',
+            edgeStyle: 'straight',
             nodeTypes: ['process'],
             suppressEdgeMarkers: true,
             suppressEdgeLabels: true,
