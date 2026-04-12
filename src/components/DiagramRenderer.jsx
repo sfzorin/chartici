@@ -536,7 +536,7 @@ export default function DiagramRenderer({
         const dim = getNodeDim(n);
         const nw = n.type === 'pie_slice' ? dim.width : (n.w || dim.width);
         const nh = n.type === 'pie_slice' ? dim.height : (n.h || dim.height);
-        const calloutPad = n.type === 'pie_slice' ? 140 : 0;
+        const calloutPad = n.type === 'pie_slice' ? 200 : 0;
         const l = n.x - nw / 2 - calloutPad, r = n.x + nw / 2 + calloutPad;
         const t = n.y - nh / 2 - calloutPad, b = n.y + nh / 2 + calloutPad;
         if (n.type === 'text' || n.type === 'title') {
@@ -592,7 +592,7 @@ export default function DiagramRenderer({
      }
 
      if (diagramType === 'piechart') {
-         maxX += 330; // Room specifically for the 1.25x legend on the right
+         maxX += 400; // Room specifically for the 1.25x legend on the right
          const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
          if (pSlicesCount > 0) {
              const approxLegendH = pSlicesCount * 40 + 24;
@@ -940,9 +940,9 @@ export default function DiagramRenderer({
              const textFs  = tx.fontSize ?? 20;
              const textXOff= tx.xOffset  ?? 38;
              // Радиус пирога + отступ для L-explode
-             const PIE_RADIUS = 200;
+             const PIE_RADIUS = 300;
              const hasExploded = slices.some(s => s.size === 'L');
-             const pieBaseRadius = hasExploded ? PIE_RADIUS + 30 : PIE_RADIUS;
+             const pieBaseRadius = hasExploded ? PIE_RADIUS + 40 : PIE_RADIUS;
              const legendX = pieBaseRadius + gapFromPie;
              const legendBoxHeight = slices.length * rowHeight + boxPadding;
              // Центрировано по Y относительно центра пирога
