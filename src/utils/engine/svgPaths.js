@@ -1,4 +1,4 @@
-import { PATH_STYLE_REGISTRY } from '../../registry/edges.js';
+import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
 
 function getEdgePriorityAtIntersection(edgeId, pt, ctx) {
    let priority = 0; 

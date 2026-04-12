@@ -7,7 +7,7 @@ import { assignPorts } from './portAssigner.js';
 import { EdgeRoutingRegistry } from './routingEngines.js';
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 import { getEngine } from '../../engines/index.js';
-import { PATH_STYLE_REGISTRY } from '../../registry/edges.js';
+import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};

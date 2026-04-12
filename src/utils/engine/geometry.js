@@ -1,5 +1,5 @@
 import { getNodeDim } from '../constants';
-import { NODE_REGISTRY } from '../../registry/nodes.jsx';
+import { NODE_REGISTRY } from '../../diagram/nodes.jsx';
 
 
 

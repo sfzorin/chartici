@@ -7,7 +7,7 @@ import {
   CF_MARKERS,
   ARROW_TYPE_REGISTRY,
   CONNECTION_TYPE_REGISTRY,
-} from '../../registry/edges.js';
+} from '../../diagram/edges.js';
 
 const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType, onEdgeSelect, onEdgeDoubleClick }) => {
   if (!pathData) return null;

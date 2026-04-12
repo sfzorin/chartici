@@ -1,7 +1,7 @@
 import React from 'react';
 import { getNodeDim } from '../../utils/constants';
 import { getFittedText } from '../../utils/textUtils';
-import { NODE_REGISTRY } from '../../registry/nodes.jsx';
+import { NODE_REGISTRY } from '../../diagram/nodes.jsx';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
 
 

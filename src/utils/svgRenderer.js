@@ -10,7 +10,7 @@ import { SIZES, PALETTES, getNodeDim } from './constants.js';
 import { parseCharticiFile } from './charticiFormat.js';
 import { getGroupId } from './groupUtils.js';
 import { DIAGRAM_SCHEMAS } from './diagramSchemas.js';
-import { LINE_STYLE_REGISTRY } from '../registry/edges.js';
+import { LINE_STYLE_REGISTRY } from '../diagram/edges.js';
 
 /**
  * Render a .cci JSON string to SVG

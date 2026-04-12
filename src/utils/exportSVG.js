@@ -1,4 +1,4 @@
-import { PALETTES, EXPORT_DEFAULTS } from '../registry/colors.js';
+import { PALETTES, EXPORT_DEFAULTS } from '../diagram/colors.js';
 
 
 /**

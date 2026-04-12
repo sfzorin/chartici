@@ -3,7 +3,7 @@ import { SIZES, getNodeDim } from '../utils/constants';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
-import { getCanvasColors } from '../registry/colors.js';
+import { getCanvasColors } from '../diagram/colors.js';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
 import LeftToolbox from './LeftToolbox';
