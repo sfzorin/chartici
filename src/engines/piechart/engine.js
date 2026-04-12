@@ -22,7 +22,7 @@ export default {
             allowConnections: false,
             autoIncrementColors: true,
             recalculateOnEdit: true,
-            enforceMaxNodes: 9,, supportsLegend: true},
+            enforceMaxNodes: 9, supportsLegend: true},
         // Кодировка в .cci: плоский data.nodes[] без групп и рёбер
         ioFormat: { edgeEncoding: 'none', flatNodes: true },
 

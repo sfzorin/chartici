@@ -300,7 +300,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                 if (!allowOverlap) continue; // Forbid overlaps based on Tier
                 overlapPenalty += ctx.rules.COLLISION_OVERLAP_PENALTY;
             } else if (isBusOverlap && !allowBusPremium) {
-                overlapPenalty += gridStep * 2; // 2 points per pixel penalty for 'slipping' on non-bus diagrams
+                overlapPenalty += gridStep * (ctx.rules.BUS_OVERLAP_PENALTY_FACTOR ?? 2);
             }
         }
 
@@ -312,7 +312,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
             if (turnsHere) {
                 for (let turn of turnsHere) {
                     if (turn.startNodeId === startNodeId || turn.endNodeId === endNodeId) {
-                        tForkDiscount = 100;
+                        tForkDiscount = ctx.rules.T_FORK_EXACT_DISCOUNT ?? 100;
                         break;
                     }
                 }
@@ -330,13 +330,13 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                         if (turnsHere) {
                             for (let otherTurn of turnsHere) {
                                 if (otherTurn.startNodeId === startNodeId || otherTurn.endNodeId === endNodeId) {
-                                    tForkDiscount = 100;
+                                    tForkDiscount = ctx.rules.T_FORK_EXACT_DISCOUNT ?? 100;
                                     break;
                                 }
                             }
                         }
                         if (tForkDiscount === 0) {
-                            tForkDiscount = 80;
+                            tForkDiscount = ctx.rules.T_FORK_TRUNK_DISCOUNT ?? 80;
                         }
                         break;
                     }
@@ -374,7 +374,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
 
         let stepCost = gridStep * ctx.rules.LENGTH_PENALTY;
         if (isBusOverlap && allowBusPremium) {
-            stepCost = 0.5; // Busing is extremely cheap — strongly attracts lines to shared buses
+            stepCost = ctx.rules.BUS_STEP_COST ?? 0.5;
         }
 
         let bendPenaltyVal = isBend ? ctx.rules.BEND_PENALTY : 0;
@@ -401,23 +401,23 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
             if (current.dir === 'V') {
                 const startSign = Math.sign(current.y - current.trueStartPt.y);
                 if (startSign !== 0) {
-                    validZ = safeTargets.some(st => 
-                        (st.portDir === 'Top' && startSign > 0) || 
+                    validZ = safeTargets.some(st =>
+                        (st.portDir === 'Top' && startSign > 0) ||
                         (st.portDir === 'Bottom' && startSign < 0)
                     );
                     if (validZ && n.dir === 'H' && Math.abs(n.y - snappedMedY) <= gridStep/2) {
-                        medianBendDiscount = 20;
+                        medianBendDiscount = ctx.rules.Z_BEND_DISCOUNT ?? 20;
                     }
                 }
             } else if (current.dir === 'H') {
                 const startSign = Math.sign(current.x - current.trueStartPt.x);
                 if (startSign !== 0) {
-                    validZ = safeTargets.some(st => 
-                        (st.portDir === 'Left' && startSign > 0) || 
+                    validZ = safeTargets.some(st =>
+                        (st.portDir === 'Left' && startSign > 0) ||
                         (st.portDir === 'Right' && startSign < 0)
                     );
                     if (validZ && n.dir === 'V' && Math.abs(n.x - snappedMedX) <= gridStep/2) {
-                        medianBendDiscount = 20;
+                        medianBendDiscount = ctx.rules.Z_BEND_DISCOUNT ?? 20;
                     }
                 }
             }
@@ -432,9 +432,9 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
         const stepDx = n.x - current.x;
         const stepDy = n.y - current.y;
         if (Math.abs(dxToTarget) >= Math.abs(dyToTarget)) {
-            if (stepDx !== 0 && Math.sign(stepDx) !== Math.sign(dxToTarget)) backtrackPenalty = 200;
+            if (stepDx !== 0 && Math.sign(stepDx) !== Math.sign(dxToTarget)) backtrackPenalty = ctx.rules.BACKTRACK_PENALTY ?? 200;
         } else {
-            if (stepDy !== 0 && Math.sign(stepDy) !== Math.sign(dyToTarget)) backtrackPenalty = 200;
+            if (stepDy !== 0 && Math.sign(stepDy) !== Math.sign(dyToTarget)) backtrackPenalty = ctx.rules.BACKTRACK_PENALTY ?? 200;
         }
 
         const matchedST = safeTargets.find(st => st.x === n.x && st.y === n.y);
