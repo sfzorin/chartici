@@ -449,6 +449,33 @@ export const NODE_REGISTRY = {
   },
 };
 
+// ─── Derived pie constants (single source of truth) ──────────────────────────
+// All consumers MUST use these instead of hardcoding pixel values.
+const _pieM = NODE_REGISTRY.pie_slice.sizes.M;
+export const PIE_CONSTS = {
+  radius:       _pieM.width / 2,                          // 300
+  explodeDist:  Math.round(_pieM.width / 2 * 0.167),      // 50  (~1/6 radius)
+  collisionR:   Math.round(_pieM.width / 2 * 0.75),       // 225 (inner approx)
+  calloutPad:   Math.round(_pieM.width / 2 * 0.67),       // 200 (label room)
+  legendOffset: Math.round(_pieM.width / 2 * 0.4),        // 120 (legend gap)
+  explodePad:   Math.round(_pieM.width / 2 * 0.133),      // 40  (explode extra)
+};
+
+// ─── Legend size tables (shared between piechart and group legends) ──────────
+export const LEGEND_SIZES = {
+  // Group legend (flowchart, tree, radial, etc.)
+  group: {
+    S: { fontSize: 12, rowH: 26, swatch: 14, swatchGap:  7, padX: 12, padY: 8,  charW: 7,  maxLabelW: 160 },
+    M: { fontSize: 16, rowH: 36, swatch: 20, swatchGap: 10, padX: 16, padY: 12, charW: 9,  maxLabelW: 220 },
+    L: { fontSize: 22, rowH: 50, swatch: 28, swatchGap: 12, padX: 20, padY: 16, charW: 13, maxLabelW: 300 },
+  },
+  // Piechart legend
+  pie: {
+    S: { fontSize: 14, rowH: 30, swW: 16, swH: 12, swRx: 2, padX: 14, padY: 10, charW: 8,  maxLabelW: 180, textOff: 26 },
+    M: { fontSize: 20, rowH: 40, swW: 24, swH: 18, swRx: 2, padX: 20, padY: 12, charW: 11, maxLabelW: 280, textOff: 38 },
+    L: { fontSize: 26, rowH: 54, swW: 32, swH: 24, swRx: 3, padX: 24, padY: 16, charW: 15, maxLabelW: 360, textOff: 48 },
+  },
+};
 
 /**
  * Resolve pixel dimensions for a node instance.

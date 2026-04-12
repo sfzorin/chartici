@@ -4,7 +4,7 @@ import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
-import { NODE_REGISTRY } from '../diagram/nodes.jsx';
+import { NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/nodes.jsx';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
 import LeftToolbox from './LeftToolbox';
@@ -536,7 +536,7 @@ export default function DiagramRenderer({
         const dim = getNodeDim(n);
         const nw = n.type === 'pie_slice' ? dim.width : (n.w || dim.width);
         const nh = n.type === 'pie_slice' ? dim.height : (n.h || dim.height);
-        const calloutPad = n.type === 'pie_slice' ? 200 : 0;
+        const calloutPad = n.type === 'pie_slice' ? PIE_CONSTS.calloutPad : 0;
         const l = n.x - nw / 2 - calloutPad, r = n.x + nw / 2 + calloutPad;
         const t = n.y - nh / 2 - calloutPad, b = n.y + nh / 2 + calloutPad;
         if (n.type === 'text' || n.type === 'title') {
@@ -588,15 +588,17 @@ export default function DiagramRenderer({
      let titleY = minY;
 
      if (diagramTitle) {
-        minY -= (diagramType === 'piechart' ? 140 : 204);
-     }
+         const titleSpacingPx = NODE_REGISTRY.title.layoutSpacing?.[initialData?.config?.titleSize || 'M'] ?? 80;
+         minY -= (diagramType === 'piechart' ? titleSpacingPx + 60 : titleSpacingPx * 2.5);
+      }
 
-     if (diagramType === 'piechart') {
-         maxX += 400; // Room specifically for the 1.25x legend on the right
-         const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
-         if (pSlicesCount > 0) {
-             const approxLegendH = pSlicesCount * 40 + 24;
-             maxY += (approxLegendH / 2) + 40; // Expand bottom boundary so legend doesn't overlap off canvas
+      if (diagramType === 'piechart') {
+          const pieLegSz = LEGEND_SIZES.pie[legendSize] || LEGEND_SIZES.pie.M;
+          maxX += pieLegSz.maxLabelW + pieLegSz.textOff + pieLegSz.padX * 2 + PIE_CONSTS.legendOffset;
+          const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
+          if (pSlicesCount > 0) {
+              const approxLegendH = pSlicesCount * pieLegSz.rowH + pieLegSz.padY * 2;
+              maxY += (approxLegendH / 2) + PIE_CONSTS.explodePad;
          }
      }
 
@@ -928,13 +930,7 @@ export default function DiagramRenderer({
           {diagramType === 'piechart' && showLegend && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
 
-             // ── Размеры легенды (S / M / L) ────────────────────
-             const PIE_LEGEND_SIZES = {
-               S: { fontSize: 14, rowH: 30, swW: 16, swH: 12, swRx: 2, padX: 14, padY: 10, charW: 8, maxLabelW: 180, textOff: 26 },
-               M: { fontSize: 20, rowH: 40, swW: 24, swH: 18, swRx: 2, padX: 20, padY: 12, charW: 11, maxLabelW: 280, textOff: 38 },
-               L: { fontSize: 26, rowH: 54, swW: 32, swH: 24, swRx: 3, padX: 24, padY: 16, charW: 15, maxLabelW: 360, textOff: 48 },
-             };
-             const sz = PIE_LEGEND_SIZES[legendSize] || PIE_LEGEND_SIZES.M;
+             const sz = LEGEND_SIZES.pie[legendSize] || LEGEND_SIZES.pie.M;
              const maxLabelLen = Math.max(...slices.map(s => ((s.label || 'Item') + (s.value != null ? ` (${s.value})` : '')).length));
              const lgW = sz.padX * 2 + sz.textOff + Math.min(maxLabelLen * sz.charW, sz.maxLabelW);
              const lgH = sz.padY * 2 + slices.length * sz.rowH;
@@ -945,10 +941,9 @@ export default function DiagramRenderer({
                lgX = legendPos.x;
                lgY = legendPos.y;
              } else {
-               const PIE_RADIUS = 300;
                const hasExploded = slices.some(s => s.size === 'L');
-               const pieBaseRadius = hasExploded ? PIE_RADIUS + 40 : PIE_RADIUS;
-               lgX = pieBaseRadius + 120;
+               const pieBaseRadius = hasExploded ? PIE_CONSTS.radius + PIE_CONSTS.explodePad : PIE_CONSTS.radius;
+               lgX = pieBaseRadius + PIE_CONSTS.legendOffset;
                lgY = -(lgH / 2);
              }
 
@@ -1033,13 +1028,8 @@ export default function DiagramRenderer({
               .slice(0, 16);
             if (legendGroups.length < 2) return null;
 
-            // ── Размерная таблица легенды (S / M / L) ────────────
-            const LEGEND_SIZES = {
-              S: { fontSize: 12, rowH: 26, swatch: 14, swatchGap:  7, padX: 12, padY: 8,  charW: 7, maxLabelW: 160 },
-              M: { fontSize: 16, rowH: 36, swatch: 20, swatchGap: 10, padX: 16, padY: 12, charW: 9, maxLabelW: 220 },
-              L: { fontSize: 22, rowH: 50, swatch: 28, swatchGap: 12, padX: 20, padY: 16, charW: 13, maxLabelW: 300 },
-            };
-            const sz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
+            // ── Размеры легенды из централизованной таблицы ────
+            const sz = LEGEND_SIZES.group[legendSize] || LEGEND_SIZES.group.M;
             const FONT_SIZE   = sz.fontSize;
             const ROW_H       = sz.rowH;
             const SWATCH      = sz.swatch;

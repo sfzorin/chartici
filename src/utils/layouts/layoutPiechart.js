@@ -1,11 +1,13 @@
+import { PIE_CONSTS } from '../../diagram/nodes.jsx';
+
 export function layoutPiechart(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];
 
-  // L-\u0441\u0435\u043a\u0442\u043e\u0440 \u0432\u044b\u0434\u0432\u0438\u0433\u0430\u0435\u0442\u0441\u044f \u043d\u0430\u0440\u0443\u0436\u0443 \u043f\u043e mid-angle \u043d\u0430 \u044d\u0442\u043e \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043f\u0438\u043a\u0441\u0435\u043b\u0435\u0439
-  const EXPLODE_DIST = 50;
+  // L-сектор выдвигается наружу по mid-angle на это количество пикселей
+  const EXPLODE_DIST = PIE_CONSTS.explodeDist;
 
   const sizeVal = (size) => {
-    // S \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f — \u0442\u043e\u043b\u044c\u043a\u043e M \u0438 L
+    // S больше не поддерживается — только M и L
     return size === 'L' ? 4 : 2;
   };
 
@@ -52,7 +54,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
 
 
   // Second pass: Rigorous angular collision detection
-  const R = 225; // Inner approx radius (matches 300px visual radius)
+  const R = PIE_CONSTS.collisionR;
   const TEXT_SPAN_PIXELS = 22; // Physical pixel leeway requested per line
   const STAGGER_STEP = 25; // Radial spacing between cascade levels
   

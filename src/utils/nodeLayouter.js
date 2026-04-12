@@ -1,5 +1,6 @@
 import { getDiagramRules } from './diagramRules.js';
 import { getNodeDim } from './constants.js';
+import { NODE_REGISTRY } from '../diagram/nodes.jsx';
 import { EngineRegistry } from './layouts/engines/EngineRegistry.js';
 import { layoutPiechart } from './layouts/layoutPiechart.js';
 export function layoutNodesHeuristically(nodes, edges, config = {}) {
@@ -41,9 +42,9 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
         children.forEach(c => nodesToExtract.add(c.id));
         
         const proxyId = `__pie_proxy_${g.id}`;
-        // approximate pie diameter
-        const sizeMap = { 'S': 300, 'M': 450, 'L': 600 };
-        const side = sizeMap[g.size] || 450;
+        // approximate pie diameter from NODE_REGISTRY
+        const pieSizes = NODE_REGISTRY.pie_slice?.sizes || {};
+        const side = (pieSizes[g.size] || pieSizes.M || { width: 600 }).width;
         
         pieProxyMap[proxyId] = {
            group: g,
