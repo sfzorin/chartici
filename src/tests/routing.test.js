@@ -2,7 +2,7 @@ import { runAStar } from '../utils/engine/astar.js';
 import { RoutingContext } from '../utils/engine/RoutingContext.js';
 import { getTrueBox, getNodePorts } from '../utils/engine/geometry.js';
 import { getDiagramRules } from '../utils/diagramRules.js';
-import { SIZES } from '../utils/constants.js';
+import { getNodeDim } from '../diagram/nodes.jsx';
 import fs from 'fs';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
@@ -102,7 +102,7 @@ class Asserter {
 ///////////////////////////////////////////////////////////////
 
 function createNode(id, x, y, sizeKey) {
-    const dim = SIZES[sizeKey];
+    const dim = getNodeDim({ type: 'process', size: sizeKey });
     return { id, x, y, width: dim.width, height: dim.height, w: dim.width, h: dim.height, type: 'rect', size: sizeKey };
 }
 
@@ -289,9 +289,8 @@ async function runTestCase(name, setupFunc) {
             let inNodes = [];
             raw.data.groups.forEach(g => {
                 g.nodes.forEach(n => {
-                   const w = SIZES[n.size||'M'].width;
-                   const h = SIZES[n.size||'M'].height;
-                   inNodes.push({ ...n, width: w, height: h, w: w, h: h });
+                   const dim = getNodeDim({ type: n.type || 'process', size: n.size || 'M' });
+                   inNodes.push({ ...n, width: dim.width, height: dim.height, w: dim.width, h: dim.height });
                 });
             });
             const inEdges = raw.data.edges.map(e => ({ id: e.id, from: e.sourceId, to: e.targetId }));

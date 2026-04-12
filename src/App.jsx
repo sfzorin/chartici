@@ -11,7 +11,7 @@ import WelcomeScreenModal from './components/WelcomeScreenModal';
 import { downloadCharticiFile, parseCharticiFile } from './utils/charticiFormat';
 import { downloadSVG } from './utils/exportSVG';
 
-import { SIZES, PALETTES, getNodeDim } from './utils/constants';
+import { PALETTES, getNodeDim } from './utils/constants';
 import { DIAGRAM_SCHEMAS, DIAGRAM_TYPES } from './utils/diagramSchemas';
 import { smartAlign } from './utils/layout';
 import { layoutNodesHeuristically } from './utils/nodeLayouter';

@@ -6,7 +6,7 @@
  */
 import { layoutNodesHeuristically } from './nodeLayouter.js';
 import { calculateAllPaths } from './engine/index.js';
-import { SIZES, PALETTES, getNodeDim } from './constants.js';
+import { PALETTES, getNodeDim } from './constants.js';
 import { parseCharticiFile } from './charticiFormat.js';
 import { getGroupId } from './groupUtils.js';
 import { DIAGRAM_SCHEMAS } from './diagramSchemas.js';
