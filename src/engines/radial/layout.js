@@ -3,5 +3,6 @@
 export default {
     algorithm: 'radial',
     isHorizontalFlow: false,
-    edgeStyle: 'straight_clipped'
+    edgeStyle: 'curved'
+
 };

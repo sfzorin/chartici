@@ -1,3 +1,5 @@
+import { PATH_STYLE_REGISTRY } from '../../registry/edges.js';
+
 function getEdgePriorityAtIntersection(edgeId, pt, ctx) {
    let priority = 0; 
    const info = ctx.edgePaths && ctx.edgePaths[edgeId] && ctx.edgePaths[edgeId]._genInfo;
@@ -104,13 +106,15 @@ export function drawSegmentWithJumps(start, end, inters, jr) {
 }
 
 export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, routeOrder) {
+    const pathStyle = PATH_STYLE_REGISTRY.orthogonal_astar;
+    const r  = pathStyle.cornerRadius; // 4
+    const jr = pathStyle.jumpRadius;   // 6
+
     let pathStr = `M ${cleanPts[0].x} ${cleanPts[0].y}`;
     if (cleanPts.length === 2) {
       const inters = getIntersections(cleanPts[0], cleanPts[1], edgeId, routeOrder, ctx);
-      pathStr += drawSegmentWithJumps(cleanPts[0], cleanPts[1], inters, 6);
+      pathStr += drawSegmentWithJumps(cleanPts[0], cleanPts[1], inters, jr);
     } else {
-      const r = 4;
-      const jr = 6;
       let lastPoint = cleanPts[0];
       
       for (let i = 1; i < cleanPts.length - 1; i++) {

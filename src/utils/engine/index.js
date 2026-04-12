@@ -7,6 +7,7 @@ import { assignPorts } from './portAssigner.js';
 import { EdgeRoutingRegistry } from './routingEngines.js';
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 import { getEngine } from '../../engines/index.js';
+import { PATH_STYLE_REGISTRY } from '../../registry/edges.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
@@ -20,8 +21,11 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       return result; // Edges are hidden natively (e.g. Pie chart)
   }
 
-  // straight_clipped: straight lines clipped to node borders (no astar routing)
-  if (routingStyle === 'straight_clipped') {
+  // Shared helper for straight/curved 2-point clip paths
+  const isStraightStyle = routingStyle === 'straight_clipped' || routingStyle === 'straight' || routingStyle === 'curved';
+  if (isStraightStyle) {
+    const pathStyleDef = PATH_STYLE_REGISTRY[routingStyle] || PATH_STYLE_REGISTRY.straight;
+    const curveStrength = pathStyleDef.curveStrength || 0;
 
     edges.forEach(edge => {
       const fromId = edge.from || edge.sourceId;
@@ -30,35 +34,43 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       const endNode = allNodes.find(n => n.id === toId);
       if (!startNode || !endNode) return;
       if (edge.style === 'invisible' || edge.logical || edge.isBlank) return;
-      // Suppress spine-to-spine edges (e.g. timeline chevron→chevron)
       if (activeSchema?.engineManifest?.suppressSpineEdges && startNode.type === 'chevron' && endNode.type === 'chevron') return;
-      const scx = startNode.x;
-      const scy = startNode.y;
-      const ecx = endNode.x;
-      const ecy = endNode.y;
-      
+
+      const scx = startNode.x, scy = startNode.y;
+      const ecx = endNode.x,   ecy = endNode.y;
       const dx = ecx - scx, dy = ecy - scy;
       const len = Math.sqrt(dx*dx + dy*dy);
       if (len < 1) return;
       const ux = dx/len, uy = dy/len;
-      
-      const clipDist = getClipDist;
-      
-      const startDist = clipDist(startNode, scx, scy, ux, uy);
-      const endDist = clipDist(endNode, ecx, ecy, -ux, -uy);
-      
+
+      const startDist = getClipDist(startNode, scx, scy,  ux,  uy);
+      const endDist   = getClipDist(endNode,   ecx, ecy, -ux, -uy);
       const sp = { x: scx + ux * startDist, y: scy + uy * startDist };
-      const ep = { x: ecx - ux * endDist, y: ecy - uy * endDist };
-      const pathD = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
-      // Ensure text always reads left-to-right (or top-to-bottom for vertical)
-      let textPathD;
+      const ep = { x: ecx - ux * endDist,   y: ecy - uy * endDist   };
+
+      let pathD;
+      if (curveStrength > 0) {
+        // Quadratic bezier: control point offset perpendicular to the line
+        const midX = (sp.x + ep.x) / 2;
+        const midY = (sp.y + ep.y) / 2;
+        const segLen = Math.hypot(ep.x - sp.x, ep.y - sp.y);
+        // Perpendicular direction (CCW): (-uy, ux)
+        const cpx = midX + (-uy) * segLen * curveStrength;
+        const cpy = midY + ( ux) * segLen * curveStrength;
+        pathD = `M ${sp.x} ${sp.y} Q ${cpx} ${cpy} ${ep.x} ${ep.y}`;
+      } else {
+        pathD = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
+      }
+
+      // textPathD: always L-R or B-T for readable labels
       const isNearVertical = Math.abs(sp.x - ep.x) < Math.abs(sp.y - ep.y);
+      let textPathD;
       if (isNearVertical) {
         textPathD = sp.y <= ep.y ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
       } else {
         textPathD = sp.x <= ep.x ? `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}` : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`;
       }
-      result[edge.id] = { pathD, textPathD, pts: [sp, ep] };
+      result[edge.id] = { pathD, textPathD, textPathLen: len, pts: [sp, ep] };
     });
     return result;
   }
