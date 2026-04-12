@@ -4,6 +4,7 @@ import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
+import { NODE_REGISTRY } from '../diagram/nodes.jsx';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
 import LeftToolbox from './LeftToolbox';
@@ -640,7 +641,11 @@ export default function DiagramRenderer({
      if (sysTitle) {
         // Note: computeBindings() creates fresh node objects, so these assignments are safe
         if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
-        if (sysTitle.y === undefined) sysTitle.y = titleY - (diagramTitle ? 80 : 0);
+        if (sysTitle.y === undefined) {
+           const titleSpacing = NODE_REGISTRY.title.layoutSpacing?.[sysTitle.size || 'M'] ?? 80;
+           sysTitle.y = titleY - (diagramTitle ? titleSpacing : 0);
+        }
+
      }
      
      return {

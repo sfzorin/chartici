@@ -26,7 +26,7 @@ import React from 'react';
  *
  * portCatalog
  *   Список именованных портов из PORT_CATALOG. Описывает геометрию портов.
- *   Пенальти определяются в engine's routing.js -> portPenalty().
+ *   Пенальти определяются в engine's engine.js → routing.portPenalty().
  *
  * diagonalPorts (только circle)
  *   Предвычисленные swoop-выходы для S/M/L — дополнение к cardinal портам.
@@ -420,10 +420,21 @@ export const NODE_REGISTRY = {
     label: 'Heading',
     icon:  'shape-title',
     dynamicSize: true,
+    defaultSize: 'M',         // размер по умолчанию при создании
     sizes: {
       S: { fontSize: 40 },
       M: { fontSize: 56 },
       L: { fontSize: 80 },
+    },
+    /**
+     * layoutSpacing — вертикальный отступ (px), резервируемый над диаграммой
+     * для заголовка при авто-лэйауте (DiagramRenderer.jsx).
+     * Значения подобраны под высоту строки с учётом межстрочного интервала 1.2.
+     */
+    layoutSpacing: {
+      S: 60,
+      M: 80,
+      L: 120,
     },
     ports: 'none',
     portCatalog: [],

@@ -129,15 +129,18 @@ export default function LeftToolbox({
   const currentCt = eContext.connectionType; // ERD cardinality only
   const currentAt = eContext.arrowType || eContext.connectionType || 'target'; // arrow direction
 
-  const isShapeToolActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__';
-  const isSizeToolActive = !!selectedNode;
-  const isColorToolActive = !!selectedNode;
+  const isTitle = selectedNode?.type === 'title' || selectedNode?.id === '__SYSTEM_TITLE__';
+
+  const isShapeToolActive  = !!selectedNode && !isTitle;
+  const isSizeToolActive   = !!selectedNode;
+  const isColorToolActive  = !!selectedNode && !isTitle;
   const diagramSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
-  const isEdgeToolActive = !!selectedEdge && diagramSchema.features.allowConnections;
-  const isLabelActive = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
-  const isLockActive = !!selectedNode && selectedNode.type !== 'text' && selectedNode.id !== '__SYSTEM_TITLE__';
-  const isConnectActive = !!selectedNode && selectedNode.id !== '__SYSTEM_TITLE__' && diagramSchema.features.allowConnections;
-  const isTrashActive = !!(selectedNode || selectedEdge);
+  const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
+  const isLabelActive      = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
+  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle;
+  const isConnectActive    = !!selectedNode && !isTitle && diagramSchema.features.allowConnections;
+  const isGroupToolActive  = !!selectedNode && !isTitle;
+  const isTrashActive      = !!(selectedNode || selectedEdge);
 
   const enforceMax = diagramSchema?.features?.enforceMaxNodes;
   const isAddDisabled = enforceMax && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= enforceMax;
@@ -320,9 +323,10 @@ export default function LeftToolbox({
             </div>
 
             {/* Group Selection */}
-            <button ref={groupBtnRef} className="toolbox-btn" onClick={() => togglePopover('group')} data-tooltip="Manage Group">
-              <Icon name="layers" size={24} />
-            </button>
+            <div style={{ display: 'inline-block', ...getStyle(isGroupToolActive) }}>
+              <button ref={groupBtnRef} className="toolbox-btn" onClick={() => togglePopover('group')} data-tooltip="Manage Group">
+                <Icon name="layers" size={24} />
+              </button>
             <PopoverMenu isOpen={activePopover === 'group'} onClose={() => setActivePopover(null)} anchorRef={groupBtnRef}>
               <div className="popover-title">Group Label</div>
               <div className="popover-list" style={{ width: '220px' }}>
@@ -415,7 +419,9 @@ export default function LeftToolbox({
                  </div>
               </div>
             </PopoverMenu>
-          </div>
+            </div>{/* /isGroupToolActive wrapper */}
+          </div>{/* /toolbox-section node tools */}
+
 
           {/* EDGE TOOLS (Style & Arrows) */}
           <div className="toolbox-section" style={getStyle(isEdgeToolActive)}>
