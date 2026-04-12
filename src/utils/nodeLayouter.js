@@ -67,6 +67,10 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
 
   // 3. Clean up proxy metrics and restore pie slices
   let laidOutResult = [];
+  // Build map of original positions for lockPos restoration
+  const originalPositions = {};
+  nodes.forEach(n => { if (n.lockPos) originalPositions[n.id] = { x: n.x, y: n.y }; });
+
   result.forEach(n => {
       if (pieProxyMap[n.id]) {
           // This is a pie proxy! 
@@ -92,6 +96,12 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
           
           out.x = Math.round(out.x / 20) * 20;
           out.y = Math.round(out.y / 20) * 20;
+
+          // Restore locked position (override layout result)
+          if (originalPositions[out.id]) {
+             out.x = originalPositions[out.id].x;
+             out.y = originalPositions[out.id].y;
+          }
           laidOutResult.push(out);
       }
   });
