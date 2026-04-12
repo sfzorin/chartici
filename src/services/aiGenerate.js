@@ -87,7 +87,9 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
 
-  const rawContent = phase2Data.content;
+  const rawContent = phase2Data.content
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '') // Strip DeepSeek thinking blocks
+    .trim();
   
   // PARSING ALGORITHM
   const parsed = {
