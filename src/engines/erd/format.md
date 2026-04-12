@@ -64,3 +64,13 @@
 | `label` | String | Название связи (опционально) |
 | `connectionType` | `1:1` \| `1:N` \| `N:1` \| `N:M` | Кардинальность (обязательно) |
 | `lineStyle` | `solid` \| `dashed` | `solid` — обязательная связь |
+
+## data.config (опционально)
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `aspect` | String | Соотношение сторон: `"16:9"`, `"4:3"`, `"1:1"`, `"A4"` |
+| `bgColor` | String | Фон холста: `"white"`, `"black"`, `"transparent"` и т.д. |
+| `showLegend` | Boolean | Показывать легенду групп (по умолчанию `false`, omitted when false) |
+| `legendX` | Number | Залоченная X-координата легенды (omitted = авто-позиция) |
+| `legendY` | Number | Залоченная Y-координата легенды (omitted = авто-позиция) |

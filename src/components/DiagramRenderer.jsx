@@ -38,6 +38,7 @@ export default function DiagramRenderer({
   toolboxProps,
   showLegend = false,
   legendPos = null,
+  legendSize = 'M',
   onLegendMove,
 }) {
   const [nodes, setNodes] = useState([]);
@@ -968,16 +969,22 @@ export default function DiagramRenderer({
               .slice(0, 16);
             if (legendGroups.length < 2) return null;
 
-            // ── Размеры легенды: текст = M-нода (16px) ────────────
-            const FONT_SIZE  = 16;
-            const ROW_H      = 36;
-            const SWATCH     = 20;
-            const SWATCH_GAP = 10;
-            const PAD_X      = 16;
-            const PAD_Y      = 12;
-            const TEXT_OFFSET = SWATCH + SWATCH_GAP;
+            // ── Размерная таблица легенды (S / M / L) ────────────
+            const LEGEND_SIZES = {
+              S: { fontSize: 12, rowH: 26, swatch: 14, swatchGap:  7, padX: 12, padY: 8,  charW: 7, maxLabelW: 160 },
+              M: { fontSize: 16, rowH: 36, swatch: 20, swatchGap: 10, padX: 16, padY: 12, charW: 9, maxLabelW: 220 },
+              L: { fontSize: 22, rowH: 50, swatch: 28, swatchGap: 12, padX: 20, padY: 16, charW: 13, maxLabelW: 300 },
+            };
+            const sz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
+            const FONT_SIZE   = sz.fontSize;
+            const ROW_H       = sz.rowH;
+            const SWATCH      = sz.swatch;
+            const SWATCH_GAP  = sz.swatchGap;
+            const PAD_X       = sz.padX;
+            const PAD_Y       = sz.padY;
+            const TEXT_OFFSET  = SWATCH + SWATCH_GAP;
             const maxLabelLen = Math.max(...legendGroups.map(g => (g.label || '').length));
-            const lgW = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * 9, 220);
+            const lgW = PAD_X * 2 + TEXT_OFFSET + Math.min(maxLabelLen * sz.charW, sz.maxLabelW);
             const lgH = PAD_Y * 2 + legendGroups.length * ROW_H;
 
             // ── Авто-позиция или locked ──────────────────────────
@@ -1047,12 +1054,42 @@ export default function DiagramRenderer({
               } catch {}
             };
 
+            const isLegendSelected = toolboxProps?.selectedNode?.id === '__LEGEND__';
+
             return (
               <g
                 transform={`translate(${lgX}, ${lgY})`}
                 style={{ cursor: 'grab' }}
-                onPointerDown={handleLegendDragStart}
+                onPointerDown={(e) => {
+                  // Track start position for drag vs click detection
+                  const startClient = { x: e.clientX, y: e.clientY };
+                  let dragged = false;
+
+                  handleLegendDragStart(e);
+
+                  const checkDrag = (me) => {
+                    const dx = me.clientX - startClient.x;
+                    const dy = me.clientY - startClient.y;
+                    if (dx * dx + dy * dy > 9) dragged = true;
+                  };
+                  const finishClick = () => {
+                    window.removeEventListener('pointermove', checkDrag);
+                    window.removeEventListener('pointerup', finishClick);
+                    if (!dragged && onNodeSelect) {
+                      onNodeSelect('__LEGEND__');
+                    }
+                  };
+                  window.addEventListener('pointermove', checkDrag);
+                  window.addEventListener('pointerup', finishClick);
+                }}
               >
+                <rect
+                  x={-2} y={-2} width={lgW + 4} height={lgH + 4}
+                  fill="none"
+                  stroke={isLegendSelected ? 'var(--color-brand, #3b82f6)' : 'transparent'}
+                  strokeWidth={isLegendSelected ? 2 : 0}
+                  rx={10} strokeDasharray={isLegendSelected ? '6 3' : 'none'}
+                />
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
                   fill={resolvedLegendBg} stroke={resolvedLegendStroke}

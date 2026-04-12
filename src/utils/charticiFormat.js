@@ -110,6 +110,7 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
     dataConfig.legendX = restConfig.legendPos.x;
     dataConfig.legendY = restConfig.legendPos.y;
   }
+  if (restConfig.legendSize && restConfig.legendSize !== 'M') dataConfig.legendSize = restConfig.legendSize;
 
   payload.data = {};
   if (Object.keys(dataConfig).length) payload.data.config = dataConfig;

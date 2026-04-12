@@ -29,6 +29,7 @@ function App() {
   const [bgColor, setBgColor] = useState('transparent-dark');
   const [showLegend, setShowLegend] = useState(false);
   const [legendPos, setLegendPos] = useState(null); // null = auto, {x,y} = locked
+  const [legendSize, setLegendSize] = useState('M'); // S, M, L
   const [diagramTitle, setDiagramTitle] = useState('Untitled Project');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [panToNodeId, setPanToNodeId] = useState(null);
@@ -148,7 +149,7 @@ function App() {
   const handleDownloadChartici = async () => {
     // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
     const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
-      aspect, bgColor, theme: paletteTheme, diagramType, showLegend, legendPos,
+      aspect, bgColor, theme: paletteTheme, diagramType, showLegend, legendPos, legendSize,
       titleText:  diagramTitle,
       titleSize:  diagramData.config?.titleSize,
       titleX:     diagramData.config?.titleLock ? diagramData.config?.titleX : undefined,
@@ -191,6 +192,7 @@ function App() {
       setDiagramType(dt);
       if (parsed.config.showLegend !== undefined) setShowLegend(!!parsed.config.showLegend);
       setLegendPos(parsed.config.legendX !== undefined ? { x: parsed.config.legendX, y: parsed.config.legendY } : null);
+      if (parsed.config.legendSize) setLegendSize(parsed.config.legendSize);
       
       let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
       if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
@@ -500,6 +502,15 @@ function App() {
   const updateSelectedNode = (field, value) => {
     if (!selectedNodeId) return;
     
+    // Intercept updates for the special legend virtual node
+    if (selectedNodeId === '__LEGEND__') {
+      if (field === 'size') {
+        setLegendSize(value);
+        setDiagramData(prev => ({...prev, config: { ...prev.config, legendSize: value === 'M' ? undefined : value }}));
+      }
+      return;
+    }
+
     // Intercept updates for the special system title node
     if (selectedNodeId === '__SYSTEM_TITLE__') {
       if (field === 'lockPos') {
@@ -643,6 +654,7 @@ function App() {
   };
 
   const deleteSelectedElement = useCallback(() => {
+    if (selectedNodeId === '__LEGEND__') { setSelectedNodeId(null); return; }
     if (selectedNodeId) {
       setDiagramData(prev => {
         let newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);
@@ -713,6 +725,14 @@ function App() {
         x: diagramData.config?.titleX,
         y: diagramData.config?.titleY,
         lockPos: diagramData.config?.titleLock || false
+     };
+  }
+  if (selectedNodeId === '__LEGEND__') {
+     selectedNode = {
+        id: '__LEGEND__',
+        type: 'process',
+        label: 'Legend',
+        size: legendSize || 'M',
      };
   }
   
@@ -792,6 +812,7 @@ function App() {
             onAddNode={addNewNode}
             showLegend={showLegend}
             legendPos={legendPos}
+            legendSize={legendSize}
             onLegendMove={(pos) => {
               setLegendPos(pos);
               setDiagramData(prev => ({...prev, config: {...prev.config, legendX: pos.x, legendY: pos.y}}));

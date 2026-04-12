@@ -128,16 +128,17 @@ export default function LeftToolbox({
   const currentAt = eContext.arrowType || eContext.connectionType || 'target'; // arrow direction
 
   const isTitle = selectedNode?.type === 'title' || selectedNode?.id === '__SYSTEM_TITLE__';
+  const isLegend = selectedNode?.id === '__LEGEND__';
 
-  const isShapeToolActive  = !!selectedNode && !isTitle;
+  const isShapeToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isSizeToolActive   = !!selectedNode;
-  const isColorToolActive  = !!selectedNode && !isTitle;
+  const isColorToolActive  = !!selectedNode && !isTitle && !isLegend;
   const isEdgeToolActive   = !!selectedEdge && diagramSchema.features.allowConnections;
-  const isLabelActive      = !!selectedNode || (!!selectedEdge && eContext.lineStyle !== 'none');
-  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle;
-  const isConnectActive    = !!selectedNode && !isTitle && diagramSchema.features.allowConnections;
-  const isGroupToolActive  = !!selectedNode && !isTitle;
-  const isTrashActive      = !!(selectedNode || selectedEdge);
+  const isLabelActive      = (!!selectedNode && !isLegend) || (!!selectedEdge && eContext.lineStyle !== 'none');
+  const isLockActive       = !!selectedNode && selectedNode.type !== 'text' && !isTitle && !isLegend;
+  const isConnectActive    = !!selectedNode && !isTitle && !isLegend && diagramSchema.features.allowConnections;
+  const isGroupToolActive  = !!selectedNode && !isTitle && !isLegend;
+  const isTrashActive      = !!(selectedNode || selectedEdge) && !isLegend;
 
   const enforceMax = diagramSchema?.features?.enforceMaxNodes;
   const isAddDisabled = enforceMax && Array.isArray(nodesList) && nodesList.filter(n => n.id !== '__SYSTEM_TITLE__').length >= enforceMax;
@@ -222,7 +223,7 @@ export default function LeftToolbox({
                 <Icon name="size" size={20} textValue={nContext.size === 'AUTO' ? 'M' : (nContext.size || 'M')} />
               </button>
               <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
-                <div className="popover-title">Node Size</div>
+                <div className="popover-title">{isLegend ? 'Legend Size' : 'Node Size'}</div>
                 <div className="popover-list">
                   {Object.keys(NODE_REGISTRY[nContext.type]?.sizes || NODE_REGISTRY.process.sizes).map(s => {
                     const labels = { S: 'Small', M: 'Medium', L: 'Large' };
