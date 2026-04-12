@@ -927,33 +927,97 @@ export default function DiagramRenderer({
           })()}
           {diagramType === 'piechart' && showLegend && computedNodes.filter(n => n.type === 'pie_slice').length > 0 && (() => {
              const slices = computedNodes.filter(n => n.type === 'pie_slice');
-             // Параметры из engineManifest (с fallback на безопасные дефолты)
-             const lg = activeSchema?.engineManifest?.legend || {};
-             const gapFromPie  = lg.gapFromPie  ?? 160;
-             const rowHeight   = lg.rowHeight   ?? 40;
-             const boxPadding  = lg.boxPadding  ?? 24;
-             const boxWidth    = lg.boxWidth    ?? 325;
-             const cornerRadius= lg.cornerRadius ?? 8;
-             const sw          = lg.swatch      || {};
-             const swW = sw.width ?? 24, swH = sw.height ?? 18, swRx = sw.cornerRadius ?? 2;
-             const tx          = lg.text        || {};
-             const textFs  = tx.fontSize ?? 20;
-             const textXOff= tx.xOffset  ?? 38;
-             // Радиус пирога + отступ для L-explode
-             const PIE_RADIUS = 300;
-             const hasExploded = slices.some(s => s.size === 'L');
-             const pieBaseRadius = hasExploded ? PIE_RADIUS + 40 : PIE_RADIUS;
-             const legendX = pieBaseRadius + gapFromPie;
-             const legendBoxHeight = slices.length * rowHeight + boxPadding;
-             // Центрировано по Y относительно центра пирога
-             const legendY = -(legendBoxHeight / 2);
+
+             // ── Размеры легенды (S / M / L) ────────────────────
+             const PIE_LEGEND_SIZES = {
+               S: { fontSize: 14, rowH: 30, swW: 16, swH: 12, swRx: 2, padX: 14, padY: 10, charW: 8, maxLabelW: 180, textOff: 26 },
+               M: { fontSize: 20, rowH: 40, swW: 24, swH: 18, swRx: 2, padX: 20, padY: 12, charW: 11, maxLabelW: 280, textOff: 38 },
+               L: { fontSize: 26, rowH: 54, swW: 32, swH: 24, swRx: 3, padX: 24, padY: 16, charW: 15, maxLabelW: 360, textOff: 48 },
+             };
+             const sz = PIE_LEGEND_SIZES[legendSize] || PIE_LEGEND_SIZES.M;
+             const maxLabelLen = Math.max(...slices.map(s => ((s.label || 'Item') + (s.value != null ? ` (${s.value})` : '')).length));
+             const lgW = sz.padX * 2 + sz.textOff + Math.min(maxLabelLen * sz.charW, sz.maxLabelW);
+             const lgH = sz.padY * 2 + slices.length * sz.rowH;
+
+             // ── Авто-позиция или locked ──────────────────────
+             let lgX, lgY;
+             if (legendPos) {
+               lgX = legendPos.x;
+               lgY = legendPos.y;
+             } else {
+               const PIE_RADIUS = 300;
+               const hasExploded = slices.some(s => s.size === 'L');
+               const pieBaseRadius = hasExploded ? PIE_RADIUS + 40 : PIE_RADIUS;
+               lgX = pieBaseRadius + 120;
+               lgY = -(lgH / 2);
+             }
+
+             // ── Drag handler ────────────────────────────────────
+             const handlePieLegendDrag = (e) => {
+               e.stopPropagation();
+               const svg = svgRef.current;
+               const viewport = viewportRef.current;
+               if (!svg || !viewport) return;
+               const pt = svg.createSVGPoint();
+               pt.x = e.clientX; pt.y = e.clientY;
+               try {
+                 const svgP = pt.matrixTransform(viewport.getScreenCTM().inverse());
+                 const startOffset = { dx: lgX - svgP.x, dy: lgY - svgP.y };
+                 const onMove = (me) => {
+                   pt.x = me.clientX; pt.y = me.clientY;
+                   try {
+                     const p = pt.matrixTransform(viewport.getScreenCTM().inverse());
+                     const nx = Math.round((p.x + startOffset.dx) / 10) * 10;
+                     const ny = Math.round((p.y + startOffset.dy) / 10) * 10;
+                     if (onLegendMove) onLegendMove({ x: nx, y: ny });
+                   } catch {}
+                 };
+                 const onUp = () => {
+                   window.removeEventListener('pointermove', onMove);
+                   window.removeEventListener('pointerup', onUp);
+                 };
+                 window.addEventListener('pointermove', onMove);
+                 window.addEventListener('pointerup', onUp);
+               } catch {}
+             };
+
+             const isLegendSelected = toolboxProps?.selectedNode?.id === '__LEGEND__';
+
              return (
-               <g transform={`translate(${legendX}, ${legendY})`}>
-                 <rect x={0} y={0} width={boxWidth} height={legendBoxHeight} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={cornerRadius} />
+               <g
+                 transform={`translate(${lgX}, ${lgY})`}
+                 style={{ cursor: 'grab' }}
+                 onPointerDown={(e) => {
+                   const startClient = { x: e.clientX, y: e.clientY };
+                   let dragged = false;
+                   handlePieLegendDrag(e);
+                   const checkDrag = (me) => {
+                     const dx = me.clientX - startClient.x;
+                     const dy = me.clientY - startClient.y;
+                     if (dx * dx + dy * dy > 9) dragged = true;
+                   };
+                   const finishClick = () => {
+                     window.removeEventListener('pointermove', checkDrag);
+                     window.removeEventListener('pointerup', finishClick);
+                     if (!dragged && onNodeSelect) onNodeSelect('__LEGEND__');
+                   };
+                   window.addEventListener('pointermove', checkDrag);
+                   window.addEventListener('pointerup', finishClick);
+                 }}
+               >
+                 {isLegendSelected && (
+                   <g style={{ pointerEvents: 'none' }}>
+                     <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
+                       fill="none" stroke="#3b82f6" strokeWidth="10" opacity="0.3" />
+                     <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
+                       fill="none" stroke="#3b82f6" strokeWidth="2" />
+                   </g>
+                 )}
+                 <rect x={0} y={0} width={lgW} height={lgH} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={8} opacity={0.97} />
                  {slices.map((slice, i) => (
-                    <g key={i} transform={`translate(20, ${boxPadding / 2 + 8 + i * rowHeight})`}>
-                       <rect x={0} y={-swH/2} width={swW} height={swH} fill={`var(--color-${slice.color || 5})`} rx={swRx} />
-                       <text x={textXOff} y={0} fontSize={textFs} fill="var(--diagram-text)" dominantBaseline="central">
+                    <g key={i} transform={`translate(${sz.padX}, ${sz.padY + i * sz.rowH + sz.rowH / 2})`}>
+                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={`var(--color-${slice.color || 5})`} rx={sz.swRx} />
+                       <text x={sz.textOff} y={0} fontSize={sz.fontSize} fill="var(--diagram-text)" dominantBaseline="central">
                          {`${slice.label || 'Item'}${(slice.value !== undefined && slice.value !== null) ? ` (${slice.value})` : ''}`}
                        </text>
                     </g>
@@ -1083,13 +1147,14 @@ export default function DiagramRenderer({
                   window.addEventListener('pointerup', finishClick);
                 }}
               >
-                <rect
-                  x={-2} y={-2} width={lgW + 4} height={lgH + 4}
-                  fill="none"
-                  stroke={isLegendSelected ? 'var(--color-brand, #3b82f6)' : 'transparent'}
-                  strokeWidth={isLegendSelected ? 2 : 0}
-                  rx={10} strokeDasharray={isLegendSelected ? '6 3' : 'none'}
-                />
+                {isLegendSelected && (
+                  <g style={{ pointerEvents: 'none' }}>
+                    <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
+                      fill="none" stroke="#3b82f6" strokeWidth="10" opacity="0.3" />
+                    <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
+                      fill="none" stroke="#3b82f6" strokeWidth="2" />
+                  </g>
+                )}
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
                   fill={resolvedLegendBg} stroke={resolvedLegendStroke}
