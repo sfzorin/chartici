@@ -470,69 +470,52 @@ export default function LeftToolbox({
                    {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
                    {val: 'both', render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
                    {val: 'none', render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
-                   ...(diagramSchema?.features?.erdMarkers ? [
-                      {val: '1:1', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : 1</div>},
-                      {val: '1:N', render: <div style={{fontSize:'12px', fontWeight:600}}>1 : N</div>},
-                      {val: 'N:1', render: <div style={{fontSize:'12px', fontWeight:600}}>N : 1</div>},
-                      {val: 'N:M', render: <div style={{fontSize:'12px', fontWeight:600}}>N : M</div>}
-                   ] : [])
-                 ].map(arrow => {
+                 ].filter(a => (diagramSchema.allowedArrowTypes || []).includes(a.val))
+                 .map(arrow => {
                    const isHiddenLine = eContext.lineStyle === 'none';
-                   const isErdType = arrow.val.includes(':');
-                   const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both' || isErdType);
-
+                   const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both');
                    return (
-                  {[
-                    {val: 'target',  render: <svg width="40" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                    {val: 'reverse', render: <svg width="40" height="12"><line x1="4" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                    {val: 'both',    render: <svg width="40" height="12"><line x1="4" y1="6" x2="36" y2="6" stroke="currentColor" strokeWidth="2"/><polyline points="30 2 36 6 30 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="10 2 4 6 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                    {val: 'none',    render: <svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> },
-                  ].filter(a => (diagramSchema.allowedArrowTypes || []).includes(a.val))
-                  .map(arrow => {
-                    const isHiddenLine = eContext.lineStyle === 'none';
-                    const isArrowDisabled = isHiddenLine && (arrow.val === 'none' || arrow.val === 'both');
-
-                    return (
-                    <button 
-                       key={arrow.val} 
-                       className={`toolbox-btn ${currentAt === arrow.val ? 'active' : ''}`} 
-                       style={{ 
-                          width: '100%', height: '32px', padding: 0,
-                          opacity: isArrowDisabled ? 0.3 : 1,
-                          pointerEvents: isArrowDisabled ? 'none' : 'auto',
-                          background: currentAt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                          border: `1px solid ${currentAt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                       }}
-                       onClick={() => { 
-                          if (arrow.val === 'reverse') reverseSelectedEdge();
-                          else updateSelectedEdge('arrowType', arrow.val); 
-                       }}
-                    >
-                       {arrow.render}
-                    </button>
-                  )})
-                  }
-                  {/* ERD cardinality picker — shown when allowedConnectionTypes is non-empty */}
-                  {(diagramSchema.allowedConnectionTypes || []).length > 0 && (
-                    <>
-                      <div className="toolbox-divider" style={{ margin: '8px 0', gridColumn: '1/-1' }} />
-                      <div className="popover-title" style={{ gridColumn: '1/-1' }}>Cardinality</div>
-                      {(diagramSchema.allowedConnectionTypes || []).map(ct => (
-                        <button
-                          key={ct}
-                          className={`toolbox-btn ${currentCt === ct ? 'active' : ''}`}
-                          style={{
-                            width: '100%', height: '32px', padding: 0,
-                            background: currentCt === ct ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                            border: `1px solid ${currentCt === ct ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                          }}
-                          onClick={() => updateSelectedEdge('connectionType', ct)}
-                        >
-                          <div style={{fontSize:'12px',fontWeight:600}}>{ct}</div>
-                        </button>
-                      ))}
-                    </>
-                  )}              </div>
+                     <button 
+                        key={arrow.val} 
+                        className={`toolbox-btn ${currentAt === arrow.val ? 'active' : ''}`} 
+                        style={{ 
+                           width: '100%', height: '32px', padding: 0,
+                           opacity: isArrowDisabled ? 0.3 : 1,
+                           pointerEvents: isArrowDisabled ? 'none' : 'auto',
+                           background: currentAt === arrow.val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                           border: `1px solid ${currentAt === arrow.val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                        }}
+                        onClick={() => { 
+                           if (arrow.val === 'reverse') reverseSelectedEdge();
+                           else updateSelectedEdge('arrowType', arrow.val); 
+                        }}
+                     >
+                        {arrow.render}
+                     </button>
+                   )
+                 })}
+                 {/* ERD cardinality — shown only when allowedConnectionTypes is non-empty */}
+                 {(diagramSchema.allowedConnectionTypes || []).length > 0 && (
+                   <>
+                     <div className="toolbox-divider" style={{ margin: '8px 0', gridColumn: '1/-1' }} />
+                     <div className="popover-title" style={{ gridColumn: '1/-1' }}>Cardinality</div>
+                     {(diagramSchema.allowedConnectionTypes || []).map(ct => (
+                       <button
+                         key={ct}
+                         className={`toolbox-btn ${currentCt === ct ? 'active' : ''}`}
+                         style={{
+                           width: '100%', height: '32px', padding: 0,
+                           background: currentCt === ct ? 'var(--color-bg-active)' : 'var(--bg-panel)',
+                           border: `1px solid ${currentCt === ct ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
+                         }}
+                         onClick={() => updateSelectedEdge('connectionType', ct)}
+                       >
+                         <div style={{fontSize:'12px',fontWeight:600}}>{ct}</div>
+                       </button>
+                     ))}
+                   </>
+                 )}
+              </div>
             </PopoverMenu>
           </div>
 
