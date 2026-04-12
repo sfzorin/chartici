@@ -120,13 +120,3 @@ For loose, free-floating text labels outside of node structures, populate the ro
 3. **JSON Purity**: ALWAYS ensure `.cci` files are mathematically valid. 
 4. **Timeline Spines**: Use `chevron` type nodes for central time periods. Then, link standard events (`circle` or `process` nodes) to those chevrons using `node.spineId`.
 
----
-
-## MCP Integration
-
-Chartici includes a **Model Context Protocol (MCP)** server that allows AI assistants to render diagrams directly.
-
-### Available Tools
-- **`render_diagram`** — Takes `.cci` JSON, runs the full layout engine, and returns a complete SVG image.
-- **`save_diagram`** — Saves a `.cci` file to disk.
-- **`list_samples`** / **`read_sample`** — Browse and read example diagrams for reference.

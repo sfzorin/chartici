@@ -4,7 +4,6 @@
  * Потребители:
  *   (direct imports)  — PALETTES
  *   exportSVG.js      — EXPORT_DEFAULTS (дефолты CSS-переменных при экспорте)
- *   svgRenderer.js    — PALETTES (headless SVG рендеринг)
  *   index.css         — CSS custom properties (UI тема — остаётся в CSS)
  *
  * ─── Структура ───────────────────────────────────────────────────────────────

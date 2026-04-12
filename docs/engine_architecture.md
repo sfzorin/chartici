@@ -25,10 +25,8 @@ src/
 │   │   ├── geometry.js       — getTrueBox, getNodePorts, clipDist
 │   │   ├── svgPaths.js       — генерация SVG path строк (скругления, перепрыжки)
 │   │   ├── portAssigner.js   — предварительное назначение портов
-│   │   ├── routingEngines.js — EdgeRoutingRegistry (выбор стиля по типу диаграммы)
 │   │   └── RoutingContext.js — контекст маршрутизации (препятствия, занятые линии)
 │   ├── diagramSchemas.js     — DIAGRAM_SCHEMAS (собирается из engine.schema каждого плагина)
-│   ├── svgRenderer.js        — headless SVG рендер (экспорт без DOM)
 │   └── exportSVG.js          — экспорт в .svg файл (бэкинг CSS переменных)
 └── components/
     ├── DiagramRenderer.jsx   — главный React компонент отрисовки
