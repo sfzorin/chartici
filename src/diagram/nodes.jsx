@@ -469,11 +469,11 @@ export const LEGEND_SIZES = {
     M: { fontSize: 22, rowH: 50, swatch: 28, swatchGap: 12, padX: 20, padY: 16, charW: 13, maxLabelW: 300 },
     L: { fontSize: 28, rowH: 64, swatch: 36, swatchGap: 14, padX: 24, padY: 20, charW: 17, maxLabelW: 400 },
   },
-  // Piechart legend
+  // Piechart legend (same base sizes, different swatch shape)
   pie: {
-    S: { fontSize: 20, rowH: 40, swW: 24, swH: 18, swRx: 2, padX: 20, padY: 12, charW: 11, maxLabelW: 280, textOff: 38 },
-    M: { fontSize: 26, rowH: 54, swW: 32, swH: 24, swRx: 3, padX: 24, padY: 16, charW: 15, maxLabelW: 360, textOff: 48 },
-    L: { fontSize: 32, rowH: 68, swW: 40, swH: 30, swRx: 4, padX: 28, padY: 20, charW: 19, maxLabelW: 460, textOff: 58 },
+    S: { fontSize: 16, rowH: 36, swW: 20, swH: 14, swRx: 2, padX: 16, padY: 12, charW: 9,  maxLabelW: 220, textOff: 30 },
+    M: { fontSize: 22, rowH: 50, swW: 28, swH: 20, swRx: 3, padX: 20, padY: 16, charW: 13, maxLabelW: 300, textOff: 42 },
+    L: { fontSize: 28, rowH: 64, swW: 36, swH: 26, swRx: 4, padX: 24, padY: 20, charW: 17, maxLabelW: 400, textOff: 54 },
   },
 };
 
