@@ -4,6 +4,7 @@ import { layoutTimeline } from '../layoutTimeline.js';
 import { layoutMatrix } from '../layoutMatrix.js';
 import { layoutTree } from '../layoutTree.js';
 import { layoutPiechart } from '../layoutPiechart.js';
+import { layoutSequence } from '../layoutSequence.js';
 import { getAllEngines } from '../../../engines/index.js';
 
 // engines/* are pure data modules with no utils imports — safe to import here, no circular dependency.
@@ -13,7 +14,8 @@ const layoutFunctions = {
   timeline: layoutTimeline,
   matrix:   layoutMatrix,
   tree:     layoutTree,
-  piechart: layoutPiechart
+  piechart: layoutPiechart,
+  sequence: layoutSequence
 };
 
 export const EngineRegistry = {};

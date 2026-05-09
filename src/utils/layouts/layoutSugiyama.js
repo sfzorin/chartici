@@ -1,7 +1,6 @@
 import dagre from 'dagre';
 import { getNodeDim } from '../../diagram/nodes.jsx';
 import { EDGE_LABEL_STYLE } from '../../diagram/edges.js';
-import { getGroupId } from '../groupUtils.js';
 
 const GRID_STEP = 20;
 const LABEL_CHAR_WIDTH = Math.max(8, EDGE_LABEL_STYLE.charWidth || 7.4);
@@ -480,81 +479,6 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
   });
 
   dagre.layout(g);
-
-  if (dt === 'sequence') {
-      const gids = [...new Set(nodes.map(n => getGroupId(n)).filter(Boolean))];
-      
-      const maxH = {};
-      gids.forEach(gid => {
-          maxH[gid] = Math.max(...nodes.filter(n => getGroupId(n) === gid).map(n => g.node(n.id)?.height || 80));
-      });
-
-      const laneY = {};
-      let currentY = 0;
-      gids.forEach((gid, i) => {
-          if (i === 0) {
-              laneY[gid] = currentY;
-          } else {
-              const prevHalf = (maxH[gids[i - 1]] + 60) / 2; // pad=30 -> 60 total -> half is 30 + h/2
-              const currHalf = (maxH[gid] + 60) / 2;
-              currentY += prevHalf + currHalf + 60; // EXACT 60 pixels of clear space
-              laneY[gid] = currentY;
-          }
-      });
-
-      g.nodes().forEach(id => {
-         const info = g.node(id);
-         if (!info) return;
-         const n = nodeById.get(id);
-         const gid = getGroupId(n);
-         if (gid) {
-            info.y = laneY[gid];
-         }
-      });
-
-      const orderedIds = [];
-      const seen = new Set();
-      const pushId = (id) => {
-          const key = String(id);
-          if (!nodeById.has(key) || seen.has(key)) return;
-          seen.add(key);
-          orderedIds.push(key);
-      };
-      edges.forEach(e => {
-          pushId(e.from || e.sourceId);
-          pushId(e.to || e.targetId);
-      });
-      nodes.forEach(n => pushId(n.id));
-
-      const nodeW = (id) => nodeById.get(String(id))?.w || 160;
-      const minGap = Math.max(44, Math.min(MIN_GAP_CROSS, 64));
-      const labelGapFor = (from, to) => {
-          const msg = edges.find(e =>
-            String(e.from || e.sourceId) === String(from) &&
-            String(e.to || e.targetId) === String(to)
-          );
-          if (!msg?.label) return minGap;
-          const sourceGroup = getGroupId(nodeById.get(String(from)));
-          const targetGroup = getGroupId(nodeById.get(String(to)));
-          if (sourceGroup && sourceGroup === targetGroup) {
-            return Math.max(minGap, Math.min(230, labelRequiredPx(msg.label, 64)));
-          }
-          return Math.max(minGap, Math.min(96, labelRequiredPx(msg.label, 20)));
-      };
-
-      let cursorX = 0;
-      orderedIds.forEach((id, index) => {
-          const info = g.node(id);
-          if (!info) return;
-          if (index === 0) {
-            cursorX = nodeW(id) / 2;
-          } else {
-            const prevId = orderedIds[index - 1];
-            cursorX += nodeW(prevId) / 2 + labelGapFor(prevId, id) + nodeW(id) / 2;
-          }
-          info.x = Math.round(cursorX / 20) * 20;
-      });
-  }
 
   // Top-Align Nodes within each rank (pull shorter elements up to match the tallest in the row)
   const rankGroups = {};

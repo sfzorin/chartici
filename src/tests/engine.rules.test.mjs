@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { getEngine } from '../engines/index.js';
 import { getDiagramRules } from '../utils/diagramRules.js';
 import { getRoutingPolicy } from '../utils/engine/routingPolicy.js';
 
@@ -16,9 +17,11 @@ assert.equal(erd.layout.MIN_GAP_Y, 80);
 assert.equal(erd.layout.RANKER, 'network-simplex');
 
 const sequence = getDiagramRules('sequence');
+assert.equal(getEngine('sequence').layout.algorithm, 'sequence');
 assert.equal(sequence.layout.MIN_GAP_X, 120);
 assert.equal(sequence.layout.MIN_GAP_Y, 80);
 assert.equal(sequence.layout.RANKER, 'network-simplex');
+assert.equal(sequence.layout.SEQUENCE_CROSS_LANE_GAP, 52);
 
 const timeline = getDiagramRules('timeline');
 assert.equal(timeline.layout.MIN_GAP_X, 120);
