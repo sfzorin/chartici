@@ -1,137 +1,135 @@
 {
   "meta": {
     "type": "erd",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "red",
+  "theme": "book",
   "title": {
-    "text": "Enterprise Personnel DB"
+    "text": "Learning Platform ERD"
   },
   "data": {
     "groups": [
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
+        "color": "1",
+        "label": "Identity",
         "nodes": [
           {
-            "id": "t_e",
-            "label": "Employees"
+            "id": "user",
+            "label": "User",
+            "type": "process"
           },
           {
-            "id": "c_eid",
-            "label": "Emp ID"
-          },
-          {
-            "id": "c_ename",
-            "label": "Name"
+            "id": "profile",
+            "label": "Profile",
+            "type": "process"
           }
-        ],
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
         "color": "2",
-        "label": "Employees"
+        "label": "Learning",
+        "nodes": [
+          {
+            "id": "course",
+            "label": "Course",
+            "type": "process"
+          },
+          {
+            "id": "lesson",
+            "label": "Lesson",
+            "type": "process"
+          },
+          {
+            "id": "exercise",
+            "label": "Exercise",
+            "type": "process"
+          }
+        ]
       },
       {
         "type": "process",
         "size": "M",
-        "nodes": [
-          {
-            "id": "t_d",
-            "label": "Departments"
-          },
-          {
-            "id": "c_did",
-            "label": "Dept ID"
-          }
-        ],
-        "color": "3",
-        "label": "Departments"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_p",
-            "label": "Projects"
-          },
-          {
-            "id": "c_pid",
-            "label": "Proj ID"
-          }
-        ],
-        "color": "4",
-        "label": "Projects"
-      },
-      {
-        "type": "process",
-        "size": "S",
-        "nodes": [
-          {
-            "id": "t_a",
-            "label": "Assignments"
-          },
-          {
-            "id": "c_hrs",
-            "label": "Hours Logged"
-          }
-        ],
         "color": "5",
-        "label": "Assignments"
+        "label": "Progress",
+        "nodes": [
+          {
+            "id": "enrollment",
+            "label": "Enrollment",
+            "type": "process"
+          },
+          {
+            "id": "attempt",
+            "label": "Attempt",
+            "type": "process"
+          },
+          {
+            "id": "badge",
+            "label": "Badge",
+            "type": "process"
+          }
+        ]
       }
     ],
-    "edges": [
+    "relationships": [
       {
-        "sourceId": "t_e",
-        "targetId": "c_eid",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_e",
-        "targetId": "c_ename",
+        "sourceId": "user",
+        "targetId": "profile",
+        "label": "owns",
         "connectionType": "1:1",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "c_did",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_p",
-        "targetId": "c_pid",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_a",
-        "targetId": "c_hrs",
-        "connectionType": "1:1",
+        "sourceId": "user",
+        "targetId": "enrollment",
+        "label": "starts",
+        "connectionType": "1:N",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_d",
-        "targetId": "t_e",
+        "sourceId": "course",
+        "targetId": "lesson",
+        "label": "contains",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "employs"
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "t_a",
+        "sourceId": "lesson",
+        "targetId": "exercise",
+        "label": "includes",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "assigned"
+        "lineStyle": "solid"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "t_a",
+        "sourceId": "enrollment",
+        "targetId": "course",
+        "label": "for",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "attempt",
+        "targetId": "exercise",
+        "label": "answers",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "attempt",
+        "label": "submits",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "includes"
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "badge",
+        "label": "earns",
+        "connectionType": "1:N",
+        "lineStyle": "dashed"
       }
     ]
   }

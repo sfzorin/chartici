@@ -3,7 +3,7 @@
     "type": "timeline",
     "version": "3.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "book",
   "title": {
     "text": "Space Exploration Milestones"
   },
@@ -16,35 +16,31 @@
           {
             "id": "m1",
             "label": "1950s: Dawn",
-            "type": "chevron",
-            "spineId": "p2"
+            "type": "chevron"
           },
           {
             "id": "m2",
             "label": "1960s: Moon",
-            "type": "chevron",
-            "spineId": "a2"
+            "type": "chevron"
           },
           {
             "id": "m3",
             "label": "1990s: Orbiters",
-            "type": "chevron",
-            "spineId": "s2"
+            "type": "chevron"
           },
           {
             "id": "m4",
             "label": "2010s: Rovers",
-            "type": "chevron",
-            "spineId": "d2"
+            "type": "chevron"
           },
           {
             "id": "m5",
             "label": "2020s: Private",
-            "type": "chevron",
-            "spineId": "n2"
+            "type": "chevron"
           }
         ],
-        "color": "2"
+        "color": "2",
+        "label": "Era"
       },
       {
         "type": "process",
@@ -53,12 +49,14 @@
           {
             "id": "p1",
             "label": "Sputnik 1",
-            "type": "process"
+            "type": "process",
+            "spineId": "m1"
           },
           {
             "id": "p2",
             "label": "Gagarin Flight",
-            "type": "process"
+            "type": "process",
+            "spineId": "m1"
           }
         ],
         "color": "3",
@@ -71,12 +69,14 @@
           {
             "id": "a1",
             "label": "Apollo 11 Landing",
-            "type": "process"
+            "type": "process",
+            "spineId": "m2"
           },
           {
             "id": "a2",
             "label": "Apollo 13 Crisis",
-            "type": "process"
+            "type": "process",
+            "spineId": "m2"
           }
         ],
         "color": "4",
@@ -89,12 +89,14 @@
           {
             "id": "s1",
             "label": "ISS Assembly Begins",
-            "type": "process"
+            "type": "process",
+            "spineId": "m3"
           },
           {
             "id": "s2",
             "label": "Hubble Launched",
-            "type": "process"
+            "type": "process",
+            "spineId": "m3"
           }
         ],
         "color": "5",
@@ -107,12 +109,14 @@
           {
             "id": "d1",
             "label": "Curiosity Mars",
-            "type": "process"
+            "type": "process",
+            "spineId": "m4"
           },
           {
             "id": "d2",
             "label": "Voyager Interstellar",
-            "type": "process"
+            "type": "process",
+            "spineId": "m4"
           }
         ],
         "color": "6",
@@ -125,12 +129,14 @@
           {
             "id": "n1",
             "label": "Artemis I",
-            "type": "process"
+            "type": "process",
+            "spineId": "m5"
           },
           {
             "id": "n2",
-            "label": "Webb Telescope Scope",
-            "type": "process"
+            "label": "Webb Telescope",
+            "type": "process",
+            "spineId": "m5"
           }
         ],
         "color": "7",

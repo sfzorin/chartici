@@ -5,6 +5,7 @@ Transform the user's concept into Markdown Tables for a TREE diagram.
 
 Output two sections: "# Root" (single root node) and "# Branches" (groups of children).
 Each branch heading specifies Parent ID to auto-connect nodes.
+Keep depth to 2-4 levels. Prefer 2-4 children per parent. Avoid long labels.
 
 # Root
 | ID | Label | Size |

@@ -13,6 +13,18 @@ import Icon from './Icons';
 import { computeBindings, getAxisDir } from '../utils/layout';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 
+const normalizeEdgeEndpoints = (edge) => {
+  const from = edge.from ?? edge.sourceId;
+  const to = edge.to ?? edge.targetId;
+  return {
+    ...edge,
+    from,
+    to,
+    sourceId: edge.sourceId ?? from,
+    targetId: edge.targetId ?? to,
+  };
+};
+
 export default function DiagramRenderer({ 
   initialData, 
   theme,
@@ -93,7 +105,7 @@ export default function DiagramRenderer({
       }
 
       setNodes(newNodes);
-      setEdges(initialData.edges || []);
+      setEdges((initialData.edges || []).map(normalizeEdgeEndpoints));
 
       const regularNodes = newNodes.filter(n => n.id !== '__SYSTEM_TITLE__');
       if (regularNodes.length === 0) {
@@ -509,10 +521,11 @@ export default function DiagramRenderer({
     const schema = DIAGRAM_SCHEMAS[diagramType];
     if (schema && !schema.features.allowConnections) return [];
 
-    if (diagramType !== 'timeline') return edges;
-    return edges.filter(edge => {
-       const srcId = String(edge.sourceId || edge.from);
-       const tgtId = String(edge.targetId || edge.to);
+    const normalizedEdges = edges.map(normalizeEdgeEndpoints);
+    if (diagramType !== 'timeline') return normalizedEdges;
+    return normalizedEdges.filter(edge => {
+       const srcId = String(edge.from);
+       const tgtId = String(edge.to);
        const src = computedNodes.find(n => String(n.id) === srcId);
        const tgt = computedNodes.find(n => String(n.id) === tgtId);
        return !(src?.isTimelineSpine && tgt?.isTimelineSpine);
@@ -592,7 +605,7 @@ export default function DiagramRenderer({
          minY -= (diagramType === 'piechart' ? titleSpacingPx + 60 : titleSpacingPx * 2.5);
       }
 
-      if (diagramType === 'piechart') {
+      if (diagramType === 'piechart' && showLegend) {
           const pieLegSz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
           maxX += pieLegSz.maxLabelW + pieLegSz.textOff + pieLegSz.padX * 2 + PIE_CONSTS.legendOffset;
           const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;

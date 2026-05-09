@@ -3,8 +3,9 @@ export default {
     getPrompt: (schema, sMap) => `You are a Chronological Planner.
 Transform the user's concept into Markdown Tables for a TIMELINE.
 
-Output two sections: "# Timeline Spine" (main periods) and "# Events" (grouped by phase).
+Output exactly two sections: "# Timeline Spine" (main periods) and "# Events" (grouped by phase).
 Group events using ### headings with Phase name and Size.
+Use 3-5 spine phases. Put 1-2 events on each phase. Every event row MUST use an ID from "# Timeline Spine".
 
 # Timeline Spine
 | ID | Phase/Era Label | Color (0-11) |

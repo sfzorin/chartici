@@ -31,4 +31,12 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   });
 }
 
+{
+  const nodes = [makeNode('A', 0, 0), makeNode('B', 0, 200)];
+  const edges = [{ id: 'e1', sourceId: 'A', targetId: 'B' }];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  const r = analyzeEdge(paths, 'e1', nodes);
+  test('sourceId/targetId-only edge is routable', () => expect(r.valid, true, 'valid'));
+}
+
 summary('engine.flowchart.test.mjs');

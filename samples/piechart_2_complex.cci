@@ -1,44 +1,101 @@
 {
   "meta": {
     "type": "piechart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "book",
   "title": {
-    "text": "Cloud Spending Breakdown"
+    "text": "Global Mobile OS Market Share 2026"
   },
   "data": {
-    "nodes": [
+    "groups": [
       {
-        "id": "c1",
-        "label": "EC2 Instances",
-        "value": 40.5
+        "id": "os1",
+        "type": "pie_slice",
+        "color": 1,
+        "nodes": [
+          {
+            "id": "os1",
+            "label": "Android 15+",
+            "value": 35.2
+          }
+        ]
       },
       {
-        "id": "c2",
-        "label": "RDS Postgres",
-        "value": 22.8
+        "id": "os2",
+        "type": "pie_slice",
+        "color": 2,
+        "nodes": [
+          {
+            "id": "os2",
+            "label": "Android Legacy",
+            "value": 28.1
+          }
+        ]
       },
       {
-        "id": "c3",
-        "label": "S3 Storage",
-        "value": 15.2
+        "id": "os3",
+        "type": "pie_slice",
+        "color": 3,
+        "nodes": [
+          {
+            "id": "os3",
+            "label": "iOS 18+",
+            "value": 22.4
+          }
+        ]
       },
       {
-        "id": "c4",
-        "label": "CloudFront CDN",
-        "value": 10
+        "id": "os4",
+        "type": "pie_slice",
+        "color": 4,
+        "nodes": [
+          {
+            "id": "os4",
+            "label": "iOS 17 & Older",
+            "value": 6.8
+          }
+        ]
       },
       {
-        "id": "c5",
-        "label": "Elasticache Redis",
-        "value": 8.3
+        "id": "os5",
+        "type": "pie_slice",
+        "color": 5,
+        "nodes": [
+          {
+            "id": "os5",
+            "label": "HarmonyOS",
+            "value": 5.9
+          }
+        ]
       },
       {
-        "id": "c6",
-        "label": "Route 53 DNS",
-        "value": 3.2
+        "id": "os6",
+        "type": "pie_slice",
+        "color": 6,
+        "nodes": [
+          {
+            "id": "os6",
+            "label": "KaiOS",
+            "value": 1.2
+          }
+        ]
+      },
+      {
+        "id": "os7",
+        "type": "pie_slice",
+        "color": 7,
+        "nodes": [
+          {
+            "id": "os7",
+            "label": "Others",
+            "value": 0.4
+          }
+        ]
       }
-    ]
+    ],
+    "config": {
+      "showLegend": true
+    }
   }
 }

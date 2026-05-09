@@ -3,7 +3,7 @@
     "type": "piechart",
     "version": "1.0.0"
   },
-  "theme": "muted-rainbow",
+  "theme": "book",
   "title": {
     "text": "Resource Allocation"
   },
@@ -29,6 +29,9 @@
         "label": "Legal Reserve",
         "value": 10
       }
-    ]
+    ],
+    "config": {
+      "showLegend": true
+    }
   }
 }

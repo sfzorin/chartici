@@ -38,4 +38,9 @@ test('Nodes are correctly flagged as spine', () => {
     expect(!!a.isTimelineSpine, false, 'A is not spine');
 });
 
+test('Events align to their referenced chevrons', () => {
+    expect(a.x, s1.x, 'A aligns to S1');
+    expect(b.x, s2.x, 'B aligns to S2');
+});
+
 summary('engine.timeline.test.mjs');

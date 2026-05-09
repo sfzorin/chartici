@@ -3,7 +3,7 @@
     "type": "flowchart",
     "version": "3.0.0"
   },
-  "theme": "vibrant-rainbow",
+  "theme": "book",
   "title": {
     "text": "E-Commerce Checkout Pipeline"
   },

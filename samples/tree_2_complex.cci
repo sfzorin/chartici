@@ -1,197 +1,85 @@
 {
-  "meta": {
-    "type": "tree",
-    "version": "3.0.0"
-  },
-  "title": {
-    "text": "Bank Microservices Topology",
-    "size": "M"
-  },
-  "theme": "blue-orange",
+  "meta": { "type": "tree", "version": "3.0.0" },
+  "theme": "book",
+  "title": { "text": "Corporate Org Chart" },
   "data": {
-    "config": {
-      "aspect": "16:9",
-      "bgColor": "white"
-    },
     "groups": [
       {
-        "label": "Edge Layer",
-        "color": 1,
         "type": "process",
         "size": "L",
-        "parentId": "root",
         "nodes": [
-          {
-            "id": "root",
-            "label": "Global Traffic Manager",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          },
-          {
-            "id": "gw_auth",
-            "label": "Auth Gateway",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          },
-          {
-            "id": "gw_api",
-            "label": "API Gateway",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          },
-          {
-            "id": "gw_admin",
-            "label": "Admin Gateway",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          },
-          {
-            "id": "gw_b2b",
-            "label": "B2B Gateway",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          },
-          {
-            "id": "gw_events",
-            "label": "Event Gateway",
-            "type": "process",
-            "size": "L",
-            "color": 1
-          }
-        ]
+          { "id": "board", "label": "Board", "type": "process" },
+          { "id": "ceo", "label": "CEO", "type": "process" }
+        ],
+        "color": "1",
+        "label": "Executive",
+        "parentId": "board"
       },
       {
-        "label": "Identity Provider",
-        "color": 2,
         "type": "process",
         "size": "M",
-        "parentId": "gw_auth",
         "nodes": [
-          {
-            "id": "svc_auth",
-            "label": "SSO Service",
-            "type": "process",
-            "size": "M",
-            "color": 2
-          },
-          {
-            "id": "svc_mfa",
-            "label": "MFA Validator",
-            "type": "process",
-            "size": "M",
-            "color": 2
-          }
-        ]
+          { "id": "vp_eng", "label": "VP Engineering", "type": "process" }
+        ],
+        "color": "2",
+        "label": "Engineering",
+        "parentId": "ceo"
       },
       {
-        "label": "Core Banking Mesh",
-        "color": 5,
         "type": "process",
         "size": "S",
-        "parentId": "gw_events",
         "nodes": [
-          {
-            "id": "m1",
-            "label": "User Profile",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m2",
-            "label": "Account Ledgers",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m3",
-            "label": "Transactions",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m4",
-            "label": "Cards Engine",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m5",
-            "label": "Loan Orig",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m6",
-            "label": "Fraud Detect",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m7",
-            "label": "Notification",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m8",
-            "label": "Audit Logs",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "m9",
-            "label": "Data Export",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "svc_admin",
-            "label": "Backoffice UI",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "svc_b2b",
-            "label": "Partner Integrations",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          },
-          {
-            "id": "svc_events",
-            "label": "Message Broker",
-            "type": "process",
-            "size": "S",
-            "color": 5,
-            "_stackEntry": "Left"
-          }
-        ]
+          { "id": "eng1", "label": "Frontend", "type": "process" },
+          { "id": "eng2", "label": "Backend", "type": "process" },
+          { "id": "eng3", "label": "DevOps", "type": "process" },
+          { "id": "eng4", "label": "Data", "type": "process" }
+        ],
+        "color": "2",
+        "label": "Engineering Teams",
+        "parentId": "vp_eng"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          { "id": "vp_sales", "label": "VP Sales", "type": "process" }
+        ],
+        "color": "5",
+        "label": "Sales",
+        "parentId": "ceo"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          { "id": "sales1", "label": "North America", "type": "process" },
+          { "id": "sales2", "label": "EMEA", "type": "process" },
+          { "id": "sales3", "label": "APAC", "type": "process" }
+        ],
+        "color": "5",
+        "label": "Sales Regions",
+        "parentId": "vp_sales"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "nodes": [
+          { "id": "vp_hr", "label": "VP People", "type": "process" }
+        ],
+        "color": "3",
+        "label": "People",
+        "parentId": "ceo"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          { "id": "hr1", "label": "Hiring", "type": "process" },
+          { "id": "hr2", "label": "Compliance", "type": "process" }
+        ],
+        "color": "3",
+        "label": "People Ops",
+        "parentId": "vp_hr"
       }
     ]
   }

@@ -21,13 +21,27 @@ import { getGroupId } from './utils/groupUtils';
 import { sanitizeColors } from './utils/sanitizeColors';
 import LogoUrl from './assets/chartici-logo.svg';
 
+const getEdgeFrom = (edge) => edge.from ?? edge.sourceId;
+const getEdgeTo = (edge) => edge.to ?? edge.targetId;
+const normalizeEdgeEndpoints = (edge) => {
+  const from = getEdgeFrom(edge);
+  const to = getEdgeTo(edge);
+  return {
+    ...edge,
+    from,
+    to,
+    sourceId: edge.sourceId ?? from,
+    targetId: edge.targetId ?? to,
+  };
+};
+
 function App() {
   const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
-  const [paletteTheme, setPaletteTheme] = useState('muted-rainbow');
+  const [paletteTheme, setPaletteTheme] = useState('book');
   const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory({ nodes: [], edges: [], groups: [] });
   const [aspect, setAspect] = useState('16:9');
   const [diagramType, setDiagramType] = useState('flowchart');
-  const [bgColor, setBgColor] = useState('transparent-dark');
+  const [bgColor, setBgColor] = useState('white');
   const [showLegend, setShowLegend] = useState(false);
   const [legendPos, setLegendPos] = useState(null); // null = auto, {x,y} = locked
   const [legendSize, setLegendSize] = useState('M'); // S, M, L
@@ -67,8 +81,8 @@ function App() {
     if (features.allowConnections) {
       const visibleIds = new Set(outNodes.map(n => n.id));
       outEdges = (diagramData.edges || []).filter(e =>
-        visibleIds.has(e.from) && visibleIds.has(e.to)
-      );
+        visibleIds.has(getEdgeFrom(e)) && visibleIds.has(getEdgeTo(e))
+      ).map(normalizeEdgeEndpoints);
     }
 
     // ── Лимит нод (piechart: max 9) ──────────────────────────────────────
@@ -98,7 +112,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', paletteTheme);
-    const themeObj = PALETTES[paletteTheme] || PALETTES['muted-rainbow'];
+    const themeObj = PALETTES[paletteTheme] || PALETTES.book;
     
     document.documentElement.style.setProperty('--unfilled-text-color', themeObj.unfilledText);
     
@@ -159,7 +173,7 @@ function App() {
     const dt = parsed.meta?.type || 'flowchart';
     const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: dt, groups: parsed.groups });
     const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
-      ? parsed.config.theme : 'muted-rainbow';
+      ? parsed.config.theme : 'book';
       
     let totalElements = 0;
     if (parsed.groups && parsed.groups.length > 0) {
@@ -174,7 +188,7 @@ function App() {
     setDiagramData({
       groups: parsed.groups || [],
       nodes: sanitizeColors(layedOutNodes, true, parsed.groups || [], safeIndices, sharedColorMap),
-      edges: sanitizeColors(parsed.edges, false, parsed.groups || [], safeIndices, sharedColorMap),
+      edges: sanitizeColors((parsed.edges || []).map(normalizeEdgeEndpoints), false, parsed.groups || [], safeIndices, sharedColorMap),
       config: parsed.config || {},
       layoutTrigger: Date.now()
     });
@@ -183,18 +197,19 @@ function App() {
       if (parsed.config.aspect) setAspect(parsed.config.aspect);
       // diagramType живёт в meta.type, а не в config
       setDiagramType(dt);
-      if (parsed.config.showLegend !== undefined) setShowLegend(!!parsed.config.showLegend);
+      setShowLegend(parsed.config.showLegend !== undefined ? !!parsed.config.showLegend : dt === 'piechart');
       setLegendPos(parsed.config.legendX !== undefined ? { x: parsed.config.legendX, y: parsed.config.legendY } : null);
       if (parsed.config.legendSize) setLegendSize(parsed.config.legendSize);
       
-      let incomingBg = parsed.config.bgColor || (appTheme === 'dark' ? 'black' : 'white');
+      let incomingBg = parsed.config.bgColor || 'white';
       if (incomingBg === 'transparent' || incomingBg === 'transparent-dark' || incomingBg === 'solid-dark') incomingBg = 'black';
       if (incomingBg === 'transparent-light' || incomingBg === 'solid-light') incomingBg = 'white';
       setBgColor(incomingBg);
     } else {
       setAspect('16:9');
       setDiagramType('flowchart');
-      setBgColor(appTheme === 'dark' ? 'black' : 'white');
+      setBgColor('white');
+      setShowLegend(false);
     }
 
     const resolvedTitle = parsed.config?.titleText || '';
@@ -433,8 +448,8 @@ function App() {
     if (!sourceId || !targetId || sourceId === targetId) return;
     
     const duplicateExists = diagramData.edges.some(e => 
-      (e.from === sourceId && e.to === targetId) || 
-      (e.from === targetId && e.to === sourceId)
+      (getEdgeFrom(e) === sourceId && getEdgeTo(e) === targetId) || 
+      (getEdgeFrom(e) === targetId && getEdgeTo(e) === sourceId)
     );
     if (duplicateExists) return;
 
@@ -449,7 +464,7 @@ function App() {
 
         setDiagramData(prev => {
             // Remove any old edges connected to this text node (ensure 1-to-1 cardinality)
-            const filteredEdges = prev.edges.filter(e => e.from !== textNodeId && e.to !== textNodeId);
+            const filteredEdges = prev.edges.filter(e => getEdgeFrom(e) !== textNodeId && getEdgeTo(e) !== textNodeId);
             const newEdgeId = generateSimpleId(filteredEdges);
             const newEdge = { 
                 id: newEdgeId, 
@@ -674,7 +689,7 @@ function App() {
     if (selectedNodeId) {
       setDiagramData(prev => {
         let newNodes = prev.nodes.filter(n => n.id !== selectedNodeId);
-        let newEdges = prev.edges.filter(e => e.from !== selectedNodeId && e.to !== selectedNodeId);
+        let newEdges = prev.edges.filter(e => getEdgeFrom(e) !== selectedNodeId && getEdgeTo(e) !== selectedNodeId);
         const usedGroupIds = new Set(newNodes.map(n => getGroupId(n)));
         
         if (activeSchema?.features?.recalculateOnEdit) {

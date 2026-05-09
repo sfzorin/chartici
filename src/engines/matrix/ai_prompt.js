@@ -4,6 +4,7 @@ export default {
 Transform the user's concept into Markdown Tables for a MATRIX diagram.
 
 Group nodes by zone/quadrant using ### headings.
+Use 2-4 zones. Put 2-5 items in each zone. Labels should be comparable, not sentences.
 
 # Elements
 

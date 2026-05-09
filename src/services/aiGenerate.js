@@ -1,6 +1,105 @@
 import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts.js';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
+const BOOK_THEME = 'book';
+
+function flattenGeneratedNodes(cci) {
+  return (cci?.data?.groups || []).flatMap(group =>
+    (group.nodes || []).map(node => ({
+      ...node,
+      groupType: group.type,
+      groupLabel: group.label,
+    }))
+  );
+}
+
+function parseNextStepIds(nextSteps) {
+  if (!nextSteps || nextSteps === '-') return [];
+  return String(nextSteps)
+    .split(',')
+    .map(step => step.trim())
+    .filter(Boolean)
+    .map(step => step.match(/^([^\[]+)/)?.[1]?.trim())
+    .filter(Boolean);
+}
+
+function validateGeneratedCci(cci, diagramType) {
+  const dt = diagramType.toLowerCase();
+  const groups = cci?.data?.groups || [];
+  const nodes = flattenGeneratedNodes(cci);
+  const explicitEdges = [
+    ...(cci?.data?.edges || []),
+    ...(cci?.data?.messages || []),
+    ...(cci?.data?.relationships || []),
+  ];
+  const realNodes = nodes.filter(n => n.type !== 'title' && n.type !== 'text');
+  const ids = new Set();
+  const errors = [];
+
+  if (groups.length === 0) errors.push('no groups');
+  if (realNodes.length < 2) errors.push('too few nodes');
+  const maxReadableNodes = dt === 'matrix' ? Infinity : dt === 'timeline' ? 18 : 14;
+  if (realNodes.length > maxReadableNodes) errors.push('too many nodes for a readable book figure');
+
+  for (const node of realNodes) {
+    const id = String(node.id || '').trim();
+    const label = String(node.label || '').trim();
+    if (!id) errors.push('node without id');
+    if (ids.has(id)) errors.push(`duplicate id: ${id}`);
+    ids.add(id);
+    if (!label) errors.push(`node ${id || '?'} has no label`);
+    if (label.length > 42) errors.push(`label too long: ${label}`);
+  }
+
+  if (dt === 'flowchart') {
+    const edgeCount = realNodes.reduce((sum, node) => sum + parseNextStepIds(node.nextSteps).length, 0);
+    if (edgeCount === 0) errors.push('flowchart has no nextSteps');
+    for (const node of realNodes) {
+      for (const targetId of parseNextStepIds(node.nextSteps)) {
+        if (!ids.has(targetId)) errors.push(`unknown nextSteps target: ${targetId}`);
+      }
+    }
+  }
+
+  if (dt === 'timeline') {
+    const spineIds = new Set(realNodes.filter(n => n.type === 'chevron' || n.groupType === 'chevron').map(n => String(n.id)));
+    const eventNodes = realNodes.filter(n => !spineIds.has(String(n.id)));
+    if (spineIds.size < 2) errors.push('timeline needs at least two spine phases');
+    for (const event of eventNodes) {
+      if (!event.spineId) errors.push(`timeline event missing spineId: ${event.id}`);
+      else if (!spineIds.has(String(event.spineId))) errors.push(`unknown timeline spineId: ${event.spineId}`);
+    }
+  }
+
+  if (dt === 'tree') {
+    const rootCount = groups.filter(g => (g.label || '').toLowerCase() === 'root' || g.nodes?.some(n => String(n.id).startsWith('root'))).length;
+    if (rootCount === 0) errors.push('tree has no clear root');
+  }
+
+  if (['sequence', 'erd'].includes(dt)) {
+    if (explicitEdges.length === 0) errors.push(`${dt} has no relationships`);
+    for (const edge of explicitEdges) {
+      const sourceId = String(edge.sourceId || edge.from || '').trim();
+      const targetId = String(edge.targetId || edge.to || '').trim();
+      if (!ids.has(sourceId)) errors.push(`unknown relationship source: ${sourceId}`);
+      if (!ids.has(targetId)) errors.push(`unknown relationship target: ${targetId}`);
+    }
+  }
+
+  if (dt === 'matrix' && groups.length < 2) {
+    errors.push('matrix needs at least two zones');
+  }
+
+  return errors;
+}
+
+function getExplicitEdgeKey(diagramType) {
+  const dt = diagramType.toLowerCase();
+  if (dt === 'sequence') return 'messages';
+  if (dt === 'erd') return 'relationships';
+  return null;
+}
+
 /**
  * Helper to call the DeepSeek API proxy
  */
@@ -106,6 +205,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   let currentGroupParentId = null;
   
   const groupsMap = new Map();
+  const inferNodeModeFromGroupHeading = () => {
+    const dt = diagramType.toLowerCase();
+    if (['flowchart', 'sequence', 'erd', 'matrix'].includes(dt)) return 'nodes';
+    if (dt === 'timeline') return 'events';
+    if (['tree', 'radial'].includes(dt)) return 'branches';
+    return mode;
+  };
   
   const getOrCreateGroup = (gLabel, gSize, gType) => {
     let lbl = gLabel.trim();
@@ -130,7 +236,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     const matchSize = (rawSizeStr) => {
       if (!rawSizeStr) return 'M';
       const schema = DIAGRAM_SCHEMAS[diagramType.toLowerCase()] || DIAGRAM_SCHEMAS.flowchart;
-      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale;
+      const sMap = schema.semanticScale || DIAGRAM_SCHEMAS.flowchart.semanticScale || { L: 'L', M: 'M', S: 'S' };
       const rawLow = String(rawSizeStr).trim().toLowerCase();
       let matched = 'M';
       for (const [coreSize, mappedWord] of Object.entries(sMap)) {
@@ -142,14 +248,18 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       return matched;
     };
 
-    if (t.match(/^#\s*(nodes|tables|components|states|steps|elements|entities)/i)) { mode = 'nodes'; continue; }
-    if (t.match(/^#\s*(edges|relationships|messages|connections|transitions)/i)) { mode = 'edges'; continue; }
-    if (t.toLowerCase().startsWith('# pie slices')) { mode = 'pie'; continue; }
-    if (t.toLowerCase().startsWith('# timeline spine')) { mode = 'spine'; continue; }
-    if (t.toLowerCase().startsWith('# events')) { mode = 'events'; continue; }
-    if (t.toLowerCase().startsWith('# root')) { mode = 'root'; continue; }
-    if (t.toLowerCase().startsWith('# branches')) { mode = 'branches'; continue; }
+    if (t.match(/^#{1,3}\s*(nodes|tables|components|states|steps|elements|entities)\b/i)) { mode = 'nodes'; continue; }
+    if (t.match(/^#{1,3}\s*(edges|relationships|messages|connections|transitions)\b/i)) { mode = 'edges'; continue; }
+    if (t.match(/^#{1,3}\s*pie slices\b/i)) { mode = 'pie'; continue; }
+    if (t.match(/^#{1,3}\s*timeline spine\b/i)) { mode = 'spine'; continue; }
+    if (t.match(/^#{1,3}\s*events\b/i)) { mode = 'events'; continue; }
+    if (t.match(/^#{1,3}\s*root\b/i)) { mode = 'root'; continue; }
+    if (t.match(/^#{1,3}\s*branches\b/i)) { mode = 'branches'; continue; }
     
+    if (t.startsWith('### ') && !mode) {
+      mode = inferNodeModeFromGroupHeading();
+    }
+
     if ((mode === 'nodes' || mode === 'events' || mode === 'branches') && t.startsWith('### ')) {
       const lineWithoutHash = t.substring(4).trim();
       const parts = lineWithoutHash.split('|').map(s => s.trim());
@@ -208,10 +318,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             
             nextSteps = cols[3];
         } else if (diagramType === 'erd') {
-            const rawType = cols[2] || currentGroupType;
-            const tLow = String(rawType).toLowerCase().trim();
-            if (tLow === 'attribute') nodeType = 'circle';
-            else nodeType = 'process'; // fallback is robust enough for 'table'
+            nodeType = 'process';
         } else {
             val = cols[2] ? Number(cols[2]) : undefined;
         }
@@ -295,6 +402,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const label = cols[2];
         
         const rawType = cols[3] || 'target';
+        const rawTypeLow = String(rawType).toLowerCase();
         let connectionType = 'target';
         let lineStyle = 'solid';
         const dt = diagramType.toLowerCase();
@@ -305,6 +413,9 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         } else if (dt === 'timeline') {
             lineStyle = 'dashed';
             connectionType = 'none';
+        } else if (dt === 'sequence' && ['solid', 'dashed'].includes(rawTypeLow)) {
+            lineStyle = rawTypeLow;
+            connectionType = 'target';
         } else if (dt === 'radial' || dt === 'tree') {
             connectionType = 'none';
         } else {
@@ -336,11 +447,24 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     group.color = (index % 9) + 1; // Maps 0-8 to 1-9
   });
 
-  // Assign a random theme
-  const THEMES = [
-    'muted-rainbow', 'vibrant-rainbow', 'blue-orange', 'green-purple', 'slate-rose', 'blue-teal-slate'
-  ];
-  parsed.theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  const explicitEdgeKey = getExplicitEdgeKey(diagramType);
+  if (explicitEdgeKey) {
+    parsed.data[explicitEdgeKey] = parsed.data.edges || [];
+    delete parsed.data.edges;
+  }
+
+  const qualityErrors = validateGeneratedCci(parsed, diagramType);
+  if (qualityErrors.length > 0) {
+    console.error('Phase 2 quality failure:', qualityErrors);
+    return { success: false, error: `AI returned a low-quality diagram: ${qualityErrors.slice(0, 3).join('; ')}` };
+  }
+
+  parsed.theme = BOOK_THEME;
+  parsed.data.config = {
+    ...(parsed.data.config || {}),
+    bgColor: 'white',
+    ...(diagramType.toLowerCase() === 'piechart' ? { showLegend: true } : {}),
+  };
 
   return { success: true, cci: parsed };
 }

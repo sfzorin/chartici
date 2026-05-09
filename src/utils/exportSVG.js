@@ -28,8 +28,8 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
        svgClone.removeAttribute('width');
        svgClone.removeAttribute('height');
 
-       // Remove shadow from the paper for clean export
-       canvasPaperRect.removeAttribute('style');
+       // Remove shadow from the paper for clean export without dropping its fill/stroke attrs
+       canvasPaperRect.style.filter = 'none';
     }
 
     // Strip out the root style to wipe React runtime variables like background-color: var(--desk-bg)
@@ -43,9 +43,9 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
     const previewRects = svgClone.querySelectorAll('.preview-bg-rect, .canvas-grid-rect');
     previewRects.forEach(r => r.remove());
 
-    // Remove UI handles and selection boxes
-    const selectedBoxes = svgClone.querySelectorAll('.diagram-node.selected rect[stroke-dasharray], .diagram-node.selected ellipse[stroke-dasharray]');
-    selectedBoxes.forEach(box => box.remove());
+    // Remove editor-only handles, selection halos, and touch targets
+    const editorArtifacts = svgClone.querySelectorAll('.selection-ui, .port-ui, .touch-port-hitbox');
+    editorArtifacts.forEach(el => el.remove());
 
     // Scrub invisible/logical links from the final export
     const logicalLinks = svgClone.querySelectorAll('.logical-link');
@@ -53,19 +53,39 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
 
     // Build CSS variable → hex color map for baking
     const rootStyles = getComputedStyle(document.documentElement);
-    const paletteVars = PALETTES[paletteTheme].colors;
+    const paletteInfo = PALETTES[paletteTheme] || PALETTES.book || Object.values(PALETTES)[0];
+    const paletteVars = paletteInfo.colors;
     const colorMap = {
         '--canvas-bg':           rootStyles.getPropertyValue('--canvas-bg').trim()           || EXPORT_DEFAULTS['--canvas-bg'],
+        '--color-brand':         rootStyles.getPropertyValue('--color-brand').trim()         || '#be355d',
+        '--color-primary-dark':  rootStyles.getPropertyValue('--color-primary-dark').trim()  || '#be355d',
         '--border-color-active': rootStyles.getPropertyValue('--border-color-active').trim() || EXPORT_DEFAULTS['--border-color-active'],
+        '--border-color-soft':   rootStyles.getPropertyValue('--border-color-soft').trim()   || EXPORT_DEFAULTS['--border-color-soft'],
         '--color-text-main':     rootStyles.getPropertyValue('--color-text-main').trim()     || EXPORT_DEFAULTS['--color-text-main'],
+        '--color-text-dim':      rootStyles.getPropertyValue('--color-text-dim').trim()      || EXPORT_DEFAULTS['--color-text-dim'],
         '--color-secondary':     rootStyles.getPropertyValue('--color-secondary').trim()     || EXPORT_DEFAULTS['--color-secondary'],
+        '--bg-panel':            rootStyles.getPropertyValue('--bg-panel').trim()            || '#ffffff',
         '--grid-line-color':     rootStyles.getPropertyValue('--grid-line-color').trim()     || EXPORT_DEFAULTS['--grid-line-color'],
         '--diagram-text':        svgElement.style.getPropertyValue('--diagram-text').trim()  || EXPORT_DEFAULTS['--diagram-text'],
         '--diagram-edge':        svgElement.style.getPropertyValue('--diagram-edge').trim()  || EXPORT_DEFAULTS['--diagram-edge'],
         '--diagram-group':       svgElement.style.getPropertyValue('--diagram-group').trim() || EXPORT_DEFAULTS['--diagram-group'],
-        '--unfilled-text-color': PALETTES[paletteTheme].unfilledText,
+        '--unfilled-text-color': paletteInfo.unfilledText,
     };
 
+    for (let i = 0; i < rootStyles.length; i++) {
+        const prop = rootStyles[i];
+        if (prop.startsWith('--') && !colorMap[prop]) {
+            const value = rootStyles.getPropertyValue(prop).trim();
+            if (value) colorMap[prop] = value;
+        }
+    }
+    for (let i = 0; i < svgElement.style.length; i++) {
+        const prop = svgElement.style[i];
+        if (prop.startsWith('--')) {
+            const value = svgElement.style.getPropertyValue(prop).trim();
+            if (value) colorMap[prop] = value;
+        }
+    }
 
     for (let i = 0; i < paletteVars.length; i++) {
       const hex = paletteVars[i];
@@ -79,33 +99,20 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
     styleElement.textContent = `text { font-family: system-ui, -apple-system, 'Inter', sans-serif; font-weight: 500; }`;
     svgClone.insertBefore(styleElement, svgClone.firstChild);
 
-    // Guarantee watermark visibility by checking actual SVG background
-    const bgFill = canvasPaperRect ? (canvasPaperRect.getAttribute('fill') || '#ffffff').toLowerCase() : '#ffffff';
-    const watermarkFill = bgFill === '#000000' ? '#ffffff' : '#1e293b';
-
-    if (paperW > 0) {
-        const watermark = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        watermark.setAttribute("x", paperX + paperW - 32);
-        watermark.setAttribute("y", paperY + paperH - 24); // Lifted slightly from bottom edge
-        watermark.setAttribute("text-anchor", "end");
-        watermark.setAttribute("fill", watermarkFill);
-        watermark.setAttribute("font-family", "system-ui, -apple-system, 'Inter', sans-serif");
-        watermark.setAttribute("font-size", "14");
-        watermark.setAttribute("font-weight", "600"); // Much thicker font for export
-        watermark.setAttribute("opacity", "0.4");
-        watermark.textContent = 'chartici.com';
-        svgClone.appendChild(watermark);
-    }
-
     const serializer = new XMLSerializer();
     let svgString = serializer.serializeToString(svgClone);
 
     // Bake CSS custom properties into hex values for standalone SVG viewers
     // (macOS Preview, Illustrator do not support var())
-    Object.entries(colorMap).forEach(([varName, val]) => {
-        const regex = new RegExp(`var\\(\\s*${varName}\\s*(?:,[^)]+)?\\)`, 'g');
-        svgString = svgString.replace(regex, val);
-    });
+    for (let pass = 0; pass < 3; pass++) {
+        Object.entries(colorMap).forEach(([varName, val]) => {
+            const regex = new RegExp(`var\\(\\s*${varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:,[^)]+)?\\)`, 'g');
+            svgString = svgString.replace(regex, val);
+        });
+    }
+    svgString = svgString
+        .replace(/var\(\s*--[^,\s)]+\s*,\s*([^)]+)\)/g, '$1')
+        .replace(/var\(\s*--[^)]+\)/g, '#000000');
 
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);

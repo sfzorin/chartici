@@ -66,6 +66,11 @@ const MOCK_RESPONSES = {
 | Node ID | Label |
 |---|---|
 | t_1 | Fix Database |
+| t_2 | Patch Auth |
+### Zone: Low Priority | Size: S
+| Node ID | Label |
+|---|---|
+| t_3 | Update CSS |
 `,
   timeline: `
 <thinking>test</thinking>
@@ -73,11 +78,13 @@ const MOCK_RESPONSES = {
 | Spine ID | Phase/Era Label | Color (0-11) |
 |---|---|---|
 | e1 | Q1 Phase 1 | 0 |
+| e2 | Q2 Phase 2 | 2 |
 # Events
 ### Phase: Engineering Tasks | Size: S
 | Spine ID | Label |
 |---|---|
 | e1 | Bootstrapping |
+| e2 | Launch |
 `,
   tree: `
 <thinking>test</thinking>
@@ -127,20 +134,20 @@ async function runTests() {
     
     // 1. Check prompt generation
     const prompt = getSystemPromptPhase2(type);
-    assert.ok(prompt.includes(type.toUpperCase()) || prompt.includes('Diagram'), \`Prompt for \${type} should be valid\`);
+    assert.ok(prompt.includes(type.toUpperCase()) || prompt.includes('Diagram'), `Prompt for ${type} should be valid`);
     
     // 2. Check parsing CCI
     currentTestType = type;
     const res = await buildDiagram('Test ' + type, type, 'extended prompt');
-    assert.strictEqual(res.success, true, \`buildDiagram should succeed for \${type}\`);
-    assert.ok(res.cci.data.groups.length > 0, \`Parsed CCI for \${type} should have groups\`);
+    assert.strictEqual(res.success, true, `buildDiagram should succeed for ${type}`);
+    assert.ok(res.cci.data.groups.length > 0, `Parsed CCI for ${type} should have groups`);
     
     const allNodes = res.cci.data.groups.flatMap(g => g.nodes);
-    assert.ok(allNodes.length > 0, \`Parsed CCI for \${type} should have nodes in groups\`);
+    assert.ok(allNodes.length > 0, `Parsed CCI for ${type} should have nodes in groups`);
     
     // Check parasitic header bug test
     const parasiticNodes = allNodes.filter(n => n.label === 'Label' || n.label === 'Event Label' || n.label === 'Node Label' || n.label === 'Title' || n.label === 'Title (Label)' || n.label === 'Phase/Era Label');
-    assert.strictEqual(parasiticNodes.length, 0, \`Should not have parsed table headers as valid nodes for \${type}\`);
+    assert.strictEqual(parasiticNodes.length, 0, `Should not have parsed table headers as valid nodes for ${type}`);
   }
 }
 

@@ -143,8 +143,11 @@ const DiagramNode = React.memo(({
     strokeW = String(shapePlugins.outline?.strokeWidth ?? 3);
   }
 
-  node._activeTheme = activeTheme || 'light';
-  node._canvasBg = resolvedCanvasColor || (activeTheme === 'dark' ? '#0f172a' : '#ffffff');
+  const renderNode = {
+    ...node,
+    _activeTheme: activeTheme || 'light',
+    _canvasBg: resolvedCanvasColor || (activeTheme === 'dark' ? '#0f172a' : '#ffffff')
+  };
 
   const renderLabel = (precomputedWrap = null) => {
     const rawLabel = String(node.label || '');
@@ -227,7 +230,7 @@ const DiagramNode = React.memo(({
   };
   
 
-  let shape = shapePlugins.render(NODE_WIDTH, NODE_HEIGHT, panelFill, strokeColor, strokeW, node.borderStyle === 'dashed' ? '5,5' : 'none', shadowFilter, node);
+  let shape = shapePlugins.render(NODE_WIDTH, NODE_HEIGHT, panelFill, strokeColor, strokeW, node.borderStyle === 'dashed' ? '5,5' : 'none', shadowFilter, renderNode);
 
   const renderPorts = () => {
     if (!isHovered && !isTargetHovered) return null;
@@ -258,6 +261,7 @@ const DiagramNode = React.memo(({
     return ports.map(p => (
        <g 
           key={p.id}
+          className="port-ui"
           style={{ cursor: 'crosshair', pointerEvents: 'all' }}
           onPointerDown={(e) => {
              e.stopPropagation();
@@ -298,7 +302,7 @@ const DiagramNode = React.memo(({
     >
       {shape}
       {renderLabel()}
-      {isSelected && React.cloneElement(selectionBound, { style: { pointerEvents: 'none' } })}
+      {isSelected && React.cloneElement(selectionBound, { className: 'selection-ui', style: { pointerEvents: 'none' } })}
       {renderPorts()}
     </g>
   );

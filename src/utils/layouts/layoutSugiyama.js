@@ -218,6 +218,27 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
             info.y = laneY[gid];
          }
       });
+
+      const orderedIds = [];
+      const seen = new Set();
+      const pushId = (id) => {
+          const key = String(id);
+          if (!nodeById.has(key) || seen.has(key)) return;
+          seen.add(key);
+          orderedIds.push(key);
+      };
+      edges.forEach(e => {
+          pushId(e.from || e.sourceId);
+          pushId(e.to || e.targetId);
+      });
+      nodes.forEach(n => pushId(n.id));
+
+      const maxW = Math.max(...nodes.map(n => n.w || 160));
+      const columnStep = maxW + Math.max(MIN_GAP_CROSS, 140);
+      orderedIds.forEach((id, index) => {
+          const info = g.node(id);
+          if (info) info.x = maxW / 2 + index * columnStep;
+      });
   }
 
   // Top-Align Nodes within each rank (pull shorter elements up to match the tallest in the row)

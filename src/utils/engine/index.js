@@ -13,6 +13,17 @@ import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
   if (!edges || edges.length === 0) return result;
+  const normalizedEdges = edges.map(edge => {
+    const from = edge.from ?? edge.sourceId;
+    const to = edge.to ?? edge.targetId;
+    return {
+      ...edge,
+      from,
+      to,
+      sourceId: edge.sourceId ?? from,
+      targetId: edge.targetId ?? to,
+    };
+  });
 
   const diagramType = (config.diagramType === 'org_chart' ? 'tree' : config.diagramType) || 'flowchart';
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
@@ -29,9 +40,9 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     const pathStyleDef = PATH_STYLE_REGISTRY[routingStyle] || PATH_STYLE_REGISTRY.straight;
     const curveStrength = pathStyleDef.curveStrength || 0;
 
-    edges.forEach(edge => {
-      const fromId = edge.from || edge.sourceId;
-      const toId = edge.to || edge.targetId;
+    normalizedEdges.forEach(edge => {
+      const fromId = edge.from;
+      const toId = edge.to;
       const startNode = allNodes.find(n => n.id === fromId);
       const endNode = allNodes.find(n => n.id === toId);
       if (!startNode || !endNode) return;
@@ -94,7 +105,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   
   const { layout: layoutRules, routing: routingRules } = getDiagramRules(diagramType);
   const PADDING = routingRules.PADDING;
-  const ctx = new RoutingContext(edges, allNodes, false, draggedNodeId, routingRules, diagramType);
+  const ctx = new RoutingContext(normalizedEdges, allNodes, false, draggedNodeId, routingRules, diagramType);
   ctx.usedEndPorts = new Map();
   ctx.usedStartPorts = new Map();
 
@@ -117,7 +128,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     }
   });
 
-  const edgeInfos = edges.map(edge => {
+  const edgeInfos = normalizedEdges.map(edge => {
     const startNode = allNodes.find(n => n.id === edge.from);
     const endNode = allNodes.find(n => n.id === edge.to);
     if (!startNode || !endNode) return null;

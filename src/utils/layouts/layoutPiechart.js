@@ -44,6 +44,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
 
     return {
       ...n,
+      type: 'pie_slice',
       x: explodeX,
       y: explodeY,
       pieStartAngle: startAngle,

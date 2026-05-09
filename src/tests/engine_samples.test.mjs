@@ -110,7 +110,6 @@ function computeMetrics(paths, edges, nodes, diagramType) {
     nodeCrossings: 0,               // intermediate points inside a node
     edgeCrossings: 0,               // perpendicular edge intersections (stranger)
     siblingCrossings: 0,            // perpendicular intersections between siblings
-    selfCrossings: 0,               // single edge crossing itself
     totalLength: 0,
     totalBends: 0,
     maxBends: 0,

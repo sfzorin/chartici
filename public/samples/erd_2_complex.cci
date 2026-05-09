@@ -3,154 +3,133 @@
     "type": "erd",
     "version": "3.0.0"
   },
-  "theme": "blue-orange",
+  "theme": "book",
   "title": {
-    "text": "IoT Time-series Fabric"
+    "text": "Learning Platform ERD"
   },
   "data": {
     "groups": [
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
+        "color": "1",
+        "label": "Identity",
         "nodes": [
           {
-            "id": "t_dev",
-            "label": "Device Specs",
+            "id": "user",
+            "label": "User",
             "type": "process"
           },
           {
-            "id": "c_mac",
-            "label": "MAC Address",
-            "type": "circle"
+            "id": "profile",
+            "label": "Profile",
+            "type": "process"
+          }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "color": "2",
+        "label": "Learning",
+        "nodes": [
+          {
+            "id": "course",
+            "label": "Course",
+            "type": "process"
           },
           {
-            "id": "c_firm",
-            "label": "Firmware V",
-            "type": "circle"
+            "id": "lesson",
+            "label": "Lesson",
+            "type": "process"
+          },
+          {
+            "id": "exercise",
+            "label": "Exercise",
+            "type": "process"
           }
-        ],
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
         "color": "5",
-        "label": "Devices"
-      },
-      {
-        "type": "process",
-        "size": "L",
+        "label": "Progress",
         "nodes": [
           {
-            "id": "t_tel",
-            "label": "Sensor Data",
+            "id": "enrollment",
+            "label": "Enrollment",
             "type": "process"
           },
           {
-            "id": "c_ts",
-            "label": "Timestamp",
-            "type": "circle"
-          },
-          {
-            "id": "c_val",
-            "label": "Value",
-            "type": "circle"
-          }
-        ],
-        "color": "6",
-        "label": "Telemetry"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_site",
-            "label": "Location Site",
+            "id": "attempt",
+            "label": "Attempt",
             "type": "process"
           },
           {
-            "id": "c_geo",
-            "label": "Coordinates",
-            "type": "circle"
-          }
-        ],
-        "color": "7",
-        "label": "Sites"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_alert",
-            "label": "Triggered Events",
+            "id": "badge",
+            "label": "Badge",
             "type": "process"
-          },
-          {
-            "id": "c_level",
-            "label": "Severity",
-            "type": "circle"
           }
-        ],
-        "color": "4",
-        "label": "Alerts"
+        ]
       }
     ],
     "relationships": [
       {
-        "sourceId": "t_dev",
-        "targetId": "c_mac",
-        "label": "PK",
+        "sourceId": "user",
+        "targetId": "profile",
+        "label": "owns",
         "connectionType": "1:1",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_dev",
-        "targetId": "c_firm",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_tel",
-        "targetId": "c_ts",
-        "label": "PK",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_tel",
-        "targetId": "c_val",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_site",
-        "targetId": "c_geo",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_alert",
-        "targetId": "c_level",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_site",
-        "targetId": "t_dev",
-        "label": "hosts",
+        "sourceId": "user",
+        "targetId": "enrollment",
+        "label": "starts",
         "connectionType": "1:N",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_dev",
-        "targetId": "t_tel",
-        "label": "emits",
+        "sourceId": "course",
+        "targetId": "lesson",
+        "label": "contains",
         "connectionType": "1:N",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_tel",
-        "targetId": "t_alert",
-        "label": "triggers",
-        "connectionType": "N:M",
+        "sourceId": "lesson",
+        "targetId": "exercise",
+        "label": "includes",
+        "connectionType": "1:N",
         "lineStyle": "solid"
+      },
+      {
+        "sourceId": "enrollment",
+        "targetId": "course",
+        "label": "for",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "attempt",
+        "targetId": "exercise",
+        "label": "answers",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "attempt",
+        "label": "submits",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "badge",
+        "label": "earns",
+        "connectionType": "1:N",
+        "lineStyle": "dashed"
       }
     ]
   }

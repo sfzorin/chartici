@@ -11,7 +11,7 @@
  * BRAND             — бренд-цвета Chartici
  * CANVAS_THEMES     — canvas + diagram-semantic цвета для light/dark режима
  *                     используются при headless рендере и как дефолты экспорта
- * PALETTES          — 8 именованных палитр нод (→ CSS --color-N)
+ * PALETTES          — именованные палитры нод (→ CSS --color-N)
  *                     Каждая запись: { name, colors[], unfilledText, rules }
  *                     colors[]: { bg, text, border? }
  *                     rules: маппинг "кол-во нод → индексы цветов" для авто-назначения
@@ -61,7 +61,6 @@ export const CANVAS_THEMES = {
     '--border-color-soft':   'rgba(255,255,255,0.08)',
     '--border-color-medium': 'rgba(255,255,255,0.15)',
     '--border-color-active': '#f8fafc',
-    '--grid-line-color':     'rgba(255,255,255,0.04)',   // repeated for compat
     // Diagram semantic
     '--diagram-text':        '#f1f5f9',
     '--diagram-edge':        '#cbd5e1',
@@ -83,17 +82,16 @@ export const EXPORT_DEFAULTS = CANVAS_THEMES.light;
  * Индексы 1-based (1..9 — слоты solid цветов).
  * При авто-назначении система берёт rules[n] и циклически назначает слоты.
  */
-const monoRules = {
-  2: [1,4], 3: [1,4,7], 4: [1,3,5,8], 5: [1,3,5,7,9],
-  6: [1,2,4,6,8,9], 7: [1,2,3,5,7,8,9], 8: [1,2,3,4,6,7,8,9],
-};
-const dualRules = {
-  2: [2,7], 3: [1,3,7], 4: [1,2,7,8], 5: [1,2,4,7,8],
-  6: [1,3,5,6,7,9], 7: [1,2,4,5,6,7,9], 8: [1,2,4,5,6,7,8,9],
-};
-const triRules = {
-  2: [2,5], 3: [2,5,8], 4: [1,2,5,8], 5: [1,2,4,5,8],
-  6: [1,2,4,5,7,8], 7: [1,2,3,4,5,7,8], 8: [1,2,3,4,5,6,7,8],
+const bookRules = {
+  1: [1],
+  2: [1, 2],
+  3: [1, 2, 5],
+  4: [1, 2, 5, 3],
+  5: [1, 2, 5, 3, 4],
+  6: [1, 2, 5, 3, 4, 6],
+  7: [1, 2, 5, 3, 4, 6, 7],
+  8: [1, 2, 5, 3, 4, 6, 7, 8],
+  9: [1, 2, 5, 3, 4, 6, 7, 8, 9],
 };
 
 /**
@@ -116,53 +114,17 @@ function makePalette(name, solids, rules) {
 
 // ─── Palettes ─────────────────────────────────────────────────────────────────
 export const PALETTES = {
-  'vibrant-rainbow': makePalette('Vibrant Rainbow', [
-    { c: '#e11d48', t: '#ffffff' }, { c: '#f97316', t: '#ffffff' }, { c: '#facc15', t: '#1f2937' },
-    { c: '#22c55e', t: '#1f2937' }, { c: '#06b6d4', t: '#ffffff' }, { c: '#3b82f6', t: '#ffffff' },
-    { c: '#6366f1', t: '#ffffff' }, { c: '#a855f7', t: '#ffffff' }, { c: '#ec4899', t: '#ffffff' },
-  ], monoRules),
-
-  'muted-rainbow': makePalette('Muted Rainbow', [
-    { c: '#991b1b', t: '#ffffff' }, { c: '#9a3412', t: '#ffffff' }, { c: '#854d0e', t: '#ffffff' },
-    { c: '#166534', t: '#ffffff' }, { c: '#134e4a', t: '#ffffff' }, { c: '#1e40af', t: '#ffffff' },
-    { c: '#3730a3', t: '#ffffff' }, { c: '#6b21a8', t: '#ffffff' }, { c: '#831843', t: '#ffffff' },
-  ], monoRules),
-
-  'blue-orange': makePalette('Blue & Orange', [
-    { c: '#1e3a8a', t: '#ffffff' }, { c: '#2563eb', t: '#ffffff' }, { c: '#60a5fa', t: '#1f2937' },
-    { c: '#93c5fd', t: '#1f2937' }, { c: '#bfdbfe', t: '#1f2937' }, { c: '#9a3412', t: '#ffffff' },
-    { c: '#ea580c', t: '#ffffff' }, { c: '#fb923c', t: '#1f2937' }, { c: '#fdba74', t: '#1f2937' },
-  ], dualRules),
-
-  'green-purple': makePalette('Green & Purple', [
-    { c: '#064e3b', t: '#ffffff' }, { c: '#059669', t: '#ffffff' }, { c: '#34d399', t: '#1f2937' },
-    { c: '#6ee7b7', t: '#1f2937' }, { c: '#a7f3d0', t: '#1f2937' }, { c: '#581c87', t: '#ffffff' },
-    { c: '#9333ea', t: '#ffffff' }, { c: '#c084fc', t: '#1f2937' }, { c: '#e9d5ff', t: '#1f2937' },
-  ], dualRules),
-
-  'slate-rose': makePalette('Slate & Rose', [
-    { c: '#0f172a', t: '#ffffff' }, { c: '#334155', t: '#ffffff' }, { c: '#64748b', t: '#ffffff' },
-    { c: '#94a3b8', t: '#1f2937' }, { c: '#cbd5e1', t: '#1f2937' }, { c: '#881337', t: '#ffffff' },
-    { c: '#e11d48', t: '#ffffff' }, { c: '#fb7185', t: '#1f2937' }, { c: '#fda4af', t: '#1f2937' },
-  ], dualRules),
-
-  'blue-teal-slate': makePalette('Blue & Teal & Slate', [
-    { c: '#1e3a8a', t: '#ffffff' }, { c: '#3b82f6', t: '#ffffff' }, { c: '#93c5fd', t: '#1f2937' },
-    { c: '#134e4a', t: '#ffffff' }, { c: '#0d9488', t: '#ffffff' }, { c: '#5eead4', t: '#1f2937' },
-    { c: '#334155', t: '#ffffff' }, { c: '#64748b', t: '#ffffff' }, { c: '#cbd5e1', t: '#1f2937' },
-  ], triRules),
-
-  'indigo-green-red': makePalette('Indigo & Green & Red', [
-    { c: '#312e81', t: '#ffffff' }, { c: '#4f46e5', t: '#ffffff' }, { c: '#818cf8', t: '#1f2937' },
-    { c: '#065f46', t: '#ffffff' }, { c: '#10b981', t: '#ffffff' }, { c: '#6ee7b7', t: '#1f2937' },
-    { c: '#9f1239', t: '#ffffff' }, { c: '#e11d48', t: '#ffffff' }, { c: '#fb7185', t: '#1f2937' },
-  ], triRules),
-
-  'brown-amber-grey': makePalette('Brown & Amber & Grey', [
-    { c: '#451a03', t: '#ffffff' }, { c: '#78350f', t: '#ffffff' }, { c: '#92400e', t: '#ffffff' },
-    { c: '#b45309', t: '#ffffff' }, { c: '#f59e0b', t: '#1f2937' }, { c: '#fbbf24', t: '#1f2937' },
-    { c: '#1e293b', t: '#ffffff' }, { c: '#475569', t: '#ffffff' }, { c: '#94a3b8', t: '#1f2937' },
-  ], triRules),
+  'book': makePalette('Book', [
+    { c: '#243B53', t: '#ffffff' },
+    { c: '#2F6F73', t: '#ffffff' },
+    { c: '#D8A24A', t: '#1f2937' },
+    { c: '#5E8C61', t: '#ffffff' },
+    { c: '#6B7280', t: '#ffffff' },
+    { c: '#B24C4C', t: '#ffffff' },
+    { c: '#7C6A9E', t: '#ffffff' },
+    { c: '#A67C52', t: '#ffffff' },
+    { c: '#D1D5DB', t: '#1f2937' },
+  ], bookRules),
 };
 
 /**
@@ -235,4 +197,3 @@ export const CANVAS_COLORS = {
 export function getCanvasColors(bgColor) {
   return CANVAS_COLORS[bgColor] ?? CANVAS_COLORS.default;
 }
-

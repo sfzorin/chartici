@@ -1,88 +1,116 @@
 {
   "meta": {
     "type": "erd",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
-  "theme": "grey",
+  "theme": "book",
   "title": {
-    "text": "Sales Schema"
+    "text": "Publishing Data Model"
   },
   "data": {
     "groups": [
       {
         "type": "process",
         "size": "M",
+        "color": "1",
+        "label": "Content",
         "nodes": [
           {
-            "id": "t_o",
-            "label": "Orders"
+            "id": "book",
+            "label": "Book",
+            "type": "process"
           },
           {
-            "id": "c_i",
-            "label": "Order ID"
+            "id": "chapter",
+            "label": "Chapter",
+            "type": "process"
           },
           {
-            "id": "c_amount",
-            "label": "Amount"
+            "id": "figure",
+            "label": "Figure",
+            "type": "process"
           }
-        ],
-        "color": "0",
-        "label": "Orders Table"
+        ]
       },
       {
         "type": "process",
         "size": "M",
+        "color": "2",
+        "label": "People",
         "nodes": [
           {
-            "id": "t_u",
-            "label": "Users"
+            "id": "author",
+            "label": "Author",
+            "type": "process"
           },
           {
-            "id": "c_u",
-            "label": "User ID"
-          },
-          {
-            "id": "c_email",
-            "label": "Email"
+            "id": "reviewer",
+            "label": "Reviewer",
+            "type": "process"
           }
-        ],
-        "color": "1",
-        "label": "Users Table"
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "color": "5",
+        "label": "Workflow",
+        "nodes": [
+          {
+            "id": "draft",
+            "label": "Draft",
+            "type": "process"
+          },
+          {
+            "id": "revision",
+            "label": "Revision",
+            "type": "process"
+          }
+        ]
       }
     ],
-    "edges": [
+    "relationships": [
       {
-        "sourceId": "t_o",
-        "targetId": "c_i",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_o",
-        "targetId": "c_amount",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_u",
-        "targetId": "c_u",
-        "connectionType": "1:1",
-        "lineStyle": "solid",
-        "label": "PK"
-      },
-      {
-        "sourceId": "t_u",
-        "targetId": "c_email",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_u",
-        "targetId": "t_o",
+        "sourceId": "author",
+        "targetId": "book",
+        "label": "writes",
         "connectionType": "1:N",
-        "lineStyle": "solid",
-        "label": "places"
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "book",
+        "targetId": "chapter",
+        "label": "contains",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "chapter",
+        "targetId": "figure",
+        "label": "uses",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "reviewer",
+        "targetId": "draft",
+        "label": "reviews",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "draft",
+        "targetId": "revision",
+        "label": "becomes",
+        "connectionType": "1:1",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "revision",
+        "targetId": "chapter",
+        "label": "updates",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
       }
     ]
   }

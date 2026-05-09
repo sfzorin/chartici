@@ -1,30 +1,17 @@
 {
-  "meta": {
-    "type": "tree",
-    "version": "3.0.0"
-  },
-  "theme": "slate-rose",
-  "title": {
-    "text": "Corporate Org Chart"
-  },
+  "meta": { "type": "tree", "version": "3.0.0" },
+  "theme": "book",
+  "title": { "text": "Corporate Org Chart" },
   "data": {
     "groups": [
       {
         "type": "process",
         "size": "L",
         "nodes": [
-          {
-            "id": "board",
-            "label": "Board of Directors",
-            "type": "process"
-          },
-          {
-            "id": "ceo",
-            "label": "CEO",
-            "type": "process"
-          }
+          { "id": "board", "label": "Board", "type": "process" },
+          { "id": "ceo", "label": "CEO", "type": "process" }
         ],
-        "color": "5",
+        "color": "1",
         "label": "Executive",
         "parentId": "board"
       },
@@ -32,118 +19,67 @@
         "type": "process",
         "size": "M",
         "nodes": [
-          {
-            "id": "vp_eng",
-            "label": "VP Engineering",
-            "type": "process"
-          },
-          {
-            "id": "eng1",
-            "label": "Frontend Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng2",
-            "label": "Backend Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng3",
-            "label": "DevOps Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng4",
-            "label": "QA Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng5",
-            "label": "Data Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng6",
-            "label": "Mobile Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng7",
-            "label": "Security Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng8",
-            "label": "Architecture Lead",
-            "type": "process"
-          },
-          {
-            "id": "eng9",
-            "label": "AI Strategy",
-            "type": "process"
-          }
+          { "id": "vp_eng", "label": "VP Engineering", "type": "process" }
         ],
-        "color": "6",
-        "label": "Engineering Branch",
+        "color": "2",
+        "label": "Engineering",
         "parentId": "ceo"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          { "id": "eng1", "label": "Frontend", "type": "process" },
+          { "id": "eng2", "label": "Backend", "type": "process" },
+          { "id": "eng3", "label": "DevOps", "type": "process" },
+          { "id": "eng4", "label": "Data", "type": "process" }
+        ],
+        "color": "2",
+        "label": "Engineering Teams",
+        "parentId": "vp_eng"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
-          {
-            "id": "vp_sales",
-            "label": "VP Global Sales",
-            "type": "process"
-          },
-          {
-            "id": "sales1",
-            "label": "North America",
-            "type": "process"
-          },
-          {
-            "id": "sales2",
-            "label": "EMEA Regions",
-            "type": "process"
-          },
-          {
-            "id": "sales3",
-            "label": "APAC Regions",
-            "type": "process"
-          },
-          {
-            "id": "sales4",
-            "label": "LATAM Regions",
-            "type": "process"
-          }
+          { "id": "vp_sales", "label": "VP Sales", "type": "process" }
         ],
-        "color": "7",
-        "label": "Sales Branch",
+        "color": "5",
+        "label": "Sales",
         "parentId": "ceo"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          { "id": "sales1", "label": "North America", "type": "process" },
+          { "id": "sales2", "label": "EMEA", "type": "process" },
+          { "id": "sales3", "label": "APAC", "type": "process" }
+        ],
+        "color": "5",
+        "label": "Sales Regions",
+        "parentId": "vp_sales"
       },
       {
         "type": "process",
         "size": "M",
         "nodes": [
-          {
-            "id": "vp_hr",
-            "label": "VP HR",
-            "type": "process"
-          },
-          {
-            "id": "hr1",
-            "label": "Talent Acquisition",
-            "type": "process"
-          },
-          {
-            "id": "hr2",
-            "label": "Compliance",
-            "type": "process"
-          }
+          { "id": "vp_hr", "label": "VP People", "type": "process" }
         ],
-        "color": "4",
-        "label": "HR Branch",
+        "color": "3",
+        "label": "People",
         "parentId": "ceo"
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "nodes": [
+          { "id": "hr1", "label": "Hiring", "type": "process" },
+          { "id": "hr2", "label": "Compliance", "type": "process" }
+        ],
+        "color": "3",
+        "label": "People Ops",
+        "parentId": "vp_hr"
       }
     ]
   }

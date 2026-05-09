@@ -868,7 +868,7 @@ input[type="color"].hud-color-picker::-webkit-color-swatch {
 
 /* Popover Logic */
 .toolbox-popover {
-  position: absolute;
+  position: fixed;
   left: calc(100% + 12px);
   top: 0;
   background: var(--ui-bg-elevated);
@@ -877,7 +877,9 @@ input[type="color"].hud-color-picker::-webkit-color-swatch {
   padding: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   min-width: 180px;
-  z-index: 210;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+  z-index: 1200;
   animation: popoverFadeIn 0.2s ease-out;
 }
 
@@ -978,6 +980,9 @@ input[type="color"].hud-color-picker::-webkit-color-swatch {
     border-radius: 100px;
     overflow-x: auto;
     overflow-y: hidden;
+    max-width: calc(100vw - 16px);
+    min-width: 0;
+    box-sizing: border-box;
     gap: 4px !important;
     scrollbar-width: none; /* Auto-hide scrollbar in FF */
   }
@@ -1003,14 +1008,13 @@ input[type="color"].hud-color-picker::-webkit-color-swatch {
     height: 20px !important;
   }
   .toolbox-popover {
-    left: 50%;
-    transform: translateX(-50%);
-    top: calc(100% + 12px);
-    bottom: auto;
+    transform: none;
+    min-width: min(220px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
   }
   @keyframes popoverFadeIn {
-    from { opacity: 0; transform: translate(-50%, -10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .bottom-left-toolbar {
     display: none; /* Merged into toolbox-panel */

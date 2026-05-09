@@ -8,7 +8,7 @@ const getAvailableTypesText = () => {
 };
 
 export const getSystemPromptPhase1 = () => `You are an expert Diagram Architect.
-Your task is to analyze the user's request and produce a structured plan for a diagram.
+Your task is to analyze the user's request and produce a structured plan for a polished book figure.
 Respond in the same language the user used.
 
 AVAILABLE DIAGRAM TYPES:
@@ -16,9 +16,11 @@ ${getAvailableTypesText()}
 
 STRICT RULES:
 - Do NOT explain your choices. Just output the three XML tags below.
-- Keep <prompt> under 150 words. Be dense and structural, not narrative.
-- Aim for 9-20 entities unless the user explicitly asks for more or fewer.
-- Condense labels to 1-3 words each.
+- Keep <prompt> under 130 words. Be dense and structural, not narrative.
+- Prefer 5-11 visible nodes. Use more only when the user explicitly asks.
+- Condense labels to 1-4 words each.
+- Choose one main message. Remove side details that do not support it.
+- Use groups only when they clarify the reader's mental model.
 
 Output EXACTLY three XML tags and nothing else:
 <title>Concise diagram title (3-6 words)</title>
@@ -41,6 +43,10 @@ export function getSystemPromptPhase2(diagramType) {
 - Every node needs a unique alphanumeric ID (e.g. n1, srv_a).
 - Preserve the user's language for ALL labels exactly.
 - Size: ${sMap.L}(emphasized) / ${sMap.M}(default) / ${sMap.S || 'minor'}(de-emphasized).
+- Make this suitable for a book figure: compact, readable, and not crowded.
+- Prefer 5-11 visible nodes. Hard maximum 14 unless explicitly requested.
+- Labels must be short noun/verb phrases, ideally 1-4 words.
+- Avoid duplicate labels, orphan nodes, and decorative filler.
 - Output ONLY Markdown tables and ### headings. No prose.
 `;
 

@@ -6,6 +6,7 @@ Transform the user's concept into Markdown Tables for a FLOWCHART.
 Node types: terminal (start/end only), decision (branching), process (action), event (connector).
 Connections go in the "Next Steps" column: target_id or target_id[Label].
 Group nodes by subsystem using ### headings.
+Use one readable main path. Use decisions sparingly. Avoid more than 2 outgoing branches from one node.
 
 # Steps
 

@@ -6,6 +6,9 @@ const PORT = process.env.PORT || 3001;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_TIMEOUT_MS = 120_000; // 120 seconds
+const DEFAULT_MODEL = 'deepseek-chat';
+const ALLOWED_MODELS = new Set([DEFAULT_MODEL]);
+const ALLOWED_RESPONSE_FORMAT_TYPES = new Set(['json_object']);
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -18,6 +21,24 @@ function getClientIP(req) {
     || req.headers['x-forwarded-for']?.split(',')[0]?.trim()
     || req.socket.remoteAddress
     || 'unknown';
+}
+
+function normalizeTemperature(value) {
+  if (value === undefined) return 0.3;
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  return Math.min(2, Math.max(0, value));
+}
+
+function normalizeResponseFormat(value) {
+  if (!value) return null;
+  if (
+    typeof value === 'object'
+    && !Array.isArray(value)
+    && ALLOWED_RESPONSE_FORMAT_TYPES.has(value.type)
+  ) {
+    return { type: value.type };
+  }
+  return undefined;
 }
 
 // ── Middleware ────────────────────────────────────────────────────────
@@ -56,12 +77,44 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/generate', async (req, res) => {
   const startTime = Date.now();
   const ip = getClientIP(req);
-  let model = 'deepseek-chat';
+  let model = DEFAULT_MODEL;
 
   try {
     // ── Validate input ──
     const { messages, temperature } = req.body;
     model = req.body.model || model;
+
+    if (!ALLOWED_MODELS.has(model)) {
+      console.log(
+        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
+      );
+      return res.status(400).json({
+        success: false,
+        error: 'Unsupported model',
+      });
+    }
+
+    const safeTemperature = normalizeTemperature(temperature);
+    if (safeTemperature === null) {
+      console.log(
+        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
+      );
+      return res.status(400).json({
+        success: false,
+        error: 'temperature must be a finite number',
+      });
+    }
+
+    const safeResponseFormat = normalizeResponseFormat(req.body.response_format);
+    if (safeResponseFormat === undefined) {
+      console.log(
+        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
+      );
+      return res.status(400).json({
+        success: false,
+        error: 'Unsupported response_format',
+      });
+    }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       console.log(
@@ -110,9 +163,9 @@ app.post('/api/generate', async (req, res) => {
         },
         body: JSON.stringify({
           model,
-          temperature: temperature ?? 0.3,
+          temperature: safeTemperature,
           messages,
-          ...(req.body.response_format ? { response_format: req.body.response_format } : {}),
+          ...(safeResponseFormat ? { response_format: safeResponseFormat } : {}),
         }),
         signal: controller.signal,
       });

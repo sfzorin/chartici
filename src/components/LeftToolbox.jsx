@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { PALETTES } from '../diagram/colors.js';
 import { LINE_STYLE_REGISTRY, ARROW_TYPE_REGISTRY } from '../diagram/edges.js';
 import { NODE_REGISTRY } from '../diagram/nodes.jsx';
@@ -11,25 +12,63 @@ import Icon from './Icons';
 // --- Popover helper component ---
 function PopoverMenu({ isOpen, onClose, anchorRef, children, side = 'right' }) {
   const popoverRef = useRef(null);
-  const [topPos, setTopPos] = useState(0);
+  const [position, setPosition] = useState({ top: 0, left: 0, maxHeight: undefined });
+
+  useLayoutEffect(() => {
+    if (!isOpen || !anchorRef.current) return;
+
+    const updatePosition = () => {
+      const anchor = anchorRef.current;
+      const popover = popoverRef.current;
+      if (!anchor) return;
+
+      const anchorRect = anchor.getBoundingClientRect();
+      const popoverW = popover?.offsetWidth || 220;
+      const popoverH = popover?.offsetHeight || 260;
+      const gap = 10;
+      const pad = 8;
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+      let top;
+      let left;
+      if (isMobile) {
+        top = anchorRect.bottom + gap;
+        left = anchorRect.left + anchorRect.width / 2 - popoverW / 2;
+      } else if (side === 'left') {
+        top = anchorRect.top;
+        left = anchorRect.left - popoverW - gap;
+      } else {
+        top = anchorRect.top;
+        left = anchorRect.right + gap;
+      }
+
+      const maxTop = Math.max(pad, window.innerHeight - popoverH - pad);
+      const maxLeft = Math.max(pad, window.innerWidth - popoverW - pad);
+      setPosition({
+        top: Math.min(Math.max(top, pad), maxTop),
+        left: Math.min(Math.max(left, pad), maxLeft),
+        maxHeight: Math.max(160, window.innerHeight - pad * 2),
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [isOpen, anchorRef, side]);
 
   useEffect(() => {
-    if (isOpen && anchorRef.current) {
-      let top = anchorRef.current.offsetTop;
-      setTopPos(top);
+    if (!isOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
 
-      setTimeout(() => {
-         if (popoverRef.current) {
-             const rect = popoverRef.current.getBoundingClientRect();
-             const overflow = rect.bottom - window.innerHeight;
-             if (overflow > 0) {
-                 setTopPos(prev => prev - overflow - 12);
-             }
-         }
-      }, 0);
-    }
-  }, [isOpen]);
-  
   useEffect(() => {
     if (!isOpen) return;
     function handleClickOutside(e) {
@@ -48,14 +87,21 @@ function PopoverMenu({ isOpen, onClose, anchorRef, children, side = 'right' }) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       ref={popoverRef}
       className={`toolbox-popover popover-${side}`}
-      style={{ top: topPos + 'px' }}
+      style={{
+        position: 'fixed',
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        maxHeight: `${position.maxHeight}px`,
+        overflow: 'auto',
+      }}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 }
 

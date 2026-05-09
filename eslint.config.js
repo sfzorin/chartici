@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['src/**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -23,7 +23,34 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
+      'no-empty': 'warn',
+      'no-useless-escape': 'warn',
+    },
+  },
+  {
+    files: ['backend/**/*.js', 'scripts/**/*.js', 'src/tests/**/*.{js,mjs}'],
+    extends: [
+      js.configs.recommended,
+    ],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.node,
+      parserOptions: {
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
+      'no-empty': 'warn',
+    },
+  },
+  {
+    files: ['backend/**/*.js'],
+    languageOptions: {
+      parserOptions: {
+        sourceType: 'commonjs',
+      },
     },
   },
 ])

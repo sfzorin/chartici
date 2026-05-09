@@ -17,7 +17,7 @@ export default {
         description: 'mind-maps, concentric layers, or hub-and-spoke architectures.',
         allowedNodes: ['process'],
         allowedLineStyles: ['solid', 'dashed', 'none'],
-        allowedArrowTypes: ['none'],
+        allowedArrowTypes: ['target', 'none'],
         features: { hasNodeValue: false, allowConnections: true, supportsLegend: true},
         // Кодировка связей в .cci: группа хранит ID родительской ноды в поле parentId
         ioFormat: { edgeEncoding: 'parentId', connectionField: 'parentId', level: 'group' },
@@ -25,7 +25,6 @@ export default {
             layout: 'radial',
             edgeStyle: 'straight',
             nodeTypes: ['process'],
-            suppressEdgeMarkers: true,
             suppressEdgeLabels: true,
         },
     },
@@ -66,7 +65,7 @@ export default {
                 if (!g.parentId) return;
                 (g.nodes || []).forEach(n => {
                     if (String(g.parentId) === String(n.id)) return;
-                    edges.push({ id: idGen(), from: String(g.parentId), to: String(n.id), lineStyle: 'solid', connectionType: 'none' });
+                    edges.push({ id: idGen(), from: String(g.parentId), to: String(n.id), lineStyle: 'solid', connectionType: 'target' });
                 });
             });
             flatNodes.forEach(n => {
@@ -74,7 +73,7 @@ export default {
                 String(n.nextSteps).split(',').map(s => s.trim()).filter(Boolean).forEach(step => {
                     const m = step.match(/^([^\[]+)(?:\[([^\]]*)\])?$/);
                     if (!m) return;
-                    edges.push({ id: idGen(), from: String(n.id), to: m[1].trim(), label: m[2]?.trim(), lineStyle: 'solid', connectionType: 'none' });
+                    edges.push({ id: idGen(), from: String(n.id), to: m[1].trim(), label: m[2]?.trim(), lineStyle: 'solid', connectionType: 'target' });
                 });
             });
             return edges;

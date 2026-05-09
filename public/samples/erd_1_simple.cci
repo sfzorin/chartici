@@ -3,143 +3,113 @@
     "type": "erd",
     "version": "3.0.0"
   },
-  "theme": "indigo-green-red",
+  "theme": "book",
   "title": {
-    "text": "Enterprise Personnel DB"
+    "text": "Publishing Data Model"
   },
   "data": {
     "groups": [
       {
         "type": "process",
-        "size": "L",
-        "nodes": [
-          {
-            "id": "t_e",
-            "label": "Employees",
-            "type": "process"
-          },
-          {
-            "id": "c_eid",
-            "label": "Emp ID",
-            "type": "circle"
-          },
-          {
-            "id": "c_ename",
-            "label": "Name",
-            "type": "circle"
-          }
-        ],
+        "size": "M",
         "color": "1",
-        "label": "Employees"
+        "label": "Content",
+        "nodes": [
+          {
+            "id": "book",
+            "label": "Book",
+            "type": "process"
+          },
+          {
+            "id": "chapter",
+            "label": "Chapter",
+            "type": "process"
+          },
+          {
+            "id": "figure",
+            "label": "Figure",
+            "type": "process"
+          }
+        ]
       },
       {
         "type": "process",
         "size": "M",
-        "nodes": [
-          {
-            "id": "t_d",
-            "label": "Departments",
-            "type": "process"
-          },
-          {
-            "id": "c_did",
-            "label": "Dept ID",
-            "type": "circle"
-          }
-        ],
         "color": "2",
-        "label": "Departments"
+        "label": "People",
+        "nodes": [
+          {
+            "id": "author",
+            "label": "Author",
+            "type": "process"
+          },
+          {
+            "id": "reviewer",
+            "label": "Reviewer",
+            "type": "process"
+          }
+        ]
       },
       {
         "type": "process",
         "size": "M",
+        "color": "5",
+        "label": "Workflow",
         "nodes": [
           {
-            "id": "t_p",
-            "label": "Projects",
+            "id": "draft",
+            "label": "Draft",
             "type": "process"
           },
           {
-            "id": "c_pid",
-            "label": "Proj ID",
-            "type": "circle"
-          }
-        ],
-        "color": "3",
-        "label": "Projects"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "t_a",
-            "label": "Assignments",
+            "id": "revision",
+            "label": "Revision",
             "type": "process"
-          },
-          {
-            "id": "c_hrs",
-            "label": "Hours Logged",
-            "type": "circle"
           }
-        ],
-        "color": "4",
-        "label": "Assignments"
+        ]
       }
     ],
     "relationships": [
       {
-        "sourceId": "t_e",
-        "targetId": "c_eid",
-        "label": "PK",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_e",
-        "targetId": "c_ename",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_d",
-        "targetId": "c_did",
-        "label": "PK",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_p",
-        "targetId": "c_pid",
-        "label": "PK",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_a",
-        "targetId": "c_hrs",
-        "connectionType": "1:1",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "t_d",
-        "targetId": "t_e",
-        "label": "employs",
+        "sourceId": "author",
+        "targetId": "book",
+        "label": "writes",
         "connectionType": "1:N",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_e",
-        "targetId": "t_a",
-        "label": "assigned",
+        "sourceId": "book",
+        "targetId": "chapter",
+        "label": "contains",
         "connectionType": "1:N",
         "lineStyle": "solid"
       },
       {
-        "sourceId": "t_p",
-        "targetId": "t_a",
-        "label": "includes",
+        "sourceId": "chapter",
+        "targetId": "figure",
+        "label": "uses",
         "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "reviewer",
+        "targetId": "draft",
+        "label": "reviews",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "draft",
+        "targetId": "revision",
+        "label": "becomes",
+        "connectionType": "1:1",
+        "lineStyle": "dashed"
+      },
+      {
+        "sourceId": "revision",
+        "targetId": "chapter",
+        "label": "updates",
+        "connectionType": "N:1",
         "lineStyle": "solid"
       }
     ]

@@ -4,7 +4,7 @@ export default {
 Transform the user's concept into Markdown Tables for a SEQUENCE diagram.
 
 Group nodes by actor using ### headings. Each node is a processing step on that actor's lifeline.
-ConnectionType in # Messages: "solid" (sync call) or "dashed" (async return).
+LineStyle in # Messages: "solid" (sync call) or "dashed" (async return).
 
 # States
 
@@ -21,7 +21,7 @@ ConnectionType in # Messages: "solid" (sync call) or "dashed" (async return).
 | s_2 | Query DB |
 
 # Messages
-| Source ID | Target ID | Label | ConnectionType |
+| Source ID | Target ID | Label | LineStyle |
 |---|---|---|---|
 | c_1 | s_1 | POST /data | solid |
 | s_1 | s_2 | Read DB | solid |

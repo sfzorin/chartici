@@ -26,6 +26,7 @@ function getFingerprint(snapshot) {
  */
 export function useDiagramHistory(initialState) {
   const [state, setStateRaw] = useState(initialState);
+  const [historyMeta, setHistoryMeta] = useState({ pointer: 0, length: 1 });
   
   const historyRef = useRef([initialState]);
   const pointerRef = useRef(0);
@@ -61,6 +62,7 @@ export function useDiagramHistory(initialState) {
     pointerRef.current = trimmed.length - 1;
     lastCommitTimeRef.current = Date.now();
     pendingRef.current = null;
+    setHistoryMeta({ pointer: pointerRef.current, length: historyRef.current.length });
   }, []);
 
   // setState wrapper with debounce/throttle logic
@@ -122,6 +124,7 @@ export function useDiagramHistory(initialState) {
     pointerRef.current = newPointer;
     const snapshot = historyRef.current[newPointer];
     lastCommitTimeRef.current = Date.now();
+    setHistoryMeta({ pointer: pointerRef.current, length: historyRef.current.length });
     setStateRaw(snapshot);
   }, [commit]);
 
@@ -134,11 +137,12 @@ export function useDiagramHistory(initialState) {
     pointerRef.current = newPointer;
     const snapshot = history[newPointer];
     lastCommitTimeRef.current = Date.now();
+    setHistoryMeta({ pointer: pointerRef.current, length: historyRef.current.length });
     setStateRaw(snapshot);
   }, []);
 
-  const canUndo = pointerRef.current > 0;
-  const canRedo = pointerRef.current < historyRef.current.length - 1;
+  const canUndo = historyMeta.pointer > 0;
+  const canRedo = historyMeta.pointer < historyMeta.length - 1;
 
   return { state, setState, undo, redo, canUndo, canRedo };
 }
