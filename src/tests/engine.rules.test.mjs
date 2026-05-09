@@ -40,6 +40,8 @@ assert.deepEqual(orgChart, tree);
 
 const piechart = getDiagramRules('piechart');
 assert.equal(piechart.layout.RANKER, 'network-simplex');
+assert.equal(getEngine('piechart').paper.padFactor, 0.94);
+assert.equal(getEngine('piechart').paper.titleGapScale, 0.55);
 
 const flowchartRouting = getRoutingPolicy('flowchart');
 assert.equal(flowchartRouting.portStrategy, 'dynamic');

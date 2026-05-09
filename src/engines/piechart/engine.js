@@ -69,6 +69,13 @@ export default {
         textPathStartOffset: '50%',
     },
 
+    paper: {
+        padFactor: 0.94,
+        titleGapScale: 0.55,
+        titleTopInset: 20,
+        aspectExtraBottomShare: 0.32,
+    },
+
     parser: {
         exportEdges: () => {},
         resolveImplicitEdges: () => [],

@@ -13,6 +13,7 @@ import Icon from './Icons';
 
 import { computeBindings, getAxisDir } from '../utils/layout';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
+import { getEngine } from '../engines/index.js';
 
 const normalizeEdgeEndpoints = (edge) => {
   const from = edge.from ?? edge.sourceId;
@@ -58,6 +59,7 @@ export default function DiagramRenderer({
   const [edges, setEdges] = useState([]);
   
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
+  const activeEngine = getEngine(diagramType);
   
   // Dragging state
   const [dragState, setDragState] = useState(null);
@@ -599,13 +601,15 @@ export default function DiagramRenderer({
 
      const titleCx = (minX + maxX) / 2;
      let titleY = minY;
+     const paperPolicy = activeEngine?.paper || {};
 
      if (diagramTitle) {
          const titleSpacingPx = NODE_REGISTRY.title.layoutSpacing?.[initialData?.config?.titleSize || 'M'] ?? 80;
-         const titleGapPx = diagramType === 'piechart'
-           ? Math.max(52, Math.round(titleSpacingPx * 0.75))
+         const titleGapPx = paperPolicy.titleGapScale
+           ? Math.max(34, Math.round(titleSpacingPx * paperPolicy.titleGapScale))
            : titleSpacingPx;
-         minY -= (diagramType === 'piechart' ? titleGapPx + 32 : titleSpacingPx * 2.5);
+         const titleTopInset = paperPolicy.titleTopInset ?? titleSpacingPx * 1.5;
+         minY -= titleGapPx + titleTopInset;
       }
 
       if (diagramType === 'piechart' && showLegend) {
@@ -654,8 +658,8 @@ export default function DiagramRenderer({
      const graphW = maxX - minX;
      const graphH = maxY - minY;
 
-     // Regular nodes: 10% padding each side (or 5% for pie charts to keep them huge)
-     const padFactor = diagramType === 'piechart' ? 0.9 : 0.8;
+     // Regular nodes: 10% padding each side by default.
+     const padFactor = paperPolicy.padFactor ?? (diagramType === 'piechart' ? 0.9 : 0.8);
      let pW = graphW / padFactor;
      let pH = graphH / padFactor;
 
@@ -687,7 +691,9 @@ export default function DiagramRenderer({
      }
      
      const cx = (minX + maxX) / 2;
-     const cy = (minY + maxY) / 2;
+     const extraH = Math.max(0, pH - graphH);
+     const extraBottomShare = paperPolicy.aspectExtraBottomShare ?? 0.5;
+     const cy = minY + graphH / 2 + extraH * (extraBottomShare - 0.5);
      
      const sysTitle = computedNodes.find(n => n.id === '__SYSTEM_TITLE__');
      if (sysTitle) {
@@ -695,8 +701,8 @@ export default function DiagramRenderer({
         if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
         if (sysTitle.y === undefined) {
            const titleSpacing = NODE_REGISTRY.title.layoutSpacing?.[sysTitle.size || 'M'] ?? 80;
-           const titleGap = diagramType === 'piechart'
-             ? Math.max(52, Math.round(titleSpacing * 0.75))
+           const titleGap = paperPolicy.titleGapScale
+             ? Math.max(34, Math.round(titleSpacing * paperPolicy.titleGapScale))
              : titleSpacing;
            sysTitle.y = titleY - (diagramTitle ? titleGap : 0);
         }
