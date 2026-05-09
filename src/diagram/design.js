@@ -43,4 +43,8 @@ export const DIAGRAM_DESIGN = {
     radius: 6,
     opacity: 0.98,
   },
+  paper: {
+    titleGapScale: 0.82,
+    titleTopInsetScale: 0.85,
+  },
 };

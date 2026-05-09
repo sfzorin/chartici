@@ -605,10 +605,9 @@ export default function DiagramRenderer({
 
      if (diagramTitle) {
          const titleSpacingPx = NODE_REGISTRY.title.layoutSpacing?.[initialData?.config?.titleSize || 'M'] ?? 80;
-         const titleGapPx = paperPolicy.titleGapScale
-           ? Math.max(34, Math.round(titleSpacingPx * paperPolicy.titleGapScale))
-           : titleSpacingPx;
-         const titleTopInset = paperPolicy.titleTopInset ?? titleSpacingPx * 1.5;
+         const titleGapScale = paperPolicy.titleGapScale ?? DIAGRAM_DESIGN.paper.titleGapScale;
+         const titleGapPx = Math.max(34, Math.round(titleSpacingPx * titleGapScale));
+         const titleTopInset = paperPolicy.titleTopInset ?? Math.round(titleSpacingPx * DIAGRAM_DESIGN.paper.titleTopInsetScale);
          minY -= titleGapPx + titleTopInset;
       }
 
@@ -701,9 +700,8 @@ export default function DiagramRenderer({
         if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
         if (sysTitle.y === undefined) {
            const titleSpacing = NODE_REGISTRY.title.layoutSpacing?.[sysTitle.size || 'M'] ?? 80;
-           const titleGap = paperPolicy.titleGapScale
-             ? Math.max(34, Math.round(titleSpacing * paperPolicy.titleGapScale))
-             : titleSpacing;
+           const titleGapScale = paperPolicy.titleGapScale ?? DIAGRAM_DESIGN.paper.titleGapScale;
+           const titleGap = Math.max(34, Math.round(titleSpacing * titleGapScale));
            sysTitle.y = titleY - (diagramTitle ? titleGap : 0);
         }
 
