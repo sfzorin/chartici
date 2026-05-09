@@ -50,17 +50,17 @@ import { DIAGRAM_DESIGN } from './design.js';
 
 // ─── Shared selection presets ─────────────────────────────────────────────
 const SEL = {
-  rect:   { shape: 'rect',   padding: 5, rx: 10, haloWidth: 10, haloOpacity: 0.3, ringWidth: 2 },
-  circle: { shape: 'circle', padding: 5,          haloWidth: 10, haloOpacity: 0.3, ringWidth: 2 },
-  oval:   { shape: 'oval',   padding: 5,          haloWidth: 10, haloOpacity: 0.3, ringWidth: 2 },
-  text:   { shape: 'rect',   padding: 4, rx: 4,  haloWidth:  6, haloOpacity: 0.2, ringWidth: 1 },
+  rect:   { shape: 'rect',   padding: 5, rx: 10, haloWidth: 7, haloOpacity: 0.16, ringWidth: 1.8 },
+  circle: { shape: 'circle', padding: 5,          haloWidth: 7, haloOpacity: 0.16, ringWidth: 1.8 },
+  oval:   { shape: 'oval',   padding: 5,          haloWidth: 7, haloOpacity: 0.16, ringWidth: 1.8 },
+  text:   { shape: 'rect',   padding: 4, rx: 4,  haloWidth: 5, haloOpacity: 0.14, ringWidth: 1.4 },
 };
 
 // ─── Shared selection bound helpers ──────────────────────────────────────
 const selRect = (w, h, pad, color, rx = 10) => (
   <g>
-    <rect x={-pad} y={-pad} width={w + pad*2} height={h + pad*2} rx={rx} fill="none" stroke={color} strokeWidth="10" opacity="0.3" />
-    <rect x={-pad} y={-pad} width={w + pad*2} height={h + pad*2} rx={rx} fill="none" stroke={color} strokeWidth="2" />
+    <rect x={-pad} y={-pad} width={w + pad*2} height={h + pad*2} rx={rx} fill="none" stroke={color} strokeWidth="7" opacity="0.16" />
+    <rect x={-pad} y={-pad} width={w + pad*2} height={h + pad*2} rx={rx} fill="none" stroke={color} strokeWidth="1.8" />
   </g>
 );
 
@@ -159,8 +159,8 @@ export const NODE_REGISTRY = {
       const r = Math.min(w, h) / 2;
       return (
         <g>
-          <circle cx={w/2} cy={h/2} r={r + pad} fill="none" stroke={color} strokeWidth="10" opacity="0.3" />
-          <circle cx={w/2} cy={h/2} r={r + pad} fill="none" stroke={color} strokeWidth="2" />
+          <circle cx={w/2} cy={h/2} r={r + pad} fill="none" stroke={color} strokeWidth="7" opacity="0.16" />
+          <circle cx={w/2} cy={h/2} r={r + pad} fill="none" stroke={color} strokeWidth="1.8" />
         </g>
       );
     },
@@ -217,8 +217,8 @@ export const NODE_REGISTRY = {
       const pts = `${cx},${-pad} ${w+pad},${cy} ${cx},${h+pad} ${-pad},${cy}`;
       return (
         <g>
-          <polygon points={pts} fill="none" stroke={color} strokeWidth="10" opacity="0.3" />
-          <polygon points={pts} fill="none" stroke={color} strokeWidth="2" />
+          <polygon points={pts} fill="none" stroke={color} strokeWidth="7" opacity="0.16" />
+          <polygon points={pts} fill="none" stroke={color} strokeWidth="1.8" />
         </g>
       );
     },
@@ -333,8 +333,8 @@ export const NODE_REGISTRY = {
       }
       return (
         <g>
-          <path d={pathD} fill="none" stroke={color} strokeWidth="10" strokeLinejoin="round" opacity="0.3" />
-          <path d={pathD} fill="none" stroke={color} strokeWidth="2"  strokeLinejoin="round" />
+          <path d={pathD} fill="none" stroke={color} strokeWidth="7" strokeLinejoin="round" opacity="0.16" />
+          <path d={pathD} fill="none" stroke={color} strokeWidth="1.8"  strokeLinejoin="round" />
         </g>
       );
     },

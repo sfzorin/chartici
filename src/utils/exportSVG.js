@@ -23,8 +23,10 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
        paperY = parseFloat(canvasPaperRect.getAttribute('y'));
        paperW = parseFloat(canvasPaperRect.getAttribute('width'));
        paperH = parseFloat(canvasPaperRect.getAttribute('height'));
+       const paperStrokeW = parseFloat(canvasPaperRect.getAttribute('stroke-width') || canvasPaperRect.style.strokeWidth || '0') || 0;
+       const paperStrokePad = Math.ceil(paperStrokeW / 2);
        
-       svgClone.setAttribute('viewBox', `${paperX} ${paperY} ${paperW} ${paperH}`);
+       svgClone.setAttribute('viewBox', `${paperX - paperStrokePad} ${paperY - paperStrokePad} ${paperW + paperStrokePad * 2} ${paperH + paperStrokePad * 2}`);
        svgClone.removeAttribute('width');
        svgClone.removeAttribute('height');
 
@@ -96,7 +98,7 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
     }
 
     const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    styleElement.textContent = `text { font-family: system-ui, -apple-system, 'Inter', sans-serif; font-weight: 500; }`;
+    styleElement.textContent = `text { font-family: system-ui, -apple-system, 'Inter', sans-serif; }`;
     svgClone.insertBefore(styleElement, svgClone.firstChild);
 
     const serializer = new XMLSerializer();

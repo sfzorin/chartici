@@ -108,16 +108,16 @@ export const EDGE_LABEL_STYLE = {
  * DiagramEdge.jsx инстанцирует <marker> с этими параметрами.
  */
 export const ARROW_MARKER = {
-  width: 11,
-  height: 8,
-  refX: 9.5,
-  refY: 4,
+  width: 12,
+  height: 9,
+  refX: 10.5,
+  refY: 4.5,
   orient: 'auto-start-reverse',
   // d: path для заполненной стрелки (isLogical=false)
-  solidD: 'M 1.4 1.3 L 9.5 4 L 1.4 6.7 Q 3.1 4 1.4 1.3 Z',
+  solidD: 'M 1.4 1.4 L 10.5 4.5 L 1.4 7.6 Q 3.4 4.5 1.4 1.4 Z',
   // для пунктирной/логической стрелки (isLogical=true)
-  logicalD: 'M 1.5 1.5 L 9.5 4 L 1.5 6.5',
-  logicalStrokeWidth: 1.4,
+  logicalD: 'M 1.5 1.6 L 10.5 4.5 L 1.5 7.4',
+  logicalStrokeWidth: 1.5,
   logicalDashArray: '1,1',
 };
 
@@ -128,19 +128,19 @@ export const ARROW_MARKER = {
  */
 export const CF_MARKERS = {
   one: {
-    width: 14, height: 14, refX: 11, refY: 7,
+    width: 13, height: 14, refX: 10.5, refY: 7,
     orient: 'auto-start-reverse',
     lines: [
-      { x1: 9, y1: 2, x2: 9, y2: 12, strokeWidth: 2 },
+      { x1: 8.5, y1: 2.5, x2: 8.5, y2: 11.5, strokeWidth: 1.8 },
     ],
   },
   many: {
-    width: 16, height: 16, refX: 13, refY: 8,
+    width: 15, height: 16, refX: 12.5, refY: 8,
     orient: 'auto-start-reverse',
     lines: [
-      { x1: 13, y1: 2, x2: 4, y2: 8, strokeWidth: 1.6 },
-      { x1: 13, y1: 14, x2: 4, y2: 8, strokeWidth: 1.6 },
-      { x1: 13, y1: 8, x2: 4, y2: 8, strokeWidth: 1.6 },
+      { x1: 12.5, y1: 2.5, x2: 4.5, y2: 8, strokeWidth: 1.45 },
+      { x1: 12.5, y1: 13.5, x2: 4.5, y2: 8, strokeWidth: 1.45 },
+      { x1: 12.5, y1: 8, x2: 4.5, y2: 8, strokeWidth: 1.45 },
     ],
   },
 };

@@ -34,7 +34,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
 
   // ── Markers ────────────────────────────────────────────────────────────────
   const edgeColorStr = 'var(--diagram-edge)';
-  const selColor     = '#3b82f6';
+  const selColor     = '#be355d';
   const activeColor  = isSelected ? selColor : edgeColorStr;
 
   const markerId = `url(#arrow-${edge.id})`;
@@ -100,7 +100,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       <path d={pathD} fill="none" stroke="transparent" strokeWidth="20" />
 
       {isSelected && !isLogical && (
-        <path d={pathD} fill="none" stroke={selColor} strokeWidth={parseFloat(strokeW) + 8} opacity={0.25} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke={selColor} strokeWidth={parseFloat(strokeW) + 6} opacity={0.18} strokeLinecap="round" strokeLinejoin="round" />
       )}
 
       <path

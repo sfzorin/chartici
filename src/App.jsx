@@ -502,11 +502,32 @@ function App() {
        if (template.color) inheritedStyles.color = template.color;
        if (template.strokeType) inheritedStyles.strokeType = template.strokeType;
        if (template.thickness) inheritedStyles.thickness = template.thickness;
+       if (template.lineStyle) inheritedStyles.lineStyle = template.lineStyle;
+       if (template.connectionType) inheritedStyles.connectionType = template.connectionType;
+       if (template.arrowType) inheritedStyles.arrowType = template.arrowType;
        if (template.animated !== undefined) inheritedStyles.animated = template.animated;
     }
     
     const newEdgeId = generateSimpleId(diagramData.edges);
-    const newEdge = { id: newEdgeId, from: sourceId, to: targetId, label: '', ...inheritedStyles };
+    const schemaDefaultConnection = activeSchema?.allowedConnectionTypes?.[1]
+      || activeSchema?.allowedConnectionTypes?.[0];
+    const schemaDefaultArrow = activeSchema?.allowedArrowTypes?.includes('target') ? 'target' : undefined;
+    if (schemaDefaultConnection) {
+      if (!activeSchema.allowedConnectionTypes.includes(inheritedStyles.connectionType)) {
+        inheritedStyles.connectionType = schemaDefaultConnection;
+      }
+      delete inheritedStyles.arrowType;
+    } else {
+      delete inheritedStyles.connectionType;
+      if (schemaDefaultArrow && !inheritedStyles.arrowType) inheritedStyles.arrowType = schemaDefaultArrow;
+    }
+    const newEdge = {
+      id: newEdgeId,
+      from: sourceId,
+      to: targetId,
+      label: '',
+      ...inheritedStyles,
+    };
     
     setDiagramData(prev => ({
       ...prev,

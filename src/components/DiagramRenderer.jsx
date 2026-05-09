@@ -825,6 +825,15 @@ export default function DiagramRenderer({
             <rect width="10" height="10" fill="#1e293b" />
             <rect x="10" y="10" width="10" height="10" fill="#1e293b" />
           </pattern>
+          <filter id="node-depth" x="-8%" y="-8%" width="116%" height="122%">
+            <feDropShadow
+              dx="0"
+              dy="1.4"
+              stdDeviation="0.7"
+              floodColor={isCanvasDark ? '#020617' : '#0f172a'}
+              floodOpacity={isCanvasDark ? '0.28' : '0.16'}
+            />
+          </filter>
         </defs>
         
         {/* Infinite Desk Grid */}
@@ -838,6 +847,8 @@ export default function DiagramRenderer({
              <rect 
                x={vMinX} y={vMinY} width={vW} height={vH} 
                fill={fillStr} 
+               stroke={isCanvasDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.10)'}
+               strokeWidth="1.2"
                rx="8" ry="8"
                style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }}
              />
@@ -1050,16 +1061,20 @@ export default function DiagramRenderer({
                  {isLegendSelected && (
                    <g style={{ pointerEvents: 'none' }}>
                      <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
-                       fill="none" stroke="#3b82f6" strokeWidth="10" opacity="0.3" />
+                       fill="none" stroke="#be355d" strokeWidth="7" opacity="0.16" />
                      <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
-                       fill="none" stroke="#3b82f6" strokeWidth="2" />
+                       fill="none" stroke="#be355d" strokeWidth="1.8" />
                    </g>
                  )}
-                 <rect x={0} y={0} width={lgW} height={lgH} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity} />
+                 <rect
+                   x={0} y={0} width={lgW} height={lgH}
+                   fill={resolvedLegendBg} stroke={resolvedLegendStroke} strokeWidth="1.2"
+                   rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity}
+                 />
                  {slices.map((slice, i) => (
                     <g key={i} transform={`translate(${sz.padX}, ${sz.padY + i * sz.rowH + sz.rowH / 2})`}>
-                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={`var(--color-${slice.color || 5})`} rx={sz.swRx} />
-                       <text x={sz.textOff} y={0} fontSize={sz.fontSize} fill="var(--diagram-text)" dominantBaseline="central">
+                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={`var(--color-${slice.color || 5})`} rx={DIAGRAM_DESIGN.legend.swatchRadius} />
+                       <text x={sz.textOff} y={0} fontSize={sz.fontSize} fontWeight={DIAGRAM_DESIGN.legend.textWeight} fill="var(--diagram-text)" dominantBaseline="central">
                          {`${slice.label || 'Item'}${(slice.value !== undefined && slice.value !== null) ? ` (${slice.value})` : ''}`}
                        </text>
                     </g>
@@ -1185,14 +1200,14 @@ export default function DiagramRenderer({
                 {isLegendSelected && (
                   <g style={{ pointerEvents: 'none' }}>
                     <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
-                      fill="none" stroke="#3b82f6" strokeWidth="10" opacity="0.3" />
+                      fill="none" stroke="#be355d" strokeWidth="7" opacity="0.16" />
                     <rect x={-5} y={-5} width={lgW + 10} height={lgH + 10} rx={10}
-                      fill="none" stroke="#3b82f6" strokeWidth="2" />
+                      fill="none" stroke="#be355d" strokeWidth="1.8" />
                   </g>
                 )}
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
-                  fill={resolvedLegendBg} stroke={resolvedLegendStroke}
+                  fill={resolvedLegendBg} stroke={resolvedLegendStroke} strokeWidth="1.2"
                   rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity}
                 />
                 {legendGroups.map((g, i) => {
@@ -1202,12 +1217,12 @@ export default function DiagramRenderer({
                   return (
                     <g key={g.id} transform={`translate(${PAD_X}, ${PAD_Y + i * ROW_H + ROW_H / 2})`}>
                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH}
-                        fill={fill} rx={sz.swRx}
+                        fill={fill} rx={DIAGRAM_DESIGN.legend.swatchRadius}
                       />
                       <text
                         x={TEXT_OFFSET} y={0}
                         dominantBaseline="central"
-                        fontSize={FONT_SIZE} fontWeight={500} fill="var(--diagram-text)"
+                        fontSize={FONT_SIZE} fontWeight={DIAGRAM_DESIGN.legend.textWeight} fill="var(--diagram-text)"
                       >
                         {(g.label || g.id).replace(/_/g, ' ')}
                       </text>
@@ -1291,7 +1306,7 @@ export default function DiagramRenderer({
            <line 
              x1={connectionState.startX} y1={connectionState.startY}
              x2={connectionState.x} y2={connectionState.y}
-             stroke="#007BFF" strokeWidth="3" strokeDasharray="4 4"
+             stroke="#be355d" strokeWidth="2.4" strokeDasharray="6 6"
              pointerEvents="none"
            />
         )}
@@ -1336,7 +1351,7 @@ export default function DiagramRenderer({
               top: `${top}px`,
               width: `${w}px`,
               height: `${h}px`,
-              border: '2px solid #3b82f6',
+              border: '2px solid #be355d',
               borderRadius: '4px',
               background: 'rgba(255,255,255,0.95)',
               color: '#1a1a1a',
@@ -1402,7 +1417,7 @@ export default function DiagramRenderer({
               top: `${top - h/2}px`,
               width: `${w}px`,
               height: `${h}px`,
-              border: '2px solid #3b82f6',
+              border: '2px solid #be355d',
               borderRadius: '4px',
               background: 'rgba(255,255,255,0.95)',
               color: '#1a1a1a',
@@ -1484,7 +1499,7 @@ export default function DiagramRenderer({
               top: `${top - h/2}px`,
               width: `${w}px`,
               height: `${h}px`,
-              border: '2px solid #3b82f6',
+              border: '2px solid #be355d',
               borderRadius: '4px',
               background: 'rgba(255,255,255,0.95)',
               color: '#1a1a1a',

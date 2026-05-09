@@ -127,7 +127,9 @@ const DiagramNode = React.memo(({
   if (!isNaN(numColor) && numColor >= 11 && numColor <= 19) {
     strokeW = isPrintTheme ? '2' : '4';
   }
-  const shadowFilter = 'none';
+  const shadowFilter = (!isPrintTheme && !isTextOnly && !node.isPieSlice)
+    ? 'url(#node-depth)'
+    : 'none';
 
   let actualType = node.type;
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
@@ -289,7 +291,8 @@ const DiagramNode = React.memo(({
          {/* Touch hit area (72px diameter, shown only on mobile via CSS) */}
          <circle cx={p.cx} cy={p.cy} r="36" fill="none" pointerEvents="all" stroke="none" className="touch-port-hitbox" />
          {/* Visual dot */}
-         <circle cx={p.cx} cy={p.cy} r="5" fill="#007BFF" stroke="#fff" strokeWidth="2" />
+         <circle cx={p.cx} cy={p.cy} r="6" fill="var(--canvas-bg)" stroke="#be355d" strokeWidth="2.2" />
+         <circle cx={p.cx} cy={p.cy} r="2.2" fill="#be355d" stroke="none" />
        </g>
     ));
   };
@@ -300,14 +303,14 @@ const DiagramNode = React.memo(({
   const SEL_HALO     = selCfg.haloWidth  ?? 10;
   const SEL_HALO_OP  = selCfg.haloOpacity ?? 0.3;
   const SEL_RING     = selCfg.ringWidth  ?? 2;
-  const SEL_COLOR    = '#3b82f6';
+  const SEL_COLOR    = '#be355d';
 
   const selectionBound = shapePlugins.getSelectionBounds
     ? shapePlugins.getSelectionBounds(NODE_WIDTH, NODE_HEIGHT, SEL_PADDING, SEL_COLOR, node)
     : null;
 
   return (
-    <g transform={`translate(${(node.x || 0) - NODE_WIDTH / 2}, ${(node.y || 0) - NODE_HEIGHT / 2})`} filter={shadowFilter} {...commonProps}
+    <g transform={`translate(${(node.x || 0) - NODE_WIDTH / 2}, ${(node.y || 0) - NODE_HEIGHT / 2})`} {...commonProps}
        onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, node.id)}
     >
       {shape}
