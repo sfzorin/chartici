@@ -1,4 +1,5 @@
 import { getEngine } from '../engines/index.js';
+import { EDGE_LABEL_STYLE } from './edges.js';
 
 const DEFAULT_LABELING = {
   strategy: 'center',
@@ -7,6 +8,17 @@ const DEFAULT_LABELING = {
 
 export function getEdgeLabelPolicy(diagramType) {
   return getEngine(diagramType)?.labeling || DEFAULT_LABELING;
+}
+
+export function getEdgeLabelStyle(labelPolicy) {
+  return {
+    ...EDGE_LABEL_STYLE,
+    ...(labelPolicy?.labelStyle || {}),
+  };
+}
+
+export function usesManualEdgeLabels(labelPolicy) {
+  return labelPolicy?.strategy === 'source-near' || labelPolicy?.strategy === 'relationship-center';
 }
 
 export function getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle }) {

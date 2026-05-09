@@ -1,8 +1,10 @@
 import assert from 'node:assert';
 import {
   getEdgeLabelPolicy,
+  getEdgeLabelStyle,
   getManualEdgeLabelPlacement,
   getTextPathStartOffset,
+  usesManualEdgeLabels,
 } from '../diagram/edgeLabelPlacement.js';
 
 const labelStyle = {
@@ -20,6 +22,7 @@ console.log('\n🏷️ Engine label policies');
 const flowchartPolicy = getEdgeLabelPolicy('flowchart');
 assert.equal(flowchartPolicy.strategy, 'source-near');
 assert.equal(getTextPathStartOffset(flowchartPolicy), '14%');
+assert.equal(usesManualEdgeLabels(flowchartPolicy), true);
 
 const flowchartPlacement = getManualEdgeLabelPlacement({
   labelPolicy: flowchartPolicy,
@@ -33,6 +36,8 @@ assert.ok(flowchartPlacement.x < 100, 'flowchart labels should stay close to the
 const sequencePolicy = getEdgeLabelPolicy('sequence');
 assert.equal(sequencePolicy.strategy, 'message-center');
 assert.equal(getTextPathStartOffset(sequencePolicy), '50%');
+assert.equal(usesManualEdgeLabels(sequencePolicy), false);
+assert.equal(getEdgeLabelStyle(sequencePolicy).fontSize, 12);
 assert.equal(
   getManualEdgeLabelPlacement({
     labelPolicy: sequencePolicy,
@@ -47,6 +52,8 @@ assert.equal(
 const erdPolicy = getEdgeLabelPolicy('erd');
 assert.equal(erdPolicy.strategy, 'relationship-center');
 assert.equal(getTextPathStartOffset(erdPolicy), '50%');
+assert.equal(usesManualEdgeLabels(erdPolicy), true);
+assert.equal(getEdgeLabelStyle(erdPolicy).fontSize, 11);
 
 const erdPlacement = getManualEdgeLabelPlacement({
   labelPolicy: erdPolicy,

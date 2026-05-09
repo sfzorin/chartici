@@ -54,6 +54,14 @@ export default {
     labeling: {
         strategy: 'relationship-center',
         textPathStartOffset: '50%',
+        labelStyle: {
+            fontSize: 11,
+            charWidth: 5.9,
+            basePadding: 2,
+            arrowPadding: 0,
+            haloWidth: 3,
+            offsetY: -5,
+        },
     },
 
     parser: {

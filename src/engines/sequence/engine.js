@@ -69,6 +69,14 @@ export default {
     labeling: {
         strategy: 'message-center',
         textPathStartOffset: '50%',
+        labelStyle: {
+            fontSize: 12,
+            charWidth: 6.9,
+            basePadding: 14,
+            arrowPadding: 18,
+            haloWidth: 3.5,
+            offsetY: -5,
+        },
     },
 
     parser: {

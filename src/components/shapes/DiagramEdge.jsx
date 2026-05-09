@@ -2,13 +2,18 @@ import React from 'react';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
 import {
   LINE_STYLE_REGISTRY,
-  EDGE_LABEL_STYLE,
   ARROW_MARKER,
   CF_MARKERS,
   ARROW_TYPE_REGISTRY,
   CONNECTION_TYPE_REGISTRY,
 } from '../../diagram/edges.js';
-import { getEdgeLabelPolicy, getManualEdgeLabelPlacement, getTextPathStartOffset } from '../../diagram/edgeLabelPlacement.js';
+import {
+  getEdgeLabelPolicy,
+  getEdgeLabelStyle,
+  getManualEdgeLabelPlacement,
+  getTextPathStartOffset,
+  usesManualEdgeLabels,
+} from '../../diagram/edgeLabelPlacement.js';
 
 const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType, onEdgeSelect, onEdgeDoubleClick }) => {
   if (!pathData) return null;
@@ -38,6 +43,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
 
   const activeSchema = DIAGRAM_SCHEMAS[diagramType] || DIAGRAM_SCHEMAS.flowchart;
   const manifest = activeSchema.engineManifest || {};
+  const labelPolicy = getEdgeLabelPolicy(diagramType);
 
   if (!manifest.suppressEdgeMarkers) {
     if (edge.connectionType && CONNECTION_TYPE_REGISTRY[edge.connectionType]) {
@@ -55,31 +61,20 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   }
 
   // ── Label ──────────────────────────────────────────────────────────────────
-  const L = diagramType === 'erd'
-    ? {
-        ...EDGE_LABEL_STYLE,
-        fontSize: 11,
-        charWidth: 5.9,
-        basePadding: 2,
-        arrowPadding: 0,
-        haloWidth: 3,
-        offsetY: -5,
-      }
-    : EDGE_LABEL_STYLE;
+  const L = getEdgeLabelStyle(labelPolicy);
+  const useManualLabels = usesManualEdgeLabels(labelPolicy);
   let displayLabel = edge.label;
   if (manifest.suppressEdgeLabels) {
     displayLabel = null;
   } else if (displayLabel) {
     if (!textPathD) {
       displayLabel = null;
-    } else if (diagramType !== 'erd' && diagramType !== 'flowchart') {
+    } else if (!useManualLabels) {
       let padding = L.basePadding;
       if (mStart !== 'none') padding += L.arrowPadding;
       if (mEnd   !== 'none') padding += L.arrowPadding;
       const maxChars = Math.floor(((textPathLen || 0) - padding) / L.charWidth);
       if (displayLabel.length > maxChars && displayLabel.length > 10) displayLabel = null;
-    } else if (diagramType === 'flowchart' && (textPathLen || 0) < 24) {
-      displayLabel = null;
     } else if ((textPathLen || 0) < 36) {
       displayLabel = null;
     }
@@ -89,7 +84,6 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   const AM = ARROW_MARKER;
   const cfOne  = CF_MARKERS.one;
   const cfMany = CF_MARKERS.many;
-  const labelPolicy = getEdgeLabelPolicy(diagramType);
   const manualLabelPlacement = !isLogical
     ? getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle: L })
     : null;
