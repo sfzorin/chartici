@@ -1,14 +1,14 @@
 export const DIAGRAM_DESIGN = {
   typography: {
     family: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-    nodeWeight: 620,
+    nodeWeight: 640,
     textWeight: 500,
     titleWeight: 760,
   },
   shape: {
-    blockRadius: 6,
-    nodeTextWidth: 0.84,
-    nodeTextHeight: 0.74,
+    blockRadius: 7,
+    nodeTextWidth: 0.86,
+    nodeTextHeight: 0.76,
     chevronTextInset: 42,
     chevronTextHeight: 0.72,
   },

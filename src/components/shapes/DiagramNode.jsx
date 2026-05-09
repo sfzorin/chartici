@@ -110,7 +110,7 @@ const DiagramNode = React.memo(({
   const fontStyle = node.fontStyle === 'italic' ? 'italic' : 'normal';
   
   // Base stroke width — outline value comes from NODE_REGISTRY after shapePlugins resolved below
-  let strokeW = isPrintTheme ? '1' : '1.5';
+  let strokeW = isPrintTheme ? '1' : '1.8';
   
   if (isDraggingNode) {
     strokeColor = 'var(--color-primary-dark)';

@@ -67,7 +67,7 @@ const selRect = (w, h, pad, color, rx = 10) => (
 // ─── Shared outline presets ───────────────────────────────────────────────
 const OUTLINE = {
   normal: { strokeWidth: 2 },
-  thick:  { strokeWidth: 3 },
+  thick:  { strokeWidth: 2.5 },
 };
 
 // ─── PORT_CATALOG primitives ──────────────────────────────────────────────
