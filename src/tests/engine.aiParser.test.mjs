@@ -110,11 +110,13 @@ const MOCK_RESPONSES = {
 
 let currentTestType = null;
 global.fetch = async (url, options) => {
+  const response = MOCK_RESPONSES[currentTestType];
+  const content = Array.isArray(response) ? response.shift() : response;
   return {
     ok: true,
     json: async () => ({
       success: true,
-      content: MOCK_RESPONSES[currentTestType]
+      content
     })
   };
 };
@@ -149,6 +151,58 @@ async function runTests() {
     const parasiticNodes = allNodes.filter(n => n.label === 'Label' || n.label === 'Event Label' || n.label === 'Node Label' || n.label === 'Title' || n.label === 'Title (Label)' || n.label === 'Phase/Era Label');
     assert.strictEqual(parasiticNodes.length, 0, `Should not have parsed table headers as valid nodes for ${type}`);
   }
+
+  currentTestType = 'flowchart';
+  MOCK_RESPONSES.flowchart = `
+<output>
+### Subsystem: Drafting | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_1 | Capture Idea | terminal | p_2 |
+| p_2 | Shape Argument | process | p_3 |
+| p_3 | Finish Figure | terminal | - |
+</output>
+`;
+  const wrapped = await buildDiagram('Wrapped flowchart', 'flowchart', 'extended prompt');
+  assert.strictEqual(wrapped.success, true, 'buildDiagram should unwrap <output> without deleting Markdown');
+  assert.ok(wrapped.cci.data.groups.length > 0, 'Wrapped Markdown should produce groups');
+  assert.ok(wrapped.cci.data.groups.flatMap(g => g.nodes).length >= 3, 'Wrapped Markdown should produce nodes');
+
+  currentTestType = 'sequence';
+  MOCK_RESPONSES.sequence = `
+### Actor: Author | Size: M
+| Node ID | Label |
+|---|---|
+| a_1 | Send Draft |
+### Actor: Editor | Size: M
+| Node ID | Label |
+|---|---|
+| e_1 | Review Draft |
+### Messages
+| Source ID | Target ID | Label | LineStyle |
+|---|---|---|---|
+| a_1 | e_1 | Submit | solid |
+`;
+  const missingTopSection = await buildDiagram('Loose sequence', 'sequence', 'extended prompt');
+  assert.strictEqual(missingTopSection.success, true, 'buildDiagram should infer sections from loose Markdown headings');
+  assert.strictEqual(missingTopSection.cci.data.messages.length, 1, 'Loose sequence should keep explicit messages');
+
+  currentTestType = 'flowchart';
+  MOCK_RESPONSES.flowchart = [
+    'I cannot make this diagram.',
+    `
+# Steps
+### Subsystem: Repair | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_1 | Start Repair | terminal | p_2 |
+| p_2 | Return Tables | process | p_3 |
+| p_3 | Done | terminal | - |
+`
+  ];
+  const repaired = await buildDiagram('Repaired flowchart', 'flowchart', 'extended prompt');
+  assert.strictEqual(repaired.success, true, 'buildDiagram should repair an unparsable first answer');
+  assert.ok(repaired.cci.data.groups.flatMap(g => g.nodes).length >= 3, 'Repair pass should produce nodes');
 }
 
 runTests().then(() => {

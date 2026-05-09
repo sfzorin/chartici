@@ -1,6 +1,6 @@
 {
   "meta": { "type": "tree", "version": "3.0.0" },
-  "theme": "book",
+  "theme": "basic",
   "title": { "text": "Corporate Org Chart" },
   "data": {
     "groups": [

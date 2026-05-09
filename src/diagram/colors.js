@@ -82,7 +82,7 @@ export const EXPORT_DEFAULTS = CANVAS_THEMES.light;
  * Индексы 1-based (1..9 — слоты solid цветов).
  * При авто-назначении система берёт rules[n] и циклически назначает слоты.
  */
-const bookRules = {
+const paletteRules = {
   1: [1],
   2: [1, 2],
   3: [1, 2, 5],
@@ -114,7 +114,7 @@ function makePalette(name, solids, rules) {
 
 // ─── Palettes ─────────────────────────────────────────────────────────────────
 export const PALETTES = {
-  'book': makePalette('Book', [
+  basic: makePalette('Basic', [
     { c: '#243B53', t: '#ffffff' },
     { c: '#2F6F73', t: '#ffffff' },
     { c: '#D8A24A', t: '#1f2937' },
@@ -124,7 +124,51 @@ export const PALETTES = {
     { c: '#7C6A9E', t: '#ffffff' },
     { c: '#A67C52', t: '#ffffff' },
     { c: '#D1D5DB', t: '#1f2937' },
-  ], bookRules),
+  ], paletteRules),
+  ink: makePalette('Ink', [
+    { c: '#1F3446', t: '#ffffff' },
+    { c: '#3F6B74', t: '#ffffff' },
+    { c: '#C9A227', t: '#1f2937' },
+    { c: '#6E7F4F', t: '#ffffff' },
+    { c: '#5C6470', t: '#ffffff' },
+    { c: '#9E4F45', t: '#ffffff' },
+    { c: '#725D8C', t: '#ffffff' },
+    { c: '#8B7355', t: '#ffffff' },
+    { c: '#D6D0C4', t: '#1f2937' },
+  ], paletteRules),
+  library: makePalette('Library', [
+    { c: '#274C43', t: '#ffffff' },
+    { c: '#405C7A', t: '#ffffff' },
+    { c: '#C18C2D', t: '#1f2937' },
+    { c: '#7A8B50', t: '#ffffff' },
+    { c: '#67717A', t: '#ffffff' },
+    { c: '#A6533D', t: '#ffffff' },
+    { c: '#6A5F91', t: '#ffffff' },
+    { c: '#9C7854', t: '#ffffff' },
+    { c: '#D8D6CC', t: '#1f2937' },
+  ], paletteRules),
+  copper: makePalette('Copper', [
+    { c: '#2B4050', t: '#ffffff' },
+    { c: '#4E6F64', t: '#ffffff' },
+    { c: '#B97842', t: '#ffffff' },
+    { c: '#8A955A', t: '#ffffff' },
+    { c: '#68727E', t: '#ffffff' },
+    { c: '#A64E4E', t: '#ffffff' },
+    { c: '#816C9B', t: '#ffffff' },
+    { c: '#B08A57', t: '#1f2937' },
+    { c: '#D9D1C7', t: '#1f2937' },
+  ], paletteRules),
+  atlas: makePalette('Atlas', [
+    { c: '#24405A', t: '#ffffff' },
+    { c: '#39747A', t: '#ffffff' },
+    { c: '#D0A044', t: '#1f2937' },
+    { c: '#567C63', t: '#ffffff' },
+    { c: '#6B7078', t: '#ffffff' },
+    { c: '#B15A4C', t: '#ffffff' },
+    { c: '#7166A0', t: '#ffffff' },
+    { c: '#A47E4B', t: '#ffffff' },
+    { c: '#D7DEE2', t: '#1f2937' },
+  ], paletteRules),
 };
 
 /**

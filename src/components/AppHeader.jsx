@@ -28,9 +28,20 @@ export default function AppHeader({
       title: 'New Blank Diagram',
       message: 'Start a new blank diagram? Unsaved changes will be lost.',
       onConfirm: () => {
-        setDiagramData({ nodes: [], edges: [], groups: [] });
+        const bgColor = appTheme === 'dark' ? 'black' : 'white';
+        setDiagramData({
+          nodes: [],
+          edges: [],
+          groups: [],
+          config: {
+            aspect: '16:9',
+            bgColor,
+            theme: 'basic',
+          },
+          layoutTrigger: Date.now(),
+        });
         setDiagramTitle('Untitled Project');
-        setBgColor(appTheme === 'dark' ? 'black' : 'white');
+        setBgColor(bgColor);
         resetSessionTimer();
         setDialogConfig(null);
       },

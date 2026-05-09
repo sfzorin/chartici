@@ -8,6 +8,7 @@
 ```json
 {
   "meta": { "type": "erd", "version": "3.0.0" },
+  "theme": "basic",
   "title": { "text": "User Schema", "size": "M" },
   "data": {
     "groups": [
@@ -17,9 +18,7 @@
         "color": 1,
         "nodes": [
           { "id": "t_users",  "label": "Users",   "type": "process", "size": "M" },
-          { "id": "c_id",     "label": "id",       "type": "text",    "size": "S" },
-          { "id": "c_name",   "label": "name",     "type": "text",    "size": "S" },
-          { "id": "c_email",  "label": "email",    "type": "text",    "size": "S" }
+          { "id": "t_sessions", "label": "Sessions", "type": "process", "size": "M" }
         ]
       },
       {
@@ -28,13 +27,13 @@
         "color": 2,
         "nodes": [
           { "id": "t_orders", "label": "Orders",   "type": "process", "size": "M" },
-          { "id": "o_id",     "label": "id",       "type": "text",    "size": "S" },
-          { "id": "o_uid",    "label": "user_id",  "type": "text",    "size": "S" }
+          { "id": "t_payments", "label": "Payments", "type": "process", "size": "M" }
         ]
       }
     ],
     "relationships": [
-      { "sourceId": "t_users", "targetId": "t_orders", "connectionType": "1:N" }
+      { "sourceId": "t_users", "targetId": "t_orders", "label": "places", "connectionType": "1:N" },
+      { "sourceId": "t_orders", "targetId": "t_payments", "label": "paid by", "connectionType": "1:1" }
     ]
   }
 }
@@ -42,8 +41,8 @@
 
 ## Правила
 
-- **Группы** = схемы БД или пространства имён.
-- Каждая группа содержит одну `process`-ноду (таблица) + `text`-ноды (атрибуты).
+- **Группы** = домены, схемы БД или пространства имён.
+- Ноды ERD — только `process`: сущности/таблицы. Атрибуты как отдельные круглые или текстовые ноды не используются.
 - **Связи** хранятся в `data.relationships[]` (не `data.edges`).
 - `connectionType` — кардинальность ERD: `1:1`, `1:N`, `N:1`, `N:M`.
 - `lineStyle` всегда `solid` или `dashed` (обязательная / опциональная связь).
@@ -53,7 +52,6 @@
 | type | Описание |
 |------|----------|
 | `process` | Таблица / сущность |
-| `text` | Атрибут / поле |
 
 ## Поля связи (`relationships[]`)
 
@@ -69,8 +67,8 @@
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `aspect` | String | Соотношение сторон: `"16:9"`, `"4:3"`, `"1:1"`, `"A4"` |
-| `bgColor` | String | Фон холста: `"white"`, `"black"`, `"transparent"` и т.д. |
+| `aspect` | String | Соотношение сторон: `"16:9"`, `"4:3"`, `"1:1"` |
+| `bgColor` | String | Фон холста: `"white"` или `"black"` |
 | `showLegend` | Boolean | Показывать легенду групп (по умолчанию `false`, omitted when false) |
 | `legendX` | Number | Залоченная X-координата легенды (omitted = авто-позиция) |
 | `legendY` | Number | Залоченная Y-координата легенды (omitted = авто-позиция) |

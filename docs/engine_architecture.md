@@ -1,192 +1,215 @@
-# Архитектура движка Chartici
+# Engine Architecture
 
-Этот документ описывает полный жизненный цикл генерации диаграммы — от логического размещения прямоугольников нод до финального векторного рендеринга ортогонального маршрутизатора с перепрыжками пересечений.
+This document describes how Chartici turns `.cci` data into an editable SVG diagram.
 
----
+## High-Level Flow
 
-## Структура проекта
-
+```text
+.cci / AI Markdown
+  -> parseCharticiFile()
+  -> normalized nodes, groups, edges
+  -> type-specific layout
+  -> route edges
+  -> React SVG renderer
+  -> SVG export
 ```
+
+The central rule is that diagram types share as much infrastructure as possible. A diagram engine only defines the differences: allowed nodes, edge encoding, layout strategy, routing preferences, and AI prompt shape.
+
+## Directory Map
+
+```text
 src/
-├── diagram/                  ← реестры типов диаграммы (единственный источник истины)
-│   ├── nodes.jsx             — NODE_REGISTRY: формы нод, размеры, порты, рендер
-│   ├── edges.js              — LINE_STYLE_REGISTRY, PATH_STYLE_REGISTRY, маркеры стрелок
-│   └── colors.js             — PALETTES, CANVAS_COLORS, BRAND, EXPORT_DEFAULTS
-├── engines/                  ← плагины для каждого типа диаграммы
-│   ├── index.js              — ENGINES, getEngine(), getAllEngines()
-│   ├── flowchart/
-│   │   ├── engine.js         — schema + layout + routing + parser (единый файл плагина)
-│   │   └── ai_prompt.js      — шаблон LLM промпта
-│   └── ... (tree, erd, radial, sequence, timeline, matrix, piechart)
-├── utils/
-│   ├── engine/               — ядро маршрутизатора
-│   │   ├── index.js          — calculateAllPaths(): главная точка входа
-│   │   ├── astar.js          — A* алгоритм маршрутизации
-│   │   ├── geometry.js       — getTrueBox, getNodePorts, clipDist
-│   │   ├── svgPaths.js       — генерация SVG path строк (скругления, перепрыжки)
-│   │   ├── portAssigner.js   — предварительное назначение портов
-│   │   └── RoutingContext.js — контекст маршрутизации (препятствия, занятые линии)
-│   ├── diagramSchemas.js     — DIAGRAM_SCHEMAS (собирается из engine.schema каждого плагина)
-│   └── exportSVG.js          — экспорт в .svg файл (бэкинг CSS переменных)
-└── components/
-    ├── DiagramRenderer.jsx   — главный React компонент отрисовки
-    └── shapes/
-        ├── DiagramNode.jsx   — рендер ноды (читает NODE_REGISTRY)
-        └── DiagramEdge.jsx   — рендер ребра (читает edges.js реестр)
+  components/
+    DiagramRenderer.jsx        Main SVG renderer and interaction layer
+    shapes/
+      DiagramNode.jsx          Node SVG rendering
+      DiagramEdge.jsx          Edge SVG rendering and markers
+  diagram/
+    canvas.js                  Canvas constants and aspect options
+    colors.js                  Palettes and canvas color tokens
+    edges.js                   Edge styles, arrow markers, ERD markers
+    nodes.jsx                  Node registry: shapes, sizes, ports
+  engines/
+    <type>/engine.js           Engine schema, layout, routing, parser hooks
+    <type>/ai_prompt.js        Type-specific Markdown prompt
+    <type>/format.md           Type-specific .cci format reference
+  services/
+    aiGenerate.js              AI generation, Markdown parser, validation, repair
+  utils/
+    charticiFormat.js          .cci import/export
+    nodeLayouter.js            Layout entry point
+    layouts/                   Type-specific macro-layout helpers
+    engine/                    Edge routing core
 ```
 
----
+## Data Model
 
-## Унифицированный пайплайн
+Runtime diagram data has three main arrays:
 
-Все типы диаграмм проходят **идентичный** пайплайн из 4 этапов. Только первый этап специфичен для каждой топологии.
-
+```js
+{
+  nodes: [],
+  edges: [],
+  groups: [],
+  config: {}
+}
 ```
-[Stage 1: Макро-лэйаут] → [Stage 2: Назначение портов] → [Stage 3: A* маршрутизатор] → [Stage 4: SVG вектор]
+
+`.cci` files are grouped JSON documents:
+
+```json
+{
+  "meta": { "type": "flowchart", "version": "3.0.0" },
+  "theme": "basic",
+  "title": { "text": "Example", "size": "M" },
+  "data": {
+    "config": { "aspect": "16:9", "bgColor": "white" },
+    "groups": []
+  }
+}
 ```
 
-1. **Макро-лэйаут:** зависит от `diagramType`. Использует Dagre для флоучартов, RT-алгоритм для деревьев, Kahn top-sort для таймлайнов. Координаты защёлкиваются на сетку 20px.
-2. **Назначение портов:** каждое ребро до маршрутизации получает явные порты выхода/входа (Top/Bottom/Left/Right) на основе матрицы геометрических штрафов.
-3. **A* маршрутизатор:** единый алгоритм прокладывает ортогональные полилинии по свободным ячейкам сетки, огибая препятствия. Только такие переменные как гравитация портов и бэссинг переключаются. Исключение: radial использует прямые математические векторы (или bezier) без A*.
-4. **SVG постобработка:** вставка технических разрывов (перепрыжки), скруглений углов и маркеров.
+`parseCharticiFile()` flattens grouped nodes for the app state and resolves implicit edges where needed.
 
----
+## Engine Plugins
 
-## Этап 1. Макро-лэйаут и топологии (размещение нод)
+Each engine lives in `src/engines/<type>/engine.js`.
 
-Цель — вычислить `(x, y)` всех нод с минимумом пересечений.
+An engine exports:
 
-### 1.1 Базовые правила
-- **Унифицированное направление потока:** направление жёстко зафиксировано по семантике `diagramType`:
-  - **Вертикальный поток (Top-Down):** деревья (`tree`) и радиальные карты (`radial`).
-  - **Горизонтальный поток (Left-Right):** флоучарты (`flowchart`), ERD (`erd`), таймлайны, матрицы.
-- **Заморозка координат:** если у ноды `lockPos === true` — авто-алгоритм не трогает её `x,y`.
-- **Текстовые ограничения:** рёбра с длинными подписями превращаются в невидимые «спейсер-ноды», принуждая Dagre раздвигаться до рендеринга линий.
-- **Привязка к сетке 20px:** финальные координаты всегда кратны 20. Гарантирует совпадение осей портов.
+- `type` and `name`
+- `schema`
+- `layout`
+- `routing`
+- `parser`
+- `ai_prompt`
 
-### 1.2 Топологии
+The app consumes all engines through `src/engines/index.js` and `src/utils/diagramSchemas.js`.
 
-#### 1. Flowchart
-- **Алгоритм:** Dagre (Sugiyama DAG) с активным **Happy Path (weight=100)**. Движок находит длиннейший DFS-путь и выравнивает его по прямой оси. Вторичные ветки уходят в стороны.
-- **Устойчивость к циклам:** обратные рёбра определяются через `color 0/1/2` обход и скрываются от Dagre.
+## Schema Responsibilities
 
-#### 2. Tree / Org Chart
-- **Алгоритм:** Custom Bottom-Up (Reingold-Tilford). Инвертированная ось относительно флоучартов.
-- **Многокорневые леса:** «Сироты» укладываются в матрицу сбоку.
-- **Дети (глубина 1):** горизонтальный ряд до 10. При превышении — шахматная укладка до 19.
-- **Внуки (глубина 2+):** вертикальные каскады, принудительный `_stackEntry = 'Left'`.
-- **Рёбра:** абсолютное доминирование бэссинга (`allowBusPremium = true`). T-fork ветви сливаются в один ствол.
+`engine.schema` defines UI and format constraints:
 
-#### 3. Sequence
-- Расширенные горизонтальные зазоры `MIN_GAP_X = 120` для линий жизни. `MIN_GAP_Y = 80` — хронологический шаг сообщений.
+- `allowedNodes`
+- allowed line styles and arrow types
+- optional ERD connection types
+- feature flags such as `allowConnections`, `supportsLegend`, `enforceMaxNodes`
+- `ioFormat`, which controls how edges are encoded in `.cci`
+- `engineManifest`, which controls renderer overlays and routing style
 
-#### 4. ERD
-- Dagre без Happy Path. Ноды расходятся в «острова» с `MIN_GAP = 80`. Маркеры crow's-foot (`cf-one`, `cf-many`).
+## Edge Encoding
 
-#### 5. Radial / Mind Map
-- Нода с maximum `degree` становится центром. Остальные расходятся концентрическими кольцами.
-- Угловой сектор дочерних пропорционален глубине поддерева.
-- **Рёбра:** кубические bezier-дуги (`curveStyle: 'arc'`), масштабируемые по длине ребра — короткие почти прямые, длинные — заметная дуга. Конфигурируется в `src/diagram/edges.js → PATH_STYLE_REGISTRY.curved`.
+Not all diagram types store edges the same way.
 
-#### 6. Timeline
-- Топологическая сортировка (Kahn). Элементы змейкой чередуют `+`/`-` `crossOffset` от оси.
-
-#### 7. Matrix
-- Сортировка по `groupId`. Модули кластеризованы в `ceil(√N) × ceil(√M)` ячеек. Группы получают SVG-рамки.
-
-#### 8. Pie Chart
-- **Не самостоятельная топология.** Тип группы `piechart` в любой диаграмме.
-- Дочерние ноды извлекаются и временно заменяются одной **Proxy Node** диаметром, равным диаметру пирога.
-- После лэйаута координаты Proxy Node распределяются обратно по секторам. `layoutPiechart.js` вычисляет угловые развёртки по `value`.
-
----
-
-## Этап 2. Назначение портов (Port Assigner)
-
-Оркестрировано `portAssigner.js` до инициализации маршрутизатора. Создаёт динамическую матрицу штрафов.
-
-### Базовые штрафы (матрица L-лучей)
-- **Идеальный порт (прямая видимость, 0 штраф):** L-луч к цели не пересекает препятствий.
-- **Боковой порт (1×D штраф):** требует обхода другого объекта (D = ширина/высота).
-- **Задний порт (2×D штраф):** требует обхода *собственной* ноды.
-
-### Специфические модификаторы
-- **Логика бифуркации:** ноды динамически масштабируют доступность портов по размерам:
-  - **Вертикаль (Top/Bottom):** при `w >= 80px` добавляются 2 запасных порта (±20px от центра) с тяжёлым штрафом `+2×D`.
-  - **Горизонталь (Left/Right):** при `h >= 80px` единственный центральный порт **заменяется** двумя равноотстоящими.
-  - **Исключения:** Овалы/Круги/Ромбы — нет бифуркации на боковых рёбрах.
-- **Диагональные порты Circle:** 4 угловых выхода 45°, штраф = диаметр.
-- **Штрафы по типу движка:** `engine.routing.portPenalty(portId, w, h)` — определяется в `src/engines/<тип>/engine.js`. Позволяет задавать разную стратегию для каждой топологии.
-
----
-
-## Этап 3. Ядро маршрутизатора (A\*)
-
-Реализован в `astar.js`. Функция минимизации: `fScore = gScore (реальное расстояние) + hScore (до safeTarget)`.  
-Все ноды обёрнуты в **padBox** (+20px), через который линии не проходят (кроме собственных портов `allowObsId`).
-
-### 3.1 Каскадная деградация тиров
-- **Тиры 1-2 (сетка 20px):** идеально. Строгий запрет на наложение линий.
-- **Тир 3 (сетка 10px + пересечение разрешено):** разрешено перпендикулярное пересечение с огромным штрафом Crossing Penalty.
-- **Тир 4 (наложение разрешено):** сетка 10px, запрет наложения снят.
-- **Fallback:** прямой вектор.
-
-### 3.2 Штрафы и запреты
-- **Bend Penalty (100):** за поворот 90°. Устраняет Z-лестницы.
-- **Backtrack Penalty (200):** за движение от цели.
-- **Crossing Penalty (1500):** на тире 3 за пробивание чужой линии.
-- **Топологический запрет разворота:** абсолютный запрет U-поворотов в одной ячейке.
-- **Text Abbreviation Penalty (100):** если маршрут не может вместить `edge.label` ни на одном прямом сегменте.
-
-### 3.3 Бонусы и скидки
-- **Z-выравнивание (Median Bend = 20):** скидка если единственный излом строго в математической середине.
-- **T-Fork / Busing (100):** активно только для `tree`. Линии сливаются в «ствол-бас» (стоимость 0.5 на шаг вместо 20).
-
----
-
-## Этап 4. Постобработка векторов (SVG)
-
-После маршрутизации координаты преобразуются в React-компоненты:
-
-1. **Обрезка коллинеарных точек.**
-2. **Скругления (Fillets):** для каждого угла 90° вставляется квадратичный bezier `Q`, радиус из `PATH_STYLE_REGISTRY.orthogonal_astar.cornerRadius`.
-3. **Перепрыжки (Jumps):** сканирует `ctx.occupiedLines`. Тир-3 пересечения получают микро-разрыв `M` в SVG path.
-4. **Безье для radial:** рёбра с `edgeStyle: 'curved'` строятся как кубический bezier `C`, управляемый `curveStyle`, `curveStrength`, `curveCap` из `PATH_STYLE_REGISTRY.curved`.
-
-### Правила размещения текста
-1. **Строгость ориентации:** текст исключительно Left-to-Right. Вертикальные линии — Bottom-to-Top.
-2. **Запрет зоны бэссинга:** текст исчезает там, где линия сливается с другой.
-3. **Жёсткое отсечение:** если строка не помещается на максимальном прямом сегменте (с учётом ±20px маршей пересечений) — полностью скрывается. Многоточия запрещены.
-4. **Исключение radial:** текстовые метки рёбер принудительно отключены для визуальной чистоты.
-
-### Топологические визуальные слои (`DiagramRenderer.jsx`)
-- **Sequence (линии жизни):** каждая нода опускает вертикальную пунктирную линию `6, 4` на 2000px вниз.
-- **Matrix (группы):** матричные кластеры получают SVG пунктирную рамку `rx=8` с названием группы вверху.
-- **ERD (Crow's Foot):** конечные точки монтируют SVG маркеры. Вертикальная метка (`cf-one`) = 1. Трёхзубый вилок (`cf-many`) = M:N. Геометрия маркеров в `src/diagram/edges.js → CF_MARKERS`.
-
----
-
-## Реестры данных (`src/diagram/`)
-
-| Файл | Экспорты | Назначение |
+| Type | Encoding | Location |
 |---|---|---|
-| `nodes.jsx` | `NODE_REGISTRY` | Формы нод, размеры, порты, рендер, selection bounds |
-| `edges.js` | `LINE_STYLE_REGISTRY`, `PATH_STYLE_REGISTRY`, `ARROW_MARKER`, `CF_MARKERS`, `ARROW_TYPE_REGISTRY`, `CONNECTION_TYPE_REGISTRY`, `EDGE_LABEL_STYLE` | Все параметры рёбер |
-| `colors.js` | `PALETTES`, `CANVAS_COLORS`, `BRAND`, `CANVAS_THEMES`, `EXPORT_DEFAULTS` | Все цвета приложения |
+| Flowchart | implicit | `node.nextSteps` |
+| Tree | implicit | `group.parentId` |
+| Radial | implicit | `group.parentId` |
+| Timeline | implicit | `node.spineId` |
+| Sequence | explicit | `data.messages[]` |
+| ERD | explicit | `data.relationships[]` |
+| Matrix | none | no edges |
+| Pie chart | none | no edges |
 
----
+Import/export hooks live in each engine's `parser` object.
 
-## Плагины движков (`src/engines/<тип>/`)
+## Layout Pipeline
 
-Каждый плагин состоит из **двух файлов**:
+The layout entry point is `layoutNodesHeuristically()` in `src/utils/nodeLayouter.js`.
 
-| Файл | Содержит |
-|---|---|
-| `engine.js` | `schema` (схема типа), `layout` (алгоритм и edgeStyle), `routing` (portStrategy + portPenalty), `parser` (импорт/экспорт рёбер) |
-| `ai_prompt.js` | Шаблон LLM промпта для AI-генерации |
+It chooses the layout strategy from the diagram type and engine manifest:
 
-Мастер-реестр `src/engines/index.js` экспортирует `ENGINES`, `getEngine(type)`, `getAllEngines()`.
+- flowchart / sequence / ERD: Sugiyama-style layout
+- tree / radial: hierarchy-oriented layout
+- timeline: spine and event placement
+- matrix: grouped grid placement
+- piechart: slice geometry and optional legend placement
 
----
+Layouts should produce stable, snapped coordinates. The renderer can still support manual movement and locked positions.
 
-*Актуально: рефакторинг engine registry, апрель 2026.*
+## Routing Pipeline
+
+Edge paths are produced by `calculateAllPaths()` in `src/utils/engine/index.js`.
+
+The router receives:
+
+- normalized edges
+- rendered node geometry
+- diagram type
+- optional drag state
+
+Most diagram types use orthogonal routing. Radial uses direct or curved paths depending on the engine manifest. Edge rendering is controlled by `src/diagram/edges.js`.
+
+## SVG Rendering
+
+`DiagramRenderer.jsx` owns:
+
+- pan and zoom
+- selection
+- drag interactions
+- connection interactions
+- sheet bounds
+- overlays for matrix and sequence
+- legend rendering
+- title rendering
+
+`DiagramNode.jsx` and `DiagramEdge.jsx` are deliberately registry-driven. If a new node or edge style can be represented in the registries, it should not require custom branches throughout the renderer.
+
+## SVG Export
+
+`downloadSVG()` in `src/utils/exportSVG.js` clones the live SVG and cleans it:
+
+- removes desk background
+- removes grid preview rectangles
+- removes editor-only handles and selection UI
+- removes logical helper links
+- bakes CSS variables into concrete color values
+- crops the viewBox to the paper sheet
+
+There is no watermark.
+
+## Empty Canvas Invariant
+
+The editor must always render a valid paper sheet. Even when `nodes=[]`, the app state includes a valid `config`, and `DiagramRenderer` computes sheet bounds from `EMPTY_CANVAS`.
+
+This prevents the user from drawing on the infinite desk background after a failed AI generation, a cancelled import, or a new blank project.
+
+## AI Boundary
+
+AI generation is not part of rendering. It ends at `.cci` data:
+
+```text
+LLM Markdown -> aiGenerate parser -> .cci-like object -> parseCharticiFile/loadParsedData -> normal app state
+```
+
+If AI output is malformed, `aiGenerate.js` performs one repair pass before returning an error.
+
+## Adding A Diagram Type
+
+1. Create `src/engines/<type>/engine.js`.
+2. Create `src/engines/<type>/ai_prompt.js`.
+3. Create `src/engines/<type>/format.md`.
+4. Register the engine in `src/engines/index.js`.
+5. Add or reuse a layout in `src/utils/layouts/`.
+6. Add parser tests and sample smoke coverage.
+7. Add public samples.
+
+Prefer reusing existing node shapes, edge styles, and layout helpers before adding new primitives.
+
+## Test Surface
+
+Important commands:
+
+```bash
+npm run test:engine
+npm run build
+npm run lint
+```
+
+Important tests:
+
+- `engine.aiParser.test.mjs` — AI Markdown parser and repair pass
+- `engine.sampleSmoke.test.mjs` — sample import/layout/route smoke test
+- diagram-specific engine tests for flowchart, timeline, tree, radial, etc.

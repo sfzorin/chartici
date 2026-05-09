@@ -1,34 +1,71 @@
-# Dev Panel (Конфигуратор движка)
+# Developer Panel Proposal
 
-## Идея
-Сделать визуальный редактор параметров движка (layout и routing) для быстрой отладки и тюнинга алгоритмов отрисовки диаграмм прямо в браузере. Выдвижная панель позволяет менять параметры "на лету" и мгновенно видеть результат на отрендеренной диаграмме.
+This is a proposal for future developer tooling. It is not implemented yet.
 
-## Архитектура
-*   **Исключительно Frontend:** Бэкенд (админка) не нужен. Все изменения применяются к текущему инстансу `DiagramRenderer`.
-*   **Сохранение (опционально):** Состояния параметров можно будет сохранять/загружать из `localStorage` или экспортировать как JSON.
-*   **Реактивность:** Изменение любого ползунка в UI обновляет стейт (например, инкрементится `layoutTrigger`), что вызывает мгновенный ре-рендер диаграммы.
+## Goal
 
-## Интерфейс
-Выдвижная панель справа поверх основного UI (сплит-экран). 
-Пользователь загружает готовый пример (sample), открывает dev-панель и крутит параметры.
-Редактирование AI промптов здесь не нужно.
+Add an optional in-browser panel for tuning layout and routing parameters while looking at a live diagram.
 
-### Примерные контролы параметров
+This would help contributors debug:
 
-**Layout:**
-*   `MIN_GAP_X` (горизонтальные зазоры)
-*   `MIN_GAP_Y` (вертикальные зазоры)
-*   *Настройки Dagre* (ranksep, nodesep) для flowchart
-*   и другие топологические параметры из `diagramRules.js`
+- node spacing
+- group overlay padding
+- edge routing penalties
+- crossing behavior
+- label clearance
+- diagram-specific layout constants
 
-**Routing (A*):**
-*   `BEND_PENALTY` (штраф за поворот)
-*   `CROSSING_PEN` (штраф за пересечение линий)
-*   `STUB_LENGTH` (длина stub-отрезка у порта)
-*   Опции бэссинга (`allowBusPremium`)
+## Non-Goals
 
-## План на завтра
-1.  Создать компонент `DevPanel.jsx` (выдвижная панель справа).
-2.  Добавить в глобальный стейт приложения/компонента объект параметров маршрутизатора и лэйаута (override для встроенных правил).
-3.  Пробросить этот объект в `DiagramRenderer` и далее в ядро (`calculateAllPaths`, dagre, portAssigner).
-4.  Привязать контролы панели (ползунки, чекбоксы) к этому стейту и повесить триггер ре-рендера.
+- No production-facing UI.
+- No backend admin panel.
+- No prompt editing UI.
+- No persistent project-format changes unless the feature graduates from experimental tooling.
+
+## Possible UI
+
+A collapsible panel over the canvas with controls grouped by subsystem:
+
+### Layout
+
+- horizontal gap
+- vertical gap
+- group padding
+- rank separation
+- node separation
+- lock-position behavior
+
+### Routing
+
+- bend penalty
+- crossing penalty
+- obstacle padding
+- bus routing bonus
+- fallback strategy
+- edge label clearance
+
+### Rendering
+
+- overlay opacity
+- lane padding
+- selection bounds
+- export cleanup diagnostics
+
+## Persistence
+
+Early versions should store overrides in `localStorage` only.
+
+If the panel becomes stable, overrides can be exported as JSON for test fixtures. They should not be written into `.cci` project files by default.
+
+## Implementation Sketch
+
+1. Add `DevPanel.jsx`.
+2. Keep override state in `App.jsx` or a small hook.
+3. Pass overrides to `DiagramRenderer`.
+4. Thread relevant values into layout and routing calls.
+5. Add a visible "reset overrides" action.
+6. Add diagnostics showing the active diagram type, engine manifest, node count, edge count, and route count.
+
+## Safety
+
+Developer overrides must never affect normal users unless explicitly enabled. A query parameter such as `?devPanel=1` is enough for the first version.

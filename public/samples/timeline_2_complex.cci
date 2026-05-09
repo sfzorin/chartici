@@ -3,7 +3,7 @@
     "type": "timeline",
     "version": "3.0.0"
   },
-  "theme": "book",
+  "theme": "basic",
   "title": {
     "text": "Space Exploration Milestones"
   },

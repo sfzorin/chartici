@@ -3,7 +3,7 @@
     "type": "piechart",
     "version": "1.0.0"
   },
-  "theme": "book",
+  "theme": "basic",
   "title": {
     "text": "Resource Allocation"
   },

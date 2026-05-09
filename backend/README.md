@@ -1,90 +1,113 @@
-# Chartici API Backend
+# Chartici Backend
 
-Прокси-сервер, который пробрасывает запросы фронтенда к [DeepSeek API](https://platform.deepseek.com) (DeepSeek AI).
+Small Express proxy for AI generation requests.
 
-## Принцип работы
+The browser app must not contain the DeepSeek API key. This backend accepts sanitized generation requests from the frontend, forwards them to DeepSeek, and returns the assistant message content.
 
-Бэкенд — **тупой прокси**. Фронтенд формирует готовый массив `messages` (включая system prompt и спецификацию .cci), бэкенд пробрасывает его в DeepSeek API и возвращает сырой ответ. Вся бизнес-логика — на фронтенде.
+## Runtime
 
+- Node.js 18+
+- Express
+- DeepSeek API key in `DEEPSEEK_API_KEY`
+
+## Local Development
+
+```bash
+cd backend
+npm install
+DEEPSEEK_API_KEY=sk-... npm run dev
 ```
-Frontend  →  POST /api/generate  →  Backend  →  DeepSeek API  →  DeepSeek AI
-             { messages, model,      проксирует     тот же payload
-               temperature }          как есть       + API key
+
+Server URL:
+
+```text
+http://localhost:3001
 ```
 
 ## API
 
+### `GET /api/health`
+
+Returns:
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-05-09T12:00:00.000Z"
+}
+```
+
 ### `POST /api/generate`
 
-**Request:**
+Request:
+
 ```json
 {
   "messages": [
     { "role": "system", "content": "..." },
-    { "role": "user", "content": "Нарисуй оргструктуру" }
+    { "role": "user", "content": "..." }
   ],
   "model": "deepseek-chat",
-  "temperature": 0.3
+  "temperature": 0.1
 }
 ```
 
-| Поле | Обязательно | Default |
-|------|:-----------:|---------|
-| `messages` | ✅ | — |
-| `model` | нет | `deepseek-chat` |
-| `temperature` | нет | `0.3` |
-
-**Response (success):**
-```json
-{ "success": true, "content": "...строка от DeepSeek..." }
-```
-
-**Response (error):**
-```json
-{ "success": false, "error": "Rate limit exceeded. Try again in 60 seconds." }
-```
-
-### `GET /api/health`
+Response:
 
 ```json
-{ "status": "ok", "timestamp": "2026-04-08T12:00:00.000Z" }
+{
+  "success": true,
+  "content": "...assistant message..."
+}
 ```
 
-### Коды ошибок
+Error response:
 
-| Ситуация | HTTP | error |
-|----------|:----:|-------|
-| Невалидный request | 400 | `messages is required...` |
-| Rate limit (10 req/min) | 429 | `Rate limit exceeded...` |
-| DeepSeek 401/403 | 502 | `AI service auth error` |
-| DeepSeek timeout | 504 | `AI response timeout` |
-| DeepSeek другая ошибка | 502 | `AI service error` |
-| Внутренняя ошибка | 500 | `Internal server error` |
+```json
+{
+  "success": false,
+  "error": "Unsupported model"
+}
+```
 
-## Защита
+## Validation
 
-- **Rate limiting:** 10 запросов в минуту с одного IP
-- **Таймаут:** 120 секунд на ответ от DeepSeek
-- **Логирование:** в stdout без содержимого messages (приватность)
+The proxy intentionally does not accept arbitrary DeepSeek parameters.
 
-## Локальная разработка
+Allowed:
+
+- `messages`: non-empty array of `{ role, content }`
+- `model`: `deepseek-chat`
+- `temperature`: finite number, clamped to `0..2`
+- `response_format`: omitted or `{ "type": "json_object" }`
+
+Rejected:
+
+- unsupported models
+- malformed messages
+- unsupported response formats
+- missing API key
+
+## Protection
+
+- Request body limit: `1mb`
+- Rate limit: 10 requests per minute per client IP on `/api/generate`
+- DeepSeek timeout: 120 seconds
+- Logs contain request metadata, not prompt contents
+
+## Deployment Notes
+
+Set:
 
 ```bash
-cd backend
-cp .env.example .env
-# Вписать реальный DEEPSEEK_API_KEY в .env
-npm install
-npm run dev
+DEEPSEEK_API_KEY=sk-...
+PORT=3001
 ```
 
-Сервер запустится на `http://localhost:3001`.
+The frontend should proxy `/api/generate` and `/api/health` to this service.
 
-## Деплой
+## Related Frontend Files
 
-Бэкенд деплоится автоматически через GitHub Actions вместе с фронтендом. На VPS (`/opt/chartici`) нужно один раз создать `.env`:
-
-```bash
-echo "DEEPSEEK_API_KEY=sk-ваш-ключ-deepseek" > /opt/chartici/.env
-```
-
-Получить ключ: [platform.deepseek.com](https://platform.deepseek.com) → API Keys.
+- `src/services/aiGenerate.js`
+- `src/assets/systemPrompts.js`
+- `src/engines/<type>/ai_prompt.js`

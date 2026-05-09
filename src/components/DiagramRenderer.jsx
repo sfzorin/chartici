@@ -542,7 +542,6 @@ export default function DiagramRenderer({
 
 
   const { vMinX, vMinY, vW, vH, titleCx, titleY } = useMemo(() => {
-     if (computedNodes.length === 0) return { vMinX: 0, vMinY: 0, vW: 1600, vH: 900, titleCx: 800, titleY: 0 };
      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
      let txtMinX = Infinity, txtMinY = Infinity, txtMaxX = -Infinity, txtMaxY = -Infinity;
      computedNodes.forEach(n => {
@@ -716,9 +715,7 @@ export default function DiagramRenderer({
     const trigger = initialData?.layoutTrigger;
     if (trigger && trigger !== prevLayoutTrigger.current) {
       prevLayoutTrigger.current = trigger;
-      if (initialData?.nodes?.length > 0) {
-        setPendingZoom(trigger);
-      }
+      setPendingZoom(trigger);
     }
   }, [initialData?.layoutTrigger, initialData?.nodes]);
 

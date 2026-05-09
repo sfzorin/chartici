@@ -53,7 +53,7 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
 
     // Build CSS variable → hex color map for baking
     const rootStyles = getComputedStyle(document.documentElement);
-    const paletteInfo = PALETTES[paletteTheme] || PALETTES.book || Object.values(PALETTES)[0];
+    const paletteInfo = PALETTES[paletteTheme] || PALETTES.basic || Object.values(PALETTES)[0];
     const paletteVars = paletteInfo.colors;
     const colorMap = {
         '--canvas-bg':           rootStyles.getPropertyValue('--canvas-bg').trim()           || EXPORT_DEFAULTS['--canvas-bg'],

@@ -35,10 +35,22 @@ const normalizeEdgeEndpoints = (edge) => {
   };
 };
 
+const createBlankDiagramData = () => ({
+  nodes: [],
+  edges: [],
+  groups: [],
+  config: {
+    aspect: '16:9',
+    bgColor: 'white',
+    theme: 'basic',
+  },
+  layoutTrigger: Date.now(),
+});
+
 function App() {
   const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
-  const [paletteTheme, setPaletteTheme] = useState('book');
-  const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory({ nodes: [], edges: [], groups: [] });
+  const [paletteTheme, setPaletteTheme] = useState('basic');
+  const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory(createBlankDiagramData());
   const [aspect, setAspect] = useState('16:9');
   const [diagramType, setDiagramType] = useState('flowchart');
   const [bgColor, setBgColor] = useState('white');
@@ -112,7 +124,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', paletteTheme);
-    const themeObj = PALETTES[paletteTheme] || PALETTES.book;
+    const themeObj = PALETTES[paletteTheme] || PALETTES.basic;
     
     document.documentElement.style.setProperty('--unfilled-text-color', themeObj.unfilledText);
     
@@ -173,7 +185,7 @@ function App() {
     const dt = parsed.meta?.type || 'flowchart';
     const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: dt, groups: parsed.groups });
     const activeTheme = (parsed.config && parsed.config.theme && PALETTES[parsed.config.theme]) 
-      ? parsed.config.theme : 'book';
+      ? parsed.config.theme : 'basic';
       
     let totalElements = 0;
     if (parsed.groups && parsed.groups.length > 0) {

@@ -1,7 +1,7 @@
 import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts.js';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
-const BOOK_THEME = 'book';
+const DEFAULT_PALETTE = 'basic';
 
 function flattenGeneratedNodes(cci) {
   return (cci?.data?.groups || []).flatMap(group =>
@@ -100,6 +100,68 @@ function getExplicitEdgeKey(diagramType) {
   return null;
 }
 
+function cleanPhase2Content(content) {
+  return String(content || '')
+    .replace(/<\s*(?:thinking|reasoning|analysis)[^>]*>[\s\S]*?<\s*\/\s*(?:thinking|reasoning|analysis)\s*>/gi, '')
+    .replace(/<\s*(?:thinking|reasoning|analysis)[^>]*>[\s\S]*$/gi, '')
+    .replace(/<\s*\/?\s*(?:output|response|result)\s*[^>]*>/gi, '')
+    .replace(/```[\w-]*\n?/g, '')
+    .trim();
+}
+
+function inferModeFromTableHeader(cols, diagramType, currentMode) {
+  const dt = diagramType.toLowerCase();
+  const normalized = cols.map(col => String(col || '').toLowerCase().replace(/\s+/g, ' ').trim());
+  const joined = normalized.join(' | ');
+
+  if (normalized.includes('source id') && normalized.includes('target id')) return 'edges';
+  if (joined.includes('next steps')) return 'nodes';
+  if (joined.includes('phase/era label')) return 'spine';
+  if (joined.includes('spine id') && joined.includes('label')) return currentMode === 'spine' ? 'events' : 'events';
+  if (joined.includes('value') && (joined.includes('title') || joined.includes('label'))) return 'pie';
+
+  if (['flowchart', 'sequence', 'erd', 'matrix'].includes(dt)) return 'nodes';
+  if (dt === 'piechart') return 'pie';
+  if (dt === 'timeline') return currentMode || 'spine';
+  if (['tree', 'radial'].includes(dt)) return currentMode || 'root';
+  return currentMode;
+}
+
+function inferModeFromDataRow(diagramType, currentMode) {
+  if (currentMode) return currentMode;
+  const dt = diagramType.toLowerCase();
+  if (['flowchart', 'sequence', 'erd', 'matrix'].includes(dt)) return 'nodes';
+  if (dt === 'piechart') return 'pie';
+  if (dt === 'timeline') return 'spine';
+  if (['tree', 'radial'].includes(dt)) return 'root';
+  return currentMode;
+}
+
+function getRepairMessages(phase2Prompt, extendedPrompt, rawContent, errors) {
+  return [
+    { role: 'system', content: phase2Prompt },
+    {
+      role: 'user',
+      content: `Your previous Markdown could not be parsed or failed quality checks.
+
+Return ONLY corrected Markdown tables for the same diagram type.
+Do not explain anything.
+Do not use JSON.
+Do not wrap the answer in XML tags.
+Keep the diagram compact and book-readable.
+
+Original task:
+${extendedPrompt}
+
+Validation errors:
+${errors.map(error => `- ${error}`).join('\n')}
+
+Previous answer:
+${rawContent || '(empty response)'}`
+    }
+  ];
+}
+
 /**
  * Helper to call the DeepSeek API proxy
  */
@@ -181,15 +243,16 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     { role: 'user', content: extendedPrompt }
   ];
 
-  const phase2Data = await callDeepSeek(phase2Messages, 0.1, false); // Temp 0.1, No JSON mode
+  let messages = phase2Messages;
+  let lastFailure = { error: 'AI returned unexpected format — try again' };
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+  const phase2Data = await callDeepSeek(messages, attempt === 0 ? 0.1 : 0.05, false); // No JSON mode
   if (!phase2Data.success) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
 
-  const rawContent = phase2Data.content
-    .replace(/<\/?(?:thinking|reasoning|analysis|output|response|result)[^>]*>[\s\S]*?(?:<\/(?:thinking|reasoning|analysis|output|response|result)>|$)/gi, '') // Strip any XML wrapper blocks
-    .replace(/```[\w]*\n?/g, '')   // Strip code fence markers
-    .trim();
+  const rawContent = cleanPhase2Content(phase2Data.content);
   
   // PARSING ALGORITHM
   const parsed = {
@@ -248,13 +311,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       return matched;
     };
 
-    if (t.match(/^#{1,3}\s*(nodes|tables|components|states|steps|elements|entities)\b/i)) { mode = 'nodes'; continue; }
-    if (t.match(/^#{1,3}\s*(edges|relationships|messages|connections|transitions)\b/i)) { mode = 'edges'; continue; }
-    if (t.match(/^#{1,3}\s*pie slices\b/i)) { mode = 'pie'; continue; }
-    if (t.match(/^#{1,3}\s*timeline spine\b/i)) { mode = 'spine'; continue; }
-    if (t.match(/^#{1,3}\s*events\b/i)) { mode = 'events'; continue; }
-    if (t.match(/^#{1,3}\s*root\b/i)) { mode = 'root'; continue; }
-    if (t.match(/^#{1,3}\s*branches\b/i)) { mode = 'branches'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?(?:nodes|tables|components|states|steps|elements|entities)\b/i)) { mode = 'nodes'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?(?:edges|relationships|messages|connections|transitions)\b/i)) { mode = 'edges'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?pie slices\b/i)) { mode = 'pie'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?timeline spine\b/i)) { mode = 'spine'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?events\b/i)) { mode = 'events'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?root\b/i)) { mode = 'root'; continue; }
+    if (t.match(/^#{1,4}\s*(?:.*\b)?branches\b/i)) { mode = 'branches'; continue; }
     
     if (t.startsWith('### ') && !mode) {
       mode = inferNodeModeFromGroupHeading();
@@ -296,10 +359,14 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       const c0 = cols[0].toLowerCase();
       const c1 = cols[1] ? cols[1].toLowerCase() : '';
       const headerWords = ['id', 'source id', 'target id', 'spine id', 'title', 'title (label)'];
-      if (headerWords.includes(c0) || c0.endsWith(' id') || c1 === 'label' || c1 === 'phase/era label') continue;
+      if (headerWords.includes(c0) || c0.endsWith(' id') || c1 === 'label' || c1 === 'phase/era label') {
+        mode = inferModeFromTableHeader(cols, diagramType, mode);
+        continue;
+      }
 
       // Skip rows where first column is empty or whitespace
       if (!cols[0] || !cols[0].trim()) continue;
+      mode = inferModeFromDataRow(diagramType, mode);
       if (mode === 'nodes' && cols.length >= 2) {
         const id = cols[0];
         const label = cols[1];
@@ -431,7 +498,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   
   if (parsed.data.groups.length === 0) {
       console.error('Phase 2 parse failure. Raw content:', rawContent.substring(0, 500));
-      return { success: false, error: 'AI returned unexpected format — try again' };
+      const parseErrors = ['no parseable Markdown tables or groups'];
+      lastFailure = { error: 'AI returned unexpected format — try again' };
+      if (attempt === 0) {
+        messages = getRepairMessages(phase2Prompt, extendedPrompt, rawContent, parseErrors);
+        continue;
+      }
+      return lastFailure;
   }
 
   // Debug local log
@@ -456,10 +529,15 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   const qualityErrors = validateGeneratedCci(parsed, diagramType);
   if (qualityErrors.length > 0) {
     console.error('Phase 2 quality failure:', qualityErrors);
-    return { success: false, error: `AI returned a low-quality diagram: ${qualityErrors.slice(0, 3).join('; ')}` };
+    lastFailure = { error: `AI returned a low-quality diagram: ${qualityErrors.slice(0, 3).join('; ')}` };
+    if (attempt === 0) {
+      messages = getRepairMessages(phase2Prompt, extendedPrompt, rawContent, qualityErrors.slice(0, 8));
+      continue;
+    }
+    return lastFailure;
   }
 
-  parsed.theme = BOOK_THEME;
+  parsed.theme = DEFAULT_PALETTE;
   parsed.data.config = {
     ...(parsed.data.config || {}),
     bgColor: 'white',
@@ -467,4 +545,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   };
 
   return { success: true, cci: parsed };
+  }
+
+  return { success: false, ...lastFailure };
 }
