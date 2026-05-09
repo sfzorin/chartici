@@ -95,6 +95,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
     if (!pts || pts.length < 2) return null;
     const labelWidth = Math.max(36, String(displayLabel).length * L.charWidth + 14);
     const labelHeight = L.fontSize + 8;
+    const sourceGap = 6;
     let best = null;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i];
@@ -104,21 +105,24 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       const len = Math.hypot(dx, dy);
       if (len < 24) continue;
       const horizontal = Math.abs(dx) >= Math.abs(dy);
-      const readableLen = horizontal ? labelWidth + 18 : labelWidth * 0.72;
+      const readableLen = labelWidth + sourceGap * 2;
+      if (sourceBiased && len >= readableLen) {
+        best = { a, b, dx, dy, len, horizontal, labelWidth, labelHeight, score: Infinity, index: i };
+        break;
+      }
       const tooShortPenalty = len < readableLen ? (readableLen - len) * (sourceBiased ? 8 : 3) : 0;
-      const sourcePenalty = sourceBiased && len < readableLen ? i * 120 : (sourceBiased ? i * 120 : -i * 0.1);
+      const sourcePenalty = sourceBiased ? i * 220 : -i * 0.1;
       const score = -sourcePenalty
         + Math.min(len, 240)
         + (horizontal ? 80 : 0)
         + (len >= readableLen ? 160 : 0)
         - tooShortPenalty;
       if (!best || score > best.score) best = { a, b, dx, dy, len, horizontal, labelWidth, labelHeight, score, index: i };
-      if (sourceBiased && horizontal && len >= readableLen) break;
     }
     if (!best) return null;
-    const t = sourceBiased ? Math.min(0.45, Math.max(0.28, (labelWidth / 2 + 18) / best.len)) : 0.5;
-    const x = best.a.x + best.dx * t + (best.horizontal ? 0 : -12);
-    const y = best.a.y + best.dy * t + (best.horizontal ? -12 : 0);
+    const t = sourceBiased ? Math.min(0.48, (labelWidth / 2 + sourceGap) / best.len) : 0.36;
+    const x = best.a.x + best.dx * t + (best.horizontal ? 0 : -7);
+    const y = best.a.y + best.dy * t + (best.horizontal ? -7 : 0);
     return { x, y, labelWidth: best.labelWidth, labelHeight: best.labelHeight, angle: best.horizontal ? 0 : -90 };
   };
 
@@ -137,7 +141,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       const horizontal = Math.abs(dx) >= Math.abs(dy);
       const nearEndpointPenalty = (i === 0 || i === pts.length - 2) ? 140 : 0;
       const centerPenalty = Math.abs(i - midIndex) * 10;
-      const readableBonus = len >= labelWidth + 48 ? 180 : -(labelWidth + 48 - len) * 2.5;
+      const readableBonus = len >= labelWidth + 32 ? 180 : -(labelWidth + 32 - len) * 2.5;
       const score = Math.min(len, 260) + readableBonus + (horizontal ? 24 : 12) - nearEndpointPenalty - centerPenalty;
       candidates.push({ a, b, dx, dy, len, horizontal, score });
     }
@@ -148,7 +152,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
     const t = 0.5;
     const normalX = best.horizontal ? 0 : -1;
     const normalY = best.horizontal ? -1 : 0;
-    const offset = 12;
+    const offset = 7;
     const x = best.a.x + best.dx * t + normalX * offset;
     const y = best.a.y + best.dy * t + normalY * offset;
     return { x, y, labelWidth, labelHeight, angle: best.horizontal ? 0 : -90 };
@@ -243,7 +247,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
           dy={L.offsetY}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <textPath href={`#${edge.id}_path`} startOffset="50%" textAnchor="middle">
+          <textPath href={`#${edge.id}_path`} startOffset="14%" textAnchor="middle">
             {displayLabel}
           </textPath>
         </text>

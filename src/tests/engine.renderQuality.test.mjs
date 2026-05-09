@@ -111,6 +111,50 @@ function boundsOf(nodes) {
   return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
 }
 
+function pathSegments(edge, pathData) {
+  const pts = pathData?.pts || [];
+  const segments = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    segments.push({ edge, p1: pts[i], p2: pts[i + 1] });
+  }
+  return segments;
+}
+
+function isPointOnSegmentInterior(point, segment) {
+  const { p1, p2 } = segment;
+  const margin = 0.5;
+  if (Math.abs(p1.y - p2.y) < EPS && Math.abs(point.y - p1.y) < EPS) {
+    const minX = Math.min(p1.x, p2.x);
+    const maxX = Math.max(p1.x, p2.x);
+    return point.x > minX + margin && point.x < maxX - margin;
+  }
+  if (Math.abs(p1.x - p2.x) < EPS && Math.abs(point.x - p1.x) < EPS) {
+    const minY = Math.min(p1.y, p2.y);
+    const maxY = Math.max(p1.y, p2.y);
+    return point.y > minY + margin && point.y < maxY - margin;
+  }
+  return false;
+}
+
+function assertNoCornerKisses(file, visibleEdges, paths) {
+  const segments = visibleEdges.flatMap(edge => pathSegments(edge, paths[edge.id]));
+
+  visibleEdges.forEach(edge => {
+    const pts = paths[edge.id]?.pts || [];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const bend = pts[i];
+      segments
+        .filter(segment => String(segment.edge.id) !== String(edge.id))
+        .forEach(segment => {
+          assert.ok(
+            !isPointOnSegmentInterior(bend, segment),
+            `${file}: edge ${edge.id} bend lands on edge ${segment.edge.id}`
+          );
+        });
+    }
+  });
+}
+
 console.log('\n🎯 Render quality smoke test');
 
 const files = fs.readdirSync(samplesDir).filter(f => f.endsWith('.cci')).sort();
@@ -152,6 +196,10 @@ for (const file of files) {
     assert.ok(renderedEventLinks.length >= events.length, `${file}: timeline events are missing visible spine links`);
   }
 
+  if (type !== 'tree' && type !== 'org_chart') {
+    assertNoCornerKisses(file, visibleEdges, paths);
+  }
+
   if (type === 'sequence') {
     const box = boundsOf(nodes.filter(n => n.type !== 'text' && n.type !== 'title'));
     assert.ok(box.width <= 3050, `${file}: sequence layout is too wide`);
@@ -178,6 +226,25 @@ for (const file of files) {
         const dst = nodes.find(n => String(n.id) === String(edgeTo(edge)));
         const allowed = Math.max(520, Math.min(720, String(edge.label || '').length * 16 + 360));
         assert.ok(distance(src, dst) <= allowed, `${file}: feedback edge ${edge.id} stretches related steps too far apart`);
+      });
+
+    nodes
+      .filter(node => node.type === 'circle')
+      .forEach(node => {
+        const incomingPorts = visibleEdges
+          .filter(edge => String(edgeTo(edge)) === String(node.id))
+          .map(edge => paths[edge.id]?.pts?.at(-1))
+          .filter(Boolean);
+        const outgoingPorts = visibleEdges
+          .filter(edge => String(edgeFrom(edge)) === String(node.id))
+          .map(edge => paths[edge.id]?.pts?.[0])
+          .filter(Boolean);
+
+        incomingPorts.forEach(inPort => {
+          outgoingPorts.forEach(outPort => {
+            assert.ok(distance(inPort, outPort) > 8, `${file}: circle node ${node.id} reuses a visual port`);
+          });
+        });
       });
   }
 

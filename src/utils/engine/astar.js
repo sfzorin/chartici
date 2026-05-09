@@ -49,8 +49,21 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   let bestFallbackNode = null;
   let bestFallbackH = Infinity;
 
+  const isTreeRouting = !!getEngine(ctx?.diagramType)?.routing?.enableBusRouting;
+  const portKeyFor = (port) => `${port.anchorPt ? port.anchorPt.x : port.pt.x},${port.anchorPt ? port.anchorPt.y : port.pt.y}`;
+  const filterFreePorts = (ports, nodeId) => {
+    if (isTreeRouting || !ctx?.usedPorts) return ports;
+    const used = ctx.usedPorts.get(String(nodeId));
+    if (!used) return ports;
+
+    const free = ports.filter(port => !used.has(portKeyFor(port)));
+    return free.length > 0 ? free : ports;
+  };
+  const candidateStartPorts = filterFreePorts(startPorts, startNodeId);
+  const candidateEndPorts = filterFreePorts(endPorts, endNodeId);
+
   // Map end ports to their safe approach coordinates
-  const safeTargets = endPorts.map(p => {
+  const safeTargets = candidateEndPorts.map(p => {
       const eDir = p.axis;
       const dx = eDir === 'H' ? p.sign * gridStep : 0;
       const dy = eDir === 'V' ? p.sign * gridStep : 0;
@@ -73,7 +86,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   const closedSet = new Set();
 
   // Seed open set with stub points from all free ports
-  startPorts.forEach(port => {
+  candidateStartPorts.forEach(port => {
      const sDir = port.axis;
      const dx = sDir === 'H' ? port.sign * gridStep : 0;
      const dy = sDir === 'V' ? port.sign * gridStep : 0;
@@ -85,7 +98,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
 
      // Port Saturation Rule: Do not share ports with edges of different styles/arrows
      if (ctx && ctx.occupiedLines) {
-         const portKey = `${port.anchorPt ? port.anchorPt.x : port.pt.x},${port.anchorPt ? port.anchorPt.y : port.pt.y}`;
+         const portKey = portKeyFor(port);
          const startNode = ctx.allNodes?.find(n => String(n.id) === String(startNodeId));
          const conflict = ctx.occupiedLines.find(l => 
              l.startNodeId === String(startNodeId) && 
@@ -126,8 +139,8 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   });
 
    // Search bounding box: don't explore far from src→dst corridor
-   const allPtsX = [...startPorts.map(p => p.pt.x), ...safeTargets.map(t => t.x)];
-   const allPtsY = [...startPorts.map(p => p.pt.y), ...safeTargets.map(t => t.y)];
+   const allPtsX = [...candidateStartPorts.map(p => p.pt.x), ...safeTargets.map(t => t.x)];
+   const allPtsY = [...candidateStartPorts.map(p => p.pt.y), ...safeTargets.map(t => t.y)];
    const spanX = Math.max(...allPtsX) - Math.min(...allPtsX);
    const spanY = Math.max(...allPtsY) - Math.min(...allPtsY);
    const searchMargin = Math.max(200, Math.round((spanX + spanY) * 0.5));
@@ -236,27 +249,32 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
         
         const isBend = current.dir !== n.dir;
 
-        // Kissing Bends Prevention (X-meeting)
-        if (isBend && !allowOverlap) {
+        const routing = getEngine(ctx.diagramType)?.routing || {};
+        const isTree = !!routing.allowSiblingCrossings;
+        const allowBusPremium = !!routing.enableBusRouting;
+
+        // Kissing Bends Prevention (X-meeting). Tree is the only mode that
+        // intentionally allows bus/T-branch joins.
+        if (isBend && !isTree) {
             let touch = false;
             for (let turn of ctx.occupiedTurns) {
-                // Ignore siblings (buses naturally share bends)
-                if (turn.startNodeId === startNodeId) continue;
-                
                 // The bend actually happens at current.x, current.y
                 if (turn.x === current.x && turn.y === current.y) {
                     touch = true; break;
                 }
             }
-            if (touch && !allowCrossing) continue; // Forbidden kissing point on strict tiers
+            if (!touch) {
+                for (let line of ctx.occupiedLines) {
+                    if (isPointOnSegmentInterior(current, line)) {
+                        touch = true; break;
+                    }
+                }
+            }
+            if (touch) continue; // Forbidden kissing point on non-tree diagrams
         }
 
         const overlapCheck = checkPathOverlap(current.x, current.y, n.x, n.y, ctx);
 
-        
-        const routing = getEngine(ctx.diagramType)?.routing || {};
-        const isTree = !!routing.allowSiblingCrossings;
-        const allowBusPremium = !!routing.enableBusRouting;
         let overlapPenalty = 0;
         let isBusOverlap = false;
 
@@ -489,6 +507,21 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
     }
   }
   return null;
+}
+
+function isPointOnSegmentInterior(point, line) {
+    const margin = 0.5;
+    if (line.y1 === line.y2 && point.y === line.y1) {
+        const minX = Math.min(line.x1, line.x2);
+        const maxX = Math.max(line.x1, line.x2);
+        return point.x > minX + margin && point.x < maxX - margin;
+    }
+    if (line.x1 === line.x2 && point.x === line.x1) {
+        const minY = Math.min(line.y1, line.y2);
+        const maxY = Math.max(line.y1, line.y2);
+        return point.y > minY + margin && point.y < maxY - margin;
+    }
+    return false;
 }
 
 function reconstructPath(leaf) {

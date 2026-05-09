@@ -108,6 +108,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   const ctx = new RoutingContext(normalizedEdges, allNodes, false, draggedNodeId, routingRules, diagramType);
   ctx.usedEndPorts = new Map();
   ctx.usedStartPorts = new Map();
+  ctx.usedPorts = new Map();
 
   // 1. Convert all nodes to bounding boxes (obstacles)
   allNodes.forEach(n => {
@@ -287,6 +288,9 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
        chosenEndPt = finalPts[finalPts.length - 1];
     }
 
+    reservePort(ctx, startNode.id, chosenStartPt, diagramType);
+    reservePort(ctx, endNode.id, chosenEndPt, diagramType);
+
     const rawPts = finalPts;
     const cleanPts = [rawPts[0]];
     for (let i = 1; i < rawPts.length - 1; i++) {
@@ -307,7 +311,8 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
          edgeId: edge.id,
          edgeType: `${edge.lineStyle || 'solid'}-${edge.arrowType || edge.connectionType || 'target'}`,
          routeOrder: idx,
-         startPortKey: chosenStartPt ? `${chosenStartPt.x},${chosenStartPt.y}` : null
+         startPortKey: chosenStartPt ? `${chosenStartPt.x},${chosenStartPt.y}` : null,
+         endPortKey: chosenEndPt ? `${chosenEndPt.x},${chosenEndPt.y}` : null
        });
        if (i > 0) {
            ctx.addTurn({
@@ -358,4 +363,15 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
   });
 
   return result;
+}
+
+function reservePort(ctx, nodeId, point, diagramType) {
+  if (!point || diagramType === 'tree' || diagramType === 'org_chart') return;
+  const key = String(nodeId);
+  let used = ctx.usedPorts.get(key);
+  if (!used) {
+    used = new Set();
+    ctx.usedPorts.set(key, used);
+  }
+  used.add(`${point.x},${point.y}`);
 }
