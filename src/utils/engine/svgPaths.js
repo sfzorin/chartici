@@ -1,4 +1,5 @@
 import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
+import { getEdgeLabelPolicy } from '../../diagram/edgeLabelPlacement.js';
 
 function getEdgePriorityAtIntersection(edgeId, pt, ctx) {
    let priority = 0; 
@@ -216,7 +217,8 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
           textPathD = null;
           textPathLen = 0;
       } else {
-          const sourceBiasedLabels = ctx?.diagramType === 'flowchart';
+          const labelPolicy = getEdgeLabelPolicy(ctx?.diagramType);
+          const sourceBiasedLabels = labelPolicy.strategy === 'source-near';
           // Score segments: flowchart labels prefer the source side; other diagrams
           // keep the longest readable segment, with a mild horizontal preference.
           const scoreSegment = (s, idx) => {
