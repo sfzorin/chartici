@@ -20,20 +20,20 @@ export default {
         // Кодировка связей в .cci: явные рёбра в data.messages[]
         ioFormat: { edgeEncoding: 'explicit', edgeKey: 'messages' },
         engineManifest: {
-            layout: 'sugiyama',
+            layout: 'sequence',
             edgeStyle: 'orthogonal_astar',
             nodeTypes: ['process', 'circle'],
             matrixGridOverlays: true,
             overlay: {
-                // Бокс вокруг нод в дорожке
-                groupPad: 30,
-                // Доп. отступы единого bbox
-                globalLeftMargin: 130,
-                globalRightMargin: 30,
-                // Граница дорожки (рамка)
-                lane: { fillOpacity: 0.04, stroke: { width: 2, dash: '4 4', rx: 4 } },
-                // Подпись дорожки (вертикальная)
-                label: { fontSize: 15, fontWeight: 600, opacity: 0.8 },
+                groupPad: 24,
+                globalLeftMargin: 116,
+                globalRightMargin: 24,
+                lane: {
+                    fillOpacity: 0.024,
+                    stroke: { width: 1.2, dash: 'none', rx: 6, opacity: 0.24 },
+                    divider: { width: 1, opacity: 0.16 },
+                },
+                label: { fontSize: 13, fontWeight: 650, opacity: 0.72 },
             },
         },
     },

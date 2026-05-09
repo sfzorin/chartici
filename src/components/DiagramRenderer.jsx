@@ -870,11 +870,15 @@ export default function DiagramRenderer({
             // sequence
             const lane      = ov.lane  || {};
             const laneStroke= lane.stroke || {};
+            const laneDivider = lane.divider || {};
             const sLabel    = ov.label  || {};
             const laneFillOp  = lane.fillOpacity ?? DIAGRAM_DESIGN.overlay.sequenceFillOpacity;
             const laneStW   = laneStroke.width ?? 2;
             const laneStDash= laneStroke.dash  ?? '4 4';
+            const laneStOp  = laneStroke.opacity ?? 1;
             const laneRx    = laneStroke.rx    ?? 4;
+            const laneDividerW = laneDivider.width ?? 1;
+            const laneDividerOp = laneDivider.opacity ?? 0;
             const sLabelFs  = sLabel.fontSize  ?? DIAGRAM_DESIGN.overlay.sequenceLabelSize;
             const sLabelFw  = sLabel.fontWeight ?? DIAGRAM_DESIGN.overlay.groupLabelWeight;
             const sLabelOp  = sLabel.opacity    ?? DIAGRAM_DESIGN.overlay.groupLabelOpacity;
@@ -911,13 +915,24 @@ export default function DiagramRenderer({
                           x={globalLeft} y={box.top}
                           width={globalRight - globalLeft} height={box.bottom - box.top}
                           fill="var(--diagram-group)" fillOpacity={laneFillOp}
-                          stroke="var(--diagram-group)" strokeWidth={laneStW} strokeDasharray={laneStDash} rx={laneRx}
+                          stroke="var(--diagram-group)" strokeWidth={laneStW} strokeDasharray={laneStDash} strokeOpacity={laneStOp} rx={laneRx}
                         />
+                        {laneDividerOp > 0 && (
+                          <line
+                            x1={globalLeft + globalLeftMargin - 20}
+                            x2={globalLeft + globalLeftMargin - 20}
+                            y1={box.top + 8}
+                            y2={box.bottom - 8}
+                            stroke="var(--diagram-group)"
+                            strokeWidth={laneDividerW}
+                            opacity={laneDividerOp}
+                          />
+                        )}
                         {(!box.label.toLowerCase().startsWith('void')) && (
                           <foreignObject
-                             x={globalLeft + 10} y={box.bottom - 10}
-                             width={box.bottom - box.top - 20} height={40}
-                             transform={`rotate(-90 ${globalLeft + 10} ${box.bottom - 10})`}
+                             x={globalLeft + 12} y={box.bottom - 12}
+                             width={Math.max(24, box.bottom - box.top - 24)} height={34}
+                             transform={`rotate(-90 ${globalLeft + 12} ${box.bottom - 12})`}
                              style={{ overflow: 'visible' }}
                           >
                              <div xmlns="http://www.w3.org/1999/xhtml" style={{
