@@ -38,6 +38,11 @@ export default {
         portStrategy: 'topdown',
         allowSiblingCrossings: true,
         enableBusRouting: true,
+        rules: {
+            T_FORK_EXACT_DISCOUNT: 120,
+            T_FORK_TRUNK_DISCOUNT: 90,
+            BUS_STEP_COST: 0.3,
+        },
         portPenalty(portId, w, h) {
             if (portId === 'BifTop'  || portId === 'BifBottom') return w * 2;
             if (portId === 'BifLeft' || portId === 'BifRight')  return h * 2;

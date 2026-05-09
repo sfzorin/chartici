@@ -43,6 +43,9 @@ export default {
         algorithm: 'matrix',
         isHorizontalFlow: false,
         edgeStyle: 'orthogonal_astar',
+        rules: {
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {

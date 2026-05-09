@@ -51,6 +51,9 @@ export default {
         algorithm: 'piechart',
         isHorizontalFlow: false,
         edgeStyle: 'none',
+        rules: {
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {

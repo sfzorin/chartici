@@ -1,68 +1,45 @@
+import { getEngine } from '../engines/index.js';
+
+const DEFAULT_LAYOUT_RULES = {
+  MIN_GAP_X: 60,
+  MIN_GAP_Y: 60,
+};
+
+const DEFAULT_ROUTING_RULES = {
+  PADDING: 20,
+  STUB_LENGTH: 20,
+
+  // A* path cost weights
+  LENGTH_PENALTY: 1,
+  BEND_PENALTY: 100,
+  CROSSING_PENALTY: 1500,
+  COLLISION_OVERLAP_PENALTY: 500,
+
+  // Z-bend discount near the median point
+  Z_BEND_DISCOUNT: 20,
+
+  // Penalty for moving away from the target
+  BACKTRACK_PENALTY: 200,
+
+  // Bus/trunk bundling, enabled only by engines with routing.enableBusRouting.
+  BUS_STEP_COST: 0.5,
+  BUS_OVERLAP_PENALTY_FACTOR: 2,
+  T_FORK_EXACT_DISCOUNT: 100,
+  T_FORK_TRUNK_DISCOUNT: 80,
+};
+
 export function getDiagramRules(diagramType) {
-  const baseLayout = {
-    MIN_GAP_X: 60,
-    MIN_GAP_Y: 60
+  const normalizedType = diagramType === 'org_chart' ? 'tree' : diagramType;
+  const engine = getEngine(normalizedType);
+
+  return {
+    layout: {
+      ...DEFAULT_LAYOUT_RULES,
+      ...(engine?.layout?.rules || {}),
+    },
+    routing: {
+      ...DEFAULT_ROUTING_RULES,
+      ...(engine?.routing?.rules || {}),
+    },
   };
-
-  const baseRouting = {
-    PADDING: 20,
-    STUB_LENGTH: 20,
-
-    // ── A* path cost weights ─────────────────────────────────────────────
-    LENGTH_PENALTY: 1,          // за каждый шаг по сетке
-    BEND_PENALTY: 100,          // за каждый поворот
-    CROSSING_PENALTY: 1500,     // за пересечение чужой линии
-    COLLISION_OVERLAP_PENALTY: 500, // за совмещение с чужой линией (не bus)
-
-    // ── Z-изгиб: скидка за поворот в медиальной точке (Z-форма) ──────────
-    Z_BEND_DISCOUNT: 20,
-
-    // ── Откат: штраф за шаг в сторону от цели ────────────────────────────
-    BACKTRACK_PENALTY: 200,
-
-    // ── Bus/trunk bundling (tree, org_chart) ─────────────────────────────
-    //   Включается только когда routing.enableBusRouting = true у движка
-    BUS_STEP_COST: 0.5,         // стоимость шага по совмещённому bus — почти бесплатно
-    BUS_OVERLAP_PENALTY_FACTOR: 2, // штраф за слипание с чужой линией (× gridStep)
-    T_FORK_EXACT_DISCOUNT: 100, // скидка за T-развилку в точке поворота
-    T_FORK_TRUNK_DISCOUNT: 80,  // скидка за ответвление с trunk-сегмента
-  };
-
-  switch (diagramType) {
-    case 'tree':
-    case 'org_chart':
-      return {
-        layout: { ...baseLayout },
-        routing: {
-          ...baseRouting,
-          // Дерево: bus-маршруты критичны для красивых T-развилок
-          T_FORK_EXACT_DISCOUNT: 120,
-          T_FORK_TRUNK_DISCOUNT: 90,
-          BUS_STEP_COST: 0.3,   // ещё дешевле — сильно притягивает к общей шине
-        }
-      };
-    case 'erd':
-      return {
-        layout: { ...baseLayout, MIN_GAP_X: 80, MIN_GAP_Y: 80, RANKER: 'network-simplex' },
-        routing: baseRouting
-      };
-    case 'sequence':
-    case 'timeline':
-      return {
-        layout: { ...baseLayout, MIN_GAP_X: 120, MIN_GAP_Y: 80, RANKER: 'network-simplex' },
-        routing: baseRouting
-      };
-    case 'radial':
-    case 'matrix':
-      return {
-        layout: { ...baseLayout, RANKER: 'network-simplex' },
-        routing: baseRouting
-      };
-    case 'flowchart':
-    default:
-      return {
-        layout: { ...baseLayout, RANKER: 'network-simplex' },
-        routing: baseRouting
-      };
-  }
 }

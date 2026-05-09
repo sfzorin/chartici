@@ -33,6 +33,9 @@ export default {
         algorithm: 'radial',
         isHorizontalFlow: false,
         edgeStyle: 'straight',
+        rules: {
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {

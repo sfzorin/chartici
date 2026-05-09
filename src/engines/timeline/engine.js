@@ -38,6 +38,11 @@ export default {
         algorithm: 'timeline',
         isHorizontalFlow: true,
         edgeStyle: 'straight',
+        rules: {
+            MIN_GAP_X: 120,
+            MIN_GAP_Y: 80,
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {

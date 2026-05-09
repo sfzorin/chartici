@@ -36,6 +36,9 @@ export default {
         algorithm: 'sugiyama',
         isHorizontalFlow: true,
         edgeStyle: 'orthogonal_astar',
+        rules: {
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {

@@ -31,6 +31,11 @@ export default {
         algorithm: 'sugiyama',
         isHorizontalFlow: true,
         edgeStyle: 'orthogonal_astar',
+        rules: {
+            MIN_GAP_X: 80,
+            MIN_GAP_Y: 80,
+            RANKER: 'network-simplex',
+        },
     },
 
     routing: {
