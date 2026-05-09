@@ -108,16 +108,16 @@ export const EDGE_LABEL_STYLE = {
  * DiagramEdge.jsx инстанцирует <marker> с этими параметрами.
  */
 export const ARROW_MARKER = {
-  width: 12,
+  width: 11,
   height: 8,
-  refX: 10,
+  refX: 9.5,
   refY: 4,
   orient: 'auto-start-reverse',
   // d: path для заполненной стрелки (isLogical=false)
-  solidD: 'M 1 1 L 10 4 L 1 7 Q 3.2 4 1 1 Z',
+  solidD: 'M 1.4 1.3 L 9.5 4 L 1.4 6.7 Q 3.1 4 1.4 1.3 Z',
   // для пунктирной/логической стрелки (isLogical=true)
-  logicalD: 'M 1 1 L 10 4 L 1 7',
-  logicalStrokeWidth: 1.5,
+  logicalD: 'M 1.5 1.5 L 9.5 4 L 1.5 6.5',
+  logicalStrokeWidth: 1.4,
   logicalDashArray: '1,1',
 };
 
