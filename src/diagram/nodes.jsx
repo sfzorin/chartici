@@ -147,50 +147,12 @@ export const NODE_REGISTRY = {
       M: { width:  80, height:  80, fontSize: 14 }, // r = 40
       L: { width: 120, height: 120, fontSize: 18 }, // r = 60
     },
-    // Same bifurcation as any other node; diagonalPorts added as supplement by geometry.js
     ports: 'all',
-    portCatalog: ALL_PORTS,
+    // Circles look cleanest with cardinal ports only. Offset and diagonal ports
+    // create visually crooked stubs because their anchors do not sit on the arc.
+    portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
     outline:   OUTLINE.thick,
     selection: SEL.circle,
-
-    /**
-     * Pre-computed diagonal swoop ports for A* routing.
-     * 4 steep swoops (~30 deg from vertical) + 4 shallow (~60 deg).
-     * Offsets relative to node center (cx, cy).
-     * anchor = surface point, exit = snapped grid exit.
-     */
-    diagonalPorts: {
-      S: [ // r = 30
-        { anchor: { dx:  15, dy: -26 }, exit: { dx:  20, dy: -40 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx: -15, dy: -26 }, exit: { dx: -20, dy: -40 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx:  15, dy:  26 }, exit: { dx:  20, dy:  40 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx: -15, dy:  26 }, exit: { dx: -20, dy:  40 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx:  26, dy: -15 }, exit: { dx:  40, dy: -20 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -26, dy: -15 }, exit: { dx: -40, dy: -20 }, axis: 'H', sign: -1, dir: 'Left'   },
-        { anchor: { dx:  26, dy:  15 }, exit: { dx:  40, dy:  20 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -26, dy:  15 }, exit: { dx: -40, dy:  20 }, axis: 'H', sign: -1, dir: 'Left'   },
-      ],
-      M: [ // r = 40
-        { anchor: { dx:  20, dy: -35 }, exit: { dx:  40, dy: -80 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx: -20, dy: -35 }, exit: { dx: -40, dy: -80 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx:  20, dy:  35 }, exit: { dx:  40, dy:  80 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx: -20, dy:  35 }, exit: { dx: -40, dy:  80 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx:  35, dy: -20 }, exit: { dx:  80, dy: -40 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -35, dy: -20 }, exit: { dx: -80, dy: -40 }, axis: 'H', sign: -1, dir: 'Left'   },
-        { anchor: { dx:  35, dy:  20 }, exit: { dx:  80, dy:  40 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -35, dy:  20 }, exit: { dx: -80, dy:  40 }, axis: 'H', sign: -1, dir: 'Left'   },
-      ],
-      L: [ // r = 60 — same exits as M, wider anchors
-        { anchor: { dx:  30, dy: -52 }, exit: { dx:  40, dy: -80 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx: -30, dy: -52 }, exit: { dx: -40, dy: -80 }, axis: 'V', sign: -1, dir: 'Top'    },
-        { anchor: { dx:  30, dy:  52 }, exit: { dx:  40, dy:  80 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx: -30, dy:  52 }, exit: { dx: -40, dy:  80 }, axis: 'V', sign:  1, dir: 'Bottom' },
-        { anchor: { dx:  52, dy: -30 }, exit: { dx:  80, dy: -40 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -52, dy: -30 }, exit: { dx: -80, dy: -40 }, axis: 'H', sign: -1, dir: 'Left'   },
-        { anchor: { dx:  52, dy:  30 }, exit: { dx:  80, dy:  40 }, axis: 'H', sign:  1, dir: 'Right'  },
-        { anchor: { dx: -52, dy:  30 }, exit: { dx: -80, dy:  40 }, axis: 'H', sign: -1, dir: 'Left'   },
-      ],
-    },
 
     getTextLimits: (w, h) => ({ maxWidth: Math.min(w, h) * 0.75, maxHeight: Math.min(w, h) * 0.75 }),
     getSelectionBounds: (w, h, pad, color) => {

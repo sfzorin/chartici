@@ -125,8 +125,7 @@ Type-specific edge encoding is documented in each engine format file:
 ```text
 backend/                 Express proxy for DeepSeek
 docs/                    User, AI, and architecture docs
-public/samples/          Sample files shown by the app
-samples/                 Source sample files used by the welcome screen
+samples/                 Canonical sample .cci files used by the app and tests
 src/assets/              UI copy, prompts, guide text, static assets
 src/components/          React UI and SVG renderer
 src/diagram/             Node, edge, color, and canvas registries

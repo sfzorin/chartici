@@ -197,8 +197,9 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     const assigned = portMap.get(edge.id);
     const engineRouting = getEngine(diagramType)?.routing;
     const penaltyFn = engineRouting?.portPenalty?.bind(engineRouting) || undefined;
-    let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox, penaltyFn);
-    let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox, penaltyFn);
+    const portOptions = { cardinalOnly: diagramType === 'erd' };
+    let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox, penaltyFn, portOptions);
+    let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox, penaltyFn, portOptions);
 
 
     if (edge.lineStyle === 'none') {

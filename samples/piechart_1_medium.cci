@@ -1,34 +1,18 @@
 {
   "meta": {
     "type": "piechart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "basic",
   "title": {
     "text": "Resource Allocation"
   },
   "data": {
-    "nodes": [
-      {
-        "id": "slice_1",
-        "label": "Engineering Budget",
-        "value": 45
-      },
-      {
-        "id": "slice_2",
-        "label": "Marketing Budget",
-        "value": 30
-      },
-      {
-        "id": "slice_3",
-        "label": "Office & Admin",
-        "value": 15
-      },
-      {
-        "id": "slice_4",
-        "label": "Legal Reserve",
-        "value": 10
-      }
+    "groups": [
+      { "id": "slice_1", "type": "pie_slice", "color": 1, "nodes": [{ "id": "slice_1", "label": "Engineering Budget", "value": 45 }] },
+      { "id": "slice_2", "type": "pie_slice", "color": 2, "nodes": [{ "id": "slice_2", "label": "Marketing Budget", "value": 30 }] },
+      { "id": "slice_3", "type": "pie_slice", "color": 3, "nodes": [{ "id": "slice_3", "label": "Office & Admin", "value": 15 }] },
+      { "id": "slice_4", "type": "pie_slice", "color": 4, "nodes": [{ "id": "slice_4", "label": "Legal Reserve", "value": 10 }] }
     ],
     "config": {
       "showLegend": true

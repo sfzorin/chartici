@@ -811,7 +811,21 @@ function App() {
         canRedo={canRedo}
         resetSessionTimer={() => { sessionStartTime.current = Date.now(); }}
       />
-      <input id="native-file-upload" type="file" accept=".cci,.json" style={{display: 'none'}} onChange={handleCharticiUpload} />
+      <input
+        id="native-file-upload"
+        type="file"
+        aria-hidden="true"
+        tabIndex="-1"
+        style={{
+          position: 'fixed',
+          left: '-10000px',
+          top: 0,
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+        }}
+        onChange={handleCharticiUpload}
+      />
 
       {/* 2. Main Area: Workspace + Sidebar */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>

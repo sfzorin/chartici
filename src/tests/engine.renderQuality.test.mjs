@@ -6,11 +6,12 @@ import { parseCharticiFile } from '../utils/charticiFormat.js';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getNodeDim } from '../diagram/nodes.jsx';
+import { EDGE_LABEL_STYLE } from '../diagram/edges.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '../..');
-const samplesDir = path.join(rootDir, 'public/samples');
+const samplesDir = path.join(rootDir, 'samples');
 
 const EPS = 0.001;
 
@@ -62,6 +63,54 @@ function visibleEdgesFor(type, nodes, edges) {
   });
 }
 
+function edgeLabelFits(type, edge, pathData) {
+  if (!edge.label || type !== 'erd') return true;
+  return Boolean(pathData.textPathD) && (pathData.textPathLen || 0) >= 36;
+}
+
+function sequenceLabelFits(edge, pathData) {
+  if (!edge.label) return true;
+  const required = String(edge.label).length * Math.max(8, EDGE_LABEL_STYLE.charWidth || 7.4) + 34;
+  return Boolean(pathData?.textPathD) && (pathData.textPathLen || 0) >= Math.min(180, required);
+}
+
+function requiredLabelSpace(label, extra = 34, cap = 180) {
+  if (!label) return 0;
+  const width = String(label).length * Math.max(8, EDGE_LABEL_STYLE.charWidth || 7.4) + extra;
+  return Math.min(cap, width);
+}
+
+function hasPath(edges, start, goal, skipEdgeId) {
+  const target = String(goal);
+  const queue = [String(start)];
+  const seen = new Set(queue);
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (current === target) return true;
+    edges.forEach(edge => {
+      if (skipEdgeId && String(edge.id) === String(skipEdgeId)) return;
+      if (String(edgeFrom(edge)) !== current) return;
+      const next = String(edgeTo(edge));
+      if (seen.has(next)) return;
+      seen.add(next);
+      queue.push(next);
+    });
+  }
+  return false;
+}
+
+function boundsOf(nodes) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const n of nodes) {
+    const dim = getNodeDim(n);
+    minX = Math.min(minX, (n.x || 0) - dim.width / 2);
+    maxX = Math.max(maxX, (n.x || 0) + dim.width / 2);
+    minY = Math.min(minY, (n.y || 0) - dim.height / 2);
+    maxY = Math.max(maxY, (n.y || 0) + dim.height / 2);
+  }
+  return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+}
+
 console.log('\n🎯 Render quality smoke test');
 
 const files = fs.readdirSync(samplesDir).filter(f => f.endsWith('.cci')).sort();
@@ -79,6 +128,7 @@ for (const file of files) {
     assert.ok(pathData, `${file}: missing rendered path for edge ${edge.id}`);
     assert.ok(isFinitePath(pathData.pathD), `${file}: invalid SVG path for edge ${edge.id}`);
     assert.ok(pathData.pts?.length >= 2, `${file}: edge ${edge.id} has no route points`);
+    assert.ok(edgeLabelFits(type, edge, pathData), `${file}: edge ${edge.id} label does not fit`);
 
     const src = nodes.find(n => String(n.id) === String(edgeFrom(edge)));
     const dst = nodes.find(n => String(n.id) === String(edgeTo(edge)));
@@ -102,10 +152,45 @@ for (const file of files) {
     assert.ok(renderedEventLinks.length >= events.length, `${file}: timeline events are missing visible spine links`);
   }
 
+  if (type === 'sequence') {
+    const box = boundsOf(nodes.filter(n => n.type !== 'text' && n.type !== 'title'));
+    assert.ok(box.width <= 3050, `${file}: sequence layout is too wide`);
+    visibleEdges
+      .filter(edge => edge.label)
+      .forEach(edge => {
+        const pathData = paths[edge.id];
+        assert.ok((pathData?.textPathLen || 0) >= 56, `${file}: sequence message ${edge.id} has too little label space`);
+        assert.ok(sequenceLabelFits(edge, pathData), `${file}: sequence message ${edge.id} label does not fit`);
+      });
+  }
+
   if (type === 'piechart') {
     const slices = nodes.filter(n => n.type === 'pie_slice');
     assert.ok(slices.length >= 2, `${file}: piechart has too few rendered slices`);
     assert.ok(slices.every(s => Number.isFinite(s.pieStartAngle) && Number.isFinite(s.pieEndAngle)), `${file}: piechart has invalid slice angles`);
+  }
+
+  if (type === 'flowchart') {
+    visibleEdges
+      .filter(edge => hasPath(visibleEdges, edgeTo(edge), edgeFrom(edge), edge.id))
+      .forEach(edge => {
+        const src = nodes.find(n => String(n.id) === String(edgeFrom(edge)));
+        const dst = nodes.find(n => String(n.id) === String(edgeTo(edge)));
+        const allowed = Math.max(520, Math.min(720, String(edge.label || '').length * 16 + 360));
+        assert.ok(distance(src, dst) <= allowed, `${file}: feedback edge ${edge.id} stretches related steps too far apart`);
+      });
+  }
+
+  if (type === 'erd') {
+    visibleEdges.forEach(edge => {
+      const src = nodes.find(n => String(n.id) === String(edgeFrom(edge)));
+      const dst = nodes.find(n => String(n.id) === String(edgeTo(edge)));
+      const allowed = 720 + Math.min(180, String(edge.label || '').length * 10);
+      assert.ok(distance(src, dst) <= allowed, `${file}: ERD relationship ${edge.id} stretches entities too far apart`);
+      if (edge.label) {
+        assert.ok((paths[edge.id]?.textPathLen || 0) >= requiredLabelSpace(edge.label, 34, 120), `${file}: ERD relationship ${edge.id} has too little label space`);
+      }
+    });
   }
 
   console.log(`  ✅ ${file}: ${type}, visibleEdges=${visibleEdges.length}`);

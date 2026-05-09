@@ -86,13 +86,17 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
      // Port Saturation Rule: Do not share ports with edges of different styles/arrows
      if (ctx && ctx.occupiedLines) {
          const portKey = `${port.anchorPt ? port.anchorPt.x : port.pt.x},${port.anchorPt ? port.anchorPt.y : port.pt.y}`;
+         const startNode = ctx.allNodes?.find(n => String(n.id) === String(startNodeId));
          const conflict = ctx.occupiedLines.find(l => 
              l.startNodeId === String(startNodeId) && 
-             l.startPortKey === portKey && 
-             l.edgeType !== edgeType
+             l.startPortKey === portKey
          );
          if (conflict) {
-             startPenalty += 10 * (port.sizeD || 50); // Heavy penalty to force using a different port
+             if (conflict.edgeType !== edgeType) {
+                 startPenalty += 10 * (port.sizeD || 50);
+             } else if (startNode?.type === 'circle') {
+                 startPenalty += 8 * (port.sizeD || 50);
+             }
          }
      }
 

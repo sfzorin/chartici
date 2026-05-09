@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "matrix",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "basic",
   "title": {
@@ -37,7 +37,6 @@
         "color": "3",
         "label": "High Impact / High Effort"
       }
-    ],
-    "edges": []
+    ]
   }
 }

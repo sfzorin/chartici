@@ -26,6 +26,7 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   const portStrategy = engine?.routing?.portStrategy || 'dynamic';
   const penaltyFn = engine?.routing?.portPenalty?.bind(engine?.routing) || undefined;
   const isTopdown = portStrategy === 'topdown';
+  const portOptions = { cardinalOnly: diagramType === 'erd' };
 
   // For 'topdown' strategy: pre-compute shared golden ports first
   const treeExitAssignments = new Map();
@@ -59,6 +60,8 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
     }
   }
 
+  const circleExitAssignments = assignCircleExitPorts(edges, nodeMap);
+
   // Iterate all edges to compute robust penalties
   for (const edge of edges) {
     const src = nodeMap.get(edge.from);
@@ -68,8 +71,8 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
     const srcBox = getTrueBox(src);
     const tgtBox = getTrueBox(tgt);
 
-    let startPorts = getNodePorts(src, srcBox, penaltyFn);
-    let endPorts = getNodePorts(tgt, tgtBox, penaltyFn);
+    let startPorts = getNodePorts(src, srcBox, penaltyFn, portOptions);
+    let endPorts = getNodePorts(tgt, tgtBox, penaltyFn, portOptions);
 
     if (isTopdown) {
       // 'topdown' strategy: golden-port penalty (preferred top/bottom exit per edge)
@@ -80,12 +83,70 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
       // 'dynamic' strategy: L-ray obstacle-aware penalties (default for freeform graphs)
       applyFlowchartPenalties(startPorts, src, tgtBox, ctx, src.id, tgt.id);
       applyFlowchartPenalties(endPorts, tgt, srcBox, ctx, src.id, tgt.id);
+      applyPreferredPortPenalty(startPorts, circleExitAssignments.get(edge.id), srcBox, src);
     }
 
     result.set(edge.id, { startPorts, endPorts });
   }
 
   return result;
+}
+
+function assignCircleExitPorts(edges, nodeMap) {
+  const assignments = new Map();
+  const outgoing = new Map();
+
+  for (const edge of edges) {
+    const src = nodeMap.get(edge.from);
+    const tgt = nodeMap.get(edge.to);
+    if (!src || !tgt || src.type !== 'circle') continue;
+    const srcBox = getTrueBox(src);
+    const tgtBox = getTrueBox(tgt);
+    const dx = tgtBox.cx - srcBox.cx;
+    const dy = tgtBox.cy - srcBox.cy;
+    if (!outgoing.has(src.id)) outgoing.set(src.id, []);
+    outgoing.get(src.id).push({ edge, dx, dy, targetY: tgtBox.cy, targetX: tgtBox.cx });
+  }
+
+  for (const [, list] of outgoing) {
+    if (list.length === 1) {
+      assignments.set(list[0].edge.id, cardinalForVector(list[0].dx, list[0].dy));
+      continue;
+    }
+
+    const mostlyHorizontal = list.filter(item => Math.abs(item.dx) >= Math.abs(item.dy)).length >= list.length / 2;
+    const sorted = [...list].sort((a, b) => mostlyHorizontal ? a.targetY - b.targetY : a.targetX - b.targetX);
+    const dirs = mostlyHorizontal
+      ? (average(sorted.map(i => i.dx)) >= 0 ? ['Top', 'Right', 'Bottom', 'Left'] : ['Top', 'Left', 'Bottom', 'Right'])
+      : (average(sorted.map(i => i.dy)) >= 0 ? ['Left', 'Bottom', 'Right', 'Top'] : ['Left', 'Top', 'Right', 'Bottom']);
+
+    sorted.forEach((item, index) => {
+      assignments.set(item.edge.id, dirs[Math.min(index, dirs.length - 1)]);
+    });
+  }
+
+  return assignments;
+}
+
+function cardinalForVector(dx, dy) {
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'Right' : 'Left';
+  return dy >= 0 ? 'Bottom' : 'Top';
+}
+
+function average(values) {
+  return values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
+}
+
+function applyPreferredPortPenalty(ports, preferredDir, box, node) {
+  if (!preferredDir || node?.type !== 'circle') return;
+  const sizeD = Math.max(20, box.right - box.left, box.bottom - box.top);
+  for (const p of ports) {
+    if (p.dir === preferredDir) {
+      p.penalty = Math.min(p.penalty || 0, 0);
+    } else {
+      p.penalty = (p.penalty || 0) + 12 * sizeD;
+    }
+  }
 }
 
 function applyTreePenalties(ports, goldenDir, box, node) {
@@ -135,8 +196,8 @@ function applyFlowchartPenalties(ports, node, tgtBox, ctx, srcId, tgtId) {
     if (isOffset) {
       basePenalty += 2 * sizeD;
     }
-    if (node.type === 'circle' && p.anchorPt) {
-      basePenalty += 4 * sizeD;
+    if (node.type === 'circle' && p.isDiagonal) {
+      basePenalty += 5 * sizeD;
     }
 
     p.penalty = basePenalty;

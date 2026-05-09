@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "tree",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "title": {
     "text": "Startup Org Chart"
@@ -15,42 +15,40 @@
           {
             "id": "c_ceo",
             "label": "CEO Office"
-          },
+          }
+        ],
+        "color": "1",
+        "label": "Organization"
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "parentId": "c_ceo",
+        "nodes": [
           {
             "id": "d_prod",
             "label": "Head of Product"
-          },
-          {
-            "id": "d_eng",
-            "label": "Lead Engineer"
           },
           {
             "id": "d_sales",
             "label": "Account Exec"
           }
         ],
-        "color": "0",
-        "label": "Organization"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "c_ceo",
-        "targetId": "d_prod",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        "color": "2",
+        "label": "Leadership"
       },
       {
-        "sourceId": "c_ceo",
-        "targetId": "d_sales",
-        "connectionType": "none",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "d_prod",
-        "targetId": "d_eng",
-        "connectionType": "none",
-        "lineStyle": "solid"
+        "type": "process",
+        "size": "M",
+        "parentId": "d_prod",
+        "nodes": [
+          {
+            "id": "d_eng",
+            "label": "Lead Engineer"
+          }
+        ],
+        "color": "3",
+        "label": "Product"
       }
     ]
   }

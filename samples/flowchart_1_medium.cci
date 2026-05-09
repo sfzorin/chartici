@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "flowchart",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "basic",
   "title": {
@@ -15,10 +15,11 @@
         "nodes": [
           {
             "id": "start",
-            "label": "App Launch"
+            "label": "App Launch",
+            "nextSteps": "sess_check"
           }
         ],
-        "color": "0",
+        "color": "1",
         "label": "Start"
       },
       {
@@ -27,7 +28,8 @@
         "nodes": [
           {
             "id": "sess_check",
-            "label": "Session Valid?"
+            "label": "Session Valid?",
+            "nextSteps": "home[Yes], show_login[No|dashed|target]"
           }
         ],
         "color": "1",
@@ -39,15 +41,18 @@
         "nodes": [
           {
             "id": "show_login",
-            "label": "Show Login UI"
+            "label": "Show Login UI",
+            "nextSteps": "auth_api[Submit Creds]"
           },
           {
             "id": "auth_api",
-            "label": "Call Auth API"
+            "label": "Call Auth API",
+            "nextSteps": "sess_check[Token Received]"
           },
           {
             "id": "home",
-            "label": "Load Dashboard"
+            "label": "Load Dashboard",
+            "nextSteps": "end[Logout]"
           }
         ],
         "color": "2",
@@ -64,49 +69,6 @@
         ],
         "color": "3",
         "label": "End"
-      }
-    ],
-    "edges": [
-      {
-        "sourceId": "start",
-        "targetId": "sess_check",
-        "connectionType": "target",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "sess_check",
-        "targetId": "home",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Yes"
-      },
-      {
-        "sourceId": "sess_check",
-        "targetId": "show_login",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "No"
-      },
-      {
-        "sourceId": "show_login",
-        "targetId": "auth_api",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Submit Creds"
-      },
-      {
-        "sourceId": "auth_api",
-        "targetId": "sess_check",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Token Received"
-      },
-      {
-        "sourceId": "home",
-        "targetId": "end",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Logout"
       }
     ]
   }

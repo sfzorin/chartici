@@ -549,7 +549,7 @@ export default function DiagramRenderer({
         const dim = getNodeDim(n);
         const nw = n.type === 'pie_slice' ? dim.width : (n.w || dim.width);
         const nh = n.type === 'pie_slice' ? dim.height : (n.h || dim.height);
-        const calloutPad = n.type === 'pie_slice' ? PIE_CONSTS.calloutPad : 0;
+        const calloutPad = n.type === 'pie_slice' ? Math.round(PIE_CONSTS.calloutPad * 0.45) : 0;
         const l = n.x - nw / 2 - calloutPad, r = n.x + nw / 2 + calloutPad;
         const t = n.y - nh / 2 - calloutPad, b = n.y + nh / 2 + calloutPad;
         if (n.type === 'text' || n.type === 'title') {
@@ -602,16 +602,29 @@ export default function DiagramRenderer({
 
      if (diagramTitle) {
          const titleSpacingPx = NODE_REGISTRY.title.layoutSpacing?.[initialData?.config?.titleSize || 'M'] ?? 80;
-         minY -= (diagramType === 'piechart' ? titleSpacingPx + 60 : titleSpacingPx * 2.5);
+         const titleGapPx = diagramType === 'piechart'
+           ? Math.max(52, Math.round(titleSpacingPx * 0.75))
+           : titleSpacingPx;
+         minY -= (diagramType === 'piechart' ? titleGapPx + 32 : titleSpacingPx * 2.5);
       }
 
       if (diagramType === 'piechart' && showLegend) {
           const pieLegSz = LEGEND_SIZES[legendSize] || LEGEND_SIZES.M;
-          maxX += pieLegSz.maxLabelW + pieLegSz.textOff + pieLegSz.padX * 2 + PIE_CONSTS.legendOffset;
-          const pSlicesCount = computedNodes.filter(n => n.type === 'pie_slice').length;
-          if (pSlicesCount > 0) {
-              const approxLegendH = pSlicesCount * pieLegSz.rowH + pieLegSz.padY * 2;
-              maxY += (approxLegendH / 2) + PIE_CONSTS.explodePad;
+          const pieSlices = computedNodes.filter(n => n.type === 'pie_slice');
+          if (pieSlices.length > 0) {
+              const maxLabelLen = Math.max(...pieSlices.map(s => ((s.label || 'Item') + (s.value != null ? ` (${s.value})` : '')).length));
+              const lgW = pieLegSz.padX * 2 + pieLegSz.textOff + Math.min(maxLabelLen * pieLegSz.charW, pieLegSz.maxLabelW);
+              const lgH = pieLegSz.padY * 2 + pieSlices.length * pieLegSz.rowH;
+              const pieCenterX = pieSlices.reduce((sum, n) => sum + (n.x || 0), 0) / pieSlices.length;
+              const pieCenterY = pieSlices.reduce((sum, n) => sum + (n.y || 0), 0) / pieSlices.length;
+              const hasExploded = pieSlices.some(s => s.size === 'L');
+              const pieBaseRadius = hasExploded ? PIE_CONSTS.radius + PIE_CONSTS.explodePad : PIE_CONSTS.radius;
+              const lgX = legendPos ? legendPos.x : pieCenterX + pieBaseRadius + PIE_CONSTS.legendOffset;
+              const lgY = legendPos ? legendPos.y : pieCenterY - (lgH / 2);
+              minX = Math.min(minX, lgX - 12);
+              maxX = Math.max(maxX, lgX + lgW + 12);
+              minY = Math.min(minY, lgY - 12);
+              maxY = Math.max(maxY, lgY + lgH + 12);
          }
      }
 
@@ -682,7 +695,10 @@ export default function DiagramRenderer({
         if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
         if (sysTitle.y === undefined) {
            const titleSpacing = NODE_REGISTRY.title.layoutSpacing?.[sysTitle.size || 'M'] ?? 80;
-           sysTitle.y = titleY - (diagramTitle ? titleSpacing : 0);
+           const titleGap = diagramType === 'piechart'
+             ? Math.max(52, Math.round(titleSpacing * 0.75))
+             : titleSpacing;
+           sysTitle.y = titleY - (diagramTitle ? titleGap : 0);
         }
 
      }
@@ -695,7 +711,7 @@ export default function DiagramRenderer({
         titleCx,
         titleY
      };
-   }, [computedNodes, aspectRatio, diagramTitle, computedPaths, initialData, showLegend, legendPos]);
+   }, [computedNodes, aspectRatio, diagramTitle, computedPaths, initialData, showLegend, legendPos, legendSize, diagramType]);
 
   const handleZoomFit = useCallback(() => {
     if (!svgRef.current) return;

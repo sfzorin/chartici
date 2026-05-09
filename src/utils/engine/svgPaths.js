@@ -216,12 +216,15 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
           textPathD = null;
           textPathLen = 0;
       } else {
-          // Score segments: prefer horizontal, then closer to target
+          const sourceBiasedLabels = ctx?.diagramType === 'flowchart';
+          // Score segments: flowchart labels prefer the source side; other diagrams
+          // keep the longest readable segment, with a mild horizontal preference.
           const scoreSegment = (s, idx) => {
             const isH = s.p1.y === s.p2.y;
-            const hBonus = isH ? 1.5 : 1.0;
-            const posBonus = idx * 0.1; // minor tiebreaker: prefer later segments
-            return s.len * hBonus + posBonus;
+            const hBonus = isH ? 1.35 : 1.0;
+            const posBonus = sourceBiasedLabels ? -idx * 120 : idx * 0.1;
+            const lengthScore = sourceBiasedLabels ? Math.min(s.len, 180) : s.len;
+            return lengthScore * hBonus + posBonus;
           };
           
           let bestSegment = unbundledSegments.reduce((best, cur, idx) => {

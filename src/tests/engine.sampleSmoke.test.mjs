@@ -10,9 +10,13 @@ import { getNodeDim } from '../diagram/nodes.jsx';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '../..');
-const samplesDir = path.join(rootDir, 'public/samples');
+const sampleDirs = [path.join(rootDir, 'samples')].filter(dir => fs.existsSync(dir));
 
-const files = fs.readdirSync(samplesDir).filter(f => f.endsWith('.cci')).sort();
+const files = sampleDirs.flatMap(dir =>
+  fs.readdirSync(dir)
+    .filter(f => f.endsWith('.cci'))
+    .map(file => ({ dir, file }))
+).sort((a, b) => `${a.dir}/${a.file}`.localeCompare(`${b.dir}/${b.file}`));
 
 function countOverlaps(nodes) {
   const realNodes = nodes.filter(n => !['text', 'title', 'pie_slice'].includes(n.type));
@@ -31,10 +35,11 @@ function countOverlaps(nodes) {
   return overlaps;
 }
 
-console.log('\n🧯 Public sample smoke test');
+console.log('\n🧯 Sample smoke test');
 
-for (const file of files) {
-  const fullPath = path.join(samplesDir, file);
+for (const { dir, file } of files) {
+  const fullPath = path.join(dir, file);
+  const label = path.relative(rootDir, fullPath);
   const parsed = parseCharticiFile(fs.readFileSync(fullPath, 'utf8'));
   const type = parsed.meta?.type || 'flowchart';
   const laidOut = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: type, groups: parsed.groups });
@@ -42,16 +47,16 @@ for (const file of files) {
   const pathCount = Object.keys(paths).length;
   const overlaps = countOverlaps(laidOut);
 
-  assert.ok(parsed.nodes.length > 0, `${file}: no nodes`);
+  assert.ok(parsed.nodes.length > 0, `${label}: no nodes`);
   if (!['matrix', 'piechart'].includes(type)) {
-    assert.ok(parsed.edges.length > 0, `${file}: no edges`);
-    assert.ok(pathCount > 0, `${file}: no rendered paths`);
+    assert.ok(parsed.edges.length > 0, `${label}: no edges`);
+    assert.ok(pathCount > 0, `${label}: no rendered paths`);
   }
-  assert.strictEqual(overlaps, 0, `${file}: ${overlaps} node overlaps after layout`);
+  assert.strictEqual(overlaps, 0, `${label}: ${overlaps} node overlaps after layout`);
 
   if (type === 'piechart') {
-    assert.ok(laidOut.some(n => n.type === 'pie_slice'), `${file}: no pie slices`);
+    assert.ok(laidOut.some(n => n.type === 'pie_slice'), `${label}: no pie slices`);
   }
 
-  console.log(`  ✅ ${file}: ${type}, nodes=${parsed.nodes.length}, edges=${parsed.edges.length}, paths=${pathCount}`);
+  console.log(`  ✅ ${label}: ${type}, nodes=${parsed.nodes.length}, edges=${parsed.edges.length}, paths=${pathCount}`);
 }

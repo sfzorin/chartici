@@ -1,7 +1,7 @@
 {
   "meta": {
     "type": "sequence",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "theme": "basic",
   "title": {
@@ -42,7 +42,7 @@
         "label": "Server"
       }
     ],
-    "edges": [
+    "messages": [
       {
         "sourceId": "c1",
         "targetId": "s1",

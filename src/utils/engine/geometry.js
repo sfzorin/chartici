@@ -70,8 +70,9 @@ const defaultPortPenalty = (portId, w, h) => {
  * @param {object}   node       — node data
  * @param {object}   box        — bounding box from getTrueBox()
  * @param {Function} [penaltyFn] — (portId, w, h) → number, from engine's routing.portPenalty
+ * @param {object}   [options]   — { cardinalOnly } disables bifurcation/diagonal ports
  */
-export function getNodePorts(node, box, penaltyFn = defaultPortPenalty) {
+export function getNodePorts(node, box, penaltyFn = defaultPortPenalty, options = {}) {
   const w = box.right - box.left;
   const h = box.bottom - box.top;
   const nodeDef = NODE_REGISTRY[node.type] || NODE_REGISTRY.process;
@@ -105,10 +106,13 @@ export function getNodePorts(node, box, penaltyFn = defaultPortPenalty) {
   const rawCatalog = node.isTimelineSpine
     ? [{ id: 'Top', axis: 'V', sign: -1 }, { id: 'Bottom', axis: 'V', sign: 1 }]
     : (nodeDef.portCatalog || []);
+  const catalog = options.cardinalOnly
+    ? rawCatalog.filter(def => !def.threshold)
+    : rawCatalog;
 
   const ports = [];
 
-  for (const def of rawCatalog) {
+  for (const def of catalog) {
     if (!def.threshold) {
       // Primary port — single cardinal exit
       ports.push(cardinalPos(def));
@@ -145,7 +149,7 @@ export function getNodePorts(node, box, penaltyFn = defaultPortPenalty) {
   }
 
   // Supplement with pre-computed diagonal swoops for circle (and any future node with diagonalPorts)
-  if (nodeDef.diagonalPorts && portMode !== 'topbottom' && portMode !== 'none') {
+  if (!options.cardinalOnly && nodeDef.diagonalPorts && portMode !== 'topbottom' && portMode !== 'none') {
     const size = node.size || 'M';
     const sz = (size === 'XS' ? 'S' : size === 'XL' ? 'L' : size);
     const swoopDefs = nodeDef.diagonalPorts[sz] || nodeDef.diagonalPorts.M || [];
@@ -156,7 +160,7 @@ export function getNodePorts(node, box, penaltyFn = defaultPortPenalty) {
           { x: box.cx + d.anchor.dx, y: box.cy + d.anchor.dy },
           { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy   },
         ],
-        axis: d.axis, sign: d.sign, dir: d.dir, penalty: penaltyFn(d.dir, w, h),
+        axis: d.axis, sign: d.sign, dir: d.dir, penalty: penaltyFn(d.dir, w, h), isDiagonal: true,
       });
     });
   }

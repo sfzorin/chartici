@@ -268,13 +268,21 @@ export default function LeftToolbox({
             {/* Size Selection */}
             <div style={{ display: 'inline-block', ...getStyle(isSizeToolActive) }}>
               <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
-                <Icon name="size" size={20} textValue={nContext.size === 'AUTO' ? 'M' : (nContext.size || 'M')} />
+                <Icon
+                  name="size"
+                  size={20}
+                  textValue={nContext.type === 'pie_slice'
+                    ? ((nContext.size || 'M') === 'L' ? '!' : '•')
+                    : (nContext.size === 'AUTO' ? 'M' : (nContext.size || 'M'))}
+                />
               </button>
               <PopoverMenu isOpen={activePopover === 'size'} onClose={() => setActivePopover(null)} anchorRef={sizeBtnRef}>
-                <div className="popover-title">{isLegend ? 'Legend Size' : 'Node Size'}</div>
+                <div className="popover-title">{nContext.type === 'pie_slice' ? 'Slice Emphasis' : (isLegend ? 'Legend Size' : 'Node Size')}</div>
                 <div className="popover-list">
                   {Object.keys(NODE_REGISTRY[nContext.type]?.sizes || NODE_REGISTRY.process.sizes).map(s => {
-                    const labels = { S: 'Small', M: 'Medium', L: 'Large' };
+                    const labels = nContext.type === 'pie_slice'
+                      ? { M: 'Normal segment', L: 'Highlighted segment' }
+                      : { S: 'Small', M: 'Medium', L: 'Large' };
                     return (
                       <button key={s} className={(nContext.size === s || (!nContext.size && s === 'M') || (nContext.size === 'AUTO' && s === 'M')) ? 'active' : ''} onClick={() => { updateSelectedNode('size', s); setActivePopover(null); }}>
                         {labels[s]}
