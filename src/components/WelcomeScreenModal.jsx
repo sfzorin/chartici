@@ -127,10 +127,10 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                 {/* Hero */}
                 <div style={{ padding: '28px 32px 8px', textAlign: 'center' }}>
                     <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, ...bright, lineHeight: 1.3 }}>
-                        {phase1Plan ? 'Review AI Plan (Debug)' : 'Describe what you need'}
+                        {phase1Plan ? 'Review AI Plan (Debug)' : 'Free online diagram drawing tool'}
                     </h1>
                     <p style={{ margin: '8px 0 0', fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                        {phase1Plan ? 'Edit the expanded prompt if needed, then confirm to build Diagram.' : 'AI will build the diagram for you'}
+                        {phase1Plan ? 'Edit the expanded prompt if needed, then confirm to build Diagram.' : 'Describe a flowchart, timeline, tree, matrix, ERD, sequence, radial map, or pie chart.'}
                     </p>
                 </div>
 

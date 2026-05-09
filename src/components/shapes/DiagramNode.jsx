@@ -2,6 +2,7 @@ import React from 'react';
 import { getNodeDim, NODE_REGISTRY } from '../../diagram/nodes.jsx';
 import { getFittedText } from '../../utils/textUtils';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
+import { DIAGRAM_DESIGN } from '../../diagram/design.js';
 
 
 const DiagramNode = React.memo(({ 
@@ -98,11 +99,18 @@ const DiagramNode = React.memo(({
     strokeColor = resolveColor(baseColorToken, 'border'); 
     textColor = resolveColor(baseColorToken, 'text');
   }
-  const fontWeight = node.fontStyle === 'bold' ? 'bold' : 'normal';
+  const isTextOnly = node.type === 'text' || node.type === 'title';
+  const fontWeight = node.fontStyle === 'bold'
+    ? 700
+    : node.type === 'title'
+      ? DIAGRAM_DESIGN.typography.titleWeight
+      : isTextOnly
+        ? DIAGRAM_DESIGN.typography.textWeight
+        : DIAGRAM_DESIGN.typography.nodeWeight;
   const fontStyle = node.fontStyle === 'italic' ? 'italic' : 'normal';
   
   // Base stroke width — outline value comes from NODE_REGISTRY after shapePlugins resolved below
-  let strokeW = isPrintTheme ? '1' : '2';
+  let strokeW = isPrintTheme ? '1' : '1.5';
   
   if (isDraggingNode) {
     strokeColor = 'var(--color-primary-dark)';
@@ -112,7 +120,7 @@ const DiagramNode = React.memo(({
   const numColor = Number(baseColorToken);
 
   // Override for Text Only nodes
-  if (node.type === 'text' || node.type === 'title') {
+  if (isTextOnly) {
     textColor = 'var(--diagram-text)';
   }
 
@@ -222,6 +230,8 @@ const DiagramNode = React.memo(({
         fontSize={wrap.fontSize}
         fontWeight={fontWeight}
         fontStyle={fontStyle}
+        letterSpacing="0"
+        fontFamily={DIAGRAM_DESIGN.typography.family}
         style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
         {line}

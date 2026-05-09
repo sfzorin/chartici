@@ -1,3 +1,5 @@
+import { DIAGRAM_DESIGN } from './design.js';
+
 /**
  * EDGE_REGISTRY — единственный источник истины для всех параметров рёбер.
  *
@@ -24,9 +26,9 @@
  * logicalOpacity — прозрачность для hidden/none стилей
  */
 export const LINE_STYLE_REGISTRY = {
-  solid:  { label: 'Solid',  dashArray: 'none', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
-  dashed: { label: 'Dashed', dashArray: '5, 5', strokeWidth: 2, opacity: 1.0, exportable: true,  print: { strokeWidth: 1 } },
-  none:   { label: 'Hidden', dashArray: '4, 4', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: 0.4 },
+  solid:  { label: 'Solid',  dashArray: 'none', strokeWidth: DIAGRAM_DESIGN.edge.solidWidth, opacity: DIAGRAM_DESIGN.edge.solidOpacity, exportable: true, print: { strokeWidth: 1.4 } },
+  dashed: { label: 'Dashed', dashArray: DIAGRAM_DESIGN.edge.dashedPattern, strokeWidth: DIAGRAM_DESIGN.edge.dashedWidth, opacity: DIAGRAM_DESIGN.edge.dashedOpacity, exportable: true, print: { strokeWidth: 1.2 } },
+  none:   { label: 'Hidden', dashArray: '4, 5', strokeWidth: 2, opacity: 0.4, exportable: false, logicalOpacity: DIAGRAM_DESIGN.edge.logicalOpacity },
 };
 
 // ─── Path routing/rendering styles ──────────────────────────────────────────
@@ -91,11 +93,13 @@ export const PATH_STYLE_REGISTRY = {
  * DiagramEdge.jsx использует charWidth и padding для проверки вхождения.
  */
 export const EDGE_LABEL_STYLE = {
-  fontSize: 16,    // px, SVG text font-size
-  fontWeight: 'bold',
-  charWidth: 9.6,   // px per character (font-size 16, average width)
-  basePadding: 10,    // min clearance at ends of the text segment
-  arrowPadding: 15,    // extra clearance per arrow tip
+  fontSize: DIAGRAM_DESIGN.edge.labelFontSize,
+  fontWeight: DIAGRAM_DESIGN.edge.labelWeight,
+  charWidth: DIAGRAM_DESIGN.edge.labelCharWidth,
+  basePadding: 18,
+  arrowPadding: 22,
+  haloWidth: DIAGRAM_DESIGN.edge.labelHaloWidth,
+  offsetY: DIAGRAM_DESIGN.edge.labelOffsetY,
 };
 
 // ─── Standard arrow marker geometry ─────────────────────────────────────────
@@ -104,16 +108,16 @@ export const EDGE_LABEL_STYLE = {
  * DiagramEdge.jsx инстанцирует <marker> с этими параметрами.
  */
 export const ARROW_MARKER = {
-  width: 10,
-  height: 6.4,
-  refX: 8,
-  refY: 3.2,
+  width: 12,
+  height: 8,
+  refX: 10,
+  refY: 4,
   orient: 'auto-start-reverse',
   // d: path для заполненной стрелки (isLogical=false)
-  solidD: 'M 0 0 L 8 3.2 L 0 6.4 z',
+  solidD: 'M 1 1 L 10 4 L 1 7 Q 3.2 4 1 1 Z',
   // для пунктирной/логической стрелки (isLogical=true)
-  logicalD: 'M 0 0 L 8 3.2 L 0 6.4 z',
-  logicalStrokeWidth: 1,
+  logicalD: 'M 1 1 L 10 4 L 1 7',
+  logicalStrokeWidth: 1.5,
   logicalDashArray: '1,1',
 };
 
@@ -124,19 +128,19 @@ export const ARROW_MARKER = {
  */
 export const CF_MARKERS = {
   one: {
-    width: 12, height: 12, refX: 10, refY: 6,
+    width: 14, height: 14, refX: 11, refY: 7,
     orient: 'auto-start-reverse',
     lines: [
-      { x1: 8, y1: 1, x2: 8, y2: 11, strokeWidth: 2 },
+      { x1: 9, y1: 2, x2: 9, y2: 12, strokeWidth: 2 },
     ],
   },
   many: {
-    width: 14, height: 14, refX: 12, refY: 7,
+    width: 16, height: 16, refX: 13, refY: 8,
     orient: 'auto-start-reverse',
     lines: [
-      { x1: 12, y1: 1, x2: 4, y2: 7, strokeWidth: 1.5 },
-      { x1: 12, y1: 13, x2: 4, y2: 7, strokeWidth: 1.5 },
-      { x1: 12, y1: 7, x2: 4, y2: 7, strokeWidth: 1.5 },
+      { x1: 13, y1: 2, x2: 4, y2: 8, strokeWidth: 1.6 },
+      { x1: 13, y1: 14, x2: 4, y2: 8, strokeWidth: 1.6 },
+      { x1: 13, y1: 8, x2: 4, y2: 8, strokeWidth: 1.6 },
     ],
   },
 };

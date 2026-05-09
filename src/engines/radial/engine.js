@@ -32,7 +32,7 @@ export default {
     layout: {
         algorithm: 'radial',
         isHorizontalFlow: false,
-        edgeStyle: 'curved',
+        edgeStyle: 'straight',
     },
 
     routing: {

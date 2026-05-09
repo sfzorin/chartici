@@ -4,6 +4,7 @@ import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
+import { DIAGRAM_DESIGN } from '../diagram/design.js';
 import { GRID, EMPTY_CANVAS } from '../diagram/canvas.js';
 import DiagramNode from './shapes/DiagramNode';
 import DiagramEdge from './shapes/DiagramEdge';
@@ -783,7 +784,8 @@ export default function DiagramRenderer({
           touchAction: 'none',
           '--diagram-edge': dEdge,
           '--diagram-text': dText,
-          '--diagram-group': dGroup
+          '--diagram-group': dGroup,
+          '--diagram-label-halo': resolvedCanvasColor
         }}
       >
         <defs>
@@ -837,23 +839,23 @@ export default function DiagramRenderer({
             // matrix
             const mStroke   = ov.stroke || {};
             const mLabel    = ov.label  || {};
-            const mStrokeW  = mStroke.width   ?? 2;
-            const mStrokeDash = mStroke.dash  ?? '6, 6';
-            const mStrokeOp = mStroke.opacity ?? 0.6;
-            const mLabelFs  = mLabel.fontSize  ?? 20;
-            const mLabelFw  = mLabel.fontWeight ?? 700;
-            const mLabelOp  = mLabel.opacity    ?? 0.85;
+            const mStrokeW  = mStroke.width   ?? DIAGRAM_DESIGN.overlay.groupStrokeWidth;
+            const mStrokeDash = mStroke.dash  ?? DIAGRAM_DESIGN.overlay.groupDash;
+            const mStrokeOp = mStroke.opacity ?? DIAGRAM_DESIGN.overlay.groupOpacity;
+            const mLabelFs  = mLabel.fontSize  ?? DIAGRAM_DESIGN.overlay.groupLabelSize;
+            const mLabelFw  = mLabel.fontWeight ?? DIAGRAM_DESIGN.overlay.groupLabelWeight;
+            const mLabelOp  = mLabel.opacity    ?? DIAGRAM_DESIGN.overlay.groupLabelOpacity;
             // sequence
             const lane      = ov.lane  || {};
             const laneStroke= lane.stroke || {};
             const sLabel    = ov.label  || {};
-            const laneFillOp  = lane.fillOpacity ?? 0.04;
+            const laneFillOp  = lane.fillOpacity ?? DIAGRAM_DESIGN.overlay.sequenceFillOpacity;
             const laneStW   = laneStroke.width ?? 2;
             const laneStDash= laneStroke.dash  ?? '4 4';
             const laneRx    = laneStroke.rx    ?? 4;
-            const sLabelFs  = sLabel.fontSize  ?? 15;
-            const sLabelFw  = sLabel.fontWeight ?? 600;
-            const sLabelOp  = sLabel.opacity    ?? 0.8;
+            const sLabelFs  = sLabel.fontSize  ?? DIAGRAM_DESIGN.overlay.sequenceLabelSize;
+            const sLabelFw  = sLabel.fontWeight ?? DIAGRAM_DESIGN.overlay.groupLabelWeight;
+            const sLabelOp  = sLabel.opacity    ?? DIAGRAM_DESIGN.overlay.groupLabelOpacity;
 
             // Compute group bounding boxes
             const groupBoxes = {};
@@ -1018,7 +1020,7 @@ export default function DiagramRenderer({
                        fill="none" stroke="#3b82f6" strokeWidth="2" />
                    </g>
                  )}
-                 <rect x={0} y={0} width={lgW} height={lgH} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={8} opacity={0.97} />
+                 <rect x={0} y={0} width={lgW} height={lgH} fill={resolvedLegendBg} stroke={resolvedLegendStroke} rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity} />
                  {slices.map((slice, i) => (
                     <g key={i} transform={`translate(${sz.padX}, ${sz.padY + i * sz.rowH + sz.rowH / 2})`}>
                        <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={`var(--color-${slice.color || 5})`} rx={sz.swRx} />
@@ -1156,7 +1158,7 @@ export default function DiagramRenderer({
                 <rect
                   x={0} y={0} width={lgW} height={lgH}
                   fill={resolvedLegendBg} stroke={resolvedLegendStroke}
-                  rx={8} opacity={0.97}
+                  rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity}
                 />
                 {legendGroups.map((g, i) => {
                   const color = g.color || 1;

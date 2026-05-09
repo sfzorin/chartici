@@ -1,0 +1,46 @@
+export const DIAGRAM_DESIGN = {
+  typography: {
+    family: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+    nodeWeight: 620,
+    textWeight: 500,
+    titleWeight: 760,
+  },
+  shape: {
+    blockRadius: 6,
+    nodeTextWidth: 0.84,
+    nodeTextHeight: 0.74,
+    chevronTextInset: 42,
+    chevronTextHeight: 0.72,
+  },
+  title: {
+    fontSize: { S: 34, M: 46, L: 64 },
+    spacing: { S: 54, M: 72, L: 104 },
+  },
+  edge: {
+    solidWidth: 2.4,
+    dashedWidth: 2.2,
+    solidOpacity: 0.9,
+    dashedOpacity: 0.82,
+    dashedPattern: '7, 7',
+    logicalOpacity: 0.35,
+    labelFontSize: 13,
+    labelWeight: 650,
+    labelCharWidth: 7.4,
+    labelHaloWidth: 4,
+    labelOffsetY: -7,
+  },
+  overlay: {
+    groupStrokeWidth: 1.6,
+    groupDash: '8, 8',
+    groupOpacity: 0.45,
+    groupLabelSize: 16,
+    groupLabelWeight: 650,
+    groupLabelOpacity: 0.78,
+    sequenceLabelSize: 14,
+    sequenceFillOpacity: 0.035,
+  },
+  legend: {
+    radius: 6,
+    opacity: 0.98,
+  },
+};

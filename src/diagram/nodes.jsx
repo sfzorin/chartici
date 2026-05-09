@@ -1,4 +1,5 @@
 import React from 'react';
+import { DIAGRAM_DESIGN } from './design.js';
 
 /**
  * NODE_REGISTRY — единственный источник истины для всех типов нод.
@@ -110,10 +111,10 @@ export const NODE_REGISTRY = {
     outline:   OUTLINE.thick,
     selection: SEL.rect,
 
-    getTextLimits:    (w, h) => ({ maxWidth: w, maxHeight: h }),
+    getTextLimits:    (w, h) => ({ maxWidth: w * DIAGRAM_DESIGN.shape.nodeTextWidth, maxHeight: h * DIAGRAM_DESIGN.shape.nodeTextHeight }),
     getSelectionBounds: (w, h, pad, color) => selRect(w, h, pad, color, 10),
     render: (w, h, fill, stroke, strokeW, dash, filter) =>
-      <rect x={0} y={0} width={w} height={h} rx={2} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />,
+      <rect x={0} y={0} width={w} height={h} rx={DIAGRAM_DESIGN.shape.blockRadius} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />,
   },
 
   // ── element (alias for process used by some engines) ───────────────────────
@@ -130,10 +131,10 @@ export const NODE_REGISTRY = {
     outline:   OUTLINE.thick,
     selection: SEL.rect,
 
-    getTextLimits:    (w, h) => ({ maxWidth: w * 0.85, maxHeight: h * 0.85 }),
+    getTextLimits:    (w, h) => ({ maxWidth: w * DIAGRAM_DESIGN.shape.nodeTextWidth, maxHeight: h * DIAGRAM_DESIGN.shape.nodeTextHeight }),
     getSelectionBounds: (w, h, pad, color) => selRect(w, h, pad, color, 10),
     render: (w, h, fill, stroke, strokeW, dash, filter) =>
-      <rect x={0} y={0} width={w} height={h} rx={2} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />,
+      <rect x={0} y={0} width={w} height={h} rx={DIAGRAM_DESIGN.shape.blockRadius} fill={fill} stroke={stroke} strokeWidth={strokeW} strokeDasharray={dash} filter={filter} />,
   },
 
   // ── circle ─────────────────────────────────────────────────────────────────
@@ -305,7 +306,7 @@ export const NODE_REGISTRY = {
       160: { shape: 'M -50 0 L 330 0 L 370 80 L 330 160 L -50 160 L -10 80 Z', sel: 'M -50 0 L 330 0 L 370 80 L 330 160 L -50 160 L -10 80 Z' },
     },
 
-    getTextLimits: (w, h) => ({ maxWidth: w - 24, maxHeight: h }),
+    getTextLimits: (w, h) => ({ maxWidth: w - DIAGRAM_DESIGN.shape.chevronTextInset, maxHeight: h * DIAGRAM_DESIGN.shape.chevronTextHeight }),
     getSelectionBounds(w, h, pad, color) {
       const d = this._paths[h]?.sel
         || `M -15 0 L ${w+5} 0 L ${w+20} ${h/2} L ${w+5} ${h} L -15 ${h} L -5 ${h/2} Z`;
@@ -423,9 +424,9 @@ export const NODE_REGISTRY = {
     dynamicSize: true,
     defaultSize: 'M',         // размер по умолчанию при создании
     sizes: {
-      S: { fontSize: 40 },
-      M: { fontSize: 56 },
-      L: { fontSize: 80 },
+      S: { fontSize: DIAGRAM_DESIGN.title.fontSize.S },
+      M: { fontSize: DIAGRAM_DESIGN.title.fontSize.M },
+      L: { fontSize: DIAGRAM_DESIGN.title.fontSize.L },
     },
     /**
      * layoutSpacing — вертикальный отступ (px), резервируемый над диаграммой
@@ -433,9 +434,9 @@ export const NODE_REGISTRY = {
      * Значения подобраны под высоту строки с учётом межстрочного интервала 1.2.
      */
     layoutSpacing: {
-      S: 60,
-      M: 80,
-      L: 120,
+      S: DIAGRAM_DESIGN.title.spacing.S,
+      M: DIAGRAM_DESIGN.title.spacing.M,
+      L: DIAGRAM_DESIGN.title.spacing.L,
     },
     ports: 'none',
     portCatalog: [],

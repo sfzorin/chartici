@@ -107,9 +107,20 @@ const paletteRules = {
  */
 function makePalette(name, solids, rules) {
   const colors = [{ bg: '#000000', text: '#ffffff' }];
-  for (const s of solids) colors.push({ bg: s.c, text: s.t });
+  for (const s of solids) colors.push({ bg: s.c, text: s.t, border: s.b || shadeHex(s.c, -14) });
   colors.push({ bg: 'transparent', text: '#1f2937' });
   return { name, unfilledText: '#1f2937', colors, rules };
+}
+
+function shadeHex(hex, percent) {
+  const raw = String(hex || '').replace('#', '');
+  if (raw.length !== 6) return hex;
+  const amt = Math.round(2.55 * percent);
+  const clamp = (n) => Math.max(0, Math.min(255, n));
+  const r = clamp(parseInt(raw.slice(0, 2), 16) + amt);
+  const g = clamp(parseInt(raw.slice(2, 4), 16) + amt);
+  const b = clamp(parseInt(raw.slice(4, 6), 16) + amt);
+  return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
 // ─── Palettes ─────────────────────────────────────────────────────────────────

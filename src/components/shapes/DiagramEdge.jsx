@@ -98,14 +98,22 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
         opacity={isLogical ? (isSelected ? 1 : baseOpacity) : baseOpacity}
         markerStart={mStart}
         markerEnd={mEnd}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
 
-      {edge.label && !isLogical && (
+      {displayLabel && !isLogical && (
         <text
           fontSize={L.fontSize}
           fill={edgeColorStr}
-          dominantBaseline="text-after-edge"
+          stroke="var(--diagram-label-halo)"
+          strokeWidth={L.haloWidth}
+          paintOrder="stroke fill"
+          dominantBaseline="middle"
           fontWeight={L.fontWeight}
+          letterSpacing="0"
+          dy={L.offsetY}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <textPath href={`#${edge.id}_path`} startOffset="50%" textAnchor="middle">
             {displayLabel}
