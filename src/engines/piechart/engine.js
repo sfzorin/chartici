@@ -58,6 +58,11 @@ export default {
         portPenalty() { return 0; },
     },
 
+    labeling: {
+        strategy: 'none',
+        textPathStartOffset: '50%',
+    },
+
     parser: {
         exportEdges: () => {},
         resolveImplicitEdges: () => [],

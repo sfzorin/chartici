@@ -42,6 +42,11 @@ export default {
         },
     },
 
+    labeling: {
+        strategy: 'relationship-center',
+        textPathStartOffset: '50%',
+    },
+
     parser: {
         exportEdges(gMap, edges, explicitEdges) {
             edges.forEach(e => {

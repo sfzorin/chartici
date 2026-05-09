@@ -47,6 +47,11 @@ export default {
         },
     },
 
+    labeling: {
+        strategy: 'source-near',
+        textPathStartOffset: '14%',
+    },
+
     parser: {
         exportEdges(gMap, edges) {
             Object.keys(gMap).forEach(gId => {

@@ -54,6 +54,11 @@ export default {
         },
     },
 
+    labeling: {
+        strategy: 'none',
+        textPathStartOffset: '50%',
+    },
+
     parser: {
         exportEdges: () => {},      // matrix: рёбра запрещены
         resolveImplicitEdges: () => [],

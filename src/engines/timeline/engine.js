@@ -45,6 +45,11 @@ export default {
         portPenalty() { return 0; },
     },
 
+    labeling: {
+        strategy: 'timeline-link',
+        textPathStartOffset: '30%',
+    },
+
     parser: {
         exportEdges(gMap, edges) {
             edges.forEach(e => {

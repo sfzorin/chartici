@@ -45,6 +45,11 @@ export default {
         },
     },
 
+    labeling: {
+        strategy: 'center',
+        textPathStartOffset: '50%',
+    },
+
     parser: {
         exportEdges(gMap, edges) {
             edges.forEach(e => {
