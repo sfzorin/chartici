@@ -9,6 +9,7 @@ import { assignPorts } from './portAssigner.js';
 import { DIAGRAM_SCHEMAS } from '../diagramSchemas.js';
 import { getEngine } from '../../engines/index.js';
 import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
+import { getRoutingPolicy } from './routingPolicy.js';
 
 export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = null, prevPaths = null) {
   const result = {};
@@ -196,9 +197,9 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 
     // Use pre-assigned ports from Phase 1
     const assigned = portMap.get(edge.id);
-    const engineRouting = getEngine(diagramType)?.routing;
-    const penaltyFn = engineRouting?.portPenalty?.bind(engineRouting) || undefined;
-    const portOptions = { cardinalOnly: diagramType === 'erd' };
+    const routingPolicy = getRoutingPolicy(diagramType);
+    const penaltyFn = routingPolicy.portPenalty;
+    const portOptions = { cardinalOnly: routingPolicy.cardinalOnly };
     let startPorts = assigned ? assigned.startPorts : getNodePorts(startNode, startBox, penaltyFn, portOptions);
     let endPorts = assigned ? assigned.endPorts : getNodePorts(endNode, endBox, penaltyFn, portOptions);
 
@@ -366,7 +367,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
 }
 
 function reservePort(ctx, nodeId, point, diagramType) {
-  if (!point || diagramType === 'tree' || diagramType === 'org_chart') return;
+  if (!point || getRoutingPolicy(diagramType).allowPortReuse) return;
   const key = String(nodeId);
   let used = ctx.usedPorts.get(key);
   if (!used) {

@@ -1,5 +1,5 @@
 import { isBlockedPointCheck, isSegmentBlockedCheck, checkPathOverlap } from './geometry.js';
-import { getEngine } from '../../engines/index.js';
+import { getRoutingPolicy } from './routingPolicy.js';
 
 // Binary min-heap keyed on f-score for O(log n) extract-min
 class MinHeap {
@@ -49,10 +49,10 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   let bestFallbackNode = null;
   let bestFallbackH = Infinity;
 
-  const isTreeRouting = !!getEngine(ctx?.diagramType)?.routing?.enableBusRouting;
+  const routingPolicy = getRoutingPolicy(ctx?.diagramType);
   const portKeyFor = (port) => `${port.anchorPt ? port.anchorPt.x : port.pt.x},${port.anchorPt ? port.anchorPt.y : port.pt.y}`;
   const filterFreePorts = (ports, nodeId) => {
-    if (isTreeRouting || !ctx?.usedPorts) return ports;
+    if (routingPolicy.allowPortReuse || !ctx?.usedPorts) return ports;
     const used = ctx.usedPorts.get(String(nodeId));
     if (!used) return ports;
 
@@ -249,13 +249,14 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
         
         const isBend = current.dir !== n.dir;
 
-        const routing = getEngine(ctx.diagramType)?.routing || {};
-        const isTree = !!routing.allowSiblingCrossings;
-        const allowBusPremium = !!routing.enableBusRouting;
+        const routing = getRoutingPolicy(ctx.diagramType);
+        const allowCornerKisses = routing.allowCornerKisses;
+        const allowSiblingCrossings = routing.allowSiblingCrossings;
+        const allowBusPremium = routing.enableBusRouting;
 
         // Kissing Bends Prevention (X-meeting). Tree is the only mode that
         // intentionally allows bus/T-branch joins.
-        if (isBend && !isTree) {
+        if (isBend && !allowCornerKisses) {
             let touch = false;
             for (let turn of ctx.occupiedTurns) {
                 // The bend actually happens at current.x, current.y
@@ -280,10 +281,8 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
 
         let actualCrossings = 0;
         for (let crossLine of overlapCheck.crossings) {
-            // For tree diagrams, sibling crossings are allowed (T-fork branching from bus trunk)
-            // For all other diagrams, ALL crossings are banned
             const isSibling = crossLine.startNodeId === startNodeId || crossLine.endNodeId === endNodeId;
-            if (isSibling && isTree) continue;
+            if (isSibling && allowSiblingCrossings) continue;
             actualCrossings++;
         }
 
@@ -308,7 +307,7 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                     continue;
                 }
 
-                if (!isTree) {
+                if (!allowBusPremium) {
                     invalidOverlap = true;
                     continue;
                 }

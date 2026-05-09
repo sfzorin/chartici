@@ -6,7 +6,7 @@
  * and delegating heavy lifting to A* Priority Queue.
  */
 import { getTrueBox, getNodePorts, isSegmentBlockedCheck } from './geometry.js';
-import { getEngine } from '../../engines/index.js';
+import { getRoutingPolicy } from './routingPolicy.js';
 
 /**
  * Assign ports for all edges.
@@ -18,15 +18,15 @@ import { getEngine } from '../../engines/index.js';
 export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false, ctx = null) {
   const nodeMap = new Map(nodes.map(n => [n.id, n]));
   const result = new Map();
-  const engine = getEngine(diagramType);
+  const routingPolicy = getRoutingPolicy(diagramType);
   // Plugin declares which port penalty strategy to use:
   //   'topdown'  — golden-port assignment for strict top→bottom trees
   //   'dynamic'  — L-ray obstacle avoidance for freeform diagrams
   //   'none'     — no A* (straight or no-edge diagrams)
-  const portStrategy = engine?.routing?.portStrategy || 'dynamic';
-  const penaltyFn = engine?.routing?.portPenalty?.bind(engine?.routing) || undefined;
+  const portStrategy = routingPolicy.portStrategy;
+  const penaltyFn = routingPolicy.portPenalty;
   const isTopdown = portStrategy === 'topdown';
-  const portOptions = { cardinalOnly: diagramType === 'erd' };
+  const portOptions = { cardinalOnly: routingPolicy.cardinalOnly };
 
   // For 'topdown' strategy: pre-compute shared golden ports first
   const treeExitAssignments = new Map();

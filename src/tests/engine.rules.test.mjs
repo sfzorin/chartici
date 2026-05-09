@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import { getDiagramRules } from '../utils/diagramRules.js';
+import { getRoutingPolicy } from '../utils/engine/routingPolicy.js';
 
 console.log('\n🧭 Engine layout and routing rules');
 
@@ -37,5 +38,23 @@ assert.deepEqual(orgChart, tree);
 const piechart = getDiagramRules('piechart');
 assert.equal(piechart.layout.RANKER, 'network-simplex');
 
+const flowchartRouting = getRoutingPolicy('flowchart');
+assert.equal(flowchartRouting.portStrategy, 'dynamic');
+assert.equal(flowchartRouting.allowPortReuse, false);
+assert.equal(flowchartRouting.allowCornerKisses, false);
+assert.equal(flowchartRouting.allowSiblingCrossings, false);
+
+const erdRouting = getRoutingPolicy('erd');
+assert.equal(erdRouting.cardinalOnly, true);
+assert.equal(erdRouting.allowPortReuse, false);
+
+const treeRouting = getRoutingPolicy('tree');
+assert.equal(treeRouting.portStrategy, 'topdown');
+assert.equal(treeRouting.allowPortReuse, true);
+assert.equal(treeRouting.allowCornerKisses, true);
+assert.equal(treeRouting.allowSiblingCrossings, true);
+assert.equal(treeRouting.enableBusRouting, true);
+
 console.log('  ✅ layout/routing rules are owned by engines');
 console.log('  ✅ org_chart still follows tree rules');
+console.log('  ✅ routing policies are owned by engines');

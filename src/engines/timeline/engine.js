@@ -47,6 +47,9 @@ export default {
 
     routing: {
         portStrategy: 'none',
+        allowPortReuse: false,
+        allowCornerKisses: false,
+        allowSiblingCrossings: false,
         portPenalty() { return 0; },
     },
 

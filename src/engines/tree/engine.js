@@ -36,6 +36,8 @@ export default {
 
     routing: {
         portStrategy: 'topdown',
+        allowPortReuse: true,
+        allowCornerKisses: true,
         allowSiblingCrossings: true,
         enableBusRouting: true,
         rules: {

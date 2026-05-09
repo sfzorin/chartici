@@ -43,6 +43,9 @@ export default {
 
     routing: {
         portStrategy: 'dynamic',
+        allowPortReuse: false,
+        allowCornerKisses: false,
+        allowSiblingCrossings: false,
         portPenalty(portId, w, h) {
             if (portId === 'BifTop'  || portId === 'BifBottom') return w * 2;
             if (portId === 'BifLeft' || portId === 'BifRight')  return h * 2;
