@@ -33,7 +33,7 @@ Chartici project files are JSON with a `.cci` extension.
   "theme": "basic",
   "title": { "text": "Example", "size": "M" },
   "data": {
-    "config": { "aspect": "16:9", "bgColor": "white" },
+    "config": { "aspect": "16:9", "bgColor": "white", "showGrid": false },
     "groups": []
   }
 }

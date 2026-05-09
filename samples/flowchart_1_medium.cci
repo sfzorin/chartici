@@ -8,67 +8,85 @@
     "text": "App Authentication Flow"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "oval",
         "size": "M",
+        "color": "1",
+        "label": "Entry",
         "nodes": [
           {
             "id": "start",
-            "label": "App Launch",
-            "nextSteps": "sess_check"
+            "label": "Open App",
+            "nextSteps": "check_session"
           }
-        ],
-        "color": "1",
-        "label": "Start"
+        ]
       },
       {
         "type": "rhombus",
         "size": "M",
+        "color": "3",
+        "label": "Decisions",
         "nodes": [
           {
-            "id": "sess_check",
+            "id": "check_session",
             "label": "Session Valid?",
-            "nextSteps": "home[Yes], show_login[No|dashed|target]"
+            "nextSteps": "dashboard[Yes], login[No|dashed]"
+          },
+          {
+            "id": "auth_ok",
+            "label": "Auth OK?",
+            "nextSteps": "save_token[Yes], show_error[No|dashed]"
           }
-        ],
-        "color": "1",
-        "label": "Checks"
+        ]
       },
       {
         "type": "process",
         "size": "M",
+        "color": "2",
+        "label": "Auth",
         "nodes": [
           {
-            "id": "show_login",
-            "label": "Show Login UI",
-            "nextSteps": "auth_api[Submit Creds]"
+            "id": "login",
+            "label": "Show Login",
+            "nextSteps": "auth_api[Submit]"
           },
           {
             "id": "auth_api",
             "label": "Call Auth API",
-            "nextSteps": "sess_check[Token Received]"
+            "nextSteps": "auth_ok[Response]"
           },
           {
-            "id": "home",
+            "id": "save_token",
+            "label": "Save Token",
+            "nextSteps": "dashboard"
+          },
+          {
+            "id": "show_error",
+            "label": "Show Error",
+            "nextSteps": "end"
+          },
+          {
+            "id": "dashboard",
             "label": "Load Dashboard",
             "nextSteps": "end[Logout]"
           }
-        ],
-        "color": "2",
-        "label": "Processes"
+        ]
       },
       {
         "type": "oval",
         "size": "M",
+        "color": "4",
+        "label": "Exit",
         "nodes": [
           {
             "id": "end",
             "label": "Exit App"
           }
-        ],
-        "color": "3",
-        "label": "End"
+        ]
       }
     ]
   }

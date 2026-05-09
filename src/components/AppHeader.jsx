@@ -20,6 +20,7 @@ export default function AppHeader({
   canUndo,
   canRedo,
   setBgColor,
+  setShowGrid,
   resetSessionTimer
 }) {
   const handleNewBlankProject = () => {
@@ -42,6 +43,7 @@ export default function AppHeader({
         });
         setDiagramTitle('Untitled Project');
         setBgColor(bgColor);
+        if (setShowGrid) setShowGrid(true);
         resetSessionTimer();
         setDialogConfig(null);
       },

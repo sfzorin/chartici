@@ -168,6 +168,57 @@ async function runTests() {
   assert.ok(wrapped.cci.data.groups.length > 0, 'Wrapped Markdown should produce groups');
   assert.ok(wrapped.cci.data.groups.flatMap(g => g.nodes).length >= 3, 'Wrapped Markdown should produce nodes');
 
+  currentTestType = 'flowchart';
+  MOCK_RESPONSES.flowchart = [
+    `
+# Steps
+### Subsystem: Sandwich | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_1 | Choose Bread | process | p_2 |
+| p_2 | Pick Spread | process | p_3 |
+| p_3 | Add Filling | process | p_4 |
+| p_4 | Add Toppings | process | p_5 |
+| p_5 | Close & Cut | process | p_6 |
+| p_6 | Eat & Enjoy | terminal | - |
+`,
+    `
+# Steps
+### Stage: Bread Choice | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_1 | Choose Bread | decision | white[White], wheat[Wheat], wrap[Wrap] |
+| white | White Bread | process | p_2 |
+| wheat | Wheat Bread | process | p_2 |
+| wrap | Wrap | process | p_2 |
+### Stage: Flavor Choice | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_2 | Pick Spread | decision | mayo[Mayo], mustard[Mustard] |
+| mayo | Mayo | process | p_3 |
+| mustard | Mustard | process | p_3 |
+### Stage: Finish | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| p_3 | Add Filling | process | p_4 |
+| p_4 | Close & Cut | process | p_5 |
+| p_5 | Eat & Enjoy | terminal | - |
+`
+  ];
+  const repairedQuality = await buildDiagram('Sandwich Making', 'flowchart', `
+- Start: Choose Bread (white, wheat, wrap)
+- Step 1: Pick Spread (mayo, mustard, butter)
+- Step 2: Add Main Filling (ham, turkey, cheese, jam)
+- Step 3: Add Toppings (lettuce, tomato, cucumber, pickles)
+- Step 4: Close & Cut
+- End: Eat & Enjoy
+`);
+  const qualityNodes = repairedQuality.cci.data.groups.flatMap(g => g.nodes);
+  const breadChoice = qualityNodes.find(n => n.id === 'p_1');
+  assert.strictEqual(repairedQuality.success, true, 'low-quality straight flowchart should be repaired');
+  assert.ok(repairedQuality.cci.data.groups.length > 1, 'repaired flowchart should use visual stage groups');
+  assert.ok(String(breadChoice.nextSteps).split(',').length > 1, 'repaired flowchart should preserve choices as branches');
+
   currentTestType = 'sequence';
   MOCK_RESPONSES.sequence = `
 ### Actor: Author | Size: M

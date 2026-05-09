@@ -54,6 +54,7 @@ function App() {
   const [aspect, setAspect] = useState('16:9');
   const [diagramType, setDiagramType] = useState('flowchart');
   const [bgColor, setBgColor] = useState('white');
+  const [showGrid, setShowGrid] = useState(true);
   const [showLegend, setShowLegend] = useState(false);
   const [legendPos, setLegendPos] = useState(null); // null = auto, {x,y} = locked
   const [legendSize, setLegendSize] = useState('M'); // S, M, L
@@ -168,7 +169,7 @@ function App() {
   const handleDownloadChartici = async () => {
     // Only save the actively filtered data, effectively stripping out hidden nodes/edges from the .cci payload
     const savedName = await downloadCharticiFile(diagramTitle, filteredData, { 
-      aspect, bgColor, theme: paletteTheme, diagramType, showLegend, legendPos, legendSize,
+      aspect, bgColor, showGrid, theme: paletteTheme, diagramType, showLegend, legendPos, legendSize,
       titleText:  diagramTitle,
       titleSize:  diagramData.config?.titleSize,
       titleX:     diagramData.config?.titleLock ? diagramData.config?.titleX : undefined,
@@ -209,6 +210,7 @@ function App() {
       if (parsed.config.aspect) setAspect(parsed.config.aspect);
       // diagramType живёт в meta.type, а не в config
       setDiagramType(dt);
+      setShowGrid(parsed.config.showGrid !== false);
       setShowLegend(parsed.config.showLegend !== undefined ? !!parsed.config.showLegend : dt === 'piechart');
       setLegendPos(parsed.config.legendX !== undefined ? { x: parsed.config.legendX, y: parsed.config.legendY } : null);
       if (parsed.config.legendSize) setLegendSize(parsed.config.legendSize);
@@ -221,6 +223,7 @@ function App() {
       setAspect('16:9');
       setDiagramType('flowchart');
       setBgColor('white');
+      setShowGrid(true);
       setShowLegend(false);
     }
 
@@ -821,6 +824,7 @@ function App() {
         setDiagramData={setDiagramData}
         setDiagramTitle={setDiagramTitle}
         setBgColor={setBgColor}
+        setShowGrid={setShowGrid}
         setDialogConfig={setDialogConfig}
         setHelpTab={setHelpTab}
         setIsHelpOpen={setIsHelpOpen}
@@ -860,6 +864,7 @@ function App() {
             svgRef={svgRef} 
             aspectRatio={aspect}  
             bgColor={bgColor} 
+            showGrid={showGrid}
             selectedNodeId={selectedNodeId}
             onNodeSelect={handleSelectNode}
             selectedEdgeId={selectedEdgeId}
@@ -931,6 +936,11 @@ function App() {
               onChangeBgColor: (newBg) => {
                  setBgColor(newBg);
                  setDiagramData(prev => ({...prev, config: {...prev.config, bgColor: newBg}}));
+              },
+              showGrid,
+              onChangeShowGrid: (val) => {
+                 setShowGrid(val);
+                 setDiagramData(prev => ({...prev, config: {...prev.config, showGrid: val}}));
               },
               aspect,
               onChangeAspect: (newAspect) => {

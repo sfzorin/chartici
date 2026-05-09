@@ -5,65 +5,50 @@
   },
   "theme": "basic",
   "title": {
-    "text": "Basic Auth Protocol"
+    "text": "Checkout Payment Sequence"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "process",
         "size": "M",
+        "color": "1",
+        "label": "Buyer",
         "nodes": [
-          {
-            "id": "c1",
-            "label": "Request Login"
-          },
-          {
-            "id": "c2",
-            "label": "Save Token"
-          }
-        ],
-        "color": "6",
-        "label": "Client"
+          { "id": "b1", "label": "Place Order" },
+          { "id": "b2", "label": "Show Receipt" }
+        ]
       },
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
+        "color": "2",
+        "label": "Store",
         "nodes": [
-          {
-            "id": "s1",
-            "label": "Validate"
-          },
-          {
-            "id": "s2",
-            "label": "Generate JWT"
-          }
-        ],
-        "color": "7",
-        "label": "Server"
+          { "id": "s1", "label": "Create Order" },
+          { "id": "s2", "label": "Confirm Order" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "color": "5",
+        "label": "Payment",
+        "nodes": [
+          { "id": "p1", "label": "Authorize Card" },
+          { "id": "p2", "label": "Return Result" }
+        ]
       }
     ],
     "messages": [
-      {
-        "sourceId": "c1",
-        "targetId": "s1",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "POST /login"
-      },
-      {
-        "sourceId": "s1",
-        "targetId": "s2",
-        "connectionType": "target",
-        "lineStyle": "solid",
-        "label": "Verify DB"
-      },
-      {
-        "sourceId": "s2",
-        "targetId": "c2",
-        "connectionType": "target",
-        "lineStyle": "dashed",
-        "label": "200 OK + Token"
-      }
+      { "sourceId": "b1", "targetId": "s1", "connectionType": "target", "lineStyle": "solid", "label": "Submit Cart" },
+      { "sourceId": "s1", "targetId": "p1", "connectionType": "target", "lineStyle": "solid", "label": "Authorize" },
+      { "sourceId": "p1", "targetId": "p2", "connectionType": "target", "lineStyle": "dashed", "label": "Approved" },
+      { "sourceId": "p2", "targetId": "s2", "connectionType": "target", "lineStyle": "solid", "label": "Payment OK" },
+      { "sourceId": "s2", "targetId": "b2", "connectionType": "target", "lineStyle": "solid", "label": "Receipt" }
     ]
   }
 }

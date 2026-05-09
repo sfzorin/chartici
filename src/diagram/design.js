@@ -15,6 +15,8 @@ export const DIAGRAM_DESIGN = {
   title: {
     fontSize: { S: 32, M: 42, L: 58 },
     spacing: { S: 54, M: 72, L: 104 },
+    topPadding: { S: 32, M: 40, L: 52 },
+    diagramGap: { S: 32, M: 42, L: 54 },
   },
   edge: {
     solidWidth: 2.8,

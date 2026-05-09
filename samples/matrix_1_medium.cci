@@ -5,37 +5,50 @@
   },
   "theme": "basic",
   "title": {
-    "text": "Priorities Q3"
+    "text": "Roadmap Priority Matrix"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "process",
-        "size": "L",
+        "size": "M",
+        "color": "1",
+        "label": "High Impact / Low Effort",
         "nodes": [
-          {
-            "id": "m_1",
-            "label": "Optimize CDN"
-          },
-          {
-            "id": "m_2",
-            "label": "Compress Images"
-          }
-        ],
-        "color": "2",
-        "label": "High Impact / Low Effort"
+          { "id": "m_1", "label": "Improve Export" },
+          { "id": "m_2", "label": "Polish Toolbar" }
+        ]
       },
       {
         "type": "process",
         "size": "M",
+        "color": "2",
+        "label": "High Impact / High Effort",
         "nodes": [
-          {
-            "id": "m_3",
-            "label": "DB Sharding"
-          }
-        ],
-        "color": "3",
-        "label": "High Impact / High Effort"
+          { "id": "m_3", "label": "Auto Layout" },
+          { "id": "m_4", "label": "Prompt Repair" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "color": "5",
+        "label": "Low Impact / Low Effort",
+        "nodes": [
+          { "id": "m_5", "label": "Rename Presets" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "color": "6",
+        "label": "Low Impact / High Effort",
+        "nodes": [
+          { "id": "m_6", "label": "Legacy Import" }
+        ]
       }
     ]
   }

@@ -3,52 +3,57 @@
     "type": "tree",
     "version": "3.0.0"
   },
+  "theme": "basic",
   "title": {
-    "text": "Startup Org Chart"
+    "text": "Book Structure Tree"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "process",
         "size": "L",
-        "nodes": [
-          {
-            "id": "c_ceo",
-            "label": "CEO Office"
-          }
-        ],
         "color": "1",
-        "label": "Organization"
+        "label": "Root",
+        "nodes": [
+          { "id": "book", "label": "Book" }
+        ]
       },
       {
         "type": "process",
         "size": "M",
-        "parentId": "c_ceo",
-        "nodes": [
-          {
-            "id": "d_prod",
-            "label": "Head of Product"
-          },
-          {
-            "id": "d_sales",
-            "label": "Account Exec"
-          }
-        ],
         "color": "2",
-        "label": "Leadership"
+        "label": "Parts",
+        "parentId": "book",
+        "nodes": [
+          { "id": "part_1", "label": "Foundations" },
+          { "id": "part_2", "label": "Practice" },
+          { "id": "part_3", "label": "Reference" }
+        ]
       },
       {
         "type": "process",
-        "size": "M",
-        "parentId": "d_prod",
+        "size": "S",
+        "color": "5",
+        "label": "Chapters",
+        "parentId": "part_1",
         "nodes": [
-          {
-            "id": "d_eng",
-            "label": "Lead Engineer"
-          }
-        ],
-        "color": "3",
-        "label": "Product"
+          { "id": "ch_1", "label": "Principles" },
+          { "id": "ch_2", "label": "Mental Models" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "S",
+        "color": "4",
+        "label": "Tools",
+        "parentId": "part_2",
+        "nodes": [
+          { "id": "ch_3", "label": "Workflows" },
+          { "id": "ch_4", "label": "Checklists" }
+        ]
       }
     ]
   }

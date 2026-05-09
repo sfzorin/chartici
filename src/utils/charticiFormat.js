@@ -104,6 +104,7 @@ export async function downloadCharticiFile(projectName, diagramData, config) {
   const dataConfig = {};
   if (restConfig.aspect)                   dataConfig.aspect  = restConfig.aspect;
   if (restConfig.bgColor)                  dataConfig.bgColor = restConfig.bgColor;
+  if (restConfig.showGrid === false)       dataConfig.showGrid = false;   // omit when true (default)
   if (restConfig.theme)                    payload.theme = restConfig.theme; // theme — на верхнем уровне
   if (restConfig.showLegend)               dataConfig.showLegend = true;    // omit when false (shorter files)
   if (restConfig.legendPos) {

@@ -1,5 +1,26 @@
 import { PALETTES, EXPORT_DEFAULTS } from '../diagram/colors.js';
 
+export function finalizeExportSvgString(svgString, colorMap = {}) {
+    let out = String(svgString || '');
+
+    for (let pass = 0; pass < 3; pass++) {
+        Object.entries(colorMap).forEach(([varName, val]) => {
+            const regex = new RegExp(`var\\(\\s*${varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:,[^)]+)?\\)`, 'g');
+            out = out.replace(regex, val);
+        });
+    }
+
+    return out
+        .replace(/<filter\b[\s\S]*?<\/filter>/gi, '')
+        .replace(/\sfilter="[^"]*"/gi, '')
+        .replace(/filter\s*:\s*[^;"']+;?/gi, '')
+        .replace(/<([a-z][\w:-]*)\b[^>]*\bclass="[^"]*(?:preview-bg-rect|canvas-grid-rect|selection-ui|port-ui|touch-port-hitbox|logical-link)[^"]*"[^>]*>[\s\S]*?<\/\1>/gi, '')
+        .replace(/<[^>]*\bclass="[^"]*(?:preview-bg-rect|canvas-grid-rect|selection-ui|port-ui|touch-port-hitbox|logical-link)[^"]*"[^>]*\/>/gi, '')
+        .replace(/\sfill="transparent"/gi, ' fill="none"')
+        .replace(/\sstroke="transparent"/gi, ' stroke="none"')
+        .replace(/var\(\s*--[^,\s)]+\s*,\s*([^)]+)\)/g, '$1')
+        .replace(/var\(\s*--[^)]+\)/g, '#000000');
+}
 
 /**
  * Export the diagram SVG canvas to a downloadable file.
@@ -121,19 +142,7 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
     svgClone.insertBefore(styleElement, svgClone.firstChild);
 
     const serializer = new XMLSerializer();
-    let svgString = serializer.serializeToString(svgClone);
-
-    // Bake CSS custom properties into hex values for standalone SVG viewers
-    // (macOS Preview, Illustrator do not support var())
-    for (let pass = 0; pass < 3; pass++) {
-        Object.entries(colorMap).forEach(([varName, val]) => {
-            const regex = new RegExp(`var\\(\\s*${varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:,[^)]+)?\\)`, 'g');
-            svgString = svgString.replace(regex, val);
-        });
-    }
-    svgString = svgString
-        .replace(/var\(\s*--[^,\s)]+\s*,\s*([^)]+)\)/g, '$1')
-        .replace(/var\(\s*--[^)]+\)/g, '#000000');
+    const svgString = finalizeExportSvgString(serializer.serializeToString(svgClone), colorMap);
 
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);

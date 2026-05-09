@@ -5,113 +5,55 @@
   },
   "theme": "basic",
   "title": {
-    "text": "Publishing Data Model"
+    "text": "Learning Platform ERD"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "process",
         "size": "M",
         "color": "1",
-        "label": "Content",
+        "label": "People",
         "nodes": [
-          {
-            "id": "book",
-            "label": "Book",
-            "type": "process"
-          },
-          {
-            "id": "chapter",
-            "label": "Chapter",
-            "type": "process"
-          },
-          {
-            "id": "figure",
-            "label": "Figure",
-            "type": "process"
-          }
+          { "id": "user", "label": "User" },
+          { "id": "profile", "label": "Profile" },
+          { "id": "enrollment", "label": "Enrollment" }
         ]
       },
       {
         "type": "process",
         "size": "M",
         "color": "2",
-        "label": "People",
+        "label": "Learning",
         "nodes": [
-          {
-            "id": "author",
-            "label": "Author",
-            "type": "process"
-          },
-          {
-            "id": "reviewer",
-            "label": "Reviewer",
-            "type": "process"
-          }
+          { "id": "course", "label": "Course" },
+          { "id": "lesson", "label": "Lesson" },
+          { "id": "exercise", "label": "Exercise" }
         ]
       },
       {
         "type": "process",
         "size": "M",
         "color": "5",
-        "label": "Workflow",
+        "label": "Progress",
         "nodes": [
-          {
-            "id": "draft",
-            "label": "Draft",
-            "type": "process"
-          },
-          {
-            "id": "revision",
-            "label": "Revision",
-            "type": "process"
-          }
+          { "id": "attempt", "label": "Attempt" },
+          { "id": "badge", "label": "Badge" }
         ]
       }
     ],
     "relationships": [
-      {
-        "sourceId": "author",
-        "targetId": "book",
-        "label": "writes",
-        "connectionType": "1:N",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "book",
-        "targetId": "chapter",
-        "label": "contains",
-        "connectionType": "1:N",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "chapter",
-        "targetId": "figure",
-        "label": "uses",
-        "connectionType": "1:N",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "reviewer",
-        "targetId": "draft",
-        "label": "reviews",
-        "connectionType": "1:N",
-        "lineStyle": "solid"
-      },
-      {
-        "sourceId": "draft",
-        "targetId": "revision",
-        "label": "becomes",
-        "connectionType": "1:1",
-        "lineStyle": "dashed"
-      },
-      {
-        "sourceId": "revision",
-        "targetId": "chapter",
-        "label": "updates",
-        "connectionType": "N:1",
-        "lineStyle": "solid"
-      }
+      { "sourceId": "user", "targetId": "profile", "label": "owns", "connectionType": "1:1", "lineStyle": "solid" },
+      { "sourceId": "user", "targetId": "enrollment", "label": "starts", "connectionType": "1:N", "lineStyle": "solid" },
+      { "sourceId": "enrollment", "targetId": "course", "label": "for", "connectionType": "N:1", "lineStyle": "solid" },
+      { "sourceId": "course", "targetId": "lesson", "label": "contains", "connectionType": "1:N", "lineStyle": "solid" },
+      { "sourceId": "lesson", "targetId": "exercise", "label": "includes", "connectionType": "1:N", "lineStyle": "solid" },
+      { "sourceId": "user", "targetId": "attempt", "label": "submits", "connectionType": "1:N", "lineStyle": "solid" },
+      { "sourceId": "attempt", "targetId": "exercise", "label": "answers", "connectionType": "N:1", "lineStyle": "solid" },
+      { "sourceId": "user", "targetId": "badge", "label": "earns", "connectionType": "1:N", "lineStyle": "dashed" }
     ]
   }
 }

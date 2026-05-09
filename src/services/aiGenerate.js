@@ -23,7 +23,12 @@ function parseNextStepIds(nextSteps) {
     .filter(Boolean);
 }
 
-function validateGeneratedCci(cci, diagramType) {
+function promptSuggestsChoices(extendedPrompt) {
+  const text = String(extendedPrompt || '').toLowerCase();
+  return /\([^)]*[,;/][^)]*\)/.test(text) || /\b(choose|pick|choice|choices|option|options|either|or)\b/.test(text);
+}
+
+function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
   const dt = diagramType.toLowerCase();
   const groups = cci?.data?.groups || [];
   const nodes = flattenGeneratedNodes(cci);
@@ -52,8 +57,15 @@ function validateGeneratedCci(cci, diagramType) {
   }
 
   if (dt === 'flowchart') {
-    const edgeCount = realNodes.reduce((sum, node) => sum + parseNextStepIds(node.nextSteps).length, 0);
+    const outgoingCounts = realNodes.map(node => parseNextStepIds(node.nextSteps).length);
+    const edgeCount = outgoingCounts.reduce((sum, count) => sum + count, 0);
     if (edgeCount === 0) errors.push('flowchart has no nextSteps');
+    if (realNodes.length >= 5 && groups.filter(g => (g.nodes || []).length > 0).length <= 1) {
+      errors.push('flowchart needs multiple visual stage groups for color variety');
+    }
+    if (promptSuggestsChoices(extendedPrompt) && !outgoingCounts.some(count => count > 1)) {
+      errors.push('prompt contains choices, but flowchart is a straight line; preserve choices as branches');
+    }
     for (const node of realNodes) {
       for (const targetId of parseNextStepIds(node.nextSteps)) {
         if (!ids.has(targetId)) errors.push(`unknown nextSteps target: ${targetId}`);
@@ -526,7 +538,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     delete parsed.data.edges;
   }
 
-  const qualityErrors = validateGeneratedCci(parsed, diagramType);
+  const qualityErrors = validateGeneratedCci(parsed, diagramType, extendedPrompt);
   if (qualityErrors.length > 0) {
     console.error('Phase 2 quality failure:', qualityErrors);
     lastFailure = { error: `AI returned a low-quality diagram: ${qualityErrors.slice(0, 3).join('; ')}` };

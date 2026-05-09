@@ -34,6 +34,7 @@ export default function DiagramRenderer({
   svgRef, 
   aspectRatio = 'auto', 
   bgColor = 'white', 
+  showGrid = true,
   onNodeSelect, 
   selectedNodeId, 
   onEdgeSelect,
@@ -602,13 +603,21 @@ export default function DiagramRenderer({
      const titleCx = (minX + maxX) / 2;
      let titleY = minY;
      const paperPolicy = activeEngine?.paper || {};
+     const titleSize = initialData?.config?.titleSize || 'M';
+     const getTitleMetrics = () => {
+        const titleNode = { type: 'title', size: titleSize, label: diagramTitle || 'Title' };
+        const dim = getNodeDim(titleNode);
+        const legacySpacing = NODE_REGISTRY.title.layoutSpacing?.[titleSize] ?? 80;
+        const gap = paperPolicy.titleGapScale
+          ? Math.max(DIAGRAM_DESIGN.title.diagramGap?.[titleSize] ?? 34, Math.round(legacySpacing * paperPolicy.titleGapScale))
+          : (DIAGRAM_DESIGN.title.diagramGap?.[titleSize] ?? 42);
+        const topPadding = paperPolicy.titleTopInset ?? (DIAGRAM_DESIGN.title.topPadding?.[titleSize] ?? 40);
+        return { height: dim.height, gap, topPadding };
+     };
 
      if (diagramTitle) {
-         const titleSpacingPx = NODE_REGISTRY.title.layoutSpacing?.[initialData?.config?.titleSize || 'M'] ?? 80;
-         const titleGapScale = paperPolicy.titleGapScale ?? DIAGRAM_DESIGN.paper.titleGapScale;
-         const titleGapPx = Math.max(34, Math.round(titleSpacingPx * titleGapScale));
-         const titleTopInset = paperPolicy.titleTopInset ?? Math.round(titleSpacingPx * DIAGRAM_DESIGN.paper.titleTopInsetScale);
-         minY -= titleGapPx + titleTopInset;
+         const titleMetrics = getTitleMetrics();
+         minY -= titleMetrics.topPadding + titleMetrics.height + titleMetrics.gap;
       }
 
       if (diagramType === 'piechart' && showLegend) {
@@ -699,10 +708,8 @@ export default function DiagramRenderer({
         // Note: computeBindings() creates fresh node objects, so these assignments are safe
         if (sysTitle.x === undefined) sysTitle.x = cx; // center on canvas
         if (sysTitle.y === undefined) {
-           const titleSpacing = NODE_REGISTRY.title.layoutSpacing?.[sysTitle.size || 'M'] ?? 80;
-           const titleGapScale = paperPolicy.titleGapScale ?? DIAGRAM_DESIGN.paper.titleGapScale;
-           const titleGap = Math.max(34, Math.round(titleSpacing * titleGapScale));
-           sysTitle.y = titleY - (diagramTitle ? titleGap : 0);
+           const titleMetrics = getTitleMetrics();
+           sysTitle.y = titleY - (diagramTitle ? titleMetrics.gap + titleMetrics.height / 2 : 0);
         }
 
      }
@@ -852,7 +859,9 @@ export default function DiagramRenderer({
                rx="8" ry="8"
                style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))' }}
              />
-             <rect className="canvas-grid-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
+             {showGrid && (
+               <rect className="canvas-grid-rect" x={vMinX} y={vMinY} width={vW} height={vH} fill="url(#canvas-grid)" pointerEvents="none" rx="8" ry="8" />
+             )}
           </g>
 
           {/* ─── Topology Overlays Layer ─────────────────────── */}

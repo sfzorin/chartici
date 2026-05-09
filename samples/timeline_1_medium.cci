@@ -8,57 +8,50 @@
     "text": "Product Release Plan"
   },
   "data": {
+    "config": {
+      "showGrid": false
+    },
     "groups": [
       {
         "type": "chevron",
         "size": "L",
-        "nodes": [
-          {
-            "id": "p1",
-            "label": "Discovery"
-          },
-          {
-            "id": "p2",
-            "label": "Execution"
-          }
-        ],
-        "color": "1"
-      },
-      {
-        "type": "process",
-        "size": "M",
-        "nodes": [
-          {
-            "id": "e1",
-            "label": "Kickoff Sync",
-            "spineId": "p1"
-          },
-          {
-            "id": "e2",
-            "label": "Design Approval",
-            "spineId": "p1"
-          }
-        ],
         "color": "1",
-        "label": "Discovery Events"
+        "label": "Phases",
+        "nodes": [
+          { "id": "p1", "label": "Discover" },
+          { "id": "p2", "label": "Build" },
+          { "id": "p3", "label": "Launch" }
+        ]
       },
       {
         "type": "process",
         "size": "M",
-        "nodes": [
-          {
-            "id": "e3",
-            "label": "Sprint 1",
-            "spineId": "p2"
-          },
-          {
-            "id": "e4",
-            "label": "Soft Launch",
-            "spineId": "p2"
-          }
-        ],
         "color": "2",
-        "label": "Execution Events"
+        "label": "Discovery",
+        "nodes": [
+          { "id": "e1", "label": "Research", "spineId": "p1" },
+          { "id": "e2", "label": "Scope MVP", "spineId": "p1" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "color": "5",
+        "label": "Build",
+        "nodes": [
+          { "id": "e3", "label": "Prototype", "spineId": "p2" },
+          { "id": "e4", "label": "Beta Test", "spineId": "p2" }
+        ]
+      },
+      {
+        "type": "process",
+        "size": "M",
+        "color": "4",
+        "label": "Launch",
+        "nodes": [
+          { "id": "e5", "label": "Release", "spineId": "p3" },
+          { "id": "e6", "label": "Measure", "spineId": "p3" }
+        ]
       }
     ]
   }

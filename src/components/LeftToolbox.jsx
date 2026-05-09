@@ -126,6 +126,8 @@ export default function LeftToolbox({
   diagramType,
   bgColor,
   onChangeBgColor,
+  showGrid = true,
+  onChangeShowGrid,
   aspect,
   onChangeAspect,
   showLegend,
@@ -688,6 +690,17 @@ export default function LeftToolbox({
               ))}
           </div>
           
+          <div className="toolbox-divider" style={{ margin: '8px 0' }} />
+          <div className="popover-title">Grid</div>
+          <div className="popover-list">
+            <button className={showGrid ? 'active' : ''} onClick={() => onChangeShowGrid && onChangeShowGrid(true)}>
+              Show Grid
+            </button>
+            <button className={!showGrid ? 'active' : ''} onClick={() => onChangeShowGrid && onChangeShowGrid(false)}>
+              Hide Grid
+            </button>
+          </div>
+
           <div className="toolbox-divider" style={{ margin: '8px 0' }} />
           <div className="popover-title">Aspect Ratio</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
