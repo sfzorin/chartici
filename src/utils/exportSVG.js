@@ -34,6 +34,24 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
        canvasPaperRect.style.filter = 'none';
     }
 
+    // Inkscape and some print pipelines can render browser filters as black boxes
+    // or drop the filtered shapes entirely. Keep the editor preview effects in-app,
+    // but export a flat, predictable SVG.
+    const exportFilters = svgClone.querySelectorAll('filter, [filter]');
+    exportFilters.forEach(el => {
+        if (el.tagName && el.tagName.toLowerCase() === 'filter') el.remove();
+        else el.removeAttribute('filter');
+    });
+    svgClone.querySelectorAll('[style]').forEach(el => {
+        if (el.style?.filter) el.style.removeProperty('filter');
+    });
+
+    // Inkscape can materialize SVG/CSS "transparent" paint as black on some
+    // imported objects. Transparent helper shapes (title/text bounding rects,
+    // empty borders) should be explicit non-paint in exported SVG.
+    svgClone.querySelectorAll('[fill="transparent"]').forEach(el => el.setAttribute('fill', 'none'));
+    svgClone.querySelectorAll('[stroke="transparent"]').forEach(el => el.setAttribute('stroke', 'none'));
+
     // Strip out the root style to wipe React runtime variables like background-color: var(--desk-bg)
     svgClone.removeAttribute('style');
 
@@ -71,6 +89,7 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
         '--diagram-text':        svgElement.style.getPropertyValue('--diagram-text').trim()  || EXPORT_DEFAULTS['--diagram-text'],
         '--diagram-edge':        svgElement.style.getPropertyValue('--diagram-edge').trim()  || EXPORT_DEFAULTS['--diagram-edge'],
         '--diagram-group':       svgElement.style.getPropertyValue('--diagram-group').trim() || EXPORT_DEFAULTS['--diagram-group'],
+        '--diagram-label-halo':  svgElement.style.getPropertyValue('--diagram-label-halo').trim() || svgElement.style.getPropertyValue('--canvas-bg').trim() || EXPORT_DEFAULTS['--canvas-bg'],
         '--unfilled-text-color': paletteInfo.unfilledText,
     };
 

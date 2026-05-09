@@ -105,6 +105,8 @@ function PopoverMenu({ isOpen, onClose, anchorRef, children, side = 'right' }) {
   );
 }
 
+const toolClass = (...parts) => parts.filter(Boolean).join(' ');
+
 export default function LeftToolbox({ 
   selectedNode, 
   selectedEdge, 
@@ -193,7 +195,10 @@ export default function LeftToolbox({
   const matchedGroup = groupsList?.find(g => g.id === getGroupId(nContext));
   const isOutlined = matchedGroup?.outlined || false;
 
-  const getStyle = (isActive) => ({ opacity: isActive ? 1 : 0.3, pointerEvents: isActive ? 'auto' : 'none' });
+  const getToolState = (isEnabled) => ({
+    'data-enabled': isEnabled ? 'true' : 'false',
+    'aria-disabled': isEnabled ? undefined : 'true',
+  });
 
   const getDiagramIcon = (type) => {
     const t = (type || 'flowchart').toLowerCase();
@@ -217,8 +222,7 @@ export default function LeftToolbox({
         {/* --- 0. CREATE NODE --- */}
         <button 
           ref={addBtnRef}
-          className="toolbox-btn" 
-          style={{ background: '#be355d', color: '#ffffff', borderRadius: '50%', border: 'none' }}
+          className={toolClass('toolbox-btn', 'toolbox-btn-primary', activePopover === 'add' && 'is-open')} 
           onClick={() => togglePopover('add')}
           data-tooltip="Add New Element"
         >
@@ -246,8 +250,8 @@ export default function LeftToolbox({
           {/* NODE TOOLS (Shape, Size, Color) */}
           <div className="toolbox-section">
             {/* Shape Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isShapeToolActive) }}>
-              <button ref={shapeBtnRef} className="toolbox-btn" onClick={() => togglePopover('shape')} data-tooltip="Change Shape">
+            <div className="toolbox-tool" {...getToolState(isShapeToolActive)}>
+              <button ref={shapeBtnRef} className={toolClass('toolbox-btn', activePopover === 'shape' && 'is-open')} onClick={() => togglePopover('shape')} data-tooltip="Change Shape">
                 <Icon name={getShapeIcon(nContext.type)} size={24} />
               </button>
               <PopoverMenu isOpen={activePopover === 'shape'} onClose={() => setActivePopover(null)} anchorRef={shapeBtnRef}>
@@ -266,8 +270,8 @@ export default function LeftToolbox({
 
 
             {/* Size Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isSizeToolActive) }}>
-              <button ref={sizeBtnRef} className="toolbox-btn" onClick={() => togglePopover('size')} data-tooltip="Change Size">
+            <div className="toolbox-tool" {...getToolState(isSizeToolActive)}>
+              <button ref={sizeBtnRef} className={toolClass('toolbox-btn', activePopover === 'size' && 'is-open')} onClick={() => togglePopover('size')} data-tooltip="Change Size">
                 <Icon
                   name="size"
                   size={20}
@@ -294,8 +298,8 @@ export default function LeftToolbox({
             </div>
 
             {/* Color Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isColorToolActive) }}>
-              <button ref={colorBtnRef} className="toolbox-btn" onClick={() => togglePopover('color')} data-tooltip="Change Color / Style">
+            <div className="toolbox-tool" {...getToolState(isColorToolActive)}>
+              <button ref={colorBtnRef} className={toolClass('toolbox-btn', activePopover === 'color' && 'is-open')} onClick={() => togglePopover('color')} data-tooltip="Change Color / Style">
                 <div>
                   <Icon name="palette" size={24} />
                 </div>
@@ -377,8 +381,8 @@ export default function LeftToolbox({
             </div>
 
             {/* Group Selection */}
-            <div style={{ display: 'inline-block', ...getStyle(isGroupToolActive) }}>
-              <button ref={groupBtnRef} className="toolbox-btn" onClick={() => togglePopover('group')} data-tooltip="Manage Group">
+            <div className="toolbox-tool" {...getToolState(isGroupToolActive)}>
+              <button ref={groupBtnRef} className={toolClass('toolbox-btn', activePopover === 'group' && 'is-open')} onClick={() => togglePopover('group')} data-tooltip="Manage Group">
                 <Icon name="layers" size={24} />
               </button>
             <PopoverMenu isOpen={activePopover === 'group'} onClose={() => setActivePopover(null)} anchorRef={groupBtnRef}>
@@ -478,8 +482,8 @@ export default function LeftToolbox({
 
 
           {/* EDGE TOOLS (Style & Arrows) */}
-          <div className="toolbox-section" style={getStyle(isEdgeToolActive)}>
-            <button ref={edgeStyleBtnRef} className="toolbox-btn" onClick={() => togglePopover('edgestyle')} data-tooltip="Line Style & Arrows">
+          <div className="toolbox-section toolbox-tool" {...getToolState(isEdgeToolActive)}>
+            <button ref={edgeStyleBtnRef} className={toolClass('toolbox-btn', activePopover === 'edgestyle' && 'is-open')} onClick={() => togglePopover('edgestyle')} data-tooltip="Line Style & Arrows">
               <Icon name="edge-style" size={24} />
             </button>
             <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
@@ -589,8 +593,8 @@ export default function LeftToolbox({
           </div>
 
           {/* Label Editing */}
-          <div className="toolbox-section" style={getStyle(isLabelActive)}>
-            <button ref={labelBtnRef} className="toolbox-btn" onClick={() => togglePopover('label')} data-tooltip="Edit Label">
+          <div className="toolbox-section toolbox-tool" {...getToolState(isLabelActive)}>
+            <button ref={labelBtnRef} className={toolClass('toolbox-btn', activePopover === 'label' && 'is-open')} onClick={() => togglePopover('label')} data-tooltip="Edit Label">
               <Icon name="tag" size={20} />
             </button>
             <PopoverMenu isOpen={activePopover === 'label'} onClose={() => setActivePopover(null)} anchorRef={labelBtnRef}>
@@ -631,9 +635,9 @@ export default function LeftToolbox({
 
 
           {/* Lock Pos */}
-          <div style={getStyle(isLockActive)}>
+          <div className="toolbox-tool" {...getToolState(isLockActive)}>
             <button 
-               className={`toolbox-btn ${(isLegend ? legendLocked : nContext.lockPos) ? 'locked' : ''}`} 
+               className={toolClass('toolbox-btn', (isLegend ? legendLocked : nContext.lockPos) && 'locked')} 
                onClick={() => {
                  if (isLegend) {
                    if (legendLocked && onToggleLegendLock) onToggleLegendLock();
@@ -648,10 +652,9 @@ export default function LeftToolbox({
           </div>
 
           {/* Connect */}
-          <div style={getStyle(isConnectActive)}>
+          <div className="toolbox-tool" {...getToolState(isConnectActive)}>
              <button 
-                className={`toolbox-btn ${activeLinkSource ? 'locked' : ''}`} 
-                style={{ color: activeLinkSource ? 'var(--color-brand)' : '' }}
+                className={toolClass('toolbox-btn', activeLinkSource && 'locked')} 
                 onClick={toggleConnectionMode} 
                 data-tooltip={activeLinkSource ? "Cancel Connection" : "Connect To..."}
              >
@@ -660,7 +663,7 @@ export default function LeftToolbox({
           </div>
           
           {/* Delete Element */}
-          <div style={getStyle(isTrashActive)}>
+          <div className="toolbox-tool" {...getToolState(isTrashActive)}>
             <button className="toolbox-btn danger" onClick={deleteSelectedElement} data-tooltip="Delete Selection">
               <Icon name="trash" size={20} />
             </button>
@@ -670,7 +673,7 @@ export default function LeftToolbox({
         {/* --- 2. DIAGRAM ACTIONS --- */}
         <div className="toolbox-divider" />
 
-        <button ref={bgBtnRef} className="toolbox-btn" onClick={() => togglePopover('bg')} data-tooltip="Canvas Settings">
+        <button ref={bgBtnRef} className={toolClass('toolbox-btn', activePopover === 'bg' && 'is-open')} onClick={() => togglePopover('bg')} data-tooltip="Canvas Settings">
            <Icon name="frame" size={24} />
         </button>
         <PopoverMenu isOpen={activePopover === 'bg'} onClose={() => setActivePopover(null)} anchorRef={bgBtnRef}>
@@ -707,7 +710,7 @@ export default function LeftToolbox({
           </div>
         </PopoverMenu>
 
-        <button ref={layoutBtnRef} className="toolbox-btn" onClick={() => togglePopover('layout')} data-tooltip="Layout Type">
+        <button ref={layoutBtnRef} className={toolClass('toolbox-btn', activePopover === 'layout' && 'is-open')} onClick={() => togglePopover('layout')} data-tooltip="Layout Type">
            <Icon name={getDiagramIcon(diagramType)} size={24} />
         </button>
         <PopoverMenu isOpen={activePopover === 'layout'} onClose={() => setActivePopover(null)} anchorRef={layoutBtnRef}>
