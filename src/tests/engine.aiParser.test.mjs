@@ -142,6 +142,8 @@ async function runTests() {
     currentTestType = type;
     const res = await buildDiagram('Test ' + type, type, 'extended prompt');
     assert.strictEqual(res.success, true, `buildDiagram should succeed for ${type}`);
+    assert.strictEqual(res.cci.title?.text, 'Test ' + type, `Generated CCI should preserve LLM title for ${type}`);
+    assert.strictEqual(res.cci.data.config?.titleText, 'Test ' + type, `Generated config should expose titleText for ${type}`);
     assert.ok(res.cci.data.groups.length > 0, `Parsed CCI for ${type} should have groups`);
     
     const allNodes = res.cci.data.groups.flatMap(g => g.nodes);
@@ -188,9 +190,10 @@ async function runTests() {
 | Node ID | Label | Type | Next Steps |
 |---|---|---|---|
 | p_1 | Choose Bread | decision | white[White], wheat[Wheat], wrap[Wrap] |
-| white | White Bread | process | p_2 |
-| wheat | Wheat Bread | process | p_2 |
-| wrap | Wrap | process | p_2 |
+| white | White Bread | process | bread_ready |
+| wheat | Wheat Bread | process | bread_ready |
+| wrap | Wrap | process | bread_ready |
+| bread_ready | Bread Ready | process | p_2 |
 ### Stage: Flavor Choice | Size: M
 | Node ID | Label | Type | Next Steps |
 |---|---|---|---|
@@ -218,6 +221,46 @@ async function runTests() {
   assert.strictEqual(repairedQuality.success, true, 'low-quality straight flowchart should be repaired');
   assert.ok(repairedQuality.cci.data.groups.length > 1, 'repaired flowchart should use visual stage groups');
   assert.ok(String(breadChoice.nextSteps).split(',').length > 1, 'repaired flowchart should preserve choices as branches');
+
+  currentTestType = 'flowchart';
+  MOCK_RESPONSES.flowchart = [
+    `
+# Steps
+### Stage: Overwide Choice | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| d_1 | Pick Filling | decision | ham[Ham], turkey[Turkey], cheese[Cheese], jam[Jam], egg[Egg], tuna[Tuna], hummus[Hummus] |
+| ham | Ham | process | done |
+| turkey | Turkey | process | done |
+| cheese | Cheese | process | done |
+| jam | Jam | process | done |
+| egg | Egg | process | done |
+| tuna | Tuna | process | done |
+| hummus | Hummus | process | done |
+| done | Eat | terminal | - |
+`,
+    `
+# Steps
+### Stage: Filling Type | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| d_1 | Pick Filling | decision | savory[Savory], veggie[Veggie], sweet[Sweet] |
+| savory | Savory Protein | process | done |
+| veggie | Cheese Veg | process | done |
+| sweet | Sweet Spread | process | done |
+### Stage: Finish | Size: M
+| Node ID | Label | Type | Next Steps |
+|---|---|---|---|
+| done | Eat | terminal | - |
+`
+  ];
+  const repairedFanout = await buildDiagram('Filling Choice', 'flowchart', 'Pick filling (ham, turkey, cheese, jam, egg, tuna, hummus)');
+  const fanoutChoice = repairedFanout.cci.data.groups.flatMap(g => g.nodes).find(n => n.id === 'd_1');
+  assert.strictEqual(repairedFanout.success, true, 'overwide decision should be repaired');
+  assert.ok(String(fanoutChoice.nextSteps).split(',').length <= 6, 'repaired decision should cap fan-out at six choices');
+
+  const treePrompt = getSystemPromptPhase2('tree');
+  assert.ok(treePrompt.includes('root → category nodes → leaf nodes'), 'tree prompt should require visible category nodes');
 
   currentTestType = 'sequence';
   MOCK_RESPONSES.sequence = `

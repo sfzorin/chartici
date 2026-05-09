@@ -295,6 +295,134 @@ function alignFlowchartGrid(nodes, edges) {
   return result;
 }
 
+function nodeWidth(node) {
+  return node.w || getNodeDim(node).width;
+}
+
+function nodeHeight(node) {
+  return node.h || getNodeDim(node).height;
+}
+
+function edgeFrom(edge) {
+  return String(edge.from || edge.sourceId);
+}
+
+function edgeTo(edge) {
+  return String(edge.to || edge.targetId);
+}
+
+function collectReachable(outgoing, startId) {
+  const seen = new Set();
+  const queue = [...(outgoing.get(startId) || [])];
+
+  while (queue.length > 0) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    queue.push(...(outgoing.get(id) || []));
+  }
+
+  return seen;
+}
+
+function shiftNode(node, dx, dy) {
+  if (node.lockPos) return node;
+  return {
+    ...node,
+    x: snap((node.x || 0) + dx),
+    y: snap((node.y || 0) + dy),
+  };
+}
+
+function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
+  if (nodes.length < 4 || edges.length < 3) return nodes;
+
+  let result = nodes.map(n => ({ ...n }));
+  const incoming = new Map();
+  const outgoing = new Map();
+
+  edges.forEach(edge => {
+    const from = edgeFrom(edge);
+    const to = edgeTo(edge);
+    if (!incoming.has(to)) incoming.set(to, []);
+    incoming.get(to).push(from);
+    if (!outgoing.has(from)) outgoing.set(from, []);
+    outgoing.get(from).push(to);
+  });
+
+  const decisionIds = nodes
+    .filter(node => node.type === 'rhombus' && (incoming.get(String(node.id)) || []).length >= 3)
+    .map(node => String(node.id));
+
+  const minPocket = isHorizontalFlow ? 100 : 90;
+
+  decisionIds.forEach(decisionId => {
+    const byId = new Map(result.map(node => [String(node.id), node]));
+    const target = byId.get(decisionId);
+    if (!target || target.lockPos) return;
+
+    const sources = (incoming.get(decisionId) || [])
+      .map(id => byId.get(id))
+      .filter(Boolean);
+    if (sources.length < 3) return;
+
+    const reachable = collectReachable(outgoing, decisionId);
+
+    if (isHorizontalFlow) {
+      const avgSourceX = sources.reduce((sum, node) => sum + (node.x || 0), 0) / sources.length;
+      if (avgSourceX <= (target.x || 0)) {
+        const sourceRight = Math.max(...sources.map(node => (node.x || 0) + nodeWidth(node) / 2));
+        const targetLeft = (target.x || 0) - nodeWidth(target) / 2;
+        const delta = snap(Math.max(0, minPocket - (targetLeft - sourceRight)));
+        if (delta <= 0) return;
+        result = result.map(node => {
+          const id = String(node.id);
+          const shouldShift = id === decisionId || reachable.has(id) || (node.x || 0) >= (target.x || 0) - 1;
+          return shouldShift ? shiftNode(node, delta, 0) : node;
+        });
+        return;
+      }
+
+      const sourceLeft = Math.min(...sources.map(node => (node.x || 0) - nodeWidth(node) / 2));
+      const targetRight = (target.x || 0) + nodeWidth(target) / 2;
+      const delta = snap(Math.max(0, minPocket - (sourceLeft - targetRight)));
+      if (delta <= 0) return;
+      result = result.map(node => {
+        const id = String(node.id);
+        const shouldShift = id === decisionId || reachable.has(id) || (node.x || 0) <= (target.x || 0) + 1;
+        return shouldShift ? shiftNode(node, -delta, 0) : node;
+      });
+      return;
+    }
+
+    const avgSourceY = sources.reduce((sum, node) => sum + (node.y || 0), 0) / sources.length;
+    if (avgSourceY <= (target.y || 0)) {
+      const sourceBottom = Math.max(...sources.map(node => (node.y || 0) + nodeHeight(node) / 2));
+      const targetTop = (target.y || 0) - nodeHeight(target) / 2;
+      const delta = snap(Math.max(0, minPocket - (targetTop - sourceBottom)));
+      if (delta <= 0) return;
+      result = result.map(node => {
+        const id = String(node.id);
+        const shouldShift = id === decisionId || reachable.has(id) || (node.y || 0) >= (target.y || 0) - 1;
+        return shouldShift ? shiftNode(node, 0, delta) : node;
+      });
+      return;
+    }
+
+    const sourceTop = Math.min(...sources.map(node => (node.y || 0) - nodeHeight(node) / 2));
+    const targetBottom = (target.y || 0) + nodeHeight(target) / 2;
+    const delta = snap(Math.max(0, minPocket - (sourceTop - targetBottom)));
+    if (delta <= 0) return;
+    result = result.map(node => {
+      const id = String(node.id);
+      const shouldShift = id === decisionId || reachable.has(id) || (node.y || 0) <= (target.y || 0) + 1;
+      return shouldShift ? shiftNode(node, 0, -delta) : node;
+    });
+  });
+
+  return result;
+}
+
 export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, dt = 'flowchart') {
   const applyHappyPath = dt !== 'sequence' && dt !== 'erd';
   const g = new dagre.graphlib.Graph();
@@ -535,6 +663,7 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
     result = alignErdColumns(result, edges);
   } else if (dt === 'flowchart') {
     result = alignFlowchartGrid(result, edges);
+    result = reserveDecisionFanInPockets(result, edges, isHorizontalFlow);
   }
 
   return result;

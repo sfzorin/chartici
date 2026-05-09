@@ -118,8 +118,11 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
           const allowedKids = childDataArr.slice(0, maxKids);
           childDataArr.slice(maxKids).forEach(k => hiddenNodes.add(k.id));
           
-          const row1 = allowedKids.slice(0, 10);
-          const row2 = allowedKids.slice(10, 19);
+          const firstRowCount = allowedKids.length > 8
+            ? Math.ceil(allowedKids.length / 2)
+            : allowedKids.length;
+          const row1 = allowedKids.slice(0, firstRowCount);
+          const row2 = allowedKids.slice(firstRowCount);
           
           data.kids = row1;
           data.secondRowKids = row2;

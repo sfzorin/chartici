@@ -61,6 +61,7 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   }
 
   const circleExitAssignments = assignCircleExitPorts(edges, nodeMap);
+  const decisionEntryAssignments = assignDecisionEntryPorts(edges, nodeMap);
 
   // Iterate all edges to compute robust penalties
   for (const edge of edges) {
@@ -84,12 +85,39 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
       applyFlowchartPenalties(startPorts, src, tgtBox, ctx, src.id, tgt.id);
       applyFlowchartPenalties(endPorts, tgt, srcBox, ctx, src.id, tgt.id);
       applyPreferredPortPenalty(startPorts, circleExitAssignments.get(edge.id), srcBox, src);
+      endPorts = forcePreferredPort(endPorts, decisionEntryAssignments.get(edge.id));
     }
 
     result.set(edge.id, { startPorts, endPorts });
   }
 
   return result;
+}
+
+function assignDecisionEntryPorts(edges, nodeMap) {
+  const assignments = new Map();
+  const incoming = new Map();
+
+  for (const edge of edges) {
+    const src = nodeMap.get(edge.from);
+    const tgt = nodeMap.get(edge.to);
+    if (!src || !tgt || tgt.type !== 'rhombus') continue;
+    const srcBox = getTrueBox(src);
+    const tgtBox = getTrueBox(tgt);
+    if (!incoming.has(tgt.id)) incoming.set(tgt.id, []);
+    incoming.get(tgt.id).push({ edge, srcBox, tgtBox });
+  }
+
+  for (const [, list] of incoming) {
+    if (list.length < 3) continue;
+    const tgtBox = list[0].tgtBox;
+    const avgSourceX = average(list.map(item => item.srcBox.cx));
+    const avgSourceY = average(list.map(item => item.srcBox.cy));
+    const dir = cardinalForVector(avgSourceX - tgtBox.cx, avgSourceY - tgtBox.cy);
+    list.forEach(item => assignments.set(item.edge.id, dir));
+  }
+
+  return assignments;
 }
 
 function assignCircleExitPorts(edges, nodeMap) {
@@ -147,6 +175,12 @@ function applyPreferredPortPenalty(ports, preferredDir, box, node) {
       p.penalty = (p.penalty || 0) + 12 * sizeD;
     }
   }
+}
+
+function forcePreferredPort(ports, preferredDir) {
+  if (!preferredDir) return ports;
+  const preferred = ports.filter(port => port.dir === preferredDir && !port.isDiagonal);
+  return preferred.length > 0 ? preferred : ports;
 }
 
 function applyTreePenalties(ports, goldenDir, box, node) {

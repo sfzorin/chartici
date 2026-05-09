@@ -18,7 +18,8 @@ STRICT RULES:
 - Do NOT explain your choices. Just output the three XML tags below.
 - Keep <prompt> under 160 words. Be dense and structural, not narrative.
 - Prefer the core book-figure types: flowchart, timeline, tree, matrix, sequence, ERD. Use piechart only for real proportions and radial only for a true hub-and-spoke model.
-- Prefer 5-11 visible nodes. Use more only when the user explicitly asks.
+- Prefer 6-14 visible nodes. Use up to 18 when the idea needs meaningful branches or categories.
+- Complexity budget is generous but not unlimited: if the topic has many examples, compress long lists into 3-5 categories instead of listing every item.
 - Condense labels to 1-4 words each.
 - Choose one main message that teaches an idea, not just a list of steps.
 - Do not produce a trivial straight checklist when the topic contains choices, categories, tradeoffs, outcomes, or audience context.
@@ -26,6 +27,7 @@ STRICT RULES:
 - Use groups only when they clarify the reader's mental model.
 - Every important relationship must be explicit. Do not rely on visual proximity.
 - Use group roles in a logical order: primary concept, supporting concept, decision/risk, outcome, neutral context.
+- For tree diagrams, preserve hierarchy levels from the request: named categories/branches must be visible intermediate nodes, not just group colors.
 
 Output EXACTLY three XML tags and nothing else:
 <title>Concise diagram title (3-6 words)</title>
@@ -49,7 +51,7 @@ export function getSystemPromptPhase2(diagramType) {
 - Preserve the user's language for ALL labels exactly.
 - Size: ${sMap.L}(emphasized) / ${sMap.M}(default) / ${sMap.S || 'minor'}(de-emphasized).
 - Make this suitable for a book figure: compact, readable, and not crowded.
-- Prefer 5-11 visible nodes. Hard maximum 14 unless explicitly requested.
+- Prefer 6-14 visible nodes. Hard maximum 18 unless explicitly requested.
 - Labels must be short noun/verb phrases, ideally 1-4 words.
 - Edge labels must be short, usually 1-3 words. Prefer verbs or outcomes.
 - Avoid duplicate labels, orphan nodes, decorative filler, and custom black/gray colors.
@@ -57,6 +59,8 @@ export function getSystemPromptPhase2(diagramType) {
 - Make all connections explicit and valid: every source/target ID must exist.
 - For instructional flowcharts, create visual stage groups instead of one all-purpose group, so sequential steps do not render as one color.
 - Preserve meaningful options from the plan as compact branches; a diagram should not become a trivial straight line when the prompt contains choices.
+- Keep decision fan-out readable: max 6 outgoing choices from any decision. Convert larger choice lists into category nodes or a sequence of smaller decisions.
+- Stay inside the node budget by summarizing long example lists into 3-5 categories.
 - If the Phase 1 plan is a simple procedure, add one clear explanatory structure from that plan: branch choices, merge points, outcomes, or grouped variants.
 - Output ONLY Markdown tables and ### headings. No prose.
 `;

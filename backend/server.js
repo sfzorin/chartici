@@ -8,7 +8,7 @@ const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_TIMEOUT_MS = 120_000; // 120 seconds
 const DEFAULT_MODEL = 'deepseek-chat';
 const ALLOWED_MODELS = new Set([DEFAULT_MODEL]);
-const ALLOWED_RESPONSE_FORMAT_TYPES = new Set(['json_object']);
+const ALLOWED_TASKS = new Set(['plan', 'build', 'repair']);
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -23,22 +23,99 @@ function getClientIP(req) {
     || 'unknown';
 }
 
-function normalizeTemperature(value) {
-  if (value === undefined) return 0.3;
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  return Math.min(2, Math.max(0, value));
+async function getPromptBuilders() {
+  return import('../src/assets/systemPrompts.js');
 }
 
-function normalizeResponseFormat(value) {
-  if (!value) return null;
-  if (
-    typeof value === 'object'
-    && !Array.isArray(value)
-    && ALLOWED_RESPONSE_FORMAT_TYPES.has(value.type)
-  ) {
-    return { type: value.type };
+function trimText(value, maxLength) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > maxLength) return null;
+  return trimmed;
+}
+
+function normalizeDiagramType(value) {
+  const dt = String(value || '').trim().toLowerCase();
+  if (!/^[a-z0-9_-]{2,32}$/.test(dt)) return null;
+  return dt;
+}
+
+function normalizeErrors(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(item => typeof item === 'string')
+    .map(item => item.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function getRepairMessages(phase2Prompt, extendedPrompt, rawContent, errors) {
+  return [
+    { role: 'system', content: phase2Prompt },
+    {
+      role: 'user',
+      content: `Your previous Markdown could not be parsed or failed quality checks.
+
+Return ONLY corrected Markdown tables for the same diagram type.
+Do not explain anything.
+Do not use JSON.
+Do not wrap the answer in XML tags.
+Keep the diagram compact and book-readable.
+
+Original task:
+${extendedPrompt}
+
+Validation errors:
+${errors.map(error => `- ${error}`).join('\n') || '- invalid diagram'}
+
+Previous answer:
+${rawContent || '(empty response)'}`
+    }
+  ];
+}
+
+async function buildAiRequest(body) {
+  const task = String(body.task || '').trim().toLowerCase();
+  if (!ALLOWED_TASKS.has(task)) {
+    return { error: 'Unsupported generation task' };
   }
-  return undefined;
+
+  const { getSystemPromptPhase1, getSystemPromptPhase2 } = await getPromptBuilders();
+
+  if (task === 'plan') {
+    const userPrompt = trimText(body.userPrompt, 4000);
+    if (!userPrompt) return { error: 'userPrompt is required' };
+    return {
+      temperature: 0.3,
+      messages: [
+        { role: 'system', content: getSystemPromptPhase1() },
+        { role: 'user', content: userPrompt },
+      ],
+    };
+  }
+
+  const diagramType = normalizeDiagramType(body.diagramType);
+  const extendedPrompt = trimText(body.extendedPrompt, 8000);
+  if (!diagramType) return { error: 'diagramType is required' };
+  if (!extendedPrompt) return { error: 'extendedPrompt is required' };
+
+  const phase2Prompt = getSystemPromptPhase2(diagramType);
+  if (task === 'build') {
+    return {
+      temperature: 0.1,
+      messages: [
+        { role: 'system', content: phase2Prompt },
+        { role: 'user', content: extendedPrompt },
+      ],
+    };
+  }
+
+  const rawContent = trimText(body.rawContent || '(empty response)', 12000);
+  const errors = normalizeErrors(body.errors);
+  return {
+    temperature: 0.05,
+    messages: getRepairMessages(phase2Prompt, extendedPrompt, rawContent || '', errors),
+  };
 }
 
 // ── Middleware ────────────────────────────────────────────────────────
@@ -81,8 +158,20 @@ app.post('/api/generate', async (req, res) => {
 
   try {
     // ── Validate input ──
-    const { messages, temperature } = req.body;
-    model = req.body.model || model;
+    if (
+      Object.prototype.hasOwnProperty.call(req.body, 'messages')
+      || Object.prototype.hasOwnProperty.call(req.body, 'model')
+      || Object.prototype.hasOwnProperty.call(req.body, 'temperature')
+      || Object.prototype.hasOwnProperty.call(req.body, 'response_format')
+    ) {
+      console.log(
+        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
+      );
+      return res.status(400).json({
+        success: false,
+        error: 'Raw model parameters are not accepted',
+      });
+    }
 
     if (!ALLOWED_MODELS.has(model)) {
       console.log(
@@ -94,50 +183,15 @@ app.post('/api/generate', async (req, res) => {
       });
     }
 
-    const safeTemperature = normalizeTemperature(temperature);
-    if (safeTemperature === null) {
+    const aiRequest = await buildAiRequest(req.body || {});
+    if (aiRequest.error) {
       console.log(
         `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
       );
       return res.status(400).json({
         success: false,
-        error: 'temperature must be a finite number',
+        error: aiRequest.error,
       });
-    }
-
-    const safeResponseFormat = normalizeResponseFormat(req.body.response_format);
-    if (safeResponseFormat === undefined) {
-      console.log(
-        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
-      );
-      return res.status(400).json({
-        success: false,
-        error: 'Unsupported response_format',
-      });
-    }
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      console.log(
-        `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
-      );
-      return res.status(400).json({
-        success: false,
-        error: 'messages is required and must be a non-empty array',
-      });
-    }
-
-    // Validate each message has role and content
-    for (let i = 0; i < messages.length; i++) {
-      const msg = messages[i];
-      if (!msg || typeof msg.role !== 'string' || typeof msg.content !== 'string') {
-        console.log(
-          `[${timestamp()}] POST /api/generate | IP: ${ip} | model: ${model} | response_time: ${Date.now() - startTime}ms | status: 400`
-        );
-        return res.status(400).json({
-          success: false,
-          error: `messages[${i}] must have "role" and "content" as strings`,
-        });
-      }
     }
 
     // ── Check API key ──
@@ -163,9 +217,8 @@ app.post('/api/generate', async (req, res) => {
         },
         body: JSON.stringify({
           model,
-          temperature: safeTemperature,
-          messages,
-          ...(safeResponseFormat ? { response_format: safeResponseFormat } : {}),
+          temperature: aiRequest.temperature,
+          messages: aiRequest.messages,
         }),
         signal: controller.signal,
       });

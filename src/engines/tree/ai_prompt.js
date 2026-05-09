@@ -6,6 +6,8 @@ Transform the user's concept into Markdown Tables for a TREE diagram.
 Output two sections: "# Root" (single root node) and "# Branches" (groups of children).
 Each branch heading specifies Parent ID to auto-connect nodes.
 Keep depth to 2-4 levels. Prefer 2-4 children per parent. Avoid long labels.
+If the user gives named branches, categories, families, or "Branch N" sections, those branch names MUST become visible intermediate nodes.
+Do not flatten a two-level hierarchy into root → leaves. Model it as root → category nodes → leaf nodes, even when the user asks for a compact node count.
 
 # Root
 | ID | Label | Size |
@@ -14,13 +16,13 @@ Keep depth to 2-4 levels. Prefer 2-4 children per parent. Avoid long labels.
 
 # Branches
 
-### Branch: Engineering | Parent ID: root_1 | Size: ${sMap.M}
+### Branch: Departments | Parent ID: root_1 | Size: ${sMap.M}
 | ID | Label |
 |---|---|
-| vp_1 | VP Engineering |
-| cto_1 | CTO |
+| eng_1 | Engineering |
+| ops_1 | Operations |
 
-### Branch: Backend Team | Parent ID: vp_1 | Size: ${sMap.S}
+### Branch: Engineering Team | Parent ID: eng_1 | Size: ${sMap.S}
 | ID | Label |
 |---|---|
 | dev_1 | Senior Dev |

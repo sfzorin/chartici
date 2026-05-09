@@ -49,6 +49,7 @@ export default {
         portPenalty(portId, w, h) {
             if (portId === 'BifTop'  || portId === 'BifBottom') return w * 2;
             if (portId === 'BifLeft' || portId === 'BifRight')  return h * 2;
+            if (portId === 'DiagRhombus') return Math.max(w, h) * 0.7;
             return 0;
         },
     },

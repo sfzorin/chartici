@@ -29,8 +29,8 @@ import { DIAGRAM_DESIGN } from './design.js';
  *   Список именованных портов из PORT_CATALOG. Описывает геометрию портов.
  *   Пенальти определяются в engine's engine.js → routing.portPenalty().
  *
- * diagonalPorts (только circle)
- *   Предвычисленные swoop-выходы для S/M/L — дополнение к cardinal портам.
+ * diagonalPorts
+ *   Предвычисленные дополнительные выходы для S/M/L — дополнение к cardinal портам.
  *
  * outline
  *   Внешний вид в режиме outlined-группы (полый, только контур).
@@ -206,8 +206,28 @@ export const NODE_REGISTRY = {
       L: { width: 240, height: 120, fontSize: 18 },
     },
     ports: 'all',
-    // Pointed shape: no bifurcation
+    // Pointed shape: no bifurcation. Extra ports sit on the sloped sides, useful for dense decisions.
     portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
+    diagonalPorts: {
+      S: [
+        { exit: { dx:  30, dy: -15 }, anchor: { dx:  30, dy: -15 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx:  30, dy:  15 }, anchor: { dx:  30, dy:  15 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -30, dy: -15 }, anchor: { dx: -30, dy: -15 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -30, dy:  15 }, anchor: { dx: -30, dy:  15 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+      ],
+      M: [
+        { exit: { dx:  40, dy: -20 }, anchor: { dx:  40, dy: -20 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx:  40, dy:  20 }, anchor: { dx:  40, dy:  20 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -40, dy: -20 }, anchor: { dx: -40, dy: -20 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -40, dy:  20 }, anchor: { dx: -40, dy:  20 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+      ],
+      L: [
+        { exit: { dx:  60, dy: -30 }, anchor: { dx:  60, dy: -30 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx:  60, dy:  30 }, anchor: { dx:  60, dy:  30 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -60, dy: -30 }, anchor: { dx: -60, dy: -30 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+        { exit: { dx: -60, dy:  30 }, anchor: { dx: -60, dy:  30 }, axis: 'H', sign: -1, dir: 'Left', penaltyId: 'DiagRhombus' },
+      ],
+    },
     outline:   OUTLINE.thick,
     selection: SEL.rect,
 

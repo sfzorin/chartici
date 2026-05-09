@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { buildDiagram } from '../services/aiGenerate.js';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
+import { getSystemPromptPhase2 } from '../assets/systemPrompts.js';
 
 const originalFetch = global.fetch;
 
@@ -57,6 +58,16 @@ async function runLiveTests() {
   global.fetch = async (url, options) => {
     if (url.includes('/api/generate')) {
       const body = JSON.parse(options.body);
+      const messages = body.task === 'build'
+        ? [
+            { role: 'system', content: getSystemPromptPhase2(body.diagramType) },
+            { role: 'user', content: body.extendedPrompt },
+          ]
+        : [
+            { role: 'system', content: getSystemPromptPhase2(body.diagramType) },
+            { role: 'user', content: body.extendedPrompt },
+          ];
+      const temperature = body.task === 'repair' ? 0.05 : 0.1;
       
       const res = await originalFetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
@@ -66,8 +77,8 @@ async function runLiveTests() {
         },
         body: JSON.stringify({
           model: 'deepseek-chat',
-          messages: body.messages,
-          temperature: body.temperature || 0.1
+          messages,
+          temperature
         })
       });
       

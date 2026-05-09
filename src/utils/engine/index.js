@@ -363,16 +363,95 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
       if (data && data._genInfo) delete data._genInfo;
   });
 
+  applyDecisionFanInGrouping(result, edgeInfos, diagramType);
+
   return result;
+}
+
+function applyDecisionFanInGrouping(result, edgeInfos, diagramType) {
+  if (diagramType !== 'flowchart') return;
+
+  const incoming = new Map();
+  for (const info of edgeInfos) {
+    if (info.endNode?.type !== 'rhombus') continue;
+    if (!incoming.has(info.endNode.id)) incoming.set(info.endNode.id, []);
+    incoming.get(info.endNode.id).push(info);
+  }
+
+  for (const [, infos] of incoming) {
+    if (infos.length < 3) continue;
+    const endBox = infos[0].endBox;
+    const avgSourceX = infos.reduce((sum, info) => sum + info.startBox.cx, 0) / infos.length;
+    const avgSourceY = infos.reduce((sum, info) => sum + info.startBox.cy, 0) / infos.length;
+    const dir = Math.abs(avgSourceX - endBox.cx) >= Math.abs(avgSourceY - endBox.cy)
+      ? (avgSourceX < endBox.cx ? 'Left' : 'Right')
+      : (avgSourceY < endBox.cy ? 'Top' : 'Bottom');
+
+    const entry = getBoxSidePoint(endBox, dir);
+    const mergeGap = 46;
+    const merge = {
+      x: entry.x + (dir === 'Left' ? -mergeGap : dir === 'Right' ? mergeGap : 0),
+      y: entry.y + (dir === 'Top' ? -mergeGap : dir === 'Bottom' ? mergeGap : 0),
+    };
+
+    infos.forEach(info => {
+      const pathData = buildGroupedFanInPath(info.startNode, info.startBox, entry, merge, dir);
+      result[info.edge.id] = {
+        ...result[info.edge.id],
+        ...pathData,
+        groupedFanIn: true,
+      };
+    });
+  }
+}
+
+function getBoxSidePoint(box, dir) {
+  if (dir === 'Left') return { x: box.left, y: box.cy };
+  if (dir === 'Right') return { x: box.right, y: box.cy };
+  if (dir === 'Top') return { x: box.cx, y: box.top };
+  return { x: box.cx, y: box.bottom };
+}
+
+function buildGroupedFanInPath(startNode, startBox, entry, merge, dir) {
+  const firstBusPoint = (dir === 'Left' || dir === 'Right')
+    ? { x: merge.x, y: startBox.cy }
+    : { x: startBox.cx, y: merge.y };
+  const vx = firstBusPoint.x - startBox.cx;
+  const vy = firstBusPoint.y - startBox.cy;
+  const len = Math.hypot(vx, vy) || 1;
+  const clip = getClipDist(startNode, startBox.cx, startBox.cy, vx / len, vy / len);
+  const start = {
+    x: startBox.cx + (vx / len) * clip,
+    y: startBox.cy + (vy / len) * clip,
+  };
+
+  const pts = [start, firstBusPoint, merge, entry];
+  const cleanPts = [];
+  for (const pt of pts) {
+    const prev = cleanPts[cleanPts.length - 1];
+    if (!prev || Math.abs(prev.x - pt.x) > 0.01 || Math.abs(prev.y - pt.y) > 0.01) {
+      cleanPts.push(pt);
+    }
+  }
+
+  const pathD = cleanPts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+  const textPathLen = cleanPts.slice(1).reduce((sum, pt, index) => {
+    const prev = cleanPts[index];
+    return sum + Math.abs(pt.x - prev.x) + Math.abs(pt.y - prev.y);
+  }, 0);
+
+  return { pathD, textPathD: pathD, textPathLen, pts: cleanPts };
 }
 
 function reservePort(ctx, nodeId, point, diagramType) {
   if (!point || getRoutingPolicy(diagramType).allowPortReuse) return;
+  const keyPoint = Array.isArray(point) ? point[0] : point;
+  if (!keyPoint) return;
   const key = String(nodeId);
   let used = ctx.usedPorts.get(key);
   if (!used) {
     used = new Set();
     ctx.usedPorts.set(key, used);
   }
-  used.add(`${point.x},${point.y}`);
+  used.add(`${keyPoint.x},${keyPoint.y}`);
 }

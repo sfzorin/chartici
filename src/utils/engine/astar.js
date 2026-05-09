@@ -50,7 +50,12 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   let bestFallbackH = Infinity;
 
   const routingPolicy = getRoutingPolicy(ctx?.diagramType);
-  const portKeyFor = (port) => `${port.anchorPt ? port.anchorPt.x : port.pt.x},${port.anchorPt ? port.anchorPt.y : port.pt.y}`;
+  const pointKeyFor = (point, fallback) => {
+    const p = Array.isArray(point) ? point[0] : point;
+    const keyPoint = p || fallback;
+    return `${keyPoint.x},${keyPoint.y}`;
+  };
+  const portKeyFor = (port) => pointKeyFor(port.anchorPt, port.pt);
   const filterFreePorts = (ports, nodeId) => {
     if (routingPolicy.allowPortReuse || !ctx?.usedPorts) return ports;
     const used = ctx.usedPorts.get(String(nodeId));

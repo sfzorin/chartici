@@ -1,4 +1,3 @@
-import { getSystemPromptPhase1, getSystemPromptPhase2 } from '../assets/systemPrompts.js';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
 
 const DEFAULT_PALETTE = 'basic';
@@ -28,6 +27,13 @@ function promptSuggestsChoices(extendedPrompt) {
   return /\([^)]*[,;/][^)]*\)/.test(text) || /\b(choose|pick|choice|choices|option|options|either|or)\b/.test(text);
 }
 
+function describeNodeCountBudget(diagramType) {
+  const dt = String(diagramType || '').toLowerCase();
+  if (dt === 'timeline') return '18 nodes max; summarize extra events into phases';
+  if (dt === 'matrix') return 'keep matrix zones compact; summarize repeated items';
+  return '18 nodes max; compress long option lists into 2-4 category nodes';
+}
+
 function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
   const dt = diagramType.toLowerCase();
   const groups = cci?.data?.groups || [];
@@ -43,8 +49,8 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
 
   if (groups.length === 0) errors.push('no groups');
   if (realNodes.length < 2) errors.push('too few nodes');
-  const maxReadableNodes = dt === 'matrix' ? Infinity : dt === 'timeline' ? 18 : 14;
-  if (realNodes.length > maxReadableNodes) errors.push('too many nodes for a readable book figure');
+  const maxReadableNodes = dt === 'matrix' ? Infinity : 18;
+  if (realNodes.length > maxReadableNodes) errors.push(`too many nodes for a readable book figure (${describeNodeCountBudget(dt)})`);
 
   for (const node of realNodes) {
     const id = String(node.id || '').trim();
@@ -58,6 +64,12 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
 
   if (dt === 'flowchart') {
     const outgoingCounts = realNodes.map(node => parseNextStepIds(node.nextSteps).length);
+    const incomingCounts = new Map(realNodes.map(node => [String(node.id), 0]));
+    realNodes.forEach(node => {
+      parseNextStepIds(node.nextSteps).forEach(targetId => {
+        incomingCounts.set(String(targetId), (incomingCounts.get(String(targetId)) || 0) + 1);
+      });
+    });
     const edgeCount = outgoingCounts.reduce((sum, count) => sum + count, 0);
     if (edgeCount === 0) errors.push('flowchart has no nextSteps');
     if (realNodes.length >= 5 && groups.filter(g => (g.nodes || []).length > 0).length <= 1) {
@@ -65,6 +77,12 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
     }
     if (promptSuggestsChoices(extendedPrompt) && !outgoingCounts.some(count => count > 1)) {
       errors.push('prompt contains choices, but flowchart is a straight line; preserve choices as branches');
+    }
+    for (const node of realNodes) {
+      const outgoing = parseNextStepIds(node.nextSteps);
+      if (node.type === 'rhombus' && outgoing.length > 6) {
+        errors.push(`decision "${node.label || node.id}" has ${outgoing.length} outgoing links; split choices into category nodes`);
+      }
     }
     for (const node of realNodes) {
       for (const targetId of parseNextStepIds(node.nextSteps)) {
@@ -149,44 +167,15 @@ function inferModeFromDataRow(diagramType, currentMode) {
   return currentMode;
 }
 
-function getRepairMessages(phase2Prompt, extendedPrompt, rawContent, errors) {
-  return [
-    { role: 'system', content: phase2Prompt },
-    {
-      role: 'user',
-      content: `Your previous Markdown could not be parsed or failed quality checks.
-
-Return ONLY corrected Markdown tables for the same diagram type.
-Do not explain anything.
-Do not use JSON.
-Do not wrap the answer in XML tags.
-Keep the diagram compact and book-readable.
-
-Original task:
-${extendedPrompt}
-
-Validation errors:
-${errors.map(error => `- ${error}`).join('\n')}
-
-Previous answer:
-${rawContent || '(empty response)'}`
-    }
-  ];
-}
-
 /**
- * Helper to call the DeepSeek API proxy
+ * Helper to call the backend-owned generation proxy.
+ * The browser never sends raw system/user message arrays; the backend builds them.
  */
-async function callDeepSeek(messages, temp = 0.3, isJson = false) {
+async function callGenerationTask(payload) {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages,
-      model: 'deepseek-chat',
-      temperature: temp,
-      ...(isJson ? { response_format: { type: 'json_object' } } : {})
-    })
+    body: JSON.stringify(payload)
   });
   return res.json();
 }
@@ -216,12 +205,7 @@ export async function planDiagram(userPrompt) {
   // ----------------------------------------------------
   // PHASE 1: Planning and Prompt Expansion
   // ----------------------------------------------------
-  const phase1Messages = [
-    { role: 'system', content: getSystemPromptPhase1() },
-    { role: 'user', content: userPrompt }
-  ];
-
-  const phase1Data = await callDeepSeek(phase1Messages, 0.3, false);
+  const phase1Data = await callGenerationTask({ task: 'plan', userPrompt });
   if (!phase1Data.success) {
     return { success: false, error: phase1Data.error || 'Unknown error in Phase 1' };
   }
@@ -249,17 +233,11 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   // ----------------------------------------------------
   // PHASE 2: Table Parsing Generation
   // ----------------------------------------------------
-  const phase2Prompt = getSystemPromptPhase2(diagramType);
-  const phase2Messages = [
-    { role: 'system', content: phase2Prompt },
-    { role: 'user', content: extendedPrompt }
-  ];
-
-  let messages = phase2Messages;
+  let requestPayload = { task: 'build', diagramType, extendedPrompt };
   let lastFailure = { error: 'AI returned unexpected format — try again' };
 
   for (let attempt = 0; attempt < 2; attempt++) {
-  const phase2Data = await callDeepSeek(messages, attempt === 0 ? 0.1 : 0.05, false); // No JSON mode
+  const phase2Data = await callGenerationTask(requestPayload);
   if (!phase2Data.success) {
     return { success: false, error: phase2Data.error || 'Unknown error in Phase 2' };
   }
@@ -269,7 +247,8 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   // PARSING ALGORITHM
   const parsed = {
     meta: { type: diagramType, version: "1.0.0" },
-    data: { config: { title, aspect: '16:9' }, groups: [], edges: [] }
+    title: { text: title, size: 'M' },
+    data: { config: { titleText: title, aspect: '16:9' }, groups: [], edges: [] }
   };
   
   const lines = rawContent.split('\n');
@@ -513,7 +492,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       const parseErrors = ['no parseable Markdown tables or groups'];
       lastFailure = { error: 'AI returned unexpected format — try again' };
       if (attempt === 0) {
-        messages = getRepairMessages(phase2Prompt, extendedPrompt, rawContent, parseErrors);
+        requestPayload = { task: 'repair', diagramType, extendedPrompt, rawContent, errors: parseErrors };
         continue;
       }
       return lastFailure;
@@ -543,7 +522,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     console.error('Phase 2 quality failure:', qualityErrors);
     lastFailure = { error: `AI returned a low-quality diagram: ${qualityErrors.slice(0, 3).join('; ')}` };
     if (attempt === 0) {
-      messages = getRepairMessages(phase2Prompt, extendedPrompt, rawContent, qualityErrors.slice(0, 8));
+      requestPayload = { task: 'repair', diagramType, extendedPrompt, rawContent, errors: qualityErrors.slice(0, 8) };
       continue;
     }
     return lastFailure;

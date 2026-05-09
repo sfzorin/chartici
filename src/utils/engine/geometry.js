@@ -154,13 +154,23 @@ export function getNodePorts(node, box, penaltyFn = defaultPortPenalty, options 
     const sz = (size === 'XS' ? 'S' : size === 'XL' ? 'L' : size);
     const swoopDefs = nodeDef.diagonalPorts[sz] || nodeDef.diagonalPorts.M || [];
     swoopDefs.forEach(d => {
+      const anchor = { x: box.cx + d.anchor.dx, y: box.cy + d.anchor.dy };
+      const snappedExit = d.axis === 'H'
+        ? {
+            x: d.sign === 1 ? gxRight : gxLeft,
+            y: Math.round(anchor.y / 20) * 20,
+          }
+        : {
+            x: Math.round(anchor.x / 20) * 20,
+            y: d.sign === 1 ? gyBottom : gyTop,
+          };
       ports.push({
-        pt:       { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy },
+        pt: snappedExit,
         anchorPt: [
-          { x: box.cx + d.anchor.dx, y: box.cy + d.anchor.dy },
-          { x: box.cx + d.exit.dx,   y: box.cy + d.exit.dy   },
+          anchor,
+          snappedExit,
         ],
-        axis: d.axis, sign: d.sign, dir: d.dir, penalty: penaltyFn(d.dir, w, h), isDiagonal: true,
+        axis: d.axis, sign: d.sign, dir: d.dir, penalty: penaltyFn(d.penaltyId || d.dir, w, h), isDiagonal: true,
       });
     });
   }

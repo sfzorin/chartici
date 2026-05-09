@@ -43,14 +43,17 @@ Request:
 
 ```json
 {
-  "messages": [
-    { "role": "system", "content": "..." },
-    { "role": "user", "content": "..." }
-  ],
-  "model": "deepseek-chat",
-  "temperature": 0.1
+  "task": "build",
+  "diagramType": "flowchart",
+  "extendedPrompt": "- Teaching idea: ..."
 }
 ```
+
+Supported tasks:
+
+- `plan`: `{ "task": "plan", "userPrompt": "..." }`
+- `build`: `{ "task": "build", "diagramType": "flowchart", "extendedPrompt": "..." }`
+- `repair`: `{ "task": "repair", "diagramType": "flowchart", "extendedPrompt": "...", "rawContent": "...", "errors": ["..."] }`
 
 Response:
 
@@ -66,26 +69,27 @@ Error response:
 ```json
 {
   "success": false,
-  "error": "Unsupported model"
+  "error": "Unsupported generation task"
 }
 ```
 
 ## Validation
 
-The proxy intentionally does not accept arbitrary DeepSeek parameters.
+The proxy intentionally does not accept arbitrary DeepSeek messages or parameters.
+System prompts are assembled on the backend from the shared prompt builders in `src/assets/systemPrompts.js`.
 
 Allowed:
 
-- `messages`: non-empty array of `{ role, content }`
-- `model`: `deepseek-chat`
-- `temperature`: finite number, clamped to `0..2`
-- `response_format`: omitted or `{ "type": "json_object" }`
+- `task`: `plan`, `build`, or `repair`
+- task-specific text fields listed above
 
 Rejected:
 
-- unsupported models
-- malformed messages
-- unsupported response formats
+- raw `messages`
+- raw `model`
+- raw `temperature`
+- raw `response_format`
+- malformed task payloads
 - missing API key
 
 ## Protection
@@ -93,6 +97,7 @@ Rejected:
 - Request body limit: `1mb`
 - Rate limit: 10 requests per minute per client IP on `/api/generate`
 - DeepSeek timeout: 120 seconds
+- Prompt-injection surface is reduced: the browser can submit only task payloads, not system prompts or arbitrary chat messages
 - Logs contain request metadata, not prompt contents
 
 ## Deployment Notes
