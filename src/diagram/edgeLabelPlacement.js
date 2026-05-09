@@ -61,10 +61,11 @@ function getFlowchartLabelPlacement(displayLabel, pts, labelStyle) {
   }
 
   if (!best) return null;
+  const offset = Math.abs(labelStyle.offsetY ?? -7);
   const t = Math.min(0.48, (labelWidth / 2 + sourceGap) / best.len);
   return {
-    x: best.a.x + best.dx * t + (best.horizontal ? 0 : -7),
-    y: best.a.y + best.dy * t + (best.horizontal ? -7 : 0),
+    x: best.a.x + best.dx * t + (best.horizontal ? 0 : -offset),
+    y: best.a.y + best.dy * t + (best.horizontal ? -offset : 0),
     labelWidth: best.labelWidth,
     labelHeight: best.labelHeight,
     angle: best.horizontal ? 0 : -90,
@@ -95,7 +96,7 @@ function getErdLabelPlacement(displayLabel, pts, labelStyle) {
   const best = candidates.sort((a, b) => b.score - a.score)[0];
   if (!best) return null;
 
-  const offset = 7;
+  const offset = Math.abs(labelStyle.offsetY ?? -7);
   return {
     x: best.a.x + best.dx * 0.5 + (best.horizontal ? 0 : -offset),
     y: best.a.y + best.dy * 0.5 + (best.horizontal ? -offset : 0),

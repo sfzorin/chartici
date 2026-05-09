@@ -60,7 +60,7 @@ export default {
             basePadding: 2,
             arrowPadding: 0,
             haloWidth: 3,
-            offsetY: -5,
+            offsetY: -7,
         },
     },
 
