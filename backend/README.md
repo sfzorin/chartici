@@ -111,6 +111,13 @@ PORT=3001
 
 The frontend should proxy `/api/generate` and `/api/health` to this service.
 
+The backend Docker image must be built from the repository root, not from `backend/`,
+because the proxy imports shared prompt builders from `src/assets/systemPrompts.js`:
+
+```bash
+docker build -f backend/Dockerfile -t chartici-api .
+```
+
 ## Related Frontend Files
 
 - `src/services/aiGenerate.js`

@@ -9,7 +9,9 @@ services:
       - internal
 
   api:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: chartici-api
     restart: unless-stopped
     environment:
