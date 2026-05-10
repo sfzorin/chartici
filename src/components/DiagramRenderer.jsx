@@ -14,6 +14,7 @@ import Icon from './Icons';
 import { computeBindings, getAxisDir } from '../utils/layout';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import { getEngine } from '../engines/index.js';
+import { layoutPiechart } from '../utils/layouts/layoutPiechart.js';
 
 const normalizeEdgeEndpoints = (edge) => {
   const from = edge.from ?? edge.sourceId;
@@ -151,12 +152,21 @@ export default function DiagramRenderer({
   const computedNodes = useMemo(() => {
      const bound = computeBindings(nodes);
      if (diagramType === 'piechart') {
-         return bound.map(n => {
-            if (n.type !== 'text' && n.type !== 'title') {
-                return { ...n, type: 'pie_slice' };
-            }
-            return n;
-         });
+         const textNodes = bound.filter(n => n.type === 'text' || n.type === 'title');
+         const sliceNodes = bound
+           .filter(n => n.type !== 'text' && n.type !== 'title')
+           .map(n => ({ ...n, type: 'pie_slice' }));
+         if (sliceNodes.length === 0) return textNodes;
+
+         const anchorX = sliceNodes.find(n => Number.isFinite(Number(n.x)))?.x ?? 0;
+         const anchorY = sliceNodes.find(n => Number.isFinite(Number(n.y)))?.y ?? 0;
+         const normalizedSlices = layoutPiechart(sliceNodes, [], {}).map(slice => ({
+            ...slice,
+            x: anchorX + (slice.x || 0),
+            y: anchorY + (slice.y || 0),
+            isPieSlice: true,
+         }));
+         return [...normalizedSlices, ...textNodes];
      }
      return bound;
   }, [nodes, diagramType]);

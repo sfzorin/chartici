@@ -30,7 +30,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
   const specifiedColors = sortedNodes
     .map(n => n.color)
     .filter(color => color !== undefined && color !== null && String(color).toLowerCase() !== 'transparent');
-  const shouldAutoColorSlices = new Set(specifiedColors.map(color => String(color))).size <= 1;
+  const shouldAutoColorSlices = specifiedColors.length === 0;
 
   let currentAngle = 0;
   const layedOut = sortedNodes.map((n, idx) => {

@@ -29,6 +29,7 @@ function promptSuggestsChoices(extendedPrompt) {
 
 function describeNodeCountBudget(diagramType) {
   const dt = String(diagramType || '').toLowerCase();
+  if (dt === 'tree') return '32 nodes max; preserve useful category levels and summarize only repetitive leaves';
   if (dt === 'timeline') return '18 nodes max; summarize extra events into phases';
   if (dt === 'matrix') return 'keep matrix zones compact; summarize repeated items';
   return '18 nodes max; compress long option lists into 2-4 category nodes';
@@ -49,7 +50,7 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
 
   if (groups.length === 0) errors.push('no groups');
   if (realNodes.length < 2) errors.push('too few nodes');
-  const maxReadableNodes = dt === 'matrix' ? Infinity : 18;
+  const maxReadableNodes = dt === 'matrix' ? Infinity : (dt === 'tree' ? 32 : 18);
   if (realNodes.length > maxReadableNodes) errors.push(`too many nodes for a readable book figure (${describeNodeCountBudget(dt)})`);
 
   for (const node of realNodes) {
@@ -121,6 +122,16 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
   }
 
   return errors;
+}
+
+function applyGeneratedPieSliceColors(parsed, diagramType) {
+  if (String(diagramType || '').toLowerCase() !== 'piechart') return;
+  const slices = (parsed?.data?.groups || [])
+    .flatMap(group => group.nodes || [])
+    .filter(node => node.type === 'pie_slice');
+  slices.forEach((slice, index) => {
+    slice.color = (index % 9) + 1;
+  });
 }
 
 function getExplicitEdgeKey(diagramType) {
@@ -529,6 +540,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   }
 
   parsed.theme = DEFAULT_PALETTE;
+  applyGeneratedPieSliceColors(parsed, diagramType);
   parsed.data.config = {
     ...(parsed.data.config || {}),
     bgColor: 'white',

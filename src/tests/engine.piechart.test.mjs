@@ -33,6 +33,17 @@ test('Auto-assigns distinct slice colors when input is uncolored', () => {
   expect(colors.size, 3, 'distinct color count');
 });
 
+test('Preserves intentionally repeated slice colors', () => {
+  const sameColorNodes = [
+    makeNode('A', 0, 0, 'pie_slice', 'M', { value: 40, color: 1 }),
+    makeNode('B', 0, 0, 'pie_slice', 'M', { value: 35, color: 1 }),
+    makeNode('C', 0, 0, 'pie_slice', 'M', { value: 25, color: 1 })
+  ];
+  const sameColorSlices = layoutPiechart(sameColorNodes, [], { PADDING: 0 });
+  const colors = new Set(sameColorSlices.map(slice => slice.color));
+  expect(colors.size, 1, 'single color preserved');
+});
+
 test('Forces node types to pie_slice', () => {
     // If they were passed as 'process' or something else, layoutPiechart should force 'pie_slice'
     const wrongTypeNodes = [makeNode('X', 0, 0, 'process', 'M', { value: 100 })];
