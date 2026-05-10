@@ -27,6 +27,11 @@ export function layoutPiechart(nodes, edges, layoutRules) {
 
   if (totalSize === 0) return nodes;
 
+  const specifiedColors = sortedNodes
+    .map(n => n.color)
+    .filter(color => color !== undefined && color !== null && String(color).toLowerCase() !== 'transparent');
+  const shouldAutoColorSlices = new Set(specifiedColors.map(color => String(color))).size <= 1;
+
   let currentAngle = 0;
   const layedOut = sortedNodes.map((n, idx) => {
     let val = parseFloat(n.value);
@@ -47,8 +52,10 @@ export function layoutPiechart(nodes, edges, layoutRules) {
       type: 'pie_slice',
       x: explodeX,
       y: explodeY,
+      color: shouldAutoColorSlices ? (idx % 9) + 1 : n.color,
       pieStartAngle: startAngle,
       pieEndAngle: endAngle,
+      piePercent: totalSize > 0 ? (val / totalSize) * 100 : 0,
       pieExploded: n.size === 'L',
     };
   });
@@ -56,8 +63,8 @@ export function layoutPiechart(nodes, edges, layoutRules) {
 
   // Second pass: Rigorous angular collision detection
   const R = PIE_CONSTS.collisionR;
-  const TEXT_SPAN_PIXELS = 22; // Physical pixel leeway requested per line
-  const STAGGER_STEP = 25; // Radial spacing between cascade levels
+  const TEXT_SPAN_PIXELS = 42; // Larger callout labels need more angular room
+  const STAGGER_STEP = 32; // Radial spacing between cascade levels
   
   // Track maximum occupied angle for levels [0, 1, 2]
   let lastOccupiedAngles = [0, 0, 0];
@@ -74,7 +81,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
        
        // Process up to 3 radial levels for collision cascading
        for (let level = 0; level <= 2; level++) {
-           const labelR = R + 20 + level * STAGGER_STEP;
+           const labelR = R + 30 + level * STAGGER_STEP;
            // Convert required pixel span to angular span at this specific radius
            const trueRequiredHalf = (TEXT_SPAN_PIXELS / labelR) / 2;
            const desiredStart = midAngle - trueRequiredHalf;
@@ -91,7 +98,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
        if (!placed) {
            // Cascade exhausted. Throw label over 12 o'clock boundary to right side.
            targetStagger = 0; 
-           const labelR = R + 20;
+           const labelR = R + 30;
            const trueRequiredHalf = (TEXT_SPAN_PIXELS / labelR) / 2;
            targetLabelAngle = overflowAngle + trueRequiredHalf;
            overflowAngle = targetLabelAngle + trueRequiredHalf;

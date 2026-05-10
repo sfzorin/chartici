@@ -257,6 +257,7 @@ export default function DiagramRenderer({
   }, [hoveredNodeId]);
 
   const handleStartConnection = useCallback((nodeId, port, pointerId) => {
+    if (!activeSchema?.features?.allowConnections) return;
     const node = nodesRef.current.find(n => n.id === nodeId);
     if (!node) return;
     
@@ -338,7 +339,7 @@ export default function DiagramRenderer({
     window.addEventListener('pointermove', handleWindowMove);
     window.addEventListener('pointerup', handleWindowUp);
 
-  }, [onConnect, pan, zoom]);
+  }, [activeSchema, onConnect, pan, zoom]);
 
 
 

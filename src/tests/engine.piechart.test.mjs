@@ -15,6 +15,7 @@ const slices = layoutPiechart(nodes, [], { PADDING: 0 });
 test('Calculates percentages correctly', () => {
   expect(slices.length, 3, 'slices count');
   expect(slices[0].pieStartAngle, 0, 'first starts at 0');
+  expect(slices[0].piePercent, 60, 'slice A percent');
   
   const expectedEndA = (60 / totalVal) * Math.PI * 2;
   expect(Math.abs(slices[0].pieEndAngle - expectedEndA) < 0.001, true, 'slice A end');
@@ -25,6 +26,11 @@ test('Calculates percentages correctly', () => {
   expect(Math.abs(slices[1].pieEndAngle - expectedEndB) < 0.001, true, 'slice B end');
   
   expect(Math.abs(slices[2].pieEndAngle - Math.PI * 2) < 0.001, true, 'slice C ends exactly at 2PI');
+});
+
+test('Auto-assigns distinct slice colors when input is uncolored', () => {
+  const colors = new Set(slices.map(slice => slice.color));
+  expect(colors.size, 3, 'distinct color count');
 });
 
 test('Forces node types to pie_slice', () => {

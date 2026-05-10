@@ -27,7 +27,7 @@ STRICT RULES:
 - Use groups only when they clarify the reader's mental model.
 - Every important relationship must be explicit. Do not rely on visual proximity.
 - Use group roles in a logical order: primary concept, supporting concept, decision/risk, outcome, neutral context.
-- For tree diagrams, preserve hierarchy levels from the request: named categories/branches must be visible intermediate nodes, not just group colors.
+- For tree and radial diagrams, preserve hierarchy levels from the request: named categories/branches/clusters must be visible intermediate nodes, not just group colors.
 
 Output EXACTLY three XML tags and nothing else:
 <title>Concise diagram title (3-6 words)</title>

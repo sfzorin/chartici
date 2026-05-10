@@ -261,6 +261,8 @@ async function runTests() {
 
   const treePrompt = getSystemPromptPhase2('tree');
   assert.ok(treePrompt.includes('root → category nodes → leaf nodes'), 'tree prompt should require visible category nodes');
+  const radialPrompt = getSystemPromptPhase2('radial');
+  assert.ok(radialPrompt.includes('center → category nodes → leaf nodes'), 'radial prompt should require visible category nodes');
 
   currentTestType = 'sequence';
   MOCK_RESPONSES.sequence = `

@@ -455,11 +455,13 @@ function App() {
   };
   
   const connectToNode = (targetId) => {
+    if (!activeSchema?.features?.allowConnections) return;
     if (!selectedNodeId || !targetId || selectedNodeId === targetId) return;
     handleConnectionDrag(selectedNodeId, targetId);
   };
 
   const handleConnectionDrag = (sourceId, targetId) => {
+    if (!activeSchema?.features?.allowConnections) return;
     if (!sourceId || !targetId || sourceId === targetId) return;
     
     const duplicateExists = diagramData.edges.some(e => 
