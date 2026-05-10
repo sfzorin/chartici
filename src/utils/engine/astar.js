@@ -56,16 +56,21 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
     return `${keyPoint.x},${keyPoint.y}`;
   };
   const portKeyFor = (port) => pointKeyFor(port.anchorPt, port.pt);
-  const filterFreePorts = (ports, nodeId) => {
+  const filterFreePorts = (ports, nodeId, role) => {
     if (routingPolicy.allowPortReuse || !ctx?.usedPorts) return ports;
+    const node = ctx.allNodes?.find(n => String(n.id) === String(nodeId));
+    const isDecisionFanInTarget = role === 'end' && ctx.diagramType === 'flowchart' && node?.type === 'rhombus';
+    if (isDecisionFanInTarget) return ports;
+
     const used = ctx.usedPorts.get(String(nodeId));
     if (!used) return ports;
 
     const free = ports.filter(port => !used.has(portKeyFor(port)));
-    return free.length > 0 ? free : ports;
+    return free;
   };
-  const candidateStartPorts = filterFreePorts(startPorts, startNodeId);
-  const candidateEndPorts = filterFreePorts(endPorts, endNodeId);
+  const candidateStartPorts = filterFreePorts(startPorts, startNodeId, 'start');
+  const candidateEndPorts = filterFreePorts(endPorts, endNodeId, 'end');
+  if (candidateStartPorts.length === 0 || candidateEndPorts.length === 0) return null;
 
   // Map end ports to their safe approach coordinates
   const safeTargets = candidateEndPorts.map(p => {
@@ -305,6 +310,10 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                 if (!sameType) {
                     strictBan = true; break; // Different types NEVER bundle
                 }
+
+                if (!allowBusPremium) {
+                    strictBan = true; break; // Non-tree diagrams NEVER bundle shared trunks.
+                }
                 
                 const sameStartNode = line.startNodeId === startNodeId;
                 if (!sameStartNode) {
@@ -312,11 +321,6 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
                     continue;
                 }
 
-                if (!allowBusPremium) {
-                    invalidOverlap = true;
-                    continue;
-                }
-                
                 isBusOverlap = true; 
             }
 

@@ -214,6 +214,10 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
       unbundledSegments = clearSegments;
 
       if (unbundledSegments.length === 0) {
+          unbundledSegments = segments;
+      }
+
+      if (unbundledSegments.length === 0) {
           textPathD = null;
           textPathLen = 0;
       } else {

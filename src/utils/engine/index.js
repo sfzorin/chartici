@@ -1,6 +1,6 @@
 import { getDiagramRules } from '../diagramRules.js';
 import { RoutingContext } from './RoutingContext.js';
-import { getTrueBox, isBlockedPointCheck, getNodePorts, getClipDist } from './geometry.js';
+import { getTrueBox, isBlockedPointCheck, isSegmentBlockedCheck, getNodePorts, getClipDist } from './geometry.js';
 import { runAStar } from './astar.js';
 import { generateSVGPaths } from './svgPaths.js';
 import { GRID } from '../../diagram/canvas.js';
@@ -283,10 +283,23 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     }
 
     if (!finalPts) {
-       finalPts = fallbackPts || [ { x: startBox.cx, y: startBox.cy }, { x: endBox.cx, y: endBox.cy } ];
-       if (!fallbackPts) result[edge.id] = { isFallback: true };
-       chosenStartPt = finalPts[0];
-       chosenEndPt = finalPts[finalPts.length - 1];
+       const portFallback = fallbackPts ? null : buildPortRespectingFallback(
+         rStartPorts,
+         rEndPorts,
+         rStartNodeId,
+         rEndNodeId,
+         ctx,
+         GRID.step
+       );
+       finalPts = fallbackPts || portFallback?.pts || [ { x: startBox.cx, y: startBox.cy }, { x: endBox.cx, y: endBox.cy } ];
+       if (!fallbackPts && !portFallback) result[edge.id] = { isFallback: true };
+       chosenStartPt = portFallback
+         ? (isChevronToEvent ? portFallback.trueEndPt : portFallback.trueStartPt)
+         : finalPts[0];
+       chosenEndPt = portFallback
+         ? (isChevronToEvent ? portFallback.trueStartPt : portFallback.trueEndPt)
+         : finalPts[finalPts.length - 1];
+       if (portFallback && isChevronToEvent) finalPts = [...finalPts].reverse();
     }
 
     reservePort(ctx, startNode.id, chosenStartPt, diagramType);
@@ -379,30 +392,164 @@ function applyDecisionFanInGrouping(result, edgeInfos, diagramType) {
   }
 
   for (const [, infos] of incoming) {
-    if (infos.length < 3) continue;
-    const endBox = infos[0].endBox;
-    const avgSourceX = infos.reduce((sum, info) => sum + info.startBox.cx, 0) / infos.length;
-    const avgSourceY = infos.reduce((sum, info) => sum + info.startBox.cy, 0) / infos.length;
-    const dir = Math.abs(avgSourceX - endBox.cx) >= Math.abs(avgSourceY - endBox.cy)
-      ? (avgSourceX < endBox.cx ? 'Left' : 'Right')
-      : (avgSourceY < endBox.cy ? 'Top' : 'Bottom');
+    const buckets = new Map();
+    for (const info of infos) {
+      const key = edgeStyleKey(info.edge);
+      if (!buckets.has(key)) buckets.set(key, { infos: [] });
+      buckets.get(key).infos.push(info);
+    }
 
-    const entry = getBoxSidePoint(endBox, dir);
-    const mergeGap = 46;
-    const merge = {
-      x: entry.x + (dir === 'Left' ? -mergeGap : dir === 'Right' ? mergeGap : 0),
-      y: entry.y + (dir === 'Top' ? -mergeGap : dir === 'Bottom' ? mergeGap : 0),
-    };
-
-    infos.forEach(info => {
-      const pathData = buildGroupedFanInPath(info.startNode, info.startBox, entry, merge, dir);
-      result[info.edge.id] = {
-        ...result[info.edge.id],
-        ...pathData,
-        groupedFanIn: true,
+    for (const bucket of buckets.values()) {
+      if (bucket.infos.length < 2) continue;
+      const endBox = bucket.infos[0].endBox;
+      const dir = chooseDecisionFanInDir(bucket.infos, endBox);
+      const entry = getBoxSidePoint(endBox, dir);
+      const mergeGap = 64;
+      const merge = {
+        x: entry.x + (dir === 'Left' ? -mergeGap : dir === 'Right' ? mergeGap : 0),
+        y: entry.y + (dir === 'Top' ? -mergeGap : dir === 'Bottom' ? mergeGap : 0),
       };
-    });
+
+      bucket.infos.forEach(info => {
+        const pathData = buildGroupedFanInPath(result[info.edge.id]?.pts, entry, merge, dir);
+        result[info.edge.id] = {
+          ...result[info.edge.id],
+          ...pathData,
+          groupedFanIn: true,
+        };
+      });
+    }
   }
+}
+
+function buildPortRespectingFallback(startPorts, endPorts, startNodeId, endNodeId, ctx, gridStep) {
+  const starts = filterPortsForFallback(startPorts, startNodeId, 'start', ctx);
+  const ends = filterPortsForFallback(endPorts, endNodeId, 'end', ctx);
+  if (starts.length === 0 || ends.length === 0) return null;
+
+  let best = null;
+  for (const startPort of starts) {
+    for (const endPort of ends) {
+      for (const pts of buildOrthogonalFallbackCandidates(startPort, endPort, gridStep)) {
+        if (pathBlocked(pts, startNodeId, endNodeId, ctx)) continue;
+        const score = pathLength(pts) + countBends(pts) * 180 + (startPort.penalty || 0) + (endPort.penalty || 0);
+        if (!best || score < best.score) {
+          best = {
+            score,
+            pts,
+            trueStartPt: startPort.anchorPt || startPort.pt,
+            trueEndPt: endPort.anchorPt || endPort.pt,
+          };
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function filterPortsForFallback(ports, nodeId, role, ctx) {
+  const routingPolicy = getRoutingPolicy(ctx?.diagramType);
+  if (routingPolicy.allowPortReuse || !ctx?.usedPorts) return ports;
+  const node = ctx.allNodes?.find(n => String(n.id) === String(nodeId));
+  const isDecisionFanInTarget = role === 'end' && ctx.diagramType === 'flowchart' && node?.type === 'rhombus';
+  if (isDecisionFanInTarget) return ports;
+
+  const used = ctx.usedPorts.get(String(nodeId));
+  if (!used) return ports;
+  return ports.filter(port => !used.has(portKeyForFallback(port)));
+}
+
+function buildOrthogonalFallbackCandidates(startPort, endPort, gridStep) {
+  const startStub = portStubPoint(startPort, gridStep);
+  const endStub = portStubPoint(endPort, gridStep);
+  const prefix = expandStartPort(startPort, startStub);
+  const suffix = expandEndPort(endPort, endStub);
+  const midA = { x: endStub.x, y: startStub.y };
+  const midB = { x: startStub.x, y: endStub.y };
+  return [
+    cleanPointList([...prefix, midA, ...suffix]),
+    cleanPointList([...prefix, midB, ...suffix]),
+  ];
+}
+
+function expandStartPort(port, stub) {
+  const anchors = Array.isArray(port.anchorPt) ? port.anchorPt : [port.anchorPt || port.pt];
+  return cleanPointList([...anchors, port.pt, stub]);
+}
+
+function expandEndPort(port, stub) {
+  const anchors = Array.isArray(port.anchorPt) ? port.anchorPt : [port.anchorPt || port.pt];
+  return cleanPointList([stub, port.pt, ...anchors.slice().reverse()]);
+}
+
+function portStubPoint(port, gridStep) {
+  return {
+    x: port.pt.x + (port.axis === 'H' ? port.sign * gridStep : 0),
+    y: port.pt.y + (port.axis === 'V' ? port.sign * gridStep : 0),
+  };
+}
+
+function portKeyForFallback(port) {
+  const point = Array.isArray(port.anchorPt) ? port.anchorPt[0] : (port.anchorPt || port.pt);
+  return `${point.x},${point.y}`;
+}
+
+function pathBlocked(pts, startNodeId, endNodeId, ctx) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (isSegmentBlockedCheck(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, startNodeId, endNodeId, false, ctx)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function pathLength(pts) {
+  return pts.slice(1).reduce((sum, pt, index) => sum + Math.abs(pt.x - pts[index].x) + Math.abs(pt.y - pts[index].y), 0);
+}
+
+function countBends(pts) {
+  let bends = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const prevH = pts[i].y === pts[i - 1].y;
+    const nextH = pts[i + 1].y === pts[i].y;
+    if (prevH !== nextH) bends++;
+  }
+  return bends;
+}
+
+function cleanPointList(pts) {
+  const out = [];
+  for (const pt of pts) {
+    const prev = out[out.length - 1];
+    if (!prev || Math.abs(prev.x - pt.x) > 0.01 || Math.abs(prev.y - pt.y) > 0.01) {
+      out.push(pt);
+    }
+  }
+  return out;
+}
+
+function edgeStyleKey(edge) {
+  return [
+    edge?.lineStyle || 'solid',
+    edge?.connectionType || edge?.arrowType || 'target',
+  ].join(':');
+}
+
+function getRelativeCardinal(dx, dy) {
+  if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'Left' : 'Right';
+  return dy < 0 ? 'Top' : 'Bottom';
+}
+
+function chooseDecisionFanInDir(infos, endBox) {
+  const leftInputs = infos.filter(info => info.startBox.cx < endBox.left - 20);
+  if (leftInputs.length > 0) return 'Left';
+
+  const rightInputs = infos.filter(info => info.startBox.cx > endBox.right + 20);
+  if (rightInputs.length > 0) return 'Right';
+
+  const avgSourceX = infos.reduce((sum, info) => sum + info.startBox.cx, 0) / infos.length;
+  const avgSourceY = infos.reduce((sum, info) => sum + info.startBox.cy, 0) / infos.length;
+  return getRelativeCardinal(avgSourceX - endBox.cx, avgSourceY - endBox.cy);
 }
 
 function getBoxSidePoint(box, dir) {
@@ -412,20 +559,18 @@ function getBoxSidePoint(box, dir) {
   return { x: box.cx, y: box.bottom };
 }
 
-function buildGroupedFanInPath(startNode, startBox, entry, merge, dir) {
-  const firstBusPoint = (dir === 'Left' || dir === 'Right')
-    ? { x: merge.x, y: startBox.cy }
-    : { x: startBox.cx, y: merge.y };
-  const vx = firstBusPoint.x - startBox.cx;
-  const vy = firstBusPoint.y - startBox.cy;
-  const len = Math.hypot(vx, vy) || 1;
-  const clip = getClipDist(startNode, startBox.cx, startBox.cy, vx / len, vy / len);
-  const start = {
-    x: startBox.cx + (vx / len) * clip,
-    y: startBox.cy + (vy / len) * clip,
-  };
+function buildGroupedFanInPath(existingPts, entry, merge, dir) {
+  const sourcePts = Array.isArray(existingPts) && existingPts.length >= 2
+    ? existingPts.slice(0, -1)
+    : [];
+  const last = sourcePts[sourcePts.length - 1];
+  const bend = last
+    ? ((dir === 'Left' || dir === 'Right')
+      ? { x: merge.x, y: last.y }
+      : { x: last.x, y: merge.y })
+    : null;
 
-  const pts = [start, firstBusPoint, merge, entry];
+  const pts = [...sourcePts, bend, merge, entry].filter(Boolean);
   const cleanPts = [];
   for (const pt of pts) {
     const prev = cleanPts[cleanPts.length - 1];

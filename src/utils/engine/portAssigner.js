@@ -81,6 +81,10 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
       applyTreePenalties(endPorts, treeEntryAssignments.get(edge.id), tgtBox, tgt);
       // Note: we keep all ports so A* can fall back if the golden port is saturated
     } else {
+      if (diagramType === 'flowchart') {
+        startPorts = keepFlowchartAutoPorts(startPorts, src);
+        endPorts = keepFlowchartAutoPorts(endPorts, tgt);
+      }
       // 'dynamic' strategy: L-ray obstacle-aware penalties (default for freeform graphs)
       applyFlowchartPenalties(startPorts, src, tgtBox, ctx, src.id, tgt.id);
       applyFlowchartPenalties(endPorts, tgt, srcBox, ctx, src.id, tgt.id);
@@ -92,6 +96,11 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   }
 
   return result;
+}
+
+function keepFlowchartAutoPorts(ports, node) {
+  if (node?.type === 'rhombus') return ports;
+  return ports.filter(port => !String(port.dir || '').startsWith('Bif'));
 }
 
 function assignDecisionEntryPorts(edges, nodeMap) {
@@ -109,15 +118,37 @@ function assignDecisionEntryPorts(edges, nodeMap) {
   }
 
   for (const [, list] of incoming) {
-    if (list.length < 3) continue;
-    const tgtBox = list[0].tgtBox;
-    const avgSourceX = average(list.map(item => item.srcBox.cx));
-    const avgSourceY = average(list.map(item => item.srcBox.cy));
-    const dir = cardinalForVector(avgSourceX - tgtBox.cx, avgSourceY - tgtBox.cy);
-    list.forEach(item => assignments.set(item.edge.id, dir));
+    const buckets = new Map();
+    for (const item of list) {
+      const key = edgeStyleKey(item.edge);
+      if (!buckets.has(key)) buckets.set(key, { items: [] });
+      buckets.get(key).items.push(item);
+    }
+
+    for (const bucket of buckets.values()) {
+      if (bucket.items.length < 2) continue;
+      const tgtBox = bucket.items[0].tgtBox;
+      const dir = chooseDecisionEntryDir(bucket.items, tgtBox);
+      bucket.items.forEach(item => assignments.set(item.edge.id, dir));
+    }
   }
 
   return assignments;
+}
+
+function edgeStyleKey(edge) {
+  return [
+    edge?.lineStyle || 'solid',
+    edge?.connectionType || edge?.arrowType || 'target',
+  ].join(':');
+}
+
+function chooseDecisionEntryDir(items, tgtBox) {
+  if (items.some(item => item.srcBox.cx < tgtBox.left - 20)) return 'Left';
+  if (items.some(item => item.srcBox.cx > tgtBox.right + 20)) return 'Right';
+  const avgSourceX = average(items.map(item => item.srcBox.cx));
+  const avgSourceY = average(items.map(item => item.srcBox.cy));
+  return cardinalForVector(avgSourceX - tgtBox.cx, avgSourceY - tgtBox.cy);
 }
 
 function assignCircleExitPorts(edges, nodeMap) {
@@ -208,6 +239,7 @@ function applyFlowchartPenalties(ports, node, tgtBox, ctx, srcId, tgtId) {
   const srcBox = getTrueBox(node);
   
   for (const p of ports) {
+    const declaredPenalty = p.penalty || 0;
     const sizeD = Math.max(20, p.axis === 'V' ? (srcBox.right - srcBox.left) : (srcBox.bottom - srcBox.top));
     p.sizeD = sizeD;
     const cat = getPortCategory(p, srcBox, tgtBox);
@@ -226,12 +258,12 @@ function applyFlowchartPenalties(ports, node, tgtBox, ctx, srcId, tgtId) {
     }
 
     // Offset / Bifurcation penalty addition
-    const isOffset = p.penalty > 0;
+    const isOffset = declaredPenalty > 0;
     if (isOffset) {
-      basePenalty += 2 * sizeD;
+      basePenalty += declaredPenalty + 2 * sizeD;
     }
-    if (node.type === 'circle' && p.isDiagonal) {
-      basePenalty += 5 * sizeD;
+    if ((node.type === 'circle' || node.type === 'rhombus') && p.isDiagonal) {
+      basePenalty += (node.type === 'rhombus' ? 10 : 5) * sizeD;
     }
 
     p.penalty = basePenalty;
