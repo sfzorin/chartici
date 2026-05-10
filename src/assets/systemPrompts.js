@@ -7,6 +7,10 @@ const getAvailableTypesText = () => {
     .join('\n');
 };
 
+export const isSupportedDiagramType = (diagramType) => (
+  Object.prototype.hasOwnProperty.call(DIAGRAM_SCHEMAS, String(diagramType || '').toLowerCase())
+);
+
 export const getSystemPromptPhase1 = () => `You are an expert Diagram Architect.
 Your task is to analyze the user's request and produce a structured plan for a polished, memorable diagram.
 Respond in the same language the user used.

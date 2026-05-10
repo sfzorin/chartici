@@ -26,7 +26,10 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
   const layoutNodeIds = new Set(layoutNodes.map(n => String(n.id)));
   const layoutEdges = edges.filter(e => layoutNodeIds.has(String(e.sourceId || e.from)) && layoutNodeIds.has(String(e.targetId || e.to)));
 
-  const layoutRules = getDiagramRules(dt).layout;
+  const layoutRules = {
+     ...getDiagramRules(dt).layout,
+     groups: config.groups || [],
+  };
 
   // X. Pre-process piechart groups: collapse them into proxy nodes
   const piechartGroups = (config.groups || []).filter(g => g.type === 'piechart');

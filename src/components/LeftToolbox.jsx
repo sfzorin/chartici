@@ -490,7 +490,7 @@ export default function LeftToolbox({
             </button>
             <PopoverMenu isOpen={activePopover === 'edgestyle'} onClose={() => setActivePopover(null)} anchorRef={edgeStyleBtnRef}>
               <div className="popover-title">Line Style</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+              <div className="popover-choice-grid">
                  {(diagramSchema.allowedLineStyles || [])
                     .map(style => {
                     // Параметры отображения — из LINE_STYLE_REGISTRY
@@ -500,12 +500,7 @@ export default function LeftToolbox({
                     return (
                        <button 
                          key={style} 
-                         className={`toolbox-btn ${eContext.lineStyle === style ? 'active' : ''}`}
-                         style={{ 
-                            width: '100%', height: '32px', padding: 0,
-                            background: eContext.lineStyle === style ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                            border: `1px solid ${eContext.lineStyle === style ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                         }}
+                         className={`popover-choice ${eContext.lineStyle === style ? 'active' : ''}`}
                          onClick={() => {
                             updateSelectedEdge('lineStyle', style);
                             if (style === 'none' && (
@@ -530,7 +525,7 @@ export default function LeftToolbox({
               </div>
               <div className="toolbox-divider" style={{ margin: '8px 0' }} />
               <div className="popover-title">Arrows</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+              <div className="popover-choice-grid">
                  {/* Стрелки — порядок из ARROW_TYPE_REGISTRY, фильтр из schema */}
                  {(() => {
                    const ARROW_SVG = {
@@ -547,14 +542,7 @@ export default function LeftToolbox({
                        return (
                          <button
                             key={val}
-                            className={`toolbox-btn ${currentAt === val ? 'active' : ''}`}
-                            style={{
-                               width: '100%', height: '32px', padding: 0,
-                               opacity: isArrowDisabled ? 0.3 : 1,
-                               pointerEvents: isArrowDisabled ? 'none' : 'auto',
-                               background: currentAt === val ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                               border: `1px solid ${currentAt === val ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                            }}
+                            className={`popover-choice ${currentAt === val ? 'active' : ''} ${isArrowDisabled ? 'is-disabled' : ''}`}
                             onClick={() => {
                                if (val === 'reverse') reverseSelectedEdge();
                                else {
@@ -577,12 +565,7 @@ export default function LeftToolbox({
                      {(diagramSchema.allowedConnectionTypes || []).map(ct => (
                        <button
                          key={ct}
-                         className={`toolbox-btn ${currentCt === ct ? 'active' : ''}`}
-                         style={{
-                           width: '100%', height: '32px', padding: 0,
-                           background: currentCt === ct ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                           border: `1px solid ${currentCt === ct ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                         }}
+                         className={`popover-choice ${currentCt === ct ? 'active' : ''}`}
                          onClick={() => updateSelectedEdge('connectionType', ct)}
                        >
                          <div style={{fontSize:'12px',fontWeight:600}}>{ct}</div>
@@ -703,16 +686,11 @@ export default function LeftToolbox({
 
           <div className="toolbox-divider" style={{ margin: '8px 0' }} />
           <div className="popover-title">Aspect Ratio</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '0 8px 8px' }}>
+          <div className="popover-choice-grid">
              {ASPECT_OPTIONS.map(ar => (
                 <button 
                   key={ar.id} 
-                  className={`toolbox-btn ${aspect === ar.id ? 'active' : ''}`}
-                  style={{ 
-                     width: '100%', height: '32px', padding: 0, fontSize: '12px', fontWeight: 600,
-                     background: aspect === ar.id ? 'var(--color-bg-active)' : 'var(--bg-panel)',
-                     border: `1px solid ${aspect === ar.id ? 'var(--color-brand)' : 'var(--border-color-soft)'}`
-                  }}
+                  className={`popover-choice ${aspect === ar.id ? 'active' : ''}`}
                   onClick={() => {
                      if (onChangeAspect) onChangeAspect(ar.id);
                   }}

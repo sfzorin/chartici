@@ -80,7 +80,7 @@ async function buildAiRequest(body) {
     return { error: 'Unsupported generation task' };
   }
 
-  const { getSystemPromptPhase1, getSystemPromptPhase2 } = await getPromptBuilders();
+  const { getSystemPromptPhase1, getSystemPromptPhase2, isSupportedDiagramType } = await getPromptBuilders();
 
   if (task === 'plan') {
     const userPrompt = trimText(body.userPrompt, 4000);
@@ -97,6 +97,7 @@ async function buildAiRequest(body) {
   const diagramType = normalizeDiagramType(body.diagramType);
   const extendedPrompt = trimText(body.extendedPrompt, 8000);
   if (!diagramType) return { error: 'diagramType is required' };
+  if (!isSupportedDiagramType(diagramType)) return { error: 'Unsupported diagramType' };
   if (!extendedPrompt) return { error: 'extendedPrompt is required' };
 
   const phase2Prompt = getSystemPromptPhase2(diagramType);

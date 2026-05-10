@@ -27,12 +27,12 @@ export default {
             matrixGridOverlays: true,
             overlay: {
                 // Бокс вокруг нод в группе
-                groupPad: 20,
+                groupPad: 28,
                 // Доп. отступы единого bbox (поверх groupPad)
                 globalLeftMargin: 36,
                 globalRightMargin: 24,
                 // Граница группы
-                stroke: { width: 2, dash: '6, 6', opacity: 0.6 },
+                stroke: { width: 1.6, dash: 'none', opacity: 0.46 },
                 // Подпись группы
                 label: { fontSize: 20, fontWeight: 700, opacity: 0.85 },
             },

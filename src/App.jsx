@@ -517,6 +517,8 @@ function App() {
     const schemaDefaultConnection = activeSchema?.allowedConnectionTypes?.[1]
       || activeSchema?.allowedConnectionTypes?.[0];
     const schemaDefaultArrow = activeSchema?.allowedArrowTypes?.includes('target') ? 'target' : undefined;
+    const schemaAllowsOnlyNoArrow = activeSchema?.allowedArrowTypes?.length === 1
+      && activeSchema.allowedArrowTypes[0] === 'none';
     if (schemaDefaultConnection) {
       if (!activeSchema.allowedConnectionTypes.includes(inheritedStyles.connectionType)) {
         inheritedStyles.connectionType = schemaDefaultConnection;
@@ -524,7 +526,13 @@ function App() {
       delete inheritedStyles.arrowType;
     } else {
       delete inheritedStyles.connectionType;
-      if (schemaDefaultArrow && !inheritedStyles.arrowType) inheritedStyles.arrowType = schemaDefaultArrow;
+      if (schemaAllowsOnlyNoArrow) {
+        inheritedStyles.arrowType = 'none';
+      } else if (schemaDefaultArrow && !inheritedStyles.arrowType) {
+        inheritedStyles.arrowType = schemaDefaultArrow;
+      } else if (inheritedStyles.arrowType && !activeSchema?.allowedArrowTypes?.includes(inheritedStyles.arrowType)) {
+        delete inheritedStyles.arrowType;
+      }
     }
     const newEdge = {
       id: newEdgeId,

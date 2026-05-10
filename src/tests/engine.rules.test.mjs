@@ -27,6 +27,8 @@ const timeline = getDiagramRules('timeline');
 assert.equal(timeline.layout.MIN_GAP_X, 120);
 assert.equal(timeline.layout.MIN_GAP_Y, 80);
 assert.equal(timeline.layout.RANKER, 'network-simplex');
+assert.deepEqual(getEngine('timeline').schema.allowedArrowTypes, ['none']);
+assert.equal(getEngine('timeline').schema.engineManifest.suppressEdgeMarkers, true);
 
 const tree = getDiagramRules('tree');
 assert.equal(tree.layout.MIN_GAP_X, 60);

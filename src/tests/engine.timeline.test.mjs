@@ -43,4 +43,43 @@ test('Events align to their referenced chevrons', () => {
     expect(b.x, s2.x, 'B aligns to S2');
 });
 
+const generatedTimelineNodes = [
+  makeNode('m4', 0, 0, 'chevron', 'L', { label: '2010s: Rovers' }),
+  makeNode('d1', 0, 0, 'process', 'M', { spineId: 'm4', label: 'Curiosity Mars' }),
+  makeNode('m2', 0, 0, 'chevron', 'L', { label: '1960s: Moon' }),
+  makeNode('a1', 0, 0, 'process', 'L', { spineId: 'm2', label: 'Apollo 11 Landing' }),
+  makeNode('m1', 0, 0, 'chevron', 'L', { label: '1950s: Dawn' }),
+  makeNode('p1', 0, 0, 'process', 'M', { spineId: 'm1', label: 'Sputnik 1' }),
+  makeNode('m5', 0, 0, 'chevron', 'L', { label: '2020s: Private' }),
+  makeNode('n1', 0, 0, 'process', 'L', { spineId: 'm5', label: 'Artemis I' }),
+  makeNode('m3', 0, 0, 'chevron', 'L', { label: '1990s: Orbiters' }),
+  makeNode('s1', 0, 0, 'process', 'L', { spineId: 'm3', label: 'ISS Assembly Begins' })
+];
+
+const generatedTimelineEdges = generatedTimelineNodes
+  .filter(n => n.spineId)
+  .map(n => makeEdge(`edge_${n.id}`, n.spineId, n.id, { lineStyle: 'dashed', connectionType: 'none' }));
+
+const generatedLaidOut = layoutTimeline(generatedTimelineNodes, generatedTimelineEdges, { PADDING: 40 }, true);
+
+test('Generated timelines keep chevrons on a horizontal chronological spine', () => {
+  const ordered = ['m1', 'm2', 'm3', 'm4', 'm5'].map(id => generatedLaidOut.find(n => n.id === id));
+  ordered.slice(1).forEach((node, index) => {
+    expect(node.y, ordered[0].y, `${node.id} shares spine Y`);
+    if (node.x <= ordered[index].x) throw new Error(`${node.id} should be to the right of ${ordered[index].id}`);
+  });
+});
+
+test('Generated timeline events stay attached to their own spine phase', () => {
+  const dawn = generatedLaidOut.find(n => n.id === 'm1');
+  const sputnik = generatedLaidOut.find(n => n.id === 'p1');
+  const privateEra = generatedLaidOut.find(n => n.id === 'm5');
+  const artemis = generatedLaidOut.find(n => n.id === 'n1');
+  expect(sputnik.x, dawn.x, 'Sputnik aligns to 1950s phase');
+  expect(artemis.x, privateEra.x, 'Artemis aligns to 2020s phase');
+  if (sputnik.y === dawn.y || artemis.y === privateEra.y) {
+    throw new Error('events should sit above or below the spine, not on it');
+  }
+});
+
 summary('engine.timeline.test.mjs');

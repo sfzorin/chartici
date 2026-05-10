@@ -29,6 +29,7 @@ export default {
             layout: 'timeline',
             edgeStyle: 'straight',
             nodeTypes: ['chevron', 'process'],
+            suppressEdgeMarkers: true,
             suppressSpineEdges: true,
             spineNodeType: 'chevron',
         },

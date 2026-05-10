@@ -1,114 +1,102 @@
 import { getNodeDim } from '../../diagram/nodes.jsx';
 
-export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
-  if (nodes.length === 0) return [];
+const asId = (value) => String(value ?? '');
 
-  const GAP_MAIN = isHorizontal ? layoutRules.MIN_GAP_X : layoutRules.MIN_GAP_Y;
-  const GAP_CROSS = isHorizontal ? layoutRules.MIN_GAP_Y : layoutRules.MIN_GAP_X;
+function getEdgeFrom(edge) {
+  return asId(edge.from || edge.sourceId);
+}
 
-  // Topological sort to determine order along the timeline
-  const adj = {};
-  const inDeg = {};
-  nodes.forEach(n => { adj[String(n.id)] = []; inDeg[String(n.id)] = 0; });
-  edges.forEach(e => {
-    const from = String(e.from || e.sourceId);
-    const to = String(e.to || e.targetId);
-    if (adj[from]) adj[from].push(to);
-    if (inDeg[to] !== undefined) inDeg[to]++;
-  });
+function getEdgeTo(edge) {
+  return asId(edge.to || edge.targetId);
+}
 
-  // Kahn's topological sort
-  const sorted = [];
-  const queue = Object.keys(inDeg).filter(k => inDeg[k] === 0);
-  const visited = new Set();
+function extractTimelineOrder(label) {
+  const text = String(label || '');
+  const fullYear = text.match(/\b(1[5-9]\d{2}|20\d{2}|21\d{2})\b/);
+  if (fullYear) return Number(fullYear[1]);
 
-  while (queue.length > 0) {
-    const u = queue.shift();
-    if (visited.has(u)) continue;
-    visited.add(u);
-    sorted.push(u);
-    for (const v of (adj[u] || [])) {
-      inDeg[v]--;
-      if (inDeg[v] <= 0 && !visited.has(v)) queue.push(v);
+  const decade = text.match(/\b(1[5-9]\d|20\d|21\d)0s\b/i);
+  if (decade) return Number(`${decade[1]}0`);
+
+  const century = text.match(/\b(\d{1,2})(?:st|nd|rd|th)\s+century\b/i);
+  if (century) return (Number(century[1]) - 1) * 100;
+
+  return null;
+}
+
+function orderSpineNodes(spineNodes, edges) {
+  const spineIds = new Set(spineNodes.map(n => asId(n.id)));
+  const originalIndex = new Map(spineNodes.map((n, index) => [asId(n.id), index]));
+
+  const spineEdges = edges
+    .map(edge => ({ from: getEdgeFrom(edge), to: getEdgeTo(edge) }))
+    .filter(edge => spineIds.has(edge.from) && spineIds.has(edge.to));
+
+  if (spineEdges.length > 0) {
+    const adj = new Map(spineNodes.map(n => [asId(n.id), []]));
+    const inDeg = new Map(spineNodes.map(n => [asId(n.id), 0]));
+
+    spineEdges.forEach(edge => {
+      adj.get(edge.from).push(edge.to);
+      inDeg.set(edge.to, (inDeg.get(edge.to) || 0) + 1);
+    });
+
+    const queue = [...spineIds]
+      .filter(id => (inDeg.get(id) || 0) === 0)
+      .sort((a, b) => (originalIndex.get(a) || 0) - (originalIndex.get(b) || 0));
+    const orderedIds = [];
+
+    while (queue.length > 0) {
+      const id = queue.shift();
+      orderedIds.push(id);
+      (adj.get(id) || []).forEach(next => {
+        inDeg.set(next, (inDeg.get(next) || 0) - 1);
+        if ((inDeg.get(next) || 0) === 0) {
+          queue.push(next);
+          queue.sort((a, b) => (originalIndex.get(a) || 0) - (originalIndex.get(b) || 0));
+        }
+      });
+    }
+
+    if (orderedIds.length === spineNodes.length) {
+      const byId = new Map(spineNodes.map(n => [asId(n.id), n]));
+      return orderedIds.map(id => byId.get(id));
     }
   }
 
-  // 1. DAG Depth & Parent Calculation (for Longest Path / Spine)
-  const depth = {};
-  const parent = {};
-  nodes.forEach(n => { depth[String(n.id)] = 0; parent[String(n.id)] = null; });
+  const dated = spineNodes
+    .map(node => ({ node, order: extractTimelineOrder(node.label) }))
+    .filter(item => item.order !== null);
 
-  sorted.forEach(u => {
-    (adj[u] || []).forEach(v => {
-      if (depth[u] + 1 > depth[v]) {
-        depth[v] = depth[u] + 1;
-        parent[v] = u;
-      }
+  if (dated.length >= 2 && dated.length === spineNodes.length) {
+    return [...spineNodes].sort((a, b) => {
+      const dateA = extractTimelineOrder(a.label);
+      const dateB = extractTimelineOrder(b.label);
+      if (dateA !== dateB) return dateA - dateB;
+      return (originalIndex.get(asId(a.id)) || 0) - (originalIndex.get(asId(b.id)) || 0);
     });
-  });
-
-  // 2. Identify the Spine
-  let maxDepth = -1;
-  let tail = null;
-  sorted.forEach(u => {
-    if (depth[u] > maxDepth) { maxDepth = depth[u]; tail = u; }
-  });
-
-  const spineSet = new Set();
-  let curr = tail;
-  while (curr !== null) {
-    spineSet.add(curr);
-    curr = parent[curr];
   }
-  
-  // Sort spine nodes strictly by depth, and FILTER out non-rectangular nodes!
+
+  return [...spineNodes];
+}
+
+export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
+  if (nodes.length === 0) return [];
+
   const nodeMap = new Map(nodes.map(n => [String(n.id), n]));
+  const explicitSpine = nodes.filter(n => n.type === 'chevron' || n.isTimelineSpine);
+  const spineNodes = explicitSpine.length > 0 ? explicitSpine : nodes;
+  const spineIds = new Set(spineNodes.map(n => asId(n.id)));
+  const orderedSpine = orderSpineNodes(spineNodes, edges);
+  const orderedSpineIds = orderedSpine.map(n => asId(n.id));
   
-  let rectSpineSet = new Set();
-  
-  // Find forced spine nodes (chevrons)
-  const chevronIds = nodes.filter(n => n.type === 'chevron').map(n => String(n.id));
-  
-  if (chevronIds.length > 0) {
-      // If the user or AI explicitly used chevrons, THEY are the spine!
-      chevronIds.forEach(id => rectSpineSet.add(id));
-  } else {
-      // Fallback to Longest Path calculation for process nodes
-      spineSet.forEach(u => {
-        const n = nodeMap.get(u);
-        if (!n) return;
-        const isSpineShape = n.type === 'rect' || n.type === 'process' || n.type === 'chevron';
-        if (isSpineShape) {
-            rectSpineSet.add(u);
-        }
-      });
-      // Fallback: if totally empty, just use the original set
-      if (rectSpineSet.size === 0 && spineSet.size > 0) rectSpineSet = new Set(spineSet);
-  }
-
-  const spineNodesTemp = [];
-  sorted.forEach(u => {
-    if (rectSpineSet.has(u)) spineNodesTemp.push(u);
-  });
-  
-  spineNodesTemp.sort((a, b) => {
-      // Sort primarily by depth (topological)
-      if (depth[a] !== depth[b]) return depth[a] - depth[b];
-      // Fallback to visual X coordinate if isolated/no links
-      const na = nodeMap.get(a);
-      const nb = nodeMap.get(b);
-      return (na.x || 0) - (nb.x || 0);
-  });
-
   const result = [];
   const spineXMap = {};
   
   let currentLeftEdge = 0;
-  const getGroupId = (n) => n.groupId || n.group || null;
 
-  // 3. Place Spine Nodes (Force to Chevron)
-  spineNodesTemp.forEach((u, i) => {
-    const n = nodeMap.get(u);
+  // 1. Place the timeline spine independently from event links.
+  orderedSpine.forEach((n) => {
     if (!n) return;
     
     const size = n.size || 'M';
@@ -128,7 +116,7 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     
     // Передаем реальный сдвиг левого края дальше 
     currentLeftEdge = centerX - wBase / 2;
-    spineXMap[u] = centerX;
+    spineXMap[asId(n.id)] = centerX;
     
     result.push({
       ...n,
@@ -154,42 +142,42 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     currentLeftEdge += wBase + cut + gapForStep;
   });
 
-  // 4. Place Bubble Nodes
-  const spineRef = {};
+  const firstSpineId = orderedSpineIds[0];
+  const eventRefs = new Map();
+
   nodes.forEach(n => {
-    if (rectSpineSet.has(String(n.id))) spineRef[String(n.id)] = String(n.id);
+    const id = asId(n.id);
+    if (spineIds.has(id)) return;
+    if (n.spineId && spineIds.has(asId(n.spineId))) {
+      eventRefs.set(id, asId(n.spineId));
+    }
   });
 
-  // Inherit spine reference top-down (for outgoing events)
-  sorted.forEach(u => {
-    if (!spineRef[u] && parent[u]) {
-      spineRef[u] = spineRef[parent[u]];
-    }
+  edges.forEach(edge => {
+    const from = getEdgeFrom(edge);
+    const to = getEdgeTo(edge);
+    if (spineIds.has(from) && !spineIds.has(to)) eventRefs.set(to, from);
+    if (!spineIds.has(from) && spineIds.has(to)) eventRefs.set(from, to);
   });
-  
-  // Inherit spine reference bottom-up (for incoming events pointing into the timeline)
-  for (let i = sorted.length - 1; i >= 0; i--) {
-    const u = sorted[i];
-    if (!spineRef[u]) {
-      for (const v of (adj[u] || [])) {
-        if (spineRef[v]) {
-          spineRef[u] = spineRef[v];
-          break;
-        }
-      }
-    }
+
+  // If old data has process-only timeline nodes, keep them readable instead of collapsing.
+  if (explicitSpine.length === 0) {
+    nodes.forEach(n => {
+      const id = asId(n.id);
+      if (!eventRefs.has(id)) eventRefs.set(id, id);
+    });
   }
 
-  const topEdgesMap = {};
-  const bottomEdgesMap = {};
+  const topEdgesMap = new Map();
+  const bottomEdgesMap = new Map();
   let nextGlobalSide = 'top';
 
-  sorted.forEach(u => {
-    if (rectSpineSet.has(u)) return;
-    const n = nodeMap.get(u);
+  nodes.forEach(n => {
+    const u = asId(n.id);
+    if (spineIds.has(u)) return;
     if (!n) return;
 
-    const ref = spineRef[u] || spineNodesTemp[0]; // fallback to first spine node
+    const ref = eventRefs.get(u) || firstSpineId;
     const baseX = spineXMap[ref] || 0;
     
     // Calculate bubble gap based on specific chevron size
@@ -210,8 +198,8 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     // Пользователь запросил жестко зафиксировать этот зазор на 40 пикселей между событиями всегда
     const stackGap = 40; 
 
-    if (topEdgesMap[ref] === undefined) topEdgesMap[ref] = initialEdge;
-    if (bottomEdgesMap[ref] === undefined) bottomEdgesMap[ref] = initialEdge;
+    if (topEdgesMap.get(ref) === undefined) topEdgesMap.set(ref, initialEdge);
+    if (bottomEdgesMap.get(ref) === undefined) bottomEdgesMap.set(ref, initialEdge);
 
     // Alternate popouts globally: Top -> Bottom -> Top -> Bottom
     const isTop = nextGlobalSide === 'top';
@@ -220,17 +208,19 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
     let yOffset = 0;
 
     if (isTop) {
-      if (topEdgesMap[ref] > initialEdge) {
-        topEdgesMap[ref] += stackGap; // Add 40px gap for the second+ row
+      let topEdge = topEdgesMap.get(ref);
+      if (topEdge > initialEdge) {
+        topEdge += stackGap; // Add 40px gap for the second+ row
       }
-      yOffset = -(topEdgesMap[ref] + (evH / 2));
-      topEdgesMap[ref] += evH; // Advance the graphical outer edge
+      yOffset = -(topEdge + (evH / 2));
+      topEdgesMap.set(ref, topEdge + evH); // Advance the graphical outer edge
     } else {
-      if (bottomEdgesMap[ref] > initialEdge) {
-        bottomEdgesMap[ref] += stackGap;
+      let bottomEdge = bottomEdgesMap.get(ref);
+      if (bottomEdge > initialEdge) {
+        bottomEdge += stackGap;
       }
-      yOffset = (bottomEdgesMap[ref] + (evH / 2));
-      bottomEdgesMap[ref] += evH;
+      yOffset = (bottomEdge + (evH / 2));
+      bottomEdgesMap.set(ref, bottomEdge + evH);
     }
 
     // Strictly vertical! No advanceX used.
@@ -245,5 +235,4 @@ export function layoutTimeline(nodes, edges, layoutRules, isHorizontal = true) {
 
   return result;
 }
-
 

@@ -7,6 +7,8 @@ Group nodes by zone/quadrant using ### headings.
 Use 2-4 zones. Put 2-5 items in each zone. Labels should be comparable, not sentences.
 Choose zones that reveal a tradeoff, priority, fit, risk, maturity, effort, impact, audience, or use case.
 Do not make arbitrary buckets. Every zone label should answer "why does this item belong here?"
+Keep zone headings short: 1-3 words, 18 characters preferred, 24 characters maximum.
+If a zone idea needs a long phrase, compress it into a crisp category name and put the nuance in item labels instead.
 For broad topics, prefer a 2x2 logic with contrasting meanings over a plain category list.
 Each zone should contain representative items, not exhaustive lists.
 

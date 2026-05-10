@@ -28,6 +28,32 @@ const normalizeEdgeEndpoints = (edge) => {
   };
 };
 
+function wrapOverlayLabel(label, maxChars = 16, maxLines = 2) {
+  const words = String(label || '').replace(/_/g, ' ').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [''];
+
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxChars || !current) {
+      current = next;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  });
+  if (current) lines.push(current);
+
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  const overflow = lines.slice(maxLines - 1).join(' ');
+  kept[maxLines - 1] = overflow.length > maxChars + 2
+    ? `${overflow.slice(0, Math.max(4, maxChars - 1)).trim()}...`
+    : overflow;
+  return kept;
+}
+
 export default function DiagramRenderer({ 
   initialData, 
   theme,
@@ -158,8 +184,26 @@ export default function DiagramRenderer({
            .map(n => ({ ...n, type: 'pie_slice' }));
          if (sliceNodes.length === 0) return textNodes;
 
-         const anchorX = sliceNodes.find(n => Number.isFinite(Number(n.x)))?.x ?? 0;
-         const anchorY = sliceNodes.find(n => Number.isFinite(Number(n.y)))?.y ?? 0;
+         const centerCandidates = sliceNodes
+           .filter(n => Number.isFinite(Number(n.x)) && Number.isFinite(Number(n.y)))
+           .map(n => {
+              const startAngle = Number(n.pieStartAngle);
+              const endAngle = Number(n.pieEndAngle);
+              if (n.size !== 'L' || !Number.isFinite(startAngle) || !Number.isFinite(endAngle)) {
+                 return { x: Number(n.x), y: Number(n.y) };
+              }
+              const midAngle = (startAngle + endAngle) / 2;
+              return {
+                 x: Number(n.x) - Math.cos(midAngle - Math.PI / 2) * PIE_CONSTS.explodeDist,
+                 y: Number(n.y) - Math.sin(midAngle - Math.PI / 2) * PIE_CONSTS.explodeDist,
+              };
+           });
+         const anchorX = centerCandidates.length
+           ? centerCandidates.reduce((sum, point) => sum + point.x, 0) / centerCandidates.length
+           : 0;
+         const anchorY = centerCandidates.length
+           ? centerCandidates.reduce((sum, point) => sum + point.y, 0) / centerCandidates.length
+           : 0;
          const normalizedSlices = layoutPiechart(sliceNodes, [], {}).map(slice => ({
             ...slice,
             x: anchorX + (slice.x || 0),
@@ -594,13 +638,17 @@ export default function DiagramRenderer({
            const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
            if (gNodes.length === 0) return;
            const pad = 30; // Matches rendering logic padding for matrix boxes
+           const matrixLabelLines = diagramType === 'matrix' ? wrapOverlayLabel(g.label || g.id || '', 22, 2) : [''];
+           const matrixTopPad = diagramType === 'matrix'
+              ? (matrixLabelLines.length > 1 ? 82 : 52)
+              : pad + 8;
            gNodes.forEach(n => {
               const dim = getNodeDim(n);
               const nw = n.w || dim.width;
               const nh = n.h || dim.height;
               const l = n.x - nw / 2 - pad - 60; // Extra left padding for Sequence labels
               const r = n.x + nw / 2 + pad + 8;
-              const t = n.y - nh / 2 - pad - 8;
+              const t = n.y - nh / 2 - matrixTopPad;
               const b = n.y + nh / 2 + pad + 8;
               if (l < minX) minX = l; if (r > maxX) maxX = r;
               if (t < minY) minY = t; if (b > maxY) maxY = b;
@@ -918,11 +966,15 @@ export default function DiagramRenderer({
               const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
               if (gNodes.length === 0) return;
               const dims = gNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
+              const labelLines = diagramType === 'matrix' ? wrapOverlayLabel(g.label || g.id || '', 22, 2) : [''];
+              const labelTopExtra = diagramType === 'matrix'
+                ? (labelLines.length > 1 ? 26 : 10)
+                : 0;
               groupBoxes[g.id] = {
                 id: String(g.id || ''),
                 left: Math.min(...dims.map(d => d.x - d.w/2)) - groupPad,
                 right: Math.max(...dims.map(d => d.x + d.w/2)) + groupPad,
-                top: Math.min(...dims.map(d => d.y - d.h/2)) - groupPad,
+                top: Math.min(...dims.map(d => d.y - d.h/2)) - groupPad - labelTopExtra,
                 bottom: Math.max(...dims.map(d => d.y + d.h/2)) + groupPad,
                 label: String(g.label || g.id || ''),
                 color: g.color
@@ -936,7 +988,19 @@ export default function DiagramRenderer({
             
             return (
               <g className="matrix-grid">
-                {boxes.map((box, i) => (
+                {boxes.map((box, i) => {
+                  const labelLines = wrapOverlayLabel(box.label, diagramType === 'matrix' ? 22 : 18, 2);
+                  const longestLabelLine = Math.max(...labelLines.map(line => line.length), 1);
+                  const matrixLabelGap = Math.min((box.right - box.left - 16) / 2, longestLabelLine * 5.8 + 18);
+                  const matrixLineGap = Math.round(mLabelFs * 1.08);
+                  const matrixLabelY = box.top - ((labelLines.length - 1) * matrixLineGap) / 2 + 1;
+                  const matrixLabelW = Math.min((box.right - box.left) * 0.8, Math.max(92, longestLabelLine * 12 + 40));
+                  const matrixLabelH = labelLines.length === 1 ? 30 : 52;
+                  const matrixTone = box.color
+                    ? (String(box.color).startsWith('#') ? box.color : `var(--color-${box.color})`)
+                    : 'var(--diagram-group)';
+
+                  return (
                   <g key={`mbox-${i}`}>
                     {diagramType === 'sequence' ? (
                       <g>
@@ -981,27 +1045,55 @@ export default function DiagramRenderer({
                       </g>
                     ) : (
                       <g>
+                        <rect
+                          x={box.left} y={box.top}
+                          width={box.right - box.left} height={box.bottom - box.top}
+                          fill={matrixTone}
+                          fillOpacity={isCanvasDark ? 0.09 : 0.045}
+                          stroke="none"
+                          rx="8" ry="8"
+                        />
                         <path
-                          d={`M ${(box.left + box.right) / 2 + Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top} L ${box.right - 8} ${box.top} Q ${box.right} ${box.top} ${box.right} ${box.top + 8} L ${box.right} ${box.bottom - 8} Q ${box.right} ${box.bottom} ${box.right - 8} ${box.bottom} L ${box.left + 8} ${box.bottom} Q ${box.left} ${box.bottom} ${box.left} ${box.bottom - 8} L ${box.left} ${box.top + 8} Q ${box.left} ${box.top} ${box.left + 8} ${box.top} L ${(box.left + box.right) / 2 - Math.min((box.right - box.left - 16) / 2, box.label.length * 5.5 + 16)} ${box.top}`}
-                          fill="none" stroke="var(--diagram-group)" strokeWidth={mStrokeW} strokeDasharray={mStrokeDash}
+                          d={`M ${(box.left + box.right) / 2 + matrixLabelGap} ${box.top} L ${box.right - 8} ${box.top} Q ${box.right} ${box.top} ${box.right} ${box.top + 8} L ${box.right} ${box.bottom - 8} Q ${box.right} ${box.bottom} ${box.right - 8} ${box.bottom} L ${box.left + 8} ${box.bottom} Q ${box.left} ${box.bottom} ${box.left} ${box.bottom - 8} L ${box.left} ${box.top + 8} Q ${box.left} ${box.top} ${box.left + 8} ${box.top} L ${(box.left + box.right) / 2 - matrixLabelGap} ${box.top}`}
+                          fill="none" stroke={matrixTone} strokeWidth={mStrokeW} strokeDasharray={mStrokeDash}
                           opacity={mStrokeOp}
                         />
                         {(!box.label.toLowerCase().startsWith('void')) && (
-                          <text
-                            id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
-                            x={(box.left + box.right) / 2} y={box.top + 6}
-                            fontSize={mLabelFs} fill="var(--diagram-group)" opacity={mLabelOp}
-                            fontWeight={mLabelFw} textAnchor="middle"
+                          <g
                             style={{ cursor: 'text', pointerEvents: 'all', userSelect: 'none' }}
                             onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(box.id); }}
                           >
-                            {box.label.replace(/_/g, ' ')}
-                          </text>
+                            <rect
+                              x={(box.left + box.right) / 2 - matrixLabelW / 2}
+                              y={box.top - matrixLabelH / 2}
+                              width={matrixLabelW}
+                              height={matrixLabelH}
+                              rx="7"
+                              fill={fillStr}
+                              stroke={matrixTone}
+                              strokeWidth="1.2"
+                              opacity="0.98"
+                            />
+                            <text
+                              id={`group_text_${box.id.replace(/[^a-zA-Z0-9_-]/g, '_')}`}
+                              x={(box.left + box.right) / 2} y={matrixLabelY}
+                              fontSize={mLabelFs} fill="var(--diagram-group)" opacity={mLabelOp}
+                              fontWeight={mLabelFw} textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              {labelLines.map((line, lineIndex) => (
+                                <tspan key={`${box.id}-line-${lineIndex}`} x={(box.left + box.right) / 2} dy={lineIndex === 0 ? 0 : matrixLineGap}>
+                                  {line}
+                                </tspan>
+                              ))}
+                            </text>
+                          </g>
                         )}
                       </g>
                     )}
                   </g>
-                ))}
+                  );
+                })}
               </g>
             );
           })()}
@@ -1481,13 +1573,21 @@ export default function DiagramRenderer({
         if (groupNodes.length === 0) return null;
         
         const dims = groupNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
-        const pad = 30;
+        const overlay = activeSchema?.engineManifest?.overlay || {};
+        const pad = overlay.groupPad ?? 30;
+        const labelCfg = overlay.label || {};
+        const groupLabelFontSize = labelCfg.fontSize ?? DIAGRAM_DESIGN.overlay.groupLabelSize;
+        const labelLines = diagramType === 'matrix' ? wrapOverlayLabel(group.label || group.id || '', 22, 2) : [''];
+        const labelTopExtra = diagramType === 'matrix'
+          ? (labelLines.length > 1 ? 26 : 10)
+          : 0;
         const leftBox = Math.min(...dims.map(d => d.x - d.w/2)) - pad;
         const rightBox = Math.max(...dims.map(d => d.x + d.w/2)) + pad;
-        const topBox = Math.min(...dims.map(d => d.y - d.h/2)) - pad;
+        const topBox = Math.min(...dims.map(d => d.y - d.h/2)) - pad - labelTopExtra;
         const bottomBox = Math.max(...dims.map(d => d.y + d.h/2)) + pad;
         
         let pt = svg.createSVGPoint();
+        let editorSvgRect = null;
         if (diagramType === 'sequence') {
             const allRealNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
             const allDims = allRealNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, w: d.width }; });
@@ -1495,8 +1595,17 @@ export default function DiagramRenderer({
             pt.x = globalLeft + 30; // Centered on the title rotated vertically
             pt.y = (topBox + bottomBox) / 2;
         } else {
-            pt.x = (leftBox + rightBox) / 2;
-            pt.y = topBox - 4; // Equivalent to top + 6 - 10
+            const longestLabelLine = Math.max(...labelLines.map(line => line.length), 1);
+            const matrixLabelW = Math.min((rightBox - leftBox) * 0.8, Math.max(92, longestLabelLine * 12 + 40));
+            const matrixLabelH = labelLines.length === 1 ? 30 : 52;
+            editorSvgRect = {
+              x: (leftBox + rightBox) / 2 - matrixLabelW / 2,
+              y: topBox - matrixLabelH / 2,
+              width: matrixLabelW,
+              height: matrixLabelH,
+            };
+            pt.x = editorSvgRect.x + editorSvgRect.width / 2;
+            pt.y = editorSvgRect.y + editorSvgRect.height / 2;
         }
         
         const viewport = viewportRef.current;
@@ -1505,25 +1614,39 @@ export default function DiagramRenderer({
         if (!ctm) return null;
         const svgRect = svg.getBoundingClientRect();
         pt = pt.matrixTransform(ctm);
-        const left = pt.x - svgRect.left;
-        const top = pt.y - svgRect.top;
-        const w = 200;
-        const h = 40;
+        let left = pt.x - svgRect.left;
+        let top = pt.y - svgRect.top;
+        let w = 200;
+        let h = 40;
+        if (editorSvgRect) {
+          const p1 = svg.createSVGPoint();
+          p1.x = editorSvgRect.x;
+          p1.y = editorSvgRect.y;
+          const p2 = svg.createSVGPoint();
+          p2.x = editorSvgRect.x + editorSvgRect.width;
+          p2.y = editorSvgRect.y + editorSvgRect.height;
+          const s1 = p1.matrixTransform(ctm);
+          const s2 = p2.matrixTransform(ctm);
+          left = s1.x - svgRect.left;
+          top = s1.y - svgRect.top;
+          w = Math.max(80, s2.x - s1.x);
+          h = Math.max(30, s2.y - s1.y);
+        }
         return (
           <textarea
             autoFocus
             defaultValue={group.label || group.id}
             style={{
               position: 'absolute',
-              left: `${left - w/2}px`,
-              top: `${top - h/2}px`,
+              left: `${editorSvgRect ? left : left - w/2}px`,
+              top: `${editorSvgRect ? top : top - h/2}px`,
               width: `${w}px`,
               height: `${h}px`,
               border: '2px solid #be355d',
               borderRadius: '4px',
               background: 'rgba(255,255,255,0.95)',
               color: '#1a1a1a',
-              fontSize: `${20 * zoom}px`,
+              fontSize: `${groupLabelFontSize * zoom}px`,
               fontFamily: "'Inter', sans-serif",
               textAlign: 'center',
               fontWeight: '700',

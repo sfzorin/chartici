@@ -218,10 +218,19 @@ async function callGenerationTask(payload) {
   return res.json();
 }
 
+function isAiDebugLoggingEnabled() {
+  try {
+    return localStorage.getItem('chartici_debug_ai_logs') === 'true';
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Saves the last 10 Phase 1 results to localStorage for debugging
+ * Saves Phase 1 results only when local AI debug logging is explicitly enabled.
  */
 function savePhase1Log(userInput, title, type, promptStr, rawResponse) {
+  if (!isAiDebugLoggingEnabled()) return;
   try {
     const logs = JSON.parse(localStorage.getItem('phase1_logs') || '[]');
     logs.unshift({
@@ -261,7 +270,7 @@ export async function planDiagram(userPrompt) {
   const rawPrompt = promptMatch ? promptMatch[1].trim() : p1Content;
   const extendedPrompt = rawPrompt.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
 
-  // Log phase 1 output for debugging
+  // Optional local debug logging; disabled by default to avoid persisting prompt text.
   savePhase1Log(userPrompt, title, diagramType, extendedPrompt, p1Content);
 
   return { success: true, title, diagramType, extendedPrompt };
@@ -536,13 +545,16 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       return lastFailure;
   }
 
-  // Debug local log
-  try {
-     const logs = JSON.parse(localStorage.getItem('phase2_md_logs') || '[]');
-     logs.unshift({ timestamp: new Date().toISOString(), rawContent });
-     if (logs.length > 5) logs.length = 5;
-     localStorage.setItem('phase2_md_logs', JSON.stringify(logs));
-  } catch (e) {}
+  if (isAiDebugLoggingEnabled()) {
+    try {
+       const logs = JSON.parse(localStorage.getItem('phase2_md_logs') || '[]');
+       logs.unshift({ timestamp: new Date().toISOString(), rawContent });
+       if (logs.length > 5) logs.length = 5;
+       localStorage.setItem('phase2_md_logs', JSON.stringify(logs));
+    } catch {
+      console.warn('AI debug log could not be written');
+    }
+  }
 
   // Assign sequential colors to groups
   parsed.data.groups.forEach((group, index) => {
