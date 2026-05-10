@@ -9,7 +9,9 @@ Group nodes by visual stage using ### headings. For recipes, tutorials, kids, le
 Build around the central insight: show what changes the outcome, not just what happens next.
 For casual tasks, include at least one quality check, choice point, or recovery path when it helps the reader make better decisions.
 Use branch labels as meaningful outcomes (Safe / Messy / Too Dry / Ready), not vague Yes/No unless the decision is genuinely binary.
-Use one readable main path. Use decisions sparingly. Avoid more than 6 outgoing branches from one node.
+Use one readable main path, but avoid a long uninterrupted tunnel. For diagrams with 10+ nodes, include at least two meaningful branch/check points or recovery paths, with the first one in the first half of the flow.
+Several paths may enter the same decision when the same question genuinely applies after a merge; the layout engine will group those inputs visually.
+Use decisions sparingly. Avoid more than 6 outgoing branches from one node.
 Do not put every node into one group unless the user explicitly asks for a monochrome diagram.
 If the brief lists choices in parentheses or comma lists, keep the most important choices as small branch nodes and merge them back to the main path. Do not flatten rich choices into a plain straight chain.
 Never create a decision with more than 6 outgoing links. If a choice list is longer, first create 3-5 category nodes (for example Mild / Savory / Crunchy), then continue from those categories.

@@ -273,7 +273,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                             </div>
 
                             <button 
-                                onClick={handleBuild} 
+                                onClick={() => handleBuild()} 
                                 disabled={isLoading}
                                 className="glass-btn-primary" 
                                 style={{ 

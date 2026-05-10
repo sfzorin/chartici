@@ -83,6 +83,7 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
 
   if (dt === 'flowchart') {
     const outgoingCounts = realNodes.map(node => parseNextStepIds(node.nextSteps).length);
+    const nodeIndex = new Map(realNodes.map((node, index) => [String(node.id), index]));
     const incomingCounts = new Map(realNodes.map(node => [String(node.id), 0]));
     realNodes.forEach(node => {
       parseNextStepIds(node.nextSteps).forEach(targetId => {
@@ -90,12 +91,20 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
       });
     });
     const edgeCount = outgoingCounts.reduce((sum, count) => sum + count, 0);
+    const branchingNodes = realNodes.filter(node => parseNextStepIds(node.nextSteps).length > 1);
     if (edgeCount === 0) errors.push('flowchart has no nextSteps');
     if (realNodes.length >= 5 && groups.filter(g => (g.nodes || []).length > 0).length <= 1) {
       errors.push('flowchart needs multiple visual stage groups for color variety');
     }
     if (promptSuggestsChoices(extendedPrompt) && !outgoingCounts.some(count => count > 1)) {
       errors.push('prompt contains choices, but flowchart is a straight line; preserve choices as branches');
+    }
+    if (realNodes.length >= 10 && branchingNodes.length < 2) {
+      errors.push('flowchart is too linear; add at least two meaningful branch/check points or recovery paths');
+    }
+    const firstBranchIndex = Math.min(...branchingNodes.map(node => nodeIndex.get(String(node.id)) ?? Infinity));
+    if (realNodes.length >= 8 && Number.isFinite(firstBranchIndex) && firstBranchIndex > Math.floor(realNodes.length * 0.55)) {
+      errors.push('flowchart branches arrive too late; introduce a meaningful decision/check earlier in the flow');
     }
     for (const node of realNodes) {
       const outgoing = parseNextStepIds(node.nextSteps);
