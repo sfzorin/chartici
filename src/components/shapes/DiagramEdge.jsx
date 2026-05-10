@@ -59,6 +59,8 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       if (atDef.markerEnd)   mEnd   = markerId;
     }
   }
+  if (pathData.suppressMarkerStart) mStart = 'none';
+  if (pathData.suppressMarkerEnd) mEnd = 'none';
 
   // ── Label ──────────────────────────────────────────────────────────────────
   const L = getEdgeLabelStyle(labelPolicy);

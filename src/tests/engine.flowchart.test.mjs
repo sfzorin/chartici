@@ -54,11 +54,8 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     makeEdge('e3', 'C', 'D'),
   ];
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
-  const entries = edges.map(edge => analyzeEdge(paths, edge.id, nodes).entryPort);
   test('Multiple inputs to a decision share one grouped entry side', () => {
-    const uniqueEntries = new Set(entries);
-    expect(uniqueEntries.size, 1, 'entry side count');
-    expect(entries[0], 'Left', 'entry side');
+    assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
   });
 }
 
@@ -73,14 +70,8 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     makeEdge('e2', 'B', 'D'),
   ];
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
-  const entries = edges.map(edge => analyzeEdge(paths, edge.id, nodes).entryPort);
   test('Two inputs to a decision share one grouped entry side', () => {
-    const uniqueEntries = new Set(entries);
-    expect(uniqueEntries.size, 1, 'entry side count');
-    expect(entries[0], 'Left', 'entry side');
-    edges.forEach(edge => {
-      if (!paths[edge.id]?.groupedFanIn) throw new Error(`${edge.id} was not grouped into decision fan-in`);
-    });
+    assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
   });
 }
 
@@ -95,14 +86,8 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     makeEdge('e2', 'B', 'D'),
   ];
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
-  const entries = edges.map(edge => analyzeEdge(paths, edge.id, nodes).entryPort);
   test('Decision fan-in groups matching line types across approach directions', () => {
-    edges.forEach(edge => {
-      if (!paths[edge.id]?.groupedFanIn) throw new Error(`${edge.id} should group with matching line type`);
-    });
-    const uniqueEntries = new Set(entries);
-    expect(uniqueEntries.size, 1, 'entry side count');
-    expect(entries[0], 'Left', 'entry side');
+    assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
   });
 }
 
@@ -139,6 +124,22 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     edges.forEach(edge => {
       if (paths[edge.id]?.groupedFanIn) throw new Error(`${edge.id} should not group into a process node`);
     });
+  });
+}
+
+{
+  const nodes = [
+    makeNode('A', -120, 0),
+    makeNode('B', 0, -160),
+    makeNode('D', 0, 0, 'rhombus'),
+  ];
+  const edges = [
+    makeEdge('direct', 'A', 'D'),
+    makeEdge('loop', 'B', 'D'),
+  ];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  test('Short decision inputs still use one clean T-merge', () => {
+    assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
   });
 }
 
@@ -209,6 +210,23 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     const outgoing = analyzeEdge(paths, 'out', nodes);
     if (incoming.entryPort === outgoing.exitPort) {
       throw new Error(`process input and output share ${incoming.entryPort}`);
+    }
+  });
+}
+
+{
+  const nodes = [
+    makeNode('D', 0, 0, 'rhombus'),
+    makeNode('P', 260, 120, 'process'),
+  ];
+  const edges = [
+    makeEdge('yes', 'D', 'P', { label: 'Да' }),
+  ];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  test('Short decision labels get enough text path space', () => {
+    if (!paths.yes?.textPathD) throw new Error('missing textPathD for short decision label');
+    if ((paths.yes.textPathLen || 0) < 36) {
+      throw new Error(`expected textPathLen >=36, got ${paths.yes.textPathLen || 0}`);
     }
   });
 }
@@ -287,6 +305,36 @@ function segmentsOverlap(s1, s2) {
   const b1 = Math.min(s2.a.y, s2.b.y);
   const b2 = Math.max(s2.a.y, s2.b.y);
   return Math.max(a1, b1) < Math.min(a2, b2);
+}
+
+function assertSingleDecisionFanIn(paths, edges, nodes, expectedEntry) {
+  const carriers = edges.filter(edge => paths[edge.id]?.fanInCarrier);
+  if (carriers.length !== 1) {
+    throw new Error(`expected exactly one fan-in carrier, got ${carriers.map(edge => edge.id).join(', ') || 'none'}`);
+  }
+  const carrierAnalysis = analyzeEdge(paths, carriers[0].id, nodes);
+  expect(carrierAnalysis.entryPort, expectedEntry, 'carrier entry side');
+
+  edges.forEach(edge => {
+    const path = paths[edge.id];
+    if (!path?.groupedFanIn) throw new Error(`${edge.id} was not grouped into decision fan-in`);
+    if (!path.fanInCarrier && !path.suppressMarkerEnd) {
+      throw new Error(`${edge.id} should not draw an arrowhead at the T-merge`);
+    }
+    assertOrthogonalPath(path.pts, edge.id);
+  });
+}
+
+function assertOrthogonalPath(pts, edgeId) {
+  for (let i = 1; i < (pts || []).length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const horizontal = Math.abs(a.y - b.y) < 0.01;
+    const vertical = Math.abs(a.x - b.x) < 0.01;
+    if (!horizontal && !vertical) {
+      throw new Error(`${edgeId} has a diagonal segment ${a.x},${a.y} -> ${b.x},${b.y}`);
+    }
+  }
 }
 
 summary('engine.flowchart.test.mjs');

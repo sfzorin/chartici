@@ -229,8 +229,10 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
             const isH = s.p1.y === s.p2.y;
             const hBonus = isH ? 1.35 : 1.0;
             const posBonus = sourceBiasedLabels ? -idx * 120 : idx * 0.1;
+            const usableBonus = sourceBiasedLabels && s.len >= 36 ? 800 : 0;
+            const tooShortPenalty = sourceBiasedLabels && s.len < 36 ? 800 : 0;
             const lengthScore = sourceBiasedLabels ? Math.min(s.len, 180) : s.len;
-            return lengthScore * hBonus + posBonus;
+            return lengthScore * hBonus + posBonus + usableBonus - tooShortPenalty;
           };
           
           let bestSegment = unbundledSegments.reduce((best, cur, idx) => {

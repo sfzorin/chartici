@@ -404,22 +404,61 @@ function applyDecisionFanInGrouping(result, edgeInfos, diagramType) {
       const endBox = bucket.infos[0].endBox;
       const dir = chooseDecisionFanInDir(bucket.infos, endBox);
       const entry = getBoxSidePoint(endBox, dir);
-      const mergeGap = 64;
-      const merge = {
-        x: entry.x + (dir === 'Left' ? -mergeGap : dir === 'Right' ? mergeGap : 0),
-        y: entry.y + (dir === 'Top' ? -mergeGap : dir === 'Bottom' ? mergeGap : 0),
-      };
+      const carrier = chooseFanInCarrier(bucket.infos, result, entry, dir);
+      if (!carrier) continue;
+      const merge = chooseFanInMergePoint(result[carrier.edge.id]?.pts, entry, dir, carrier.edge);
 
       bucket.infos.forEach(info => {
-        const pathData = buildGroupedFanInPath(result[info.edge.id]?.pts, entry, merge, dir);
+        const isCarrier = info.edge.id === carrier.edge.id;
+        const pathData = buildGroupedFanInPath(result[info.edge.id]?.pts, entry, merge, dir, { isCarrier });
         result[info.edge.id] = {
           ...result[info.edge.id],
           ...pathData,
           groupedFanIn: true,
+          fanInCarrier: isCarrier,
+          suppressMarkerEnd: !isCarrier,
         };
       });
     }
   }
+}
+
+function chooseFanInCarrier(infos, result, entry, dir) {
+  return infos.reduce((best, info) => {
+    const pts = result[info.edge.id]?.pts || [];
+    const score = scoreFanInCarrier(pts, entry, dir);
+    if (!best || score < best.score) return { info, edge: info.edge, score };
+    return best;
+  }, null);
+}
+
+function scoreFanInCarrier(pts, entry, dir) {
+  if (!Array.isArray(pts) || pts.length < 2) return Infinity;
+  const sourcePts = pts.slice(0, -1);
+  const last = sourcePts[sourcePts.length - 1];
+  const dist = Math.abs(last.x - entry.x) + Math.abs(last.y - entry.y);
+  const axisPenalty = isAlignedForDir(last, entry, dir) ? 0 : 10000;
+  return axisPenalty + dist + pts.length * 12;
+}
+
+function chooseFanInMergePoint(carrierPts, entry, dir, edge) {
+  const sourcePts = Array.isArray(carrierPts) && carrierPts.length >= 2
+    ? carrierPts.slice(0, -1)
+    : [];
+  const last = sourcePts[sourcePts.length - 1];
+  const minArrowGap = edgeHasEndMarker(edge) ? 44 : 18;
+  const idealGap = 64;
+  const maxGap = last ? Math.max(minArrowGap, Math.abs(last.x - entry.x) + Math.abs(last.y - entry.y) + 24) : idealGap;
+  const gap = Math.min(idealGap, maxGap);
+  if (dir === 'Left') return { x: entry.x - gap, y: entry.y };
+  if (dir === 'Right') return { x: entry.x + gap, y: entry.y };
+  if (dir === 'Top') return { x: entry.x, y: entry.y - gap };
+  return { x: entry.x, y: entry.y + gap };
+}
+
+function edgeHasEndMarker(edge) {
+  const type = edge?.connectionType || edge?.arrowType || 'target';
+  return type !== 'none' && type !== 'reverse';
 }
 
 function buildPortRespectingFallback(startPorts, endPorts, startNodeId, endNodeId, ctx, gridStep) {
@@ -559,10 +598,12 @@ function getBoxSidePoint(box, dir) {
   return { x: box.cx, y: box.bottom };
 }
 
-function buildGroupedFanInPath(existingPts, entry, merge, dir) {
-  const sourcePts = Array.isArray(existingPts) && existingPts.length >= 2
+function buildGroupedFanInPath(existingPts, entry, merge, dir, options = {}) {
+  const isCarrier = options.isCarrier !== false;
+  let sourcePts = Array.isArray(existingPts) && existingPts.length >= 2
     ? existingPts.slice(0, -1)
     : [];
+  if (isCarrier) sourcePts = trimCarrierToOrthogonalMerge(sourcePts, merge, entry, dir);
   const last = sourcePts[sourcePts.length - 1];
   const bend = last
     ? ((dir === 'Left' || dir === 'Right')
@@ -570,14 +611,11 @@ function buildGroupedFanInPath(existingPts, entry, merge, dir) {
       : { x: last.x, y: merge.y })
     : null;
 
-  const pts = [...sourcePts, bend, merge, entry].filter(Boolean);
+  const pts = isCarrier
+    ? [...sourcePts, merge, entry].filter(Boolean)
+    : [...sourcePts, bend, merge].filter(Boolean);
   const cleanPts = [];
-  for (const pt of pts) {
-    const prev = cleanPts[cleanPts.length - 1];
-    if (!prev || Math.abs(prev.x - pt.x) > 0.01 || Math.abs(prev.y - pt.y) > 0.01) {
-      cleanPts.push(pt);
-    }
-  }
+  appendOrthogonalCleanPoints(cleanPts, pts);
 
   const pathD = cleanPts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
   const textPathLen = cleanPts.slice(1).reduce((sum, pt, index) => {
@@ -586,6 +624,60 @@ function buildGroupedFanInPath(existingPts, entry, merge, dir) {
   }, 0);
 
   return { pathD, textPathD: pathD, textPathLen, pts: cleanPts };
+}
+
+function trimCarrierToOrthogonalMerge(sourcePts, merge, entry, dir) {
+  const pts = [...sourcePts];
+  while (pts.length > 0) {
+    const last = pts[pts.length - 1];
+    if (!pointBetweenMergeAndEntry(last, merge, entry, dir)) break;
+    pts.pop();
+  }
+  const last = pts[pts.length - 1];
+  if (last && !isAlignedForDir(last, merge, dir)) {
+    pts.push((dir === 'Left' || dir === 'Right')
+      ? { x: merge.x, y: last.y }
+      : { x: last.x, y: merge.y });
+  }
+  return pts;
+}
+
+function pointBetweenMergeAndEntry(point, merge, entry, dir) {
+  if (dir === 'Left' || dir === 'Right') {
+    if (Math.abs(point.y - entry.y) > 0.01) return false;
+    const minX = Math.min(merge.x, entry.x);
+    const maxX = Math.max(merge.x, entry.x);
+    return point.x > minX && point.x < maxX;
+  }
+  if (Math.abs(point.x - entry.x) > 0.01) return false;
+  const minY = Math.min(merge.y, entry.y);
+  const maxY = Math.max(merge.y, entry.y);
+  return point.y > minY && point.y < maxY;
+}
+
+function isAlignedForDir(point, entry, dir) {
+  return (dir === 'Left' || dir === 'Right')
+    ? Math.abs(point.y - entry.y) < 0.01
+    : Math.abs(point.x - entry.x) < 0.01;
+}
+
+function appendCleanPoints(out, pts) {
+  for (const pt of pts) {
+    const prev = out[out.length - 1];
+    if (!prev || Math.abs(prev.x - pt.x) > 0.01 || Math.abs(prev.y - pt.y) > 0.01) {
+      out.push(pt);
+    }
+  }
+}
+
+function appendOrthogonalCleanPoints(out, pts) {
+  for (const pt of pts) {
+    const prev = out[out.length - 1];
+    if (prev && Math.abs(prev.x - pt.x) > 0.01 && Math.abs(prev.y - pt.y) > 0.01) {
+      appendCleanPoints(out, [{ x: pt.x, y: prev.y }]);
+    }
+    appendCleanPoints(out, [pt]);
+  }
 }
 
 function reservePort(ctx, nodeId, point, diagramType) {
