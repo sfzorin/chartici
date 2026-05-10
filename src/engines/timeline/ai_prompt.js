@@ -6,6 +6,10 @@ Transform the user's concept into Markdown Tables for a TIMELINE.
 Output exactly two sections: "# Timeline Spine" (main periods) and "# Events" (grouped by phase).
 Group events using ### headings with Phase name and Size.
 Use 3-5 spine phases. Put 1-2 events on each phase. Every event row MUST use an ID from "# Timeline Spine".
+Make the timeline tell an arc: context → trigger → change → consequence → next state.
+Prefer phases that explain causality or maturity, not just calendar buckets.
+Events should be turning points, decisions, discoveries, releases, or consequences. Avoid filler milestones.
+If exact dates are not provided, use conceptual phases rather than inventing dates.
 
 # Timeline Spine
 | ID | Phase/Era Label | Color (0-11) |

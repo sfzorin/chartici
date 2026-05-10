@@ -8,6 +8,10 @@ ${sMap.L} = breakout/highlighted slice, ${sMap.M} = standard slice.
 Use 4-8 slices. Values must be meaningful proportions that add up to roughly 100.
 Do not provide Color columns or custom colors; the renderer assigns a balanced palette.
 Highlight only the most important slice with ${sMap.L}; keep the rest ${sMap.M}.
+Use piechart only when the user's idea is about composition, share, allocation, distribution, or relative weight.
+Slice labels should be comparable parts of one whole. Do not mix causes, outcomes, and categories in the same pie.
+If the user gives no data, infer plausible illustrative proportions only for conceptual diagrams; keep them rounded and explain the distribution through labels.
+Avoid tiny slices unless they are genuinely meaningful outliers.
 
 # Pie Slices
 | Title (Label) | Size | Value |
