@@ -295,6 +295,206 @@ function alignFlowchartGrid(nodes, edges) {
   return result;
 }
 
+function getGraphIds(nodes, edges) {
+  const nodeIds = new Set(nodes.map(n => String(n.id)));
+  return edges
+    .map(edge => ({ from: edgeFrom(edge), to: edgeTo(edge) }))
+    .filter(edge => nodeIds.has(edge.from) && nodeIds.has(edge.to));
+}
+
+function findStronglyConnectedComponents(nodes, edges) {
+  const graphEdges = getGraphIds(nodes, edges);
+  const adj = new Map(nodes.map(node => [String(node.id), []]));
+  graphEdges.forEach(edge => adj.get(edge.from)?.push(edge.to));
+
+  let index = 0;
+  const stack = [];
+  const onStack = new Set();
+  const indices = new Map();
+  const lowLink = new Map();
+  const components = [];
+
+  const strongConnect = (id) => {
+    indices.set(id, index);
+    lowLink.set(id, index);
+    index += 1;
+    stack.push(id);
+    onStack.add(id);
+
+    for (const next of adj.get(id) || []) {
+      if (!indices.has(next)) {
+        strongConnect(next);
+        lowLink.set(id, Math.min(lowLink.get(id), lowLink.get(next)));
+      } else if (onStack.has(next)) {
+        lowLink.set(id, Math.min(lowLink.get(id), indices.get(next)));
+      }
+    }
+
+    if (lowLink.get(id) !== indices.get(id)) return;
+    const component = [];
+    let current = null;
+    do {
+      current = stack.pop();
+      onStack.delete(current);
+      component.push(current);
+    } while (current !== id);
+    components.push(component);
+  };
+
+  nodes.forEach(node => {
+    const id = String(node.id);
+    if (!indices.has(id)) strongConnect(id);
+  });
+
+  return components;
+}
+
+function shouldUseFeedbackFlowLayout(nodes, edges, dt) {
+  if (dt !== 'flowchart' || nodes.length < 4 || nodes.length > 16 || edges.length < nodes.length) return false;
+  if (nodes.some(node => node.lockPos)) return false;
+  const components = findStronglyConnectedComponents(nodes, edges);
+  const largest = components.reduce((best, component) => component.length > best.length ? component : best, []);
+  if (largest.length >= 3) return true;
+
+  const graphEdges = getGraphIds(nodes, edges);
+  let cyclicEdges = 0;
+  graphEdges.forEach(edge => {
+    if (hasPath(graphEdges, edge.to, edge.from, `${edge.from}->${edge.to}`)) cyclicEdges += 1;
+  });
+  return cyclicEdges >= 3 && cyclicEdges >= Math.ceil(nodes.length / 2);
+}
+
+function hasPath(graphEdges, startId, goalId, skipKey = null) {
+  const queue = [String(startId)];
+  const seen = new Set(queue);
+  const target = String(goalId);
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (current === target) return true;
+    graphEdges.forEach(edge => {
+      if (skipKey && `${edge.from}->${edge.to}` === skipKey) return;
+      if (edge.from !== current || seen.has(edge.to)) return;
+      seen.add(edge.to);
+      queue.push(edge.to);
+    });
+  }
+
+  return false;
+}
+
+function layoutFeedbackFlow(nodes, edges) {
+  const components = findStronglyConnectedComponents(nodes, edges);
+  const coreIds = new Set(
+    components.reduce((best, component) => component.length > best.length ? component : best, [])
+  );
+  if (coreIds.size < 2) return nodes;
+
+  const graphEdges = getGraphIds(nodes, edges);
+  const byId = new Map(nodes.map(node => [String(node.id), node]));
+  const degree = new Map(nodes.map(node => [String(node.id), { in: 0, out: 0, coreOut: 0, coreIn: 0 }]));
+  graphEdges.forEach(edge => {
+    const from = degree.get(edge.from);
+    const to = degree.get(edge.to);
+    if (from) {
+      from.out += 1;
+      if (coreIds.has(edge.to)) from.coreOut += 1;
+    }
+    if (to) {
+      to.in += 1;
+      if (coreIds.has(edge.from)) to.coreIn += 1;
+    }
+  });
+
+  const centerCandidate = [...nodes]
+    .filter(node => !coreIds.has(String(node.id)) && node.type !== 'rhombus')
+    .map(node => {
+      const stats = degree.get(String(node.id)) || { coreOut: 0, coreIn: 0, out: 0, in: 0 };
+      return {
+        node,
+        score: stats.coreOut * 6 + stats.coreIn * 3 + stats.out + stats.in,
+      };
+    })
+    .filter(item => item.score >= 4)
+    .sort((a, b) => b.score - a.score)[0]?.node || null;
+  const centerId = centerCandidate ? String(centerCandidate.id) : null;
+
+  const result = new Map();
+  const maxW = Math.max(...nodes.map(node => nodeWidth(node)));
+  const maxH = Math.max(...nodes.map(node => nodeHeight(node)));
+  const radiusX = snap(Math.max(300, maxW * 1.8));
+  const radiusY = snap(Math.max(190, maxH * 1.8));
+
+  if (centerCandidate) {
+    result.set(centerId, { ...centerCandidate, x: 0, y: snap(radiusY + maxH * 1.2) });
+  }
+
+  const coreNodes = [...coreIds]
+    .map(id => byId.get(id))
+    .filter(Boolean)
+    .sort((a, b) => {
+      const da = degree.get(String(a.id)) || { in: 0, out: 0 };
+      const db = degree.get(String(b.id)) || { in: 0, out: 0 };
+      return (db.in + db.out) - (da.in + da.out);
+    });
+
+  const coreAngles = coreNodes.length === 3
+    ? [-90, 25, 145]
+    : coreNodes.map((_, index) => -90 + (360 * index / coreNodes.length));
+
+  coreNodes.forEach((node, index) => {
+    const angle = (coreAngles[index] * Math.PI) / 180;
+    result.set(String(node.id), {
+      ...node,
+      x: snap(Math.cos(angle) * radiusX),
+      y: snap(Math.sin(angle) * radiusY),
+    });
+  });
+
+  const remaining = nodes.filter(node => !result.has(String(node.id)));
+  const left = [];
+  const right = [];
+  const bottom = [];
+
+  remaining.forEach(node => {
+    const id = String(node.id);
+    const stats = degree.get(id) || { coreOut: 0, coreIn: 0, out: 0, in: 0 };
+    if (stats.coreOut > stats.coreIn || node.type === 'rhombus') left.push(node);
+    else if (stats.coreIn > stats.coreOut) right.push(node);
+    else bottom.push(node);
+  });
+
+  const hubY = centerId && result.get(centerId) ? result.get(centerId).y : 0;
+  const interventionY = snap(hubY * 0.55);
+  placeSideNodes(result, left, -radiusX - maxW * 1.4, interventionY, maxH + 90);
+  placeSideNodes(result, right, radiusX + maxW * 1.4, 0, maxH + 90);
+  placeBottomNodes(result, bottom, radiusY + maxH * 3.2, maxW + 90);
+
+  return nodes.map(node => result.get(String(node.id)) || node);
+}
+
+function placeSideNodes(result, nodes, x, centerY, gap) {
+  const startY = centerY - ((nodes.length - 1) * gap) / 2;
+  nodes.forEach((node, index) => {
+    result.set(String(node.id), {
+      ...node,
+      x: snap(x),
+      y: snap(startY + index * gap),
+    });
+  });
+}
+
+function placeBottomNodes(result, nodes, y, gap) {
+  const startX = -((nodes.length - 1) * gap) / 2;
+  nodes.forEach((node, index) => {
+    result.set(String(node.id), {
+      ...node,
+      x: snap(startX + index * gap),
+      y: snap(y),
+    });
+  });
+}
+
 function nodeWidth(node) {
   return node.w || getNodeDim(node).width;
 }
@@ -443,7 +643,10 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
 
 
   const childMap = new Map();
-  const nodeById = new Map(nodes.map(n => [String(n.id), n]));
+
+  if (isHorizontalFlow && shouldUseFeedbackFlowLayout(nodes, edges, dt)) {
+    return layoutFeedbackFlow(nodes, edges);
+  }
   
   edges.forEach(e => {
     const from = String(e.from || e.sourceId);

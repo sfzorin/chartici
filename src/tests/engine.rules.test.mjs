@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { ARROW_MARKER } from '../diagram/edges.js';
 import { getEngine } from '../engines/index.js';
 import { getDiagramRules } from '../utils/diagramRules.js';
 import { getRoutingPolicy } from '../utils/engine/routingPolicy.js';
@@ -21,7 +22,8 @@ assert.equal(getEngine('sequence').layout.algorithm, 'sequence');
 assert.equal(sequence.layout.MIN_GAP_X, 120);
 assert.equal(sequence.layout.MIN_GAP_Y, 80);
 assert.equal(sequence.layout.RANKER, 'network-simplex');
-assert.equal(sequence.layout.SEQUENCE_CROSS_LANE_GAP, 52);
+assert.equal(sequence.layout.SEQUENCE_MIN_STEP_GAP, 60);
+assert.equal(sequence.layout.SEQUENCE_CROSS_LANE_GAP, 60);
 
 const timeline = getDiagramRules('timeline');
 assert.equal(timeline.layout.MIN_GAP_X, 120);
@@ -62,6 +64,11 @@ assert.equal(treeRouting.allowCornerKisses, true);
 assert.equal(treeRouting.allowSiblingCrossings, true);
 assert.equal(treeRouting.enableBusRouting, true);
 
+const arrowTipX = 10.5;
+assert.equal(ARROW_MARKER.refX, arrowTipX, 'standard arrow tip must sit on the endpoint');
+assert.ok(ARROW_MARKER.width > ARROW_MARKER.refX, 'standard arrow marker viewBox must contain the endpoint tip');
+
 console.log('  ✅ layout/routing rules are owned by engines');
 console.log('  ✅ org_chart still follows tree rules');
 console.log('  ✅ routing policies are owned by engines');
+console.log('  ✅ standard arrow marker keeps its tip on the endpoint');

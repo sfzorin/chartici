@@ -21,7 +21,7 @@ export default {
         ioFormat: { edgeEncoding: 'explicit', edgeKey: 'messages' },
         engineManifest: {
             layout: 'sequence',
-            edgeStyle: 'orthogonal_astar',
+            edgeStyle: 'deterministic_sequence',
             nodeTypes: ['process', 'circle'],
             matrixGridOverlays: true,
             overlay: {
@@ -41,13 +41,13 @@ export default {
     layout: {
         algorithm: 'sequence',
         isHorizontalFlow: false,
-        edgeStyle: 'orthogonal_astar',
+        edgeStyle: 'deterministic_sequence',
         rules: {
             MIN_GAP_X: 120,
             MIN_GAP_Y: 80,
             RANKER: 'network-simplex',
-            SEQUENCE_MIN_STEP_GAP: 48,
-            SEQUENCE_CROSS_LANE_GAP: 52,
+            SEQUENCE_MIN_STEP_GAP: 60,
+            SEQUENCE_CROSS_LANE_GAP: 60,
             SEQUENCE_SAME_LANE_LABEL_CAP: 220,
             SEQUENCE_LANE_GAP: 56,
             SEQUENCE_LANE_PAD: 26,
@@ -56,6 +56,7 @@ export default {
 
     routing: {
         portStrategy: 'dynamic',
+        sidePortsOnly: true,
         allowPortReuse: false,
         allowCornerKisses: false,
         allowSiblingCrossings: false,

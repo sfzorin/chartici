@@ -48,6 +48,9 @@ const createBlankDiagramData = () => ({
 });
 
 function App() {
+  const previewParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const bookPreviewUrl = previewParams.get('bookPreview');
+  const isBookPreview = Boolean(bookPreviewUrl);
   const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'light');
   const [paletteTheme, setPaletteTheme] = useState('basic');
   const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory(createBlankDiagramData());
@@ -181,7 +184,7 @@ function App() {
   };
 
   
-  const loadParsedData = (parsed, fallbackName = 'Imported Project') => {
+  const loadParsedData = useCallback((parsed, _fallbackName = 'Imported Project') => {
     // diagramType: единственный источник истины — meta.type (config.diagramType удалён из парсера)
     const dt = parsed.meta?.type || 'flowchart';
     const layedOutNodes = layoutNodesHeuristically(parsed.nodes, parsed.edges, { diagramType: dt, groups: parsed.groups });
@@ -234,7 +237,34 @@ function App() {
     setSelectedEdgeId(null);
     setFitTrigger(Date.now());
     sessionStartTime.current = Date.now();
-  };
+  }, [setDiagramData]);
+
+  useEffect(() => {
+    if (!bookPreviewUrl) return;
+    let cancelled = false;
+    fetch(bookPreviewUrl)
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to load preview CCI: ${res.status}`);
+        return res.text();
+      })
+      .then(text => {
+        if (cancelled) return;
+        const parsed = parseCharticiFile(text);
+        loadParsedData(parsed, parsed.config?.titleText || 'Book Preview');
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setDialogConfig({
+            type: 'alert',
+            title: 'Preview load error',
+            message: err.message,
+            onConfirm: () => setDialogConfig(null),
+            onCancel: () => setDialogConfig(null),
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [bookPreviewUrl, loadParsedData]);
 
   const handleCharticiUpload = (e) => {
     const file = e.target.files[0];
@@ -818,6 +848,34 @@ function App() {
   const toggleAppTheme = () => {
     setAppTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
+
+  if (isBookPreview) {
+    return (
+      <div className="app-container" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+        <section className="app-canvas-area" style={{ width: '100%', height: '100%', position: 'relative' }}>
+          <DiagramRenderer
+            initialData={filteredData}
+            theme={paletteTheme}
+            appTheme={appTheme}
+            svgRef={svgRef}
+            aspectRatio={aspect}
+            bgColor={bgColor}
+            showGrid={showGrid}
+            selectedNodeId={null}
+            selectedEdgeId={null}
+            fitTrigger={fitTrigger}
+            diagramTitle={diagramTitle}
+            diagramType={diagramType}
+            setDiagramType={setDiagramType}
+            showLegend={showLegend}
+            legendPos={legendPos}
+            legendSize={legendSize}
+          />
+        </section>
+        {dialogConfig && <DialogModal {...dialogConfig} />}
+      </div>
+    );
+  }
 
   return (
     <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>

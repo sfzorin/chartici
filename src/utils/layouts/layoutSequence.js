@@ -8,6 +8,10 @@ function snap(value) {
   return Math.round(value / GRID_STEP) * GRID_STEP;
 }
 
+function snapUp(value) {
+  return Math.ceil(value / GRID_STEP) * GRID_STEP;
+}
+
 function labelRequiredPx(label, extra = 56) {
   if (!label) return 0;
   return Math.ceil(String(label).length * LABEL_CHAR_WIDTH + extra);
@@ -93,28 +97,31 @@ export function layoutSequence(nodes, edges, layoutRules) {
     const sourceGroup = getGroupId(nodeById.get(String(from)));
     const targetGroup = getGroupId(nodeById.get(String(to)));
     if (sourceGroup && sourceGroup === targetGroup) {
-      return Math.max(minGap, Math.min(sameLaneLabelCap, labelRequiredPx(msg.label, 64)));
+      return Math.max(minGap, Math.min(sameLaneLabelCap, labelRequiredPx(msg.label, 74)));
     }
 
     return crossLaneGap;
   };
 
-  let cursorX = 0;
-  const positioned = orderedIds.map((id, index) => {
+  const positioned = [];
+  orderedIds.forEach((id, index) => {
     const node = nodeById.get(String(id));
+    let x;
     if (index === 0) {
-      cursorX = nodeW(id) / 2;
+      x = snap(nodeW(id) / 2);
     } else {
       const prevId = orderedIds[index - 1];
-      cursorX += nodeW(prevId) / 2 + labelGapFor(prevId, id) + nodeW(id) / 2;
+      const prev = positioned[positioned.length - 1];
+      const requiredGap = labelGapFor(prevId, id);
+      x = snapUp(prev.x + nodeW(prevId) / 2 + requiredGap + nodeW(id) / 2);
     }
 
     const gid = getGroupId(node);
-    return {
+    positioned.push({
       ...node,
-      x: snap(cursorX),
+      x,
       y: snap(gid && laneY[gid] !== undefined ? laneY[gid] : node.y || 0),
-    };
+    });
   });
 
   return positioned;

@@ -10,8 +10,10 @@ import {
 import {
   getEdgeLabelPolicy,
   getEdgeLabelStyle,
+  getFittedManualEdgeLabel,
   getManualEdgeLabelPlacement,
   getTextPathStartOffset,
+  truncateLabelToWidth,
   usesManualEdgeLabels,
 } from '../../diagram/edgeLabelPlacement.js';
 
@@ -61,11 +63,16 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   }
   if (pathData.suppressMarkerStart) mStart = 'none';
   if (pathData.suppressMarkerEnd) mEnd = 'none';
+  const markedLineCap = (mStart !== 'none' || mEnd !== 'none') ? 'butt' : 'round';
+  const masksStandardArrow = mStart === markerId || mEnd === markerId;
+  const strokeMaskId = `edge-stroke-mask-${edge.id}`;
 
   // ── Label ──────────────────────────────────────────────────────────────────
   const L = getEdgeLabelStyle(labelPolicy);
   const useManualLabels = usesManualEdgeLabels(labelPolicy);
   let displayLabel = edge.label;
+  let effectiveLabelFontSize = L.fontSize;
+  const effectiveCharWidth = Math.max(8, L.charWidth || 0);
   if (manifest.suppressEdgeLabels) {
     displayLabel = null;
   } else if (displayLabel) {
@@ -75,10 +82,19 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       let padding = L.basePadding;
       if (mStart !== 'none') padding += L.arrowPadding;
       if (mEnd   !== 'none') padding += L.arrowPadding;
-      const maxChars = Math.floor(((textPathLen || 0) - padding) / L.charWidth);
-      if (displayLabel.length > maxChars && displayLabel.length > 10) displayLabel = null;
-    } else if ((textPathLen || 0) < 36) {
-      displayLabel = null;
+      const available = Math.max(0, (textPathLen || 0) - padding);
+      const labelWidth = String(displayLabel).length * effectiveCharWidth;
+      if (labelWidth > available) {
+        const minFontSize = labelPolicy?.strategy === 'message-center' ? 9 : 10;
+        const scale = available / Math.max(1, labelWidth);
+        effectiveLabelFontSize = Math.max(minFontSize, Math.floor(L.fontSize * scale * 10) / 10);
+        if (effectiveLabelFontSize <= minFontSize && labelWidth * (minFontSize / L.fontSize) > available) {
+          displayLabel = truncateLabelToWidth(displayLabel, available * (L.fontSize / minFontSize), effectiveCharWidth);
+          effectiveLabelFontSize = minFontSize;
+        }
+      }
+    } else {
+      displayLabel = getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, labelStyle: L });
     }
   }
 
@@ -90,6 +106,10 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
     ? getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle: L })
     : null;
   const textPathStartOffset = getTextPathStartOffset(labelPolicy);
+  const terminalMasks = masksStandardArrow
+    ? buildTerminalStrokeMasks({ pts, markerStart: mStart === markerId, markerEnd: mEnd === markerId })
+    : [];
+  const strokeMaskUrl = terminalMasks.length > 0 ? `url(#${strokeMaskId})` : undefined;
 
   return (
     <g
@@ -112,11 +132,24 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
         strokeWidth={strokeW}
         strokeDasharray={dashArray}
         opacity={isLogical ? (isSelected ? 1 : baseOpacity) : baseOpacity}
-        markerStart={mStart}
-        markerEnd={mEnd}
-        strokeLinecap="round"
+        mask={strokeMaskUrl}
+        strokeLinecap={markedLineCap}
         strokeLinejoin="round"
       />
+
+      {(mStart !== 'none' || mEnd !== 'none') && (
+        <path
+          d={pathD}
+          fill="none"
+          stroke="transparent"
+          strokeWidth={strokeW}
+          markerStart={mStart}
+          markerEnd={mEnd}
+          strokeLinecap="butt"
+          strokeLinejoin="round"
+          pointerEvents="none"
+        />
+      )}
 
       {manualLabelPlacement && (
         <g
@@ -127,12 +160,24 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
             x={manualLabelPlacement.x}
             y={manualLabelPlacement.y + 0.5}
             fontSize={L.fontSize}
-            fill={edgeColorStr}
+            fill="none"
             stroke="var(--diagram-label-halo)"
             strokeWidth={L.haloWidth}
-            paintOrder="stroke fill"
+            strokeLinejoin="round"
             dominantBaseline="middle"
-            textAnchor="middle"
+            textAnchor={manualLabelPlacement.textAnchor || 'middle'}
+            fontWeight={L.fontWeight}
+            letterSpacing="0"
+          >
+            {displayLabel}
+          </text>
+          <text
+            x={manualLabelPlacement.x}
+            y={manualLabelPlacement.y + 0.5}
+            fontSize={L.fontSize}
+            fill={edgeColorStr}
+            dominantBaseline="middle"
+            textAnchor={manualLabelPlacement.textAnchor || 'middle'}
             fontWeight={L.fontWeight}
             letterSpacing="0"
           >
@@ -142,26 +187,57 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
       )}
 
       {displayLabel && !isLogical && !manualLabelPlacement && (
-        <text
-          fontSize={L.fontSize}
-          fill={edgeColorStr}
-          stroke="var(--diagram-label-halo)"
-          strokeWidth={L.haloWidth}
-          paintOrder="stroke fill"
-          dominantBaseline="middle"
-          fontWeight={L.fontWeight}
-          letterSpacing="0"
-          dy={L.offsetY}
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor="middle">
-            {displayLabel}
-          </textPath>
-        </text>
+        <g style={{ pointerEvents: 'none', userSelect: 'none' }}>
+          <text
+            fontSize={effectiveLabelFontSize}
+            fill="none"
+            stroke="var(--diagram-label-halo)"
+            strokeWidth={L.haloWidth}
+            strokeLinejoin="round"
+            dominantBaseline="middle"
+            fontWeight={L.fontWeight}
+            letterSpacing="0"
+            dy={L.offsetY}
+          >
+            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor="middle">
+              {displayLabel}
+            </textPath>
+          </text>
+          <text
+            fontSize={effectiveLabelFontSize}
+            fill={edgeColorStr}
+            dominantBaseline="middle"
+            fontWeight={L.fontWeight}
+            letterSpacing="0"
+            dy={L.offsetY}
+          >
+            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor="middle">
+              {displayLabel}
+            </textPath>
+          </text>
+        </g>
       )}
       <path id={`${edge.id}_path`} d={textPathD} fill="none" stroke="none" />
 
       <defs>
+        {terminalMasks.length > 0 && (
+          <mask id={strokeMaskId} maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">
+            <rect x="-100000" y="-100000" width="200000" height="200000" fill="white" />
+            {terminalMasks.map((m, i) => (
+              <line
+                key={i}
+                x1={m.x1}
+                y1={m.y1}
+                x2={m.x2}
+                y2={m.y2}
+                stroke="black"
+                strokeWidth={m.width}
+                strokeLinecap="butt"
+              />
+            ))}
+          </mask>
+        )}
+
         {/* Standard arrowhead */}
         <marker id={`arrow-${edge.id}`} markerWidth={AM.width} markerHeight={AM.height} refX={AM.refX} refY={AM.refY} orient={AM.orient}>
           {isLogical ? (
@@ -188,5 +264,37 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
     </g>
   );
 });
+
+function buildTerminalStrokeMasks({ pts, markerStart, markerEnd }) {
+  if (!Array.isArray(pts) || pts.length < 2) return [];
+  const masks = [];
+  if (markerStart) {
+    const mask = terminalMaskSegment(pts[0], pts[1]);
+    if (mask) masks.push(mask);
+  }
+  if (markerEnd) {
+    const mask = terminalMaskSegment(pts[pts.length - 1], pts[pts.length - 2]);
+    if (mask) masks.push(mask);
+  }
+  return masks;
+}
+
+function terminalMaskSegment(endpoint, inward) {
+  if (!endpoint || !inward) return null;
+  const dx = inward.x - endpoint.x;
+  const dy = inward.y - endpoint.y;
+  const len = Math.hypot(dx, dy);
+  if (len <= 0.01) return null;
+  const erase = Math.min(8, Math.max(4, len - 1));
+  const ux = dx / len;
+  const uy = dy / len;
+  return {
+    x1: endpoint.x,
+    y1: endpoint.y,
+    x2: endpoint.x + ux * erase,
+    y2: endpoint.y + uy * erase,
+    width: 18,
+  };
+}
 
 export default DiagramEdge;

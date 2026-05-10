@@ -22,7 +22,7 @@ export default {
         ioFormat: { edgeEncoding: 'explicit', edgeKey: 'relationships' },
         engineManifest: {
             layout: 'sugiyama',
-            edgeStyle: 'orthogonal_astar',
+            edgeStyle: 'deterministic_erd',
             nodeTypes: ['process'],
         },
     },
@@ -30,7 +30,7 @@ export default {
     layout: {
         algorithm: 'sugiyama',
         isHorizontalFlow: true,
-        edgeStyle: 'orthogonal_astar',
+        edgeStyle: 'deterministic_erd',
         rules: {
             MIN_GAP_X: 80,
             MIN_GAP_Y: 80,

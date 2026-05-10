@@ -206,8 +206,9 @@ export const NODE_REGISTRY = {
       L: { width: 240, height: 120, fontSize: 18 },
     },
     ports: 'all',
-    // Pointed shape: no bifurcation. Extra ports sit on the sloped sides, useful for dense decisions.
-    portCatalog: [P.Top, P.Bottom, P.Left, P.Right],
+    // Decisions need independent exit/entry anchors for dense branching. Fan-in
+    // grouping is handled by the router, not by collapsing the port catalog.
+    portCatalog: ALL_PORTS,
     diagonalPorts: {
       S: [
         { exit: { dx:  30, dy: -15 }, anchor: { dx:  30, dy: -15 }, axis: 'H', sign:  1, dir: 'Right', penaltyId: 'DiagRhombus' },

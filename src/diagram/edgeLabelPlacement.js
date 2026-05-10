@@ -28,14 +28,52 @@ export function getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, la
   return null;
 }
 
+export function getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, labelStyle }) {
+  if (!displayLabel || !pts || pts.length < 2) return displayLabel || null;
+  if (labelPolicy?.strategy !== 'source-near') return displayLabel;
+  const best = getFlowchartLabelCandidate(displayLabel, pts, labelStyle);
+  if (!best) return null;
+  const maxLabelWidth = Math.max(0, best.len - best.minGap * 2);
+  return truncateLabelToWidth(displayLabel, maxLabelWidth - 14, labelStyle.charWidth);
+}
+
 export function getTextPathStartOffset(labelPolicy) {
   return labelPolicy?.textPathStartOffset || DEFAULT_LABELING.textPathStartOffset;
 }
 
 function getFlowchartLabelPlacement(displayLabel, pts, labelStyle) {
-  const labelWidth = Math.max(36, String(displayLabel).length * labelStyle.charWidth + 14);
+  const best = getFlowchartLabelCandidate(displayLabel, pts, labelStyle);
+  if (!best) return null;
+  const offset = Math.abs(labelStyle.offsetY ?? -7);
+  const ux = best.dx / best.len;
+  const uy = best.dy / best.len;
+  const anchor = {
+    x: best.a.x + ux * best.gap + (best.horizontal ? 0 : -offset),
+    y: best.a.y + uy * best.gap + (best.horizontal ? -offset : 0),
+  };
+  const textAnchor = textAnchorForFlowchartSegment(best);
+  const anchorSign = textAnchor === 'end' ? -1 : 1;
+  const boxCenter = {
+    x: anchor.x + (best.horizontal ? anchorSign * best.labelWidth / 2 : 0),
+    y: anchor.y + (best.horizontal ? 0 : -best.labelWidth / 2),
+  };
+  return {
+    x: anchor.x,
+    y: anchor.y,
+    boxCenterX: boxCenter.x,
+    boxCenterY: boxCenter.y,
+    labelWidth: best.labelWidth,
+    labelHeight: best.labelHeight,
+    angle: best.horizontal ? 0 : -90,
+    textAnchor,
+  };
+}
+
+function getFlowchartLabelCandidate(displayLabel, pts, labelStyle) {
+  const labelWidth = flowchartLabelWidth(displayLabel, labelStyle);
   const labelHeight = labelStyle.fontSize + 8;
-  const sourceGap = 6;
+  const minGap = 5;
+  const preferredGap = 20;
   let best = null;
 
   for (let i = 0; i < pts.length - 1; i++) {
@@ -47,29 +85,51 @@ function getFlowchartLabelPlacement(displayLabel, pts, labelStyle) {
     if (len < 24) continue;
 
     const horizontal = Math.abs(dx) >= Math.abs(dy);
-    const readableLen = labelWidth + sourceGap * 2;
+    const gap = labelGapForSegment(len, labelWidth, minGap, preferredGap);
+    const readableLen = labelWidth + gap * 2;
     if (len >= readableLen) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap };
       break;
     }
 
     const tooShortPenalty = (readableLen - len) * 8;
     const score = -i * 220 + Math.min(len, 240) + (horizontal ? 80 : 0) - tooShortPenalty;
     if (!best || score > best.score) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, score };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap, score };
     }
   }
 
-  if (!best) return null;
-  const offset = Math.abs(labelStyle.offsetY ?? -7);
-  const t = Math.min(0.48, (labelWidth / 2 + sourceGap) / best.len);
-  return {
-    x: best.a.x + best.dx * t + (best.horizontal ? 0 : -offset),
-    y: best.a.y + best.dy * t + (best.horizontal ? -offset : 0),
-    labelWidth: best.labelWidth,
-    labelHeight: best.labelHeight,
-    angle: best.horizontal ? 0 : -90,
-  };
+  return best;
+}
+
+function flowchartLabelWidth(displayLabel, labelStyle) {
+  return Math.max(36, String(displayLabel).length * labelStyle.charWidth + 14);
+}
+
+function textAnchorForFlowchartSegment(segment) {
+  if (segment.horizontal) return segment.dx < 0 ? 'end' : 'start';
+  return segment.dy < 0 ? 'end' : 'start';
+}
+
+function labelGapForSegment(len, labelWidth, minGap, preferredGap) {
+  const availableGap = Math.max(0, (len - labelWidth) / 2);
+  if (availableGap >= preferredGap) return preferredGap;
+  return Math.max(minGap, availableGap);
+}
+
+export function truncateLabelToWidth(label, maxTextWidth, charWidth) {
+  const text = String(label || '');
+  if (!text) return null;
+  const width = Math.max(1, charWidth || EDGE_LABEL_STYLE.charWidth || 7.4);
+  if (text.length * width <= maxTextWidth) return text;
+  if (maxTextWidth < width) return text.slice(0, 1);
+  const ellipsis = '...';
+  const ellipsisWidth = ellipsis.length * width;
+  if (maxTextWidth <= ellipsisWidth + width) {
+    return text.slice(0, Math.max(1, Math.floor(maxTextWidth / width)));
+  }
+  const chars = Math.max(1, Math.floor((maxTextWidth - ellipsisWidth) / width));
+  return `${text.slice(0, chars)}${ellipsis}`;
 }
 
 function getErdLabelPlacement(displayLabel, pts, labelStyle) {

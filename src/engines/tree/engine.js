@@ -23,7 +23,7 @@ export default {
         ioFormat: { edgeEncoding: 'parentId', connectionField: 'parentId', level: 'group' },
         engineManifest: {
             layout: 'tree',
-            edgeStyle: 'orthogonal_astar',
+            edgeStyle: 'deterministic_tree',
             nodeTypes: ['process'],
         },
     },
@@ -31,7 +31,7 @@ export default {
     layout: {
         algorithm: 'tree',
         isHorizontalFlow: false,
-        edgeStyle: 'orthogonal_astar',
+        edgeStyle: 'deterministic_tree',
     },
 
     routing: {

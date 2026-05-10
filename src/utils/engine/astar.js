@@ -45,6 +45,8 @@ class MinHeap {
 export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpaceReq, edgeType, gridStep, allowOverlap, allowCrossing, _unused, ctx, deadlineMs, ignorePadding = false) {
   const hasText = textSpaceReq > 0;
   const startTime = performance.now();
+  const startStubLen = terminalStubLength(edgeType, 'start', gridStep);
+  const endStubLen = terminalStubLength(edgeType, 'end', gridStep);
 
   let bestFallbackNode = null;
   let bestFallbackH = Infinity;
@@ -72,12 +74,50 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   const candidateEndPorts = filterFreePorts(endPorts, endNodeId, 'end');
   if (candidateStartPorts.length === 0 || candidateEndPorts.length === 0) return null;
 
+  const directPath = findDirectPortPath(
+      candidateStartPorts,
+      candidateEndPorts,
+      startNodeId,
+      endNodeId,
+      edgeType,
+      startStubLen,
+      endStubLen,
+      allowOverlap,
+      allowCrossing,
+      ctx
+  );
+  if (directPath) return directPath;
+
+  if (ctx?.diagramType === 'flowchart') {
+      const simpleOrthogonalPath = findSimpleOrthogonalPortPath(
+          candidateStartPorts,
+          candidateEndPorts,
+          startNodeId,
+          endNodeId,
+          startStubLen,
+          endStubLen,
+          allowOverlap,
+          allowCrossing,
+          ctx
+      );
+      if (simpleOrthogonalPath) return simpleOrthogonalPath;
+  }
+
   // Map end ports to their safe approach coordinates
   const safeTargets = candidateEndPorts.map(p => {
       const eDir = p.axis;
-      const dx = eDir === 'H' ? p.sign * gridStep : 0;
-      const dy = eDir === 'V' ? p.sign * gridStep : 0;
-      return { x: p.pt.x + dx, y: p.pt.y + dy, pt: p.pt, trueEndPt: p.anchorPt || p.pt, dir: eDir, portDir: p.dir, penalty: p.penalty || 0 };
+      const dx = eDir === 'H' ? p.sign * endStubLen : 0;
+      const dy = eDir === 'V' ? p.sign * endStubLen : 0;
+      return {
+          x: p.pt.x + dx,
+          y: p.pt.y + dy,
+          pt: p.pt,
+          trueEndPt: p.anchorPt || p.pt,
+          dir: eDir,
+          portDir: p.dir,
+          approachSign: -p.sign,
+          penalty: p.penalty || 0,
+      };
   });
 
   const getH = (x, y) => {
@@ -98,8 +138,8 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
   // Seed open set with stub points from all free ports
   candidateStartPorts.forEach(port => {
      const sDir = port.axis;
-     const dx = sDir === 'H' ? port.sign * gridStep : 0;
-     const dy = sDir === 'V' ? port.sign * gridStep : 0;
+     const dx = sDir === 'H' ? port.sign * startStubLen : 0;
+     const dy = sDir === 'V' ? port.sign * startStubLen : 0;
      
      const nx = port.pt.x + dx;
      const ny = port.pt.y + dy;
@@ -132,16 +172,16 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
              g: startPenalty, f: h + startPenalty, dir: sDir,
              parent: ptNode,
              bends: 0,
-             currSegLen: gridStep,
+             currSegLen: startStubLen,
              lastSegLen: 0,
              prevLastSegLen: 0,
              ppLastSegLen: 0,
              trueStartPt: port.anchorPt || port.pt,
              unbundledSegIndex: 0,
-             unbundledSegLen: gridStep,
+             unbundledSegLen: startStubLen,
              isBundled: false,
              wasBundled: false,
-             maxSegLen: gridStep
+             maxSegLen: startStubLen
          };
          openHeap.push(node);
          openMap.set(id, node);
@@ -171,9 +211,10 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
          if (bestCompletedPath) return { pts: bestCompletedPath.pts, isFallback: false, timedOut: true, trueStartPt: bestCompletedPath.trueStartPt, trueEndPt: bestCompletedPath.trueEndPt };
          if (bestFallbackNode) {
              const pts = reconstructPath(bestFallbackNode);
-             const fallbackPort = endPorts[0].pt; 
+             const fallbackEnd = candidateEndPorts[0];
+             const fallbackPort = fallbackEnd.pt;
              pts.push(fallbackPort);
-             return { pts, isFallback: true, timedOut: true, trueStartPt: bestFallbackNode.trueStartPt, trueEndPt: fallbackPort };
+             return { pts, isFallback: true, timedOut: true, trueStartPt: bestFallbackNode.trueStartPt, trueEndPt: fallbackEnd.anchorPt || fallbackPort };
          }
          return null;
       }
@@ -194,8 +235,15 @@ export function runAStar(startPorts, endPorts, startNodeId, endNodeId, textSpace
       if (target) {
           // Must end approaching correctly!
            const correctApproach = (target.portDir === 'Top' || target.portDir === 'Bottom') ? 'V' : 'H';
-          if (current.dir && current.dir !== correctApproach) {
-              // Not a valid target approach, treat as a normal node
+          const moveSign = current.dir === 'H'
+              ? Math.sign(current.x - current.parent.x)
+              : Math.sign(current.y - current.parent.y);
+          if (current.dir === correctApproach && moveSign && moveSign !== target.approachSign) {
+              // Same-axis approach from the wrong side would create a U-turn before the marker.
+              // Perpendicular approach is fine: the safe target becomes the bend before the terminal stub.
+          } else if (isBendOnForbiddenCorner(current, ctx, target.dir)) {
+              // The safe target can itself be the final bend before the terminal stub.
+              // It must obey the same no-corner-kiss rule as normal A* bends.
           } else {
 
           // Calculate text abbreviation penalty (the ONLY text penalty)
@@ -530,6 +578,219 @@ function isPointOnSegmentInterior(point, line) {
         return point.y > minY + margin && point.y < maxY - margin;
     }
     return false;
+}
+
+function pathHasForbiddenCornerKiss(pts, ctx) {
+    const routing = getRoutingPolicy(ctx?.diagramType);
+    if (routing.allowCornerKisses) return false;
+    for (let i = 1; i < pts.length - 1; i++) {
+        const point = pts[i];
+        for (let turn of ctx.occupiedTurns) {
+            if (turn.x === point.x && turn.y === point.y) return true;
+        }
+        for (let line of ctx.occupiedLines) {
+            if (isPointOnSegmentInterior(point, line)) return true;
+        }
+    }
+    return false;
+}
+
+function isBendOnForbiddenCorner(node, ctx, nextDir = null) {
+    const routing = getRoutingPolicy(ctx?.diagramType);
+    const bendsFromParent = node?.parent?.dir && node.parent.dir !== node.dir;
+    const bendsToNext = nextDir && node.dir !== nextDir;
+    if (routing.allowCornerKisses || (!bendsFromParent && !bendsToNext)) return false;
+    return pointHasForbiddenCornerKiss(node, ctx);
+}
+
+function pointHasForbiddenCornerKiss(point, ctx) {
+    for (let turn of ctx.occupiedTurns) {
+        if (turn.x === point.x && turn.y === point.y) return true;
+    }
+    for (let line of ctx.occupiedLines) {
+        if (isPointOnSegmentInterior(point, line)) return true;
+    }
+    return false;
+}
+
+function terminalStubLength(edgeType, role, gridStep) {
+    const markerType = String(edgeType || '').split('-').pop() || 'target';
+    const hasStartMarker = markerType === 'reverse' || markerType === 'both';
+    const hasEndMarker = markerType === 'target' || markerType === 'both';
+    const needsArrowRoom = role === 'start' ? hasStartMarker : hasEndMarker;
+    if (!needsArrowRoom) return gridStep;
+    return Math.max(gridStep, Math.ceil(40 / gridStep) * gridStep);
+}
+
+function findDirectPortPath(startPorts, endPorts, startNodeId, endNodeId, edgeType, startStubLen, endStubLen, allowOverlap, allowCrossing, ctx) {
+    let best = null;
+    for (const startPort of startPorts) {
+        for (const endPort of endPorts) {
+            if (startPort.isDiagonal || endPort.isDiagonal) continue;
+            if (startPort.axis !== endPort.axis) continue;
+            if (startPort.axis === 'H' && Math.abs(startPort.pt.y - endPort.pt.y) > 0.01) continue;
+            if (startPort.axis === 'V' && Math.abs(startPort.pt.x - endPort.pt.x) > 0.01) continue;
+
+            const dx = endPort.pt.x - startPort.pt.x;
+            const dy = endPort.pt.y - startPort.pt.y;
+            const len = Math.abs(dx) + Math.abs(dy);
+            if (len <= 0) continue;
+
+            const sign = startPort.axis === 'H' ? Math.sign(dx) : Math.sign(dy);
+            if (sign === 0) continue;
+            if (startPort.sign !== sign || endPort.sign !== -sign) continue;
+            if (len < Math.max(startStubLen, endStubLen)) continue;
+            if (isSegmentBlockedCheck(startPort.pt.x, startPort.pt.y, endPort.pt.x, endPort.pt.y, startNodeId, endNodeId, allowOverlap, ctx)) continue;
+
+            const overlapCheck = checkPathOverlap(startPort.pt.x, startPort.pt.y, endPort.pt.x, endPort.pt.y, ctx);
+            if (!allowCrossing && overlapCheck.crossings.length > 0) continue;
+            if (!allowOverlap && overlapCheck.overlaps.length > 0) continue;
+
+            const pts = cleanDirectPath(startPort, endPort);
+            const score = len + (startPort.penalty || 0) + (endPort.penalty || 0);
+            if (!best || score < best.score) {
+                best = {
+                    score,
+                    pts,
+                    isFallback: false,
+                    trueStartPt: startPort.anchorPt || startPort.pt,
+                    trueEndPt: endPort.anchorPt || endPort.pt,
+                };
+            }
+        }
+    }
+    return best;
+}
+
+function findSimpleOrthogonalPortPath(startPorts, endPorts, startNodeId, endNodeId, startStubLen, endStubLen, allowOverlap, allowCrossing, ctx) {
+    let best = null;
+    for (const startPort of startPorts) {
+        for (const endPort of endPorts) {
+            if (startPort.isDiagonal || endPort.isDiagonal) continue;
+            if (startPort.axis !== endPort.axis || startPort.sign !== -endPort.sign) continue;
+            if (startPort.axis !== 'H') continue;
+
+            const axisDelta = startPort.axis === 'H'
+                ? endPort.pt.x - startPort.pt.x
+                : endPort.pt.y - startPort.pt.y;
+            if (Math.sign(axisDelta) !== startPort.sign) continue;
+
+            const startStub = portStubPoint(startPort, startStubLen);
+            const endStub = portStubPoint(endPort, endStubLen);
+            const pts = cleanDuplicatePoints([
+                ...(Array.isArray(startPort.anchorPt) ? startPort.anchorPt : [startPort.anchorPt || startPort.pt]),
+                startPort.pt,
+                startStub,
+                startPort.axis === 'H'
+                    ? { x: startStub.x, y: endStub.y }
+                    : { x: endStub.x, y: startStub.y },
+                endStub,
+                endPort.pt,
+                ...(Array.isArray(endPort.anchorPt) ? endPort.anchorPt.slice().reverse() : [endPort.anchorPt || endPort.pt]),
+            ]);
+
+            if (pathBlocked(pts, startNodeId, endNodeId, allowOverlap, ctx)) continue;
+            if (pathHasForbiddenCornerKiss(pts, ctx)) continue;
+            const overlapCheck = pathOverlap(pts, ctx);
+            if (!allowCrossing && overlapCheck.crossings > 0) continue;
+            if (!allowOverlap && overlapCheck.overlaps > 0) continue;
+
+            const score = pathLength(pts) + countBends(pts) * 90 + (startPort.penalty || 0) + (endPort.penalty || 0);
+            if (!best || score < best.score) {
+                best = {
+                    score,
+                    pts,
+                    isFallback: false,
+                    trueStartPt: startPort.anchorPt || startPort.pt,
+                    trueEndPt: endPort.anchorPt || endPort.pt,
+                };
+            }
+        }
+    }
+    return best;
+}
+
+function cleanDirectPath(startPort, endPort) {
+    const pts = [];
+    appendPathPoints(pts, startPort.anchorPt || startPort.pt);
+    appendPathPoints(pts, startPort.pt);
+    appendPathPoints(pts, endPort.pt);
+    const endAnchors = Array.isArray(endPort.anchorPt) ? endPort.anchorPt.slice().reverse() : [endPort.anchorPt || endPort.pt];
+    appendPathPoints(pts, endAnchors);
+    return pts;
+}
+
+function cleanDirectPoints(points) {
+    const pts = [];
+    appendPathPoints(pts, points);
+    const out = [pts[0]];
+    for (let i = 1; i < pts.length - 1; i++) {
+        const prev = out[out.length - 1];
+        const curr = pts[i];
+        const next = pts[i + 1];
+        if ((prev.x === curr.x && curr.x === next.x) || (prev.y === curr.y && curr.y === next.y)) continue;
+        out.push(curr);
+    }
+    out.push(pts[pts.length - 1]);
+    return out;
+}
+
+function cleanDuplicatePoints(points) {
+    const pts = [];
+    appendPathPoints(pts, points);
+    return pts;
+}
+
+function appendPathPoints(out, points) {
+    const list = Array.isArray(points) ? points : [points];
+    for (const point of list) {
+        if (!point) continue;
+        const prev = out[out.length - 1];
+        if (!prev || Math.abs(prev.x - point.x) > 0.01 || Math.abs(prev.y - point.y) > 0.01) {
+            out.push({ x: point.x, y: point.y });
+        }
+    }
+}
+
+function portStubPoint(port, stubLen) {
+    return {
+        x: port.pt.x + (port.axis === 'H' ? port.sign * stubLen : 0),
+        y: port.pt.y + (port.axis === 'V' ? port.sign * stubLen : 0),
+    };
+}
+
+function pathBlocked(pts, startNodeId, endNodeId, allowOverlap, ctx) {
+    for (let i = 0; i < pts.length - 1; i++) {
+        if (isSegmentBlockedCheck(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, startNodeId, endNodeId, allowOverlap, ctx)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function pathOverlap(pts, ctx) {
+    let crossings = 0;
+    let overlaps = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const check = checkPathOverlap(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, ctx);
+        crossings += check.crossings.length;
+        overlaps += check.overlaps.length;
+    }
+    return { crossings, overlaps };
+}
+
+function pathLength(pts) {
+    return pts.slice(1).reduce((sum, pt, index) => sum + Math.abs(pt.x - pts[index].x) + Math.abs(pt.y - pts[index].y), 0);
+}
+
+function countBends(pts) {
+    let bends = 0;
+    for (let i = 1; i < pts.length - 1; i++) {
+        const prevH = pts[i].y === pts[i - 1].y;
+        const nextH = pts[i + 1].y === pts[i].y;
+        if (prevH !== nextH) bends += 1;
+    }
+    return bends;
 }
 
 function reconstructPath(leaf) {

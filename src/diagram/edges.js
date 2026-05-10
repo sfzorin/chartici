@@ -97,7 +97,7 @@ export const EDGE_LABEL_STYLE = {
   fontWeight: DIAGRAM_DESIGN.edge.labelWeight,
   charWidth: DIAGRAM_DESIGN.edge.labelCharWidth,
   basePadding: 18,
-  arrowPadding: 22,
+  arrowPadding: 5,
   haloWidth: DIAGRAM_DESIGN.edge.labelHaloWidth,
   offsetY: DIAGRAM_DESIGN.edge.labelOffsetY,
 };

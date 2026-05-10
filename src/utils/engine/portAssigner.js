@@ -61,7 +61,13 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   }
 
   const circleExitAssignments = assignCircleExitPorts(edges, nodeMap);
+  const flowchartExitAssignments = diagramType === 'flowchart'
+    ? assignFlowchartExitPorts(edges, nodeMap)
+    : new Map();
   const decisionEntryAssignments = assignDecisionEntryPorts(edges, nodeMap);
+  const flowchartEntryAssignments = diagramType === 'flowchart'
+    ? assignFlowchartEntryPorts(edges, nodeMap)
+    : new Map();
 
   // Iterate all edges to compute robust penalties
   for (const edge of edges) {
@@ -82,13 +88,21 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
       // Note: we keep all ports so A* can fall back if the golden port is saturated
     } else {
       if (diagramType === 'flowchart') {
-        startPorts = keepFlowchartAutoPorts(startPorts, src);
-        endPorts = keepFlowchartAutoPorts(endPorts, tgt);
+        startPorts = keepFlowchartFallbackPorts(startPorts, src);
+        endPorts = keepFlowchartFallbackPorts(endPorts, tgt);
+      }
+      if (routingPolicy.sidePortsOnly) {
+        startPorts = keepSidePorts(startPorts);
+        endPorts = keepSidePorts(endPorts);
       }
       // 'dynamic' strategy: L-ray obstacle-aware penalties (default for freeform graphs)
       applyFlowchartPenalties(startPorts, src, tgtBox, ctx, src.id, tgt.id);
       applyFlowchartPenalties(endPorts, tgt, srcBox, ctx, src.id, tgt.id);
       applyPreferredPortPenalty(startPorts, circleExitAssignments.get(edge.id), srcBox, src);
+      if (diagramType === 'flowchart') {
+        startPorts = forcePreferredPort(startPorts, circleExitAssignments.get(edge.id) || flowchartExitAssignments.get(edge.id));
+      }
+      applyDirectionalPortPenalty(endPorts, flowchartEntryAssignments.get(edge.id), tgtBox);
       endPorts = forcePreferredPort(endPorts, decisionEntryAssignments.get(edge.id));
     }
 
@@ -98,9 +112,14 @@ export function assignPorts(edges, nodes, diagramType, isHorizontalFlow = false,
   return result;
 }
 
-function keepFlowchartAutoPorts(ports, node) {
+function keepFlowchartFallbackPorts(ports, node) {
   if (node?.type === 'rhombus') return ports;
-  return ports.filter(port => !String(port.dir || '').startsWith('Bif'));
+  if (node?.type === 'circle') return ports;
+  return ports.filter(port => !port.isDiagonal);
+}
+
+function keepSidePorts(ports) {
+  return ports.filter(port => port.axis === 'H' && !port.isDiagonal);
 }
 
 function assignDecisionEntryPorts(edges, nodeMap) {
@@ -134,6 +153,103 @@ function assignDecisionEntryPorts(edges, nodeMap) {
   }
 
   return assignments;
+}
+
+function assignFlowchartExitPorts(edges, nodeMap) {
+  const assignments = new Map();
+  const outgoing = new Map();
+
+  for (const edge of edges) {
+    const src = nodeMap.get(edge.from);
+    const tgt = nodeMap.get(edge.to);
+    if (!src || !tgt || src.type === 'circle') continue;
+    if (!outgoing.has(src.id)) outgoing.set(src.id, []);
+    outgoing.get(src.id).push({ edge, src, srcBox: getTrueBox(src), tgtBox: getTrueBox(tgt) });
+  }
+
+  for (const [, list] of outgoing) {
+    if (list.length < 2) continue;
+    const sorted = [...list].sort((a, b) => Number(isDirectNeighbor(a)) - Number(isDirectNeighbor(b))).reverse();
+    const sideCounts = new Map();
+    sorted.forEach(item => {
+      const preferred = flowchartSideForVector(item.tgtBox.cx - item.srcBox.cx, item.tgtBox.cy - item.srcBox.cy);
+      const count = sideCounts.get(preferred) || 0;
+      sideCounts.set(preferred, count + 1);
+      assignments.set(item.edge.id, alternateExitSide(preferred, count, item.src?.type));
+    });
+  }
+
+  return assignments;
+}
+
+function isDirectNeighbor(item) {
+  return Math.abs(item.srcBox.cy - item.tgtBox.cy) < 1 && Math.abs(item.tgtBox.cx - item.srcBox.cx) <= 380;
+}
+
+function alternateExitSide(side, index, nodeType) {
+  const orders = nodeType === 'rhombus' ? {
+    Right: ['Right', 'Top', 'Bottom', 'Left'],
+    Left: ['Left', 'Top', 'Bottom', 'Right'],
+    Bottom: ['Bottom', 'Right', 'Left', 'Top'],
+    Top: ['Top', 'Right', 'Left', 'Bottom'],
+  } : {
+    Right: ['Right', 'Bottom', 'Top', 'Left'],
+    Left: ['Left', 'Bottom', 'Top', 'Right'],
+    Bottom: ['Bottom', 'Right', 'Left', 'Top'],
+    Top: ['Top', 'Right', 'Left', 'Bottom'],
+  };
+  const order = orders[side] || [side];
+  return order[Math.min(index, order.length - 1)];
+}
+
+function assignFlowchartEntryPorts(edges, nodeMap) {
+  const assignments = new Map();
+  const incoming = new Map();
+
+  for (const edge of edges) {
+    const src = nodeMap.get(edge.from);
+    const tgt = nodeMap.get(edge.to);
+    if (!src || !tgt || tgt.type === 'rhombus') continue;
+    if (!incoming.has(tgt.id)) incoming.set(tgt.id, []);
+    incoming.get(tgt.id).push({ edge, srcBox: getTrueBox(src), tgtBox: getTrueBox(tgt) });
+  }
+
+  for (const [, list] of incoming) {
+    const sorted = [...list].sort((a, b) => {
+      const sideA = cardinalForVector(a.srcBox.cx - a.tgtBox.cx, a.srcBox.cy - a.tgtBox.cy);
+      const sideB = cardinalForVector(b.srcBox.cx - b.tgtBox.cx, b.srcBox.cy - b.tgtBox.cy);
+      if (sideA !== sideB) return sideOrder(sideA) - sideOrder(sideB);
+      return a.srcBox.cy - b.srcBox.cy || a.srcBox.cx - b.srcBox.cx;
+    });
+
+    const sideCounts = new Map();
+    sorted.forEach(item => {
+      const preferred = flowchartSideForVector(item.srcBox.cx - item.tgtBox.cx, item.srcBox.cy - item.tgtBox.cy);
+      const count = sideCounts.get(preferred) || 0;
+      sideCounts.set(preferred, count + 1);
+      assignments.set(item.edge.id, alternateEntrySide(preferred, count));
+    });
+  }
+
+  return assignments;
+}
+
+function alternateEntrySide(side, index) {
+  const orders = {
+    Bottom: ['Bottom', 'Top', 'Right', 'Left'],
+    Top: ['Top', 'Bottom', 'Right', 'Left'],
+    Left: ['Left', 'Top', 'Bottom', 'Right'],
+    Right: ['Right', 'Top', 'Bottom', 'Left'],
+  };
+  const order = orders[side] || [side];
+  return order[Math.min(index, order.length - 1)];
+}
+
+function sideOrder(side) {
+  if (side === 'Top') return 0;
+  if (side === 'Left') return 1;
+  if (side === 'Right') return 2;
+  return 3;
 }
 
 function edgeStyleKey(edge) {
@@ -173,11 +289,26 @@ function assignCircleExitPorts(edges, nodeMap) {
       continue;
     }
 
+    const circleIncoming = edges
+      .filter(edge => edge.to === list[0].edge.from)
+      .map(edge => {
+        const src = nodeMap.get(edge.from);
+        const circle = nodeMap.get(edge.to);
+        if (!src || !circle) return null;
+        const srcBox = getTrueBox(src);
+        const circleBox = getTrueBox(circle);
+        return cardinalForVector(srcBox.cx - circleBox.cx, srcBox.cy - circleBox.cy);
+      })
+      .filter(Boolean);
+    const avoidTop = circleIncoming.includes('Top');
+    const avoidBottom = circleIncoming.includes('Bottom');
     const mostlyHorizontal = list.filter(item => Math.abs(item.dx) >= Math.abs(item.dy)).length >= list.length / 2;
     const sorted = [...list].sort((a, b) => mostlyHorizontal ? a.targetY - b.targetY : a.targetX - b.targetX);
-    const dirs = mostlyHorizontal
+    let dirs = mostlyHorizontal
       ? (average(sorted.map(i => i.dx)) >= 0 ? ['Top', 'Right', 'Bottom', 'Left'] : ['Top', 'Left', 'Bottom', 'Right'])
       : (average(sorted.map(i => i.dy)) >= 0 ? ['Left', 'Bottom', 'Right', 'Top'] : ['Left', 'Top', 'Right', 'Bottom']);
+    if (avoidTop) dirs = dirs.filter(dir => dir !== 'Top').concat('Top');
+    if (avoidBottom) dirs = dirs.filter(dir => dir !== 'Bottom').concat('Bottom');
 
     sorted.forEach((item, index) => {
       assignments.set(item.edge.id, dirs[Math.min(index, dirs.length - 1)]);
@@ -190,6 +321,13 @@ function assignCircleExitPorts(edges, nodeMap) {
 function cardinalForVector(dx, dy) {
   if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'Right' : 'Left';
   return dy >= 0 ? 'Bottom' : 'Top';
+}
+
+function flowchartSideForVector(dx, dy) {
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  if (absDy > absDx * 1.2) return dy >= 0 ? 'Bottom' : 'Top';
+  return dx >= 0 ? 'Right' : 'Left';
 }
 
 function average(values) {
@@ -208,9 +346,19 @@ function applyPreferredPortPenalty(ports, preferredDir, box, node) {
   }
 }
 
+function applyDirectionalPortPenalty(ports, preferredDir, box) {
+  if (!preferredDir) return;
+  const sizeD = Math.max(20, box.right - box.left, box.bottom - box.top);
+  for (const p of ports) {
+    if (portSide(p) !== preferredDir) {
+      p.penalty = (p.penalty || 0) + 12 * sizeD;
+    }
+  }
+}
+
 function forcePreferredPort(ports, preferredDir) {
   if (!preferredDir) return ports;
-  const preferred = ports.filter(port => port.dir === preferredDir && !port.isDiagonal);
+  const preferred = ports.filter(port => portSide(port) === preferredDir && !port.isDiagonal);
   return preferred.length > 0 ? preferred : ports;
 }
 
@@ -274,6 +422,10 @@ function getPortCategory(port, srcBox, tgtBox) {
   const margin = 20; 
   const dx = tgtBox.cx - srcBox.cx;
   const dy = tgtBox.cy - srcBox.cy;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  const horizontalDominates = absDx > margin && absDx >= absDy * 0.72;
+  const verticalDominates = absDy > margin && absDy >= absDx * 0.72;
   
   let isIdeal = false;
   let isRear = false;
@@ -283,7 +435,8 @@ function getPortCategory(port, srcBox, tgtBox) {
           isIdeal = false;
           isRear = false;
       } else {
-          isIdeal = (port.dir === 'Right' && dx > 0) || (port.dir === 'Left' && dx < 0);
+          const side = portSide(port);
+          isIdeal = horizontalDominates && ((side === 'Right' && dx > 0) || (side === 'Left' && dx < 0));
           isRear = !isIdeal;
       }
   } else { 
@@ -291,11 +444,20 @@ function getPortCategory(port, srcBox, tgtBox) {
           isIdeal = false;
           isRear = false;
       } else {
-          isIdeal = (port.dir === 'Bottom' && dy > 0) || (port.dir === 'Top' && dy < 0);
+          const side = portSide(port);
+          isIdeal = verticalDominates && ((side === 'Bottom' && dy > 0) || (side === 'Top' && dy < 0));
           isRear = !isIdeal;
       }
   }
   return isIdeal ? 'IDEAL' : (isRear ? 'REAR' : 'LATERAL');
+}
+
+function portSide(port) {
+  if (port.dir === 'BifRight') return 'Right';
+  if (port.dir === 'BifLeft') return 'Left';
+  if (port.dir === 'BifTop') return 'Top';
+  if (port.dir === 'BifBottom') return 'Bottom';
+  return port.dir;
 }
 
 function isLPathClear(x1, y1, x2, y2, isVertFirst, startId, endId, ctx) {

@@ -1,5 +1,64 @@
-import { PATH_STYLE_REGISTRY } from '../../diagram/edges.js';
+import {
+  ARROW_TYPE_REGISTRY,
+  CONNECTION_TYPE_REGISTRY,
+  EDGE_LABEL_STYLE,
+  PATH_STYLE_REGISTRY,
+} from '../../diagram/edges.js';
 import { getEdgeLabelPolicy } from '../../diagram/edgeLabelPlacement.js';
+
+const MARKER_LENGTH = 20;
+const LABEL_MARKER_CLEARANCE = MARKER_LENGTH + (EDGE_LABEL_STYLE.arrowPadding || 0);
+
+function samePoint(a, b) {
+    return Boolean(a && b && Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01);
+}
+
+function getEdgeForId(edgeId, ctx) {
+    const edges = ctx?.edges || [];
+    return edges.find(edge => String(edge.id) === String(edgeId)) || null;
+}
+
+function getMarkerEnds(edge) {
+    if (!edge) return { start: false, end: false };
+    if (edge.connectionType && CONNECTION_TYPE_REGISTRY[edge.connectionType]) {
+        return { start: false, end: false };
+    }
+    const arrowType = edge.arrowType || edge.connectionType || 'target';
+    const def = ARROW_TYPE_REGISTRY[arrowType] || ARROW_TYPE_REGISTRY.target;
+    return { start: Boolean(def.markerStart), end: Boolean(def.markerEnd) };
+}
+
+function insetEndpoint(endpoint, other, amount) {
+    const len = Math.abs(other.x - endpoint.x) + Math.abs(other.y - endpoint.y);
+    if (len <= amount + 10) return null;
+    return {
+        x: endpoint.x + Math.sign(other.x - endpoint.x) * amount,
+        y: endpoint.y + Math.sign(other.y - endpoint.y) * amount,
+    };
+}
+
+function trimSegmentForEndpoint(segment, endpoint, amount) {
+    let { p1, p2 } = segment;
+    if (samePoint(p1, endpoint)) {
+        const next = insetEndpoint(p1, p2, amount);
+        if (!next) return null;
+        p1 = next;
+    } else if (samePoint(p2, endpoint)) {
+        const next = insetEndpoint(p2, p1, amount);
+        if (!next) return null;
+        p2 = next;
+    }
+    const len = Math.abs(p2.x - p1.x) + Math.abs(p2.y - p1.y);
+    return len > 10 ? { ...segment, p1, p2, len } : null;
+}
+
+function trimLabelSegmentForMarkers(segment, routeStart, routeEnd, markerEnds) {
+    let next = segment;
+    if (markerEnds.start) next = trimSegmentForEndpoint(next, routeStart, LABEL_MARKER_CLEARANCE);
+    if (!next) return null;
+    if (markerEnds.end) next = trimSegmentForEndpoint(next, routeEnd, LABEL_MARKER_CLEARANCE);
+    return next;
+}
 
 function getEdgePriorityAtIntersection(edgeId, pt, ctx) {
    let priority = 0; 
@@ -110,6 +169,8 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
     const pathStyle = PATH_STYLE_REGISTRY.orthogonal_astar;
     const r  = pathStyle.cornerRadius; // 4
     const jr = pathStyle.jumpRadius;   // 6
+    const edge = getEdgeForId(edgeId, ctx);
+    const markerEnds = getMarkerEnds(edge);
 
     let pathStr = `M ${cleanPts[0].x} ${cleanPts[0].y}`;
     if (cleanPts.length === 2) {
@@ -211,10 +272,16 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
           }
       });
       
-      unbundledSegments = clearSegments;
+      const routeStart = cleanPts[0];
+      const routeEnd = cleanPts[cleanPts.length - 1];
+      unbundledSegments = clearSegments
+        .map(s => trimLabelSegmentForMarkers(s, routeStart, routeEnd, markerEnds))
+        .filter(Boolean);
 
       if (unbundledSegments.length === 0) {
-          unbundledSegments = segments;
+          unbundledSegments = segments
+            .map(s => trimLabelSegmentForMarkers(s, routeStart, routeEnd, markerEnds))
+            .filter(Boolean);
       }
 
       if (unbundledSegments.length === 0) {
@@ -227,7 +294,7 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
           // keep the longest readable segment, with a mild horizontal preference.
           const scoreSegment = (s, idx) => {
             const isH = s.p1.y === s.p2.y;
-            const hBonus = isH ? 1.35 : 1.0;
+            const hBonus = ctx?.diagramType === 'sequence' ? 1.0 : (isH ? 1.35 : 1.0);
             const posBonus = sourceBiasedLabels ? -idx * 120 : idx * 0.1;
             const usableBonus = sourceBiasedLabels && s.len >= 36 ? 800 : 0;
             const tooShortPenalty = sourceBiasedLabels && s.len < 36 ? 800 : 0;

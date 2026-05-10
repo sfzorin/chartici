@@ -27,7 +27,7 @@ export default {
         },
         engineManifest: {
             layout: 'sugiyama',
-            edgeStyle: 'orthogonal_astar',
+            edgeStyle: 'deterministic_flowchart',
             nodeTypes: ['process', 'circle', 'oval', 'rhombus'],
         },
     },
@@ -35,7 +35,7 @@ export default {
     layout: {
         algorithm: 'sugiyama',
         isHorizontalFlow: true,
-        edgeStyle: 'orthogonal_astar',
+        edgeStyle: 'deterministic_flowchart',
         rules: {
             RANKER: 'network-simplex',
         },

@@ -22,7 +22,7 @@ export default {
         ioFormat: { edgeEncoding: 'none' },
         engineManifest: {
             layout: 'matrix',
-            edgeStyle: 'orthogonal_astar',
+            edgeStyle: 'none',
             nodeTypes: ['process'],
             matrixGridOverlays: true,
             overlay: {
@@ -42,7 +42,7 @@ export default {
     layout: {
         algorithm: 'matrix',
         isHorizontalFlow: false,
-        edgeStyle: 'orthogonal_astar',
+        edgeStyle: 'none',
         rules: {
             RANKER: 'network-simplex',
         },

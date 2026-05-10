@@ -9,6 +9,7 @@ export function getRoutingPolicy(diagramType) {
     portStrategy: routing.portStrategy || 'dynamic',
     portPenalty: routing.portPenalty?.bind(routing),
     cardinalOnly: routing.cardinalOnly ?? normalizedType === 'erd',
+    sidePortsOnly: routing.sidePortsOnly ?? false,
     allowPortReuse: routing.allowPortReuse ?? enableBusRouting,
     allowCornerKisses: routing.allowCornerKisses ?? enableBusRouting,
     allowSiblingCrossings: routing.allowSiblingCrossings ?? false,
