@@ -21,6 +21,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
     const [userInput, setUserInput] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingStage, setLoadingStage] = useState('');
     const [phase1Plan, setPhase1Plan] = useState(null);
     const [randomPrompt] = useState(() => promptExamples[Math.floor(Math.random() * promptExamples.length)]);
 
@@ -50,6 +51,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
         }
         setErrorMsg('');
         setIsLoading(true);
+        setLoadingStage('Planning structure…');
         try {
             const result = await planDiagram(userInput.trim());
             if (result.success) {
@@ -66,14 +68,17 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
             setErrorMsg('Network error — check your connection.');
         } finally {
             setIsLoading(false);
+            setLoadingStage('');
         }
     };
 
-    const handleBuild = async () => {
+    const handleBuild = async (plan = phase1Plan) => {
+        if (!plan) return;
         setErrorMsg('');
         setIsLoading(true);
+        setLoadingStage('Building diagram…');
         try {
-            const result = await buildDiagram(phase1Plan.title, phase1Plan.diagramType, phase1Plan.extendedPrompt);
+            const result = await buildDiagram(plan.title, plan.diagramType, plan.extendedPrompt);
             if (result.success) {
                 processJson(JSON.stringify(result.cci));
             } else {
@@ -84,6 +89,46 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
             setErrorMsg('Network error — check your connection.');
         } finally {
             setIsLoading(false);
+            setLoadingStage('');
+        }
+    };
+
+    const handleGenerate = async () => {
+        if (!userInput.trim()) {
+            setErrorMsg('Describe the diagram you want to create.');
+            return;
+        }
+        setErrorMsg('');
+        setPhase1Plan(null);
+        setIsLoading(true);
+        try {
+            setLoadingStage('Planning structure…');
+            const planResult = await planDiagram(userInput.trim());
+            if (!planResult.success) {
+                setErrorMsg(planResult.error);
+                return;
+            }
+
+            const plan = {
+                title: planResult.title,
+                diagramType: planResult.diagramType,
+                extendedPrompt: planResult.extendedPrompt
+            };
+
+            setLoadingStage('Building diagram…');
+            const buildResult = await buildDiagram(plan.title, plan.diagramType, plan.extendedPrompt);
+            if (buildResult.success) {
+                processJson(JSON.stringify(buildResult.cci));
+            } else {
+                setErrorMsg(buildResult.error);
+                setPhase1Plan(plan);
+            }
+        } catch (e) {
+            console.error('Generate error:', e);
+            setErrorMsg('Network error — check your connection.');
+        } finally {
+            setIsLoading(false);
+            setLoadingStage('');
         }
     };
 
@@ -93,7 +138,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
             if (phase1Plan) {
                 handleBuild();
             } else {
-                handlePlan();
+                handleGenerate();
             }
         }
     };
@@ -127,10 +172,10 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                 {/* Hero */}
                 <div style={{ padding: '28px 32px 8px', textAlign: 'center' }}>
                     <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800, ...bright, lineHeight: 1.3 }}>
-                        {phase1Plan ? 'Review AI Plan (Debug)' : 'Free online diagram drawing tool'}
+                        {phase1Plan ? 'Preview Structure' : 'Free online diagram drawing tool'}
                     </h1>
                     <p style={{ margin: '8px 0 0', fontSize: '14px', ...dim, lineHeight: 1.5 }}>
-                        {phase1Plan ? 'Edit the expanded prompt if needed, then confirm to build Diagram.' : 'Describe a flowchart, timeline, tree, matrix, ERD, sequence, radial map, or pie chart.'}
+                        {phase1Plan ? 'Edit the structure if needed, then build the diagram.' : 'Describe a flowchart, timeline, tree, matrix, ERD, sequence, radial map, or pie chart.'}
                     </p>
                 </div>
 
@@ -160,7 +205,7 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                             </div>
 
                             <button 
-                                onClick={handlePlan} 
+                                onClick={handleGenerate} 
                                 disabled={isLoading}
                                 className="glass-btn-primary" 
                                 style={{ 
@@ -181,11 +226,27 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                                             border: '2px solid transparent', borderTopColor: 'currentColor',
                                             borderRadius: '50%', animation: 'spin 0.8s linear infinite'
                                         }} />
-                                        Planning Architecture…
+                                        {loadingStage || 'Generating diagram…'}
                                     </span>
                                 ) : (
-                                    'Plan Diagram'
+                                    'Generate Diagram'
                                 )}
+                            </button>
+                            <button
+                                onClick={handlePlan}
+                                disabled={isLoading}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--color-text-dim)',
+                                    cursor: isLoading ? 'wait' : 'pointer',
+                                    marginTop: '12px',
+                                    fontSize: '13px',
+                                    width: '100%',
+                                    fontWeight: 600
+                                }}
+                            >
+                                Preview structure first
                             </button>
                         </>
                     ) : (
@@ -233,10 +294,10 @@ const WelcomeScreenModal = forwardRef(({ onDataLoaded }, ref) => {
                                             border: '2px solid transparent', borderTopColor: 'currentColor',
                                             borderRadius: '50%', animation: 'spin 0.8s linear infinite'
                                         }} />
-                                        Building Structure…
+                                        {loadingStage || 'Building diagram…'}
                                     </span>
                                 ) : (
-                                    'Confirm & Build Diagram'
+                                    'Build Diagram'
                                 )}
                             </button>
 

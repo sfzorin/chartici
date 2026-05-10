@@ -8,7 +8,7 @@ Each orbit heading specifies Parent ID to auto-connect nodes.
 If the user's plan has named groups, domains, categories, or clusters, those names MUST become visible intermediate nodes.
 Do not flatten grouped content into a one-level flower. Model it as center → category nodes → leaf nodes.
 Use radial only when the center explains why every branch belongs together.
-The first orbit should be 3-6 meaningful categories. The second orbit should be concrete examples, tactics, risks, or outcomes under those categories.
+The first orbit should be 3-7 meaningful categories. The second orbit should be concrete examples, tactics, risks, or outcomes under those categories. Use up to 32 nodes when the hierarchy is meaningful.
 Sibling leaves should be comparable. Avoid mixing category labels and examples on the same orbit.
 If the request is broad, make the center a useful question or organizing principle, not a generic topic label.
 

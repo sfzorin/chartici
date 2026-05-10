@@ -4,8 +4,11 @@ import { getGroupId } from '../groupUtils.js';
 export function layoutMatrix(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];
 
-  const GAP_X = layoutRules.MIN_GAP_X;
-  const GAP_Y = layoutRules.MIN_GAP_Y;
+  const snapGap = (value) => Math.max(20, Math.round(value / 20) * 20);
+  const ITEM_GAP_X = snapGap((layoutRules.MIN_GAP_X || 60) * 0.45);
+  const ITEM_GAP_Y = snapGap((layoutRules.MIN_GAP_Y || 60) * 0.42);
+  const GROUP_GAP_X = snapGap((layoutRules.MIN_GAP_X || 60) * 0.7);
+  const GROUP_GAP_Y = snapGap((layoutRules.MIN_GAP_Y || 60) * 0.65);
 
   // Group nodes by groupId
   const groups = new Map(); // groupId -> [node]
@@ -27,8 +30,8 @@ export function layoutMatrix(nodes, edges, layoutRules) {
     const maxH = Math.max(...nodes.map(n => n.h || 60));
     return nodes.map((n, i) => ({
       ...n,
-      x: (i % cols) * (maxW + GAP_X),
-      y: Math.floor(i / cols) * (maxH + GAP_Y)
+      x: (i % cols) * (maxW + ITEM_GAP_X),
+      y: Math.floor(i / cols) * (maxH + ITEM_GAP_Y)
     }));
   }
 
@@ -50,16 +53,17 @@ export function layoutMatrix(nodes, edges, layoutRules) {
   const subCols = Math.ceil(Math.sqrt(maxNodesPerGroup));
   const maxW = Math.max(...nodes.map(n => n.w || 120));
   const maxH = Math.max(...nodes.map(n => n.h || 60));
-  const cellW = subCols * (maxW + GAP_X);
-  const cellH = Math.ceil(maxNodesPerGroup / subCols) * (maxH + GAP_Y);
+  const cellW = subCols * maxW + Math.max(0, subCols - 1) * ITEM_GAP_X;
+  const rowCount = Math.ceil(maxNodesPerGroup / subCols);
+  const cellH = rowCount * maxH + Math.max(0, rowCount - 1) * ITEM_GAP_Y;
 
   const result = [];
 
   groupIds.forEach((gid, gi) => {
     const col = gi % gridCols;
     const row = Math.floor(gi / gridCols);
-    const cellOriginX = col * (cellW + GAP_X);
-    const cellOriginY = row * (cellH + GAP_Y);
+    const cellOriginX = col * (cellW + GROUP_GAP_X);
+    const cellOriginY = row * (cellH + GROUP_GAP_Y);
 
     const groupNodes = groups.get(gid);
     groupNodes.forEach((n, ni) => {
@@ -67,8 +71,8 @@ export function layoutMatrix(nodes, edges, layoutRules) {
       const subRow = Math.floor(ni / subCols);
       result.push({
         ...n,
-        x: cellOriginX + subCol * (maxW + GAP_X) + maxW / 2,
-        y: cellOriginY + subRow * (maxH + GAP_Y) + maxH / 2
+        x: cellOriginX + subCol * (maxW + ITEM_GAP_X) + maxW / 2,
+        y: cellOriginY + subRow * (maxH + ITEM_GAP_Y) + maxH / 2
       });
     });
   });

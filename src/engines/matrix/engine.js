@@ -27,10 +27,10 @@ export default {
             matrixGridOverlays: true,
             overlay: {
                 // Бокс вокруг нод в группе
-                groupPad: 30,
+                groupPad: 20,
                 // Доп. отступы единого bbox (поверх groupPad)
-                globalLeftMargin: 50,
-                globalRightMargin: 30,
+                globalLeftMargin: 36,
+                globalRightMargin: 24,
                 // Граница группы
                 stroke: { width: 2, dash: '6, 6', opacity: 0.6 },
                 // Подпись группы

@@ -29,10 +29,28 @@ function promptSuggestsChoices(extendedPrompt) {
 
 function describeNodeCountBudget(diagramType) {
   const dt = String(diagramType || '').toLowerCase();
-  if (dt === 'tree') return '32 nodes max; preserve useful category levels and summarize only repetitive leaves';
-  if (dt === 'timeline') return '18 nodes max; summarize extra events into phases';
+  if (dt === 'tree') return '40 nodes max; preserve useful category levels and summarize only repetitive leaves';
+  if (dt === 'flowchart') return '30 nodes max; compress repeated options into 3-5 category nodes';
+  if (dt === 'timeline') return '28 nodes max; summarize only repetitive minor events';
+  if (dt === 'sequence') return '28 nodes max; keep actors and handoffs readable';
+  if (dt === 'radial') return '32 nodes max; preserve category and leaf levels';
+  if (dt === 'erd') return '18 entities max; keep only meaningful domain entities';
+  if (dt === 'piechart') return '10 slices max; merge tiny slices into an Other slice';
   if (dt === 'matrix') return 'keep matrix zones compact; summarize repeated items';
-  return '18 nodes max; compress long option lists into 2-4 category nodes';
+  return '26 nodes max; compress long option lists into category nodes';
+}
+
+function getMaxReadableNodes(diagramType) {
+  const dt = String(diagramType || '').toLowerCase();
+  if (dt === 'matrix') return Infinity;
+  if (dt === 'tree') return 40;
+  if (dt === 'flowchart') return 30;
+  if (dt === 'timeline') return 28;
+  if (dt === 'sequence') return 28;
+  if (dt === 'radial') return 32;
+  if (dt === 'erd') return 18;
+  if (dt === 'piechart') return 10;
+  return 26;
 }
 
 function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
@@ -50,7 +68,7 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
 
   if (groups.length === 0) errors.push('no groups');
   if (realNodes.length < 2) errors.push('too few nodes');
-  const maxReadableNodes = dt === 'matrix' ? Infinity : (dt === 'tree' ? 32 : 18);
+  const maxReadableNodes = getMaxReadableNodes(dt);
   if (realNodes.length > maxReadableNodes) errors.push(`too many nodes for a readable book figure (${describeNodeCountBudget(dt)})`);
 
   for (const node of realNodes) {

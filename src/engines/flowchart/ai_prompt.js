@@ -13,7 +13,7 @@ Use one readable main path. Use decisions sparingly. Avoid more than 6 outgoing 
 Do not put every node into one group unless the user explicitly asks for a monochrome diagram.
 If the brief lists choices in parentheses or comma lists, keep the most important choices as small branch nodes and merge them back to the main path. Do not flatten rich choices into a plain straight chain.
 Never create a decision with more than 6 outgoing links. If a choice list is longer, first create 3-5 category nodes (for example Mild / Savory / Crunchy), then continue from those categories.
-If the diagram would exceed the node budget, summarize examples into categories and keep only representative labels.
+Aim for 10-24 nodes when the idea benefits from branches. Hard maximum 30 nodes. If the diagram would exceed the node budget, summarize repeated examples into categories and keep only representative labels.
 Avoid the boring shape "start → step → step → end" unless there is truly no meaningful choice, risk, or outcome.
 
 # Steps

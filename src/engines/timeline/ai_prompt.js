@@ -5,7 +5,7 @@ Transform the user's concept into Markdown Tables for a TIMELINE.
 
 Output exactly two sections: "# Timeline Spine" (main periods) and "# Events" (grouped by phase).
 Group events using ### headings with Phase name and Size.
-Use 3-5 spine phases. Put 1-2 events on each phase. Every event row MUST use an ID from "# Timeline Spine".
+Use 4-7 spine phases. Put 1-3 events on each phase. Every event row MUST use an ID from "# Timeline Spine". Hard maximum 28 visible nodes.
 Make the timeline tell an arc: context → trigger → change → consequence → next state.
 Prefer phases that explain causality or maturity, not just calendar buckets.
 Events should be turning points, decisions, discoveries, releases, or consequences. Avoid filler milestones.

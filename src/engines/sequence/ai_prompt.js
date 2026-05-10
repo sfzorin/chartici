@@ -6,7 +6,7 @@ Transform the user's concept into Markdown Tables for a SEQUENCE diagram.
 Group nodes by actor using ### headings. Each node is a processing step on that actor's lifeline.
 LineStyle in # Messages: "solid" (sync call) or "dashed" (async return).
 The sequence should explain responsibility and handoff, not just list calls.
-Use 3-6 actors when helpful, but avoid actors that only repeat another actor's role.
+Use 3-7 actors when helpful, but avoid actors that only repeat another actor's role. Hard maximum 28 visible states.
 Include confirmations, async callbacks, retries, timeouts, or error paths when they clarify the central insight.
 Message labels should describe intent or result in 1-4 words, not implementation noise.
 Keep each actor's steps ordered and meaningful; avoid orphan states with no message.

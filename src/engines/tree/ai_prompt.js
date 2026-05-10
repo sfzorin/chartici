@@ -5,7 +5,7 @@ Transform the user's concept into Markdown Tables for a TREE diagram.
 
 Output two sections: "# Root" (single root node) and "# Branches" (groups of children).
 Each branch heading specifies Parent ID to auto-connect nodes.
-Keep depth to 2-4 levels. Prefer 2-5 children per parent. Use 12-28 nodes when the hierarchy needs real categories and examples. Avoid long labels.
+Keep depth to 2-5 levels. Prefer 2-6 children per parent. Use 14-34 nodes when the hierarchy needs real categories and examples. Hard maximum 40 nodes. Avoid long labels.
 If the user gives named branches, categories, families, or "Branch N" sections, those branch names MUST become visible intermediate nodes.
 Do not flatten a two-level hierarchy into root → leaves. Model it as root → category nodes → leaf nodes, even when the user asks for a compact node count.
 The tree should teach a taxonomy: each level must mean something different (domain → category → example, problem → cause → symptom, concept → subtype → use case).
