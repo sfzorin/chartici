@@ -86,7 +86,7 @@ async function buildAiRequest(body) {
     const userPrompt = trimText(body.userPrompt, 4000);
     if (!userPrompt) return { error: 'userPrompt is required' };
     return {
-      temperature: 0.3,
+      temperature: 0.45,
       messages: [
         { role: 'system', content: getSystemPromptPhase1() },
         { role: 'user', content: userPrompt },
@@ -102,7 +102,7 @@ async function buildAiRequest(body) {
   const phase2Prompt = getSystemPromptPhase2(diagramType);
   if (task === 'build') {
     return {
-      temperature: 0.1,
+      temperature: 0.15,
       messages: [
         { role: 'system', content: phase2Prompt },
         { role: 'user', content: extendedPrompt },

@@ -48,7 +48,7 @@ const createBlankDiagramData = () => ({
 });
 
 function App() {
-  const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'dark');
+  const [appTheme, setAppTheme] = useState(() => localStorage.getItem('appTheme') || 'light');
   const [paletteTheme, setPaletteTheme] = useState('basic');
   const { state: diagramData, setState: setDiagramData, undo, redo, canUndo, canRedo } = useDiagramHistory(createBlankDiagramData());
   const [aspect, setAspect] = useState('16:9');

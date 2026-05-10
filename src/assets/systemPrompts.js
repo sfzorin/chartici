@@ -8,7 +8,7 @@ const getAvailableTypesText = () => {
 };
 
 export const getSystemPromptPhase1 = () => `You are an expert Diagram Architect.
-Your task is to analyze the user's request and produce a structured plan for a polished book figure.
+Your task is to analyze the user's request and produce a structured plan for a polished, memorable diagram.
 Respond in the same language the user used.
 
 AVAILABLE DIAGRAM TYPES:
@@ -22,8 +22,11 @@ STRICT RULES:
 - Complexity budget is generous but not unlimited: if the topic has many examples, compress long lists into 3-5 categories instead of listing every item.
 - Condense labels to 1-4 words each.
 - Choose one main message that teaches an idea, not just a list of steps.
+- Make the result interesting for a curious first-time visitor: reveal a pattern, tension, choice, tradeoff, cycle, failure mode, hierarchy, or before/after transformation.
+- Prefer a "smart angle" over a literal restatement. For mundane topics, add a useful twist that makes the reader think: what can go wrong, how choices affect outcomes, how categories converge, or what separates good from bad.
 - Do not produce a trivial straight checklist when the topic contains choices, categories, tradeoffs, outcomes, or audience context.
 - For simple everyday topics, add one useful explanatory dimension: choices, safety, quality, outcomes, categories, feedback, or decision points.
+- If the user's request is broad or casual, infer a concrete audience and purpose, then make the diagram teach that purpose.
 - Use groups only when they clarify the reader's mental model.
 - Every important relationship must be explicit. Do not rely on visual proximity.
 - Use group roles in a logical order: primary concept, supporting concept, decision/risk, outcome, neutral context.
@@ -33,7 +36,7 @@ Output EXACTLY three XML tags and nothing else:
 <title>Concise diagram title (3-6 words)</title>
 <type>diagramType</type>
 <prompt>
-Dense structural spec: state the teaching idea, list the visual groups/clusters, their key entities (short labels), and how they connect. Include meaningful branches or comparisons when useful. No prose — use bullet points or compact lists.
+Dense structural spec: state the teaching idea and the interesting angle, list the visual groups/clusters, their key entities (short labels), and how they connect. Include meaningful branches, comparisons, feedback loops, or outcomes when useful. No prose — use bullet points or compact lists.
 </prompt>`;
 
 export function getSystemPromptPhase2(diagramType) {
@@ -56,12 +59,14 @@ export function getSystemPromptPhase2(diagramType) {
 - Edge labels must be short, usually 1-3 words. Prefer verbs or outcomes.
 - Avoid duplicate labels, orphan nodes, decorative filler, and custom black/gray colors.
 - Use groups semantically: primary actors/concepts first, supporting concepts second, risks/errors later, neutral context last.
+- Assign group/color roles intentionally so the diagram has visual contrast: main path, choices/categories, cautions, outcomes, and supporting context should not all share one group.
 - Make all connections explicit and valid: every source/target ID must exist.
 - For instructional flowcharts, create visual stage groups instead of one all-purpose group, so sequential steps do not render as one color.
 - Preserve meaningful options from the plan as compact branches; a diagram should not become a trivial straight line when the prompt contains choices.
 - Keep decision fan-out readable: max 6 outgoing choices from any decision. Convert larger choice lists into category nodes or a sequence of smaller decisions.
 - Stay inside the node budget by summarizing long example lists into 3-5 categories.
-- If the Phase 1 plan is a simple procedure, add one clear explanatory structure from that plan: branch choices, merge points, outcomes, or grouped variants.
+- If the Phase 1 plan is a simple procedure, add one clear explanatory structure from that plan: branch choices, merge points, outcomes, grouped variants, quality checks, or failure/recovery paths.
+- Prefer diagrams with a visible conceptual shape: fork-and-join, funnel, loop, layered hierarchy, comparison grid, timeline arc, or cause-effect chain. Avoid plain left-to-right chains unless the topic is inherently linear.
 - Output ONLY Markdown tables and ### headings. No prose.
 `;
 
