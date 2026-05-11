@@ -188,6 +188,13 @@ export function generateSVGPaths(cleanPts, edgeId, totalLength, segments, ctx, r
         const d2 = Math.hypot(p3.x - p2.x, p3.y - p2.y);
         if (d1 === 0 || d2 === 0) continue;
         
+        if (r <= 0) {
+          const inters = getIntersections(lastPoint, p2, edgeId, routeOrder, ctx);
+          pathStr += drawSegmentWithJumps(lastPoint, p2, inters, jr);
+          lastPoint = p2;
+          continue;
+        }
+
         const actualR = Math.min(r, d1/2, d2/2);
         const qStartX = p2.x + ((p1.x - p2.x) / d1) * actualR;
         const qStartY = p2.y + ((p1.y - p2.y) / d1) * actualR;

@@ -18,7 +18,6 @@ const MAX_ROUTE_OPTIMIZATION_PASSES = 1;
 const PREFERRED_CLEARANCE = 40;
 const TIGHT_CLEARANCE = 20;
 const COMFORT_CLEARANCE_LENGTH_BUDGET = 60;
-const FLOWCHART_CORNER_RADIUS = 8;
 
 export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   const ctx = buildFlowchartCtx(edgeInfos, allNodes, routingRules);
@@ -1048,7 +1047,7 @@ function toPathResult(route, info, edgeInfos, routes) {
 
 function pathFromPts(pts, options = {}) {
   if (!pts.length) return '';
-  return roundedPathFromPts(pts, () => '', options);
+  return segmentedPathFromPts(pts, () => '');
 }
 
 function pathFromPtsWithBreaks(pts, edgeId, routes, edgeInfos) {
@@ -1061,7 +1060,7 @@ function pathFromPtsWithBreaks(pts, edgeId, routes, edgeInfos) {
       ...line,
       routeOrder: routeOrder.get(String(route.edge.id)) ?? 0,
     })));
-  return roundedPathFromPts(pts, (a, b, i) => {
+  return segmentedPathFromPts(pts, (a, b, i) => {
     const currentProtectedArrow = segmentIsProtectedArrow(routes.get(String(edgeId))?.edge, i, pts.length - 1);
     return segmentPathWithBreaks(a, b, otherLines, currentOrder, currentProtectedArrow);
   });
@@ -1273,92 +1272,18 @@ function addBreakCut(plan, edgeId, index, point, gaps, otherEdgeId) {
 
 function pathFromPtsWithBreakPlan(pts, edgeId, breakPlan, options = {}) {
   if (!pts.length) return '';
-  return roundedPathFromPts(pts, (a, b, i) => (
+  return segmentedPathFromPts(pts, (a, b, i) => (
     segmentPathWithPlannedBreaks(a, b, breakPlan.get(`${edgeId}:${i}`) || [])
-  ), options);
+  ));
 }
 
-function roundedPathFromPts(pts, drawSegment, options = {}) {
+function segmentedPathFromPts(pts, drawSegment) {
   if (!pts.length) return '';
-  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
   let d = `M ${pts[0].x} ${pts[0].y}`;
-  let cursor = pts[0];
-
-  for (let i = 1; i < pts.length - 1; i++) {
-    const p1 = pts[i - 1];
-    const p2 = pts[i];
-    const p3 = pts[i + 1];
-    const d1 = euclideanDistance(p1, p2);
-    const d2 = euclideanDistance(p2, p3);
-    const prevH = Math.abs(p1.y - p2.y) < EPS;
-    const nextH = Math.abs(p2.y - p3.y) < EPS;
-    const prevV = Math.abs(p1.x - p2.x) < EPS;
-    const nextV = Math.abs(p2.x - p3.x) < EPS;
-    const isTurn = (prevH && nextV) || (prevV && nextH);
-    if (!isTurn || d1 < EPS || d2 < EPS) continue;
-
-    const r = Math.min(FLOWCHART_CORNER_RADIUS, d1 / 2, d2 / 2);
-    const qStart = {
-      x: p2.x + ((p1.x - p2.x) / d1) * r,
-      y: p2.y + ((p1.y - p2.y) / d1) * r,
-    };
-    const qEnd = {
-      x: p2.x + ((p3.x - p2.x) / d2) * r,
-      y: p2.y + ((p3.y - p2.y) / d2) * r,
-    };
-    d += drawSegment(cursor, qStart, i - 1) || ` L ${qStart.x} ${qStart.y}`;
-    d += ` Q ${p2.x} ${p2.y} ${qEnd.x} ${qEnd.y}`;
-    cursor = qEnd;
+  for (let i = 0; i < pts.length - 1; i++) {
+    d += drawSegment(pts[i], pts[i + 1], i) || ` L ${pts[i + 1].x} ${pts[i + 1].y}`;
   }
-
-  const terminalJoin = terminalFanInJoinCurve(pts, options.fanInJoinDir);
-  if (terminalJoin) {
-    d += drawSegment(cursor, terminalJoin.start, pts.length - 2) || ` L ${terminalJoin.start.x} ${terminalJoin.start.y}`;
-    d += ` Q ${terminalJoin.control.x} ${terminalJoin.control.y} ${terminalJoin.end.x} ${terminalJoin.end.y}`;
-    return d;
-  }
-
-  d += drawSegment(cursor, pts[pts.length - 1], pts.length - 2) || ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
   return d;
-}
-
-function terminalFanInJoinCurve(pts, dir) {
-  if (!dir || pts.length < 3) return null;
-  const join = fanInJoinUnit(dir);
-  if (!join) return null;
-  const merge = pts[pts.length - 1];
-  const prev = pts[pts.length - 2];
-  const incomingLen = euclideanDistance(prev, merge);
-  if (incomingLen < EPS) return null;
-  const incoming = {
-    x: (merge.x - prev.x) / incomingLen,
-    y: (merge.y - prev.y) / incomingLen,
-  };
-  if (Math.abs(incoming.x * join.x + incoming.y * join.y) > 1 - EPS) return null;
-  const r = Math.min(FLOWCHART_CORNER_RADIUS, incomingLen / 2);
-  return {
-    start: {
-      x: merge.x - incoming.x * r,
-      y: merge.y - incoming.y * r,
-    },
-    control: merge,
-    end: {
-      x: merge.x + join.x * r,
-      y: merge.y + join.y * r,
-    },
-  };
-}
-
-function fanInJoinUnit(dir) {
-  if (dir === 'Left') return { x: 1, y: 0 };
-  if (dir === 'Right') return { x: -1, y: 0 };
-  if (dir === 'Top') return { x: 0, y: 1 };
-  if (dir === 'Bottom') return { x: 0, y: -1 };
-  return null;
-}
-
-function euclideanDistance(a, b) {
-  return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
 function segmentPathWithPlannedBreaks(a, b, cuts) {

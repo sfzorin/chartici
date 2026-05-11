@@ -53,7 +53,7 @@ export const LINE_STYLE_REGISTRY = {
 export const PATH_STYLE_REGISTRY = {
   orthogonal_astar: {
     label: 'Orthogonal',
-    cornerRadius: 8,
+    cornerRadius: 0,
     jumpRadius: 6,
   },
   straight: {
@@ -79,7 +79,7 @@ export const PATH_STYLE_REGISTRY = {
      */
     curveStrength: 0.1,
     curveCap: 120,   // максимальный изгиб в пикселях (ограничивает очень длинные рёбра)
-    cornerRadius: 8,
+    cornerRadius: 0,
     jumpRadius: 0,
   },
   none: {

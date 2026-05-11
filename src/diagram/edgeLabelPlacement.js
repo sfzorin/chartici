@@ -87,26 +87,21 @@ function getFlowchartLabelCandidate(displayLabel, pts, labelStyle) {
     if (len < 1) continue;
 
     const horizontal = Math.abs(dx) >= Math.abs(dy);
-    const axisPad = labelAdvancePad(labelStyle);
-    const gap = labelGapForSegment(len, labelWidth, minGap + axisPad, preferredGap + axisPad);
+    const gap = labelGapForSegment(len, labelWidth, minGap, preferredGap);
     const readableLen = labelWidth + gap * 2;
     if (len >= readableLen) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap: minGap + axisPad };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap };
       break;
     }
 
     const tooShortPenalty = (readableLen - len) * 8;
     const score = -i * 220 + Math.min(len, 240) + (horizontal ? 80 : 0) - tooShortPenalty;
     if (!best || score > best.score) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap: minGap + axisPad, score };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap, score };
     }
   }
 
   return best;
-}
-
-function labelAdvancePad(labelStyle) {
-  return Math.ceil((labelStyle.fontSize || EDGE_LABEL_STYLE.fontSize || 12) / 2);
 }
 
 function flowchartTextWidth(displayLabel, labelStyle) {
@@ -134,13 +129,8 @@ export function truncateLabelToWidth(label, maxTextWidth, charWidth) {
   const width = Math.max(1, charWidth || EDGE_LABEL_STYLE.charWidth || 7.4);
   if (text.length * width <= maxTextWidth) return text;
   if (maxTextWidth < width) return text.slice(0, 1);
-  const ellipsis = '...';
-  const ellipsisWidth = ellipsis.length * width;
-  if (maxTextWidth <= ellipsisWidth + width) {
-    return text.slice(0, Math.max(1, Math.floor(maxTextWidth / width)));
-  }
-  const chars = Math.max(1, Math.floor((maxTextWidth - ellipsisWidth) / width));
-  return `${text.slice(0, chars)}${ellipsis}`;
+  const chars = Math.max(1, Math.floor(maxTextWidth / width));
+  return text.slice(0, chars);
 }
 
 function getErdLabelPlacement(displayLabel, pts, labelStyle) {

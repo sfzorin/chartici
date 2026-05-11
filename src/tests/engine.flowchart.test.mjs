@@ -1,5 +1,12 @@
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getNodeDim } from '../diagram/nodes.jsx';
+import {
+  getEdgeLabelPolicy,
+  getEdgeLabelStyle,
+  getFittedManualEdgeLabel,
+  getManualEdgeLabelPlacement,
+  truncateLabelToWidth,
+} from '../diagram/edgeLabelPlacement.js';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
 import { test, expect, summary, makeNode, makeEdge, analyzeEdge } from './testRunner.mjs';
 
@@ -70,6 +77,32 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 }
 
 {
+  const labelPolicy = getEdgeLabelPolicy('flowchart');
+  const labelStyle = getEdgeLabelStyle(labelPolicy);
+  const pts = [{ x: 0, y: 0 }, { x: 80, y: 0 }];
+  const fitted = getFittedManualEdgeLabel({
+    labelPolicy,
+    displayLabel: 'VeryLongLabel',
+    pts,
+    labelStyle,
+  });
+  const placement = getManualEdgeLabelPlacement({
+    labelPolicy,
+    displayLabel: fitted,
+    pts,
+    labelStyle,
+  });
+
+  test('Flowchart tight labels start at the 5px edge gap and truncate without ellipsis', () => {
+    if (!fitted) throw new Error('expected fitted label');
+    if (fitted.includes('.')) throw new Error(`fitted label should not use ellipsis: ${fitted}`);
+    if (placement.x !== 5) throw new Error(`expected tight label to start at 5px, got ${placement.x}`);
+    const direct = truncateLabelToWidth('ABCDEFGHIJ', 32, 8);
+    if (direct !== 'ABCD') throw new Error(`expected hard truncation without ellipsis, got ${direct}`);
+  });
+}
+
+{
   const nodes = [
     makeNode('P', 0, 0, 'process', 'M'),
     makeNode('A', 220, -80, 'process', 'M'),
@@ -96,8 +129,8 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
   const r = analyzeEdge(paths, 'e1', nodes);
   test('Diagonal A→B chooses the minimal-bend clear route', () => expect(r.bends, 1, 'bends'));
-  test('Bent flowchart routes render rounded corners', () => {
-    if (!/ Q /.test(paths.e1?.pathD || '')) throw new Error(`expected rounded corner command in ${paths.e1?.pathD || 'missing path'}`);
+  test('Bent flowchart routes keep square corners', () => {
+    if (/ Q /.test(paths.e1?.pathD || '')) throw new Error(`expected square corner path, got ${paths.e1?.pathD}`);
   });
 }
 
@@ -163,11 +196,10 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   test('Multiple inputs to a decision share one grouped entry side', () => {
     assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
   });
-  test('Grouped decision fan-in renders rounded merge bends', () => {
+  test('Grouped decision fan-in keeps square merge bends', () => {
     edges.forEach(edge => {
-      const pts = paths[edge.id]?.pts || [];
-      if (countBendsForTest(pts) > 0 && !/ Q /.test(paths[edge.id]?.pathD || '')) {
-        throw new Error(`${edge.id} grouped fan-in path is not rounded: ${paths[edge.id]?.pathD || 'missing'}`);
+      if (/ Q /.test(paths[edge.id]?.pathD || '')) {
+        throw new Error(`${edge.id} grouped fan-in path should not be rounded: ${paths[edge.id]?.pathD || 'missing'}`);
       }
     });
   });
