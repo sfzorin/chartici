@@ -97,7 +97,7 @@ test('All tree branches enter Top', () => {
       expect(route.entryPort, 'Left', `route ${index + 1} entry`);
       const beforeLast = route.pts[route.pts.length - 2];
       const last = route.pts[route.pts.length - 1];
-      if (last.x - beforeLast.x < 40) throw new Error(`route ${index + 1} has too short left-entry clearance`);
+      if (last.x - beforeLast.x < 20) throw new Error(`route ${index + 1} has too short left-entry clearance`);
     });
   });
 }

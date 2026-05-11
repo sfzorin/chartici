@@ -47,6 +47,10 @@ console.log('\n🎬 Sequence Engine: Side-port message routing');
   test('Same-lane sequence messages also stay side-to-side', () => {
     edges.forEach(edge => assertSidePorts(paths[edge.id]?.pts, edge.id));
   });
+
+  test('Reverse sequence arrows keep a 40px source terminal stub', () => {
+    assertTerminalStub(paths.back?.pts, 'back', 'start', 40);
+  });
 }
 
 {

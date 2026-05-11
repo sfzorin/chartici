@@ -39,11 +39,33 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   test('Adjacent horizontal process links stay side-to-side when arrow room fits', () => {
     const pts = paths.e1?.pts || [];
     assertOrthogonalPath(pts, 'e1');
-    if (pts.length !== 2 || pts[0].y !== pts[1].y) {
-      throw new Error(`expected straight side-to-side link, got ${pts.map(p => `${p.x},${p.y}`).join(' -> ')}`);
+    if (pts.length < 3 || !pts.every(pt => pt.y === pts[0].y)) {
+      throw new Error(`expected straight side-to-side link with preserved terminals, got ${pts.map(p => `${p.x},${p.y}`).join(' -> ')}`);
     }
+    if (terminalSegmentLength(pts, 'start') < 20) throw new Error('straight adjacent link lost its source terminal stub');
     const len = terminalSegmentLength(pts, 'end');
     if (len < 40) throw new Error(`straight adjacent link too short for arrow marker: ${len}`);
+  });
+}
+
+{
+  const nodes = [
+    makeNode('A', 0, 0, 'process', 'L'),
+    makeNode('B', 500, 0, 'process', 'L'),
+  ];
+  const edges = [makeEdge('e1', 'A', 'B', { label: 'Go' })];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  test('Flowchart source-near labels measure their gap from the node boundary, not the terminal stub', () => {
+    const pts = paths.e1?.pts || [];
+    const placement = paths.e1?.manualLabelPlacement;
+    if (!placement) throw new Error('missing manual label placement');
+    const expectedX = pts[0].x + 20;
+    if (placement.x !== expectedX) {
+      throw new Error(`expected label x ${expectedX} from node boundary, got ${placement.x}; path ${formatPts(pts)}`);
+    }
+    if (placement.y >= pts[0].y) {
+      throw new Error(`expected label above horizontal route, got y=${placement.y} for route y=${pts[0].y}`);
+    }
   });
 }
 
@@ -102,15 +124,15 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 
 {
   const nodes = [
-    makeNode('A', 0, 0, 'process', 'S'),
-    makeNode('B', 240, 0, 'process', 'S'),
-    makeNode('C', 120, 40, 'process', 'S'),
+    makeNode('D', 0, 0, 'rhombus', 'S'),
+    makeNode('T', 180, -80, 'process', 'S'),
   ];
-  const edges = [makeEdge('e1', 'A', 'B')];
+  const edges = [makeEdge('e1', 'D', 'T', { label: 'Нет' })];
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
 
-  test('Flowchart hard constraint rejects routes on foreign protected-zone borders', () => {
-    assertNoSegmentTouchesForeignProtectedZone(paths.e1?.pts || [], nodes, 'e1', ['A', 'B'], 20);
+  test('Flowchart route bodies start after terminal stubs and stay clear of source/target nodes', () => {
+    assertOrthogonalPath(paths.e1?.pts || [], 'e1');
+    assertNoBodySegmentTouchesNodeClearance(paths.e1?.pts || [], nodes, 'e1', 'D', 'T', 10);
   });
 }
 
@@ -605,24 +627,24 @@ function segmentCrossesBoxInterior(a, b, box) {
   return false;
 }
 
-function assertNoSegmentTouchesForeignProtectedZone(pts, nodes, edgeId, ownIds = [], padding = 20) {
-  const own = new Set(ownIds.map(String));
-  nodes
-    .filter(node => !own.has(String(node.id)))
-    .forEach(node => {
-      const dim = getNodeDim(node);
-      const box = {
-        left: (node.x || 0) - dim.width / 2 - padding,
-        right: (node.x || 0) + dim.width / 2 + padding,
-        top: (node.y || 0) - dim.height / 2 - padding,
-        bottom: (node.y || 0) + dim.height / 2 + padding,
-      };
-      for (let i = 0; i < pts.length - 1; i++) {
-        if (segmentTouchesBox(pts[i], pts[i + 1], box)) {
-          throw new Error(`${edgeId} segment ${pts[i].x},${pts[i].y} -> ${pts[i + 1].x},${pts[i + 1].y} touches protected zone of node ${node.id}`);
-        }
+function assertNoBodySegmentTouchesNodeClearance(pts, nodes, edgeId, sourceId, targetId, clearance = 10) {
+  nodes.forEach(node => {
+    const dim = getNodeDim(node);
+    const box = {
+      left: (node.x || 0) - dim.width / 2 - clearance,
+      right: (node.x || 0) + dim.width / 2 + clearance,
+      top: (node.y || 0) - dim.height / 2 - clearance,
+      bottom: (node.y || 0) + dim.height / 2 + clearance,
+    };
+    for (let i = 0; i < pts.length - 1; i++) {
+      const isSourceStub = String(node.id) === String(sourceId) && i === 0;
+      const isTargetStub = String(node.id) === String(targetId) && i === pts.length - 2;
+      if (isSourceStub || isTargetStub) continue;
+      if (segmentTouchesBox(pts[i], pts[i + 1], box)) {
+        throw new Error(`${edgeId} body segment ${pts[i].x},${pts[i].y} -> ${pts[i + 1].x},${pts[i + 1].y} touches clearance of node ${node.id}`);
       }
-    });
+    }
+  });
 }
 
 function segmentTouchesBox(a, b, box) {

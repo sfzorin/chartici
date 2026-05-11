@@ -51,6 +51,15 @@ const tightFlowchartPlacement = getManualEdgeLabelPlacement({
   labelStyle,
 });
 assert.equal(tightFlowchartPlacement.x, 5, 'tight flowchart labels should start at a 5px source gap');
+assert.equal(tightFlowchartPlacement.y, -7, 'horizontal flowchart labels should stay above the line');
+
+const tinyFlowchartLabel = getFittedManualEdgeLabel({
+  labelPolicy: flowchartPolicy,
+  displayLabel: 'Blocked',
+  pts: [{ x: 0, y: 0 }, { x: 12, y: 0 }],
+  labelStyle,
+});
+assert.ok(tinyFlowchartLabel, 'flowchart labels should truncate instead of disappearing on tiny segments');
 
 const leftwardFlowchartPlacement = getManualEdgeLabelPlacement({
   labelPolicy: flowchartPolicy,
@@ -59,6 +68,7 @@ const leftwardFlowchartPlacement = getManualEdgeLabelPlacement({
   labelStyle,
 });
 assert.equal(leftwardFlowchartPlacement.x, 80, 'leftward flowchart labels should keep the near edge at the gap');
+assert.equal(leftwardFlowchartPlacement.y, -7, 'leftward horizontal flowchart labels should stay above the line');
 assert.equal(leftwardFlowchartPlacement.textAnchor, 'end', 'leftward flowchart labels should end at the source-side gap');
 
 assert.equal(
@@ -68,7 +78,7 @@ assert.equal(
     pts: [{ x: 0, y: 0 }, { x: 70, y: 0 }],
     labelStyle,
   }),
-  'Ver...',
+  'Very ...',
   'flowchart labels should truncate at the end when even the 5px gap is tight'
 );
 

@@ -13,6 +13,7 @@ const EPS = 0.01;
 const OFFSET_PORT_PENALTY = 260;
 const ARROW_MARKER_LENGTH = 20;
 const LABEL_TO_ARROW_GAP = 5;
+const NODE_BODY_CLEARANCE = 10;
 
 export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   const ctx = buildFlowchartCtx(edgeInfos, allNodes, routingRules);
@@ -56,7 +57,7 @@ function buildFlowchartCtx(edgeInfos, allNodes, routingRules) {
   const nodeMap = new Map(allNodes.map(node => [String(node.id), node]));
   const boxes = new Map();
   const obstacles = [];
-  const padding = routingRules.PADDING || 20;
+  const padding = routingRules.PADDING || NODE_BODY_CLEARANCE;
   const degree = new Map();
 
   for (const info of edgeInfos) {
@@ -141,30 +142,32 @@ function directCandidates(startPort, endPort, info) {
   if (startPort.sign !== -endPort.sign) return [];
   if (startPort.axis === 'H' && Math.abs(startPort.pt.y - endPort.pt.y) > EPS) return [];
   if (startPort.axis === 'V' && Math.abs(startPort.pt.x - endPort.pt.x) > EPS) return [];
+  const startStub = stubPoint(startPort, terminalStubLength(info.edge, 'start'));
+  const endStub = stubPoint(endPort, terminalStubLength(info.edge, 'end'));
   const axisDelta = startPort.axis === 'H'
-    ? endPort.pt.x - startPort.pt.x
-    : endPort.pt.y - startPort.pt.y;
+    ? endStub.x - startStub.x
+    : endStub.y - startStub.y;
   if (Math.sign(axisDelta) !== startPort.sign) return [];
-  return [cleanPath([...startAnchors(startPort), endPort.pt, ...endAnchors(endPort)])];
+  return [cleanPathPreservingTerminalStubs([startAnchor(startPort), startStub, endStub, endAnchor(endPort)])];
 }
 
 function orthogonalCandidates(startPort, endPort, info) {
   const startStub = stubPoint(startPort, terminalStubLength(info.edge, 'start'));
   const endStub = stubPoint(endPort, terminalStubLength(info.edge, 'end'));
-  const prefix = [...startAnchors(startPort), startStub];
-  const suffix = [endStub, ...endAnchors(endPort)];
+  const prefix = [startAnchor(startPort), startStub];
+  const suffix = [endStub, endAnchor(endPort)];
   const candidates = [];
 
-  candidates.push(cleanPath([...prefix, { x: endStub.x, y: startStub.y }, ...suffix]));
-  candidates.push(cleanPath([...prefix, { x: startStub.x, y: endStub.y }, ...suffix]));
+  candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: endStub.x, y: startStub.y }, ...suffix]));
+  candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: startStub.x, y: endStub.y }, ...suffix]));
 
   const xs = [startStub.x, endStub.x, info.startBox.left - 40, info.startBox.right + 40, info.endBox.left - 40, info.endBox.right + 40];
   const ys = [startStub.y, endStub.y, info.startBox.top - 40, info.startBox.bottom + 40, info.endBox.top - 40, info.endBox.bottom + 40];
   for (const x of uniqueSnapped(xs)) {
-    candidates.push(cleanPath([...prefix, { x, y: startStub.y }, { x, y: endStub.y }, ...suffix]));
+    candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x, y: startStub.y }, { x, y: endStub.y }, ...suffix]));
   }
   for (const y of uniqueSnapped(ys)) {
-    candidates.push(cleanPath([...prefix, { x: startStub.x, y }, { x: endStub.x, y }, ...suffix]));
+    candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: startStub.x, y }, { x: endStub.x, y }, ...suffix]));
   }
 
   return candidates.filter(pts => pts.length >= 2 && isOrthogonal(pts));
@@ -172,17 +175,21 @@ function orthogonalCandidates(startPort, endPort, info) {
 
 function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options = {}) {
   if (!isOrthogonal(pts)) return null;
+  if (hasBacktrackingSegment(pts)) return null;
   if (!terminalSegmentsFit(pts, info.edge)) return null;
   let crossings = 0;
   let overlaps = 0;
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i];
     const b = pts[i + 1];
-    if (segmentCrossesProtectedNode(a, b, info, ctx)) return null;
+    if (segmentViolatesNodeClearance(a, b, info, ctx, i, pts.length - 1)) return null;
     for (const line of occupiedLines) {
       if (segmentsOverlap(a, b, line.a, line.b)) {
         if (!canMergeDecisionFanIn(info, line)) return null;
         overlaps += 1;
+      }
+      if (segmentsTouchAtInteriorPoint(a, b, line.a, line.b)) {
+        if (!canMergeDecisionFanIn(info, line)) return null;
       }
       if (segmentsCross(a, b, line.a, line.b)) {
         crossings += 1;
@@ -232,9 +239,11 @@ function applyDecisionFanInGrouping(result, edgeInfos) {
       if (!path?.pts?.length || path.isFallback) continue;
       const isCarrier = info.edge.id === carrier.edge.id;
       const start = path.pts[0];
+      const sourceTerminal = path.pts[1] || start;
       const groupedPts = cleanDuplicatePoints([
         start,
-        axisFirstPoint(start, merge),
+        sourceTerminal,
+        axisFirstPoint(sourceTerminal, merge),
         merge,
         ...(isCarrier ? [entry] : []),
       ]);
@@ -256,12 +265,13 @@ function applyVisualBreaks(result, edgeInfos) {
   for (const info of edgeInfos) {
     const path = result[info.edge.id];
     if (!path?.pts?.length || path.isFallback) continue;
+    assignFlowchartLabelData(path, info.edge);
     routes.set(String(info.edge.id), {
       edge: info.edge,
       info,
       pts: path.pts,
       textPathD: path.textPathD,
-      labelPlacement: getFlowchartRouteLabelPlacement(info.edge, path.pts),
+      labelPlacement: path.manualLabelPlacement,
       isFallback: path.isFallback,
       sourceId: String(info.edge.from),
       targetId: String(info.edge.to),
@@ -602,7 +612,7 @@ function toPathResult(route, info, edgeInfos, routes) {
   const pts = route.pts || [];
   const pathD = pathFromPtsWithBreaks(pts, String(route.edge.id), routes, edgeInfos);
   const segments = routeSegments(pts);
-  const text = chooseTextPath(segments, info.edge);
+  const text = chooseTextPath(routeSegments(labelPtsForRoute(pts, info.edge)), info.edge);
   const result = {
     pts,
     pathD,
@@ -619,6 +629,7 @@ function toPathResult(route, info, edgeInfos, routes) {
       routeOrder: edgeInfos.indexOf(info),
     },
   };
+  assignFlowchartLabelData(result, info.edge);
   return result;
 }
 
@@ -682,23 +693,98 @@ function chooseBreakLine(a, b, aHasLabelHere = false, bHasLabelHere = false) {
   return a.routeOrder >= b.routeOrder ? a : b;
 }
 
-function getFlowchartRouteLabelPlacement(edge, pts) {
+function assignFlowchartLabelData(path, edge) {
+  if (!path || !edge?.label) {
+    if (path) {
+      path.manualLabelPlacement = null;
+      path.displayLabel = edge?.label || null;
+    }
+    return path;
+  }
+  const labelData = getFlowchartRouteLabelData(edge, path.pts || []);
+  path.displayLabel = labelData.displayLabel;
+  path.manualLabelPlacement = labelData.placement;
+  return path;
+}
+
+function getFlowchartRouteLabelData(edge, pts) {
   if (!edge?.label) return null;
+  const labelPts = labelPtsForRoute(pts, edge);
   const labelPolicy = getEdgeLabelPolicy('flowchart');
   const labelStyle = getEdgeLabelStyle(labelPolicy);
   const displayLabel = getFittedManualEdgeLabel({
     labelPolicy,
     displayLabel: edge.label,
-    pts,
+    pts: labelPts,
     labelStyle,
   });
-  if (!displayLabel) return null;
-  return getManualEdgeLabelPlacement({
+  if (!displayLabel) return { displayLabel: null, placement: null };
+  const placement = getManualEdgeLabelPlacement({
     labelPolicy,
     displayLabel,
-    pts,
+    pts: labelPts,
     labelStyle,
   });
+  return { displayLabel, placement };
+}
+
+function labelPtsForRoute(pts, edge) {
+  if (!Array.isArray(pts) || pts.length < 2) return pts || [];
+  if (pointsAreCollinear(pts)) {
+    let start = pts[0];
+    let end = pts[pts.length - 1];
+    if (edgeHasStartMarker(edge)) start = pointToward(start, end, ARROW_MARKER_LENGTH);
+    if (edgeHasEndMarker(edge)) end = pointToward(end, start, ARROW_MARKER_LENGTH);
+    return cleanDuplicatePoints([start, end]);
+  }
+  if (pts.length < 4) return pts;
+  const out = pts.slice(1, -1);
+  if (areCollinear(pts[0], pts[1], pts[2])) out[0] = pts[0];
+  if (!edgeHasEndMarker(edge) && areCollinear(pts[pts.length - 3], pts[pts.length - 2], pts[pts.length - 1])) {
+    out[out.length - 1] = pts[pts.length - 1];
+  }
+  return out.length >= 2 ? out : pts;
+}
+
+function areCollinear(a, b, c) {
+  if (!a || !b || !c) return false;
+  return (Math.abs(a.x - b.x) < EPS && Math.abs(b.x - c.x) < EPS)
+    || (Math.abs(a.y - b.y) < EPS && Math.abs(b.y - c.y) < EPS);
+}
+
+function hasBacktrackingSegment(pts) {
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const c = pts[i + 1];
+    const abH = Math.abs(a.y - b.y) < EPS;
+    const bcH = Math.abs(b.y - c.y) < EPS;
+    const abV = Math.abs(a.x - b.x) < EPS;
+    const bcV = Math.abs(b.x - c.x) < EPS;
+    if (abH && bcH && Math.sign(b.x - a.x) !== Math.sign(c.x - b.x)) return true;
+    if (abV && bcV && Math.sign(b.y - a.y) !== Math.sign(c.y - b.y)) return true;
+  }
+  return false;
+}
+
+function pointsAreCollinear(pts) {
+  const first = pts[0];
+  const last = pts[pts.length - 1];
+  if (!first || !last) return false;
+  const horizontal = Math.abs(first.y - last.y) < EPS;
+  const vertical = Math.abs(first.x - last.x) < EPS;
+  if (!horizontal && !vertical) return false;
+  return pts.every(pt => horizontal ? Math.abs(pt.y - first.y) < EPS : Math.abs(pt.x - first.x) < EPS);
+}
+
+function pointToward(from, to, distance) {
+  const len = Math.abs(to.x - from.x) + Math.abs(to.y - from.y);
+  if (len < EPS) return from;
+  const step = Math.min(distance, len);
+  return {
+    x: from.x + Math.sign(to.x - from.x) * step,
+    y: from.y + Math.sign(to.y - from.y) * step,
+  };
 }
 
 function labelPlacementContainsPoint(placement, point) {
@@ -892,7 +978,7 @@ function terminalStubLength(edge, role) {
 }
 
 function segmentIsProtectedArrow(edge, index, segmentCount) {
-  return (index === 0 && edgeHasStartMarker(edge)) || index === segmentCount - 1;
+  return (index === 0 && edgeHasStartMarker(edge)) || (index === segmentCount - 1 && edgeHasEndMarker(edge));
 }
 
 function edgeHasStartMarker(edge) {
@@ -905,13 +991,12 @@ function edgeHasEndMarker(edge) {
   return type === 'target' || type === 'both' || type === 'arrow';
 }
 
-function startAnchors(port) {
-  return cleanPath([...(Array.isArray(port.anchorPt) ? port.anchorPt : [port.anchorPt || port.pt]), port.pt]);
+function startAnchor(port) {
+  return Array.isArray(port.anchorPt) ? port.anchorPt[0] : (port.anchorPt || port.pt);
 }
 
-function endAnchors(port) {
-  const anchors = Array.isArray(port.anchorPt) ? [...port.anchorPt].reverse() : [port.anchorPt || port.pt];
-  return cleanPath([port.pt, ...anchors]);
+function endAnchor(port) {
+  return Array.isArray(port.anchorPt) ? port.anchorPt[0] : (port.anchorPt || port.pt);
 }
 
 function stubPoint(port, len) {
@@ -930,15 +1015,32 @@ function portKey(port) {
   return `${Math.round(anchor.x * 100) / 100},${Math.round(anchor.y * 100) / 100}`;
 }
 
-function segmentCrossesProtectedNode(a, b, info, ctx) {
+function segmentViolatesNodeClearance(a, b, info, ctx, segmentIndex, lastSegmentIndex) {
   for (const obstacle of ctx.obstacles) {
-    if (obstacle.id === String(info.edge.from) || obstacle.id === String(info.edge.to)) continue;
-    if (segmentCrossesBox(a, b, obstacle)) return true;
+    const isOwnNode = obstacle.id === String(info.edge.from) || obstacle.id === String(info.edge.to);
+    if (isOwnNode && isAllowedTerminalStub(obstacle.id, info, segmentIndex, lastSegmentIndex)) continue;
+    const box = isOwnNode ? nodeBodyClearanceBox(obstacle) : obstacle;
+    if (segmentTouchesBox(a, b, box)) return true;
   }
   return false;
 }
 
-function segmentCrossesBox(a, b, box) {
+function isAllowedTerminalStub(obstacleId, info, segmentIndex, lastSegmentIndex) {
+  if (obstacleId === String(info.edge.from) && segmentIndex === 0) return true;
+  if (obstacleId === String(info.edge.to) && segmentIndex === lastSegmentIndex - 1) return true;
+  return false;
+}
+
+function nodeBodyClearanceBox(obstacle) {
+  return {
+    left: obstacle.vLeft - NODE_BODY_CLEARANCE,
+    right: obstacle.vRight + NODE_BODY_CLEARANCE,
+    top: obstacle.vTop - NODE_BODY_CLEARANCE,
+    bottom: obstacle.vBottom + NODE_BODY_CLEARANCE,
+  };
+}
+
+function segmentTouchesBox(a, b, box) {
   if (Math.abs(a.y - b.y) < EPS) {
     const minX = Math.min(a.x, b.x);
     const maxX = Math.max(a.x, b.x);
@@ -968,6 +1070,28 @@ function findCrossings(routes) {
 
 function segmentsCross(a, b, c, d) {
   return Boolean(segmentIntersectionPoint(a, b, c, d));
+}
+
+function segmentsTouchAtInteriorPoint(a, b, c, d) {
+  return pointOnSegmentInterior(a, c, d)
+    || pointOnSegmentInterior(b, c, d)
+    || pointOnSegmentInterior(c, a, b)
+    || pointOnSegmentInterior(d, a, b);
+}
+
+function pointOnSegmentInterior(point, a, b) {
+  const margin = 0.5;
+  if (Math.abs(a.y - b.y) < EPS && Math.abs(point.y - a.y) < EPS) {
+    const minX = Math.min(a.x, b.x);
+    const maxX = Math.max(a.x, b.x);
+    return point.x > minX + margin && point.x < maxX - margin;
+  }
+  if (Math.abs(a.x - b.x) < EPS && Math.abs(point.x - a.x) < EPS) {
+    const minY = Math.min(a.y, b.y);
+    const maxY = Math.max(a.y, b.y);
+    return point.y > minY + margin && point.y < maxY - margin;
+  }
+  return false;
 }
 
 function segmentIntersectionPoint(a, b, c, d) {
@@ -1054,6 +1178,24 @@ function cleanPath(pts) {
   }
   if (out.length > 1) slim.push(out[out.length - 1]);
   return slim.filter(Boolean);
+}
+
+function cleanPathPreservingTerminalStubs(pts) {
+  const out = cleanDuplicatePoints(pts);
+  if (out.length <= 4) return out;
+  const startTerminal = out[1];
+  const endTerminal = out[out.length - 2];
+  const slim = [out[0], startTerminal];
+  for (let i = 2; i < out.length - 2; i++) {
+    const prev = slim[slim.length - 1];
+    const curr = out[i];
+    const next = out[i + 1];
+    if ((Math.abs(prev.x - curr.x) < EPS && Math.abs(curr.x - next.x) < EPS)
+      || (Math.abs(prev.y - curr.y) < EPS && Math.abs(curr.y - next.y) < EPS)) continue;
+    slim.push(curr);
+  }
+  slim.push(endTerminal, out[out.length - 1]);
+  return cleanDuplicatePoints(slim);
 }
 
 function cleanDuplicatePoints(pts) {

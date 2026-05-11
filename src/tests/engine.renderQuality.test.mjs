@@ -305,6 +305,54 @@ function assertNoArrowApproachCrossings(file, visibleEdges, paths) {
   }
 }
 
+function assertNoFlowchartBacktracks(file, visibleEdges, paths) {
+  for (const edge of visibleEdges) {
+    const pts = paths[edge.id]?.pts || [];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const a = pts[i - 1];
+      const b = pts[i];
+      const c = pts[i + 1];
+      const abH = Math.abs(a.y - b.y) < EPS;
+      const bcH = Math.abs(b.y - c.y) < EPS;
+      const abV = Math.abs(a.x - b.x) < EPS;
+      const bcV = Math.abs(b.x - c.x) < EPS;
+      const horizontalBacktrack = abH && bcH && Math.sign(b.x - a.x) !== Math.sign(c.x - b.x);
+      const verticalBacktrack = abV && bcV && Math.sign(b.y - a.y) !== Math.sign(c.y - b.y);
+      assert.ok(
+        !horizontalBacktrack && !verticalBacktrack,
+        `${file}: edge ${edge.id} backtracks at ${b.x},${b.y}`
+      );
+    }
+  }
+}
+
+function assertFlowchartLabelsRender(file, visibleEdges, paths) {
+  for (const edge of visibleEdges) {
+    if (!edge.label) continue;
+    const pathData = paths[edge.id];
+    assert.ok(pathData?.displayLabel, `${file}: edge ${edge.id} label disappeared`);
+    if (String(edge.label).length <= 3) {
+      assert.strictEqual(pathData.displayLabel, edge.label, `${file}: short label ${edge.id} should not be truncated`);
+    }
+    const line = parseLinePath(pathData.textPathD);
+    if (line) {
+      assert.ok(
+        Math.abs(line.a.x - line.b.x) < EPS || Math.abs(line.a.y - line.b.y) < EPS,
+        `${file}: edge ${edge.id} text path is not orthogonal`
+      );
+    }
+  }
+}
+
+function parseLinePath(pathD) {
+  const match = /^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+L\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)$/.exec(pathD || '');
+  if (!match) return null;
+  return {
+    a: { x: Number(match[1]), y: Number(match[2]) },
+    b: { x: Number(match[3]), y: Number(match[4]) },
+  };
+}
+
 function assertWideCrossingBreaksOnlyCoverLabels(file, visibleEdges, paths) {
   const segments = visibleEdges.flatMap(edge => pathSegments(edge, paths[edge.id]));
   for (let i = 0; i < segments.length; i++) {
@@ -387,8 +435,8 @@ function flowchartLabelContainsPoint(edge, pathData, point) {
   if (!placement) return false;
   const pad = Math.max(4, EDGE_LABEL_STYLE.haloWidth || 0);
   const angle = -(placement.angle || 0) * Math.PI / 180;
-  const dx = point.x - placement.x;
-  const dy = point.y - placement.y;
+  const dx = point.x - (placement.boxCenterX ?? placement.x);
+  const dy = point.y - (placement.boxCenterY ?? placement.y);
   const localX = dx * Math.cos(angle) - dy * Math.sin(angle);
   const localY = dx * Math.sin(angle) + dy * Math.cos(angle);
   return Math.abs(localX) <= placement.labelWidth / 2 + pad
@@ -467,6 +515,8 @@ for (const file of files) {
     assertNoForeignNodeZoneCrossings(file, type, nodes, strictVisibleEdges, paths);
     assertNoLineMerging(file, nodes, strictVisibleEdges, paths);
     assertNoArrowApproachCrossings(file, strictVisibleEdges, paths);
+    assertNoFlowchartBacktracks(file, strictVisibleEdges, paths);
+    assertFlowchartLabelsRender(file, strictVisibleEdges, paths);
     assertWideCrossingBreaksOnlyCoverLabels(file, strictVisibleEdges, paths);
     // Ordinary line crossings are allowed as a scored compromise in the new
     // flowchart router. Arrow-approach crossings remain forbidden.

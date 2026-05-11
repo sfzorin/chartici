@@ -94,7 +94,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
         }
       }
     } else {
-      displayLabel = getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, labelStyle: L });
+      displayLabel = pathData.displayLabel ?? getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, labelStyle: L });
     }
   }
 
@@ -103,7 +103,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   const cfOne  = CF_MARKERS.one;
   const cfMany = CF_MARKERS.many;
   const manualLabelPlacement = !isLogical
-    ? getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle: L })
+    ? (pathData.manualLabelPlacement ?? getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle: L }))
     : null;
   const textPathStartOffset = getTextPathStartOffset(labelPolicy);
   const terminalMasks = masksStandardArrow

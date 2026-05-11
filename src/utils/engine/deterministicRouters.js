@@ -166,16 +166,17 @@ function sequencePts(info) {
   const startRight = info.endBox.cx >= info.startBox.cx;
   const start = sidePort(info.startBox, startRight ? 'right' : 'left');
   const end = sidePort(info.endBox, startRight ? 'left' : 'right');
+  const startStubLen = terminalStubLength(info.edge, 'start');
+  const endStubLen = terminalStubLength(info.edge, 'end');
   const startStub = {
-    x: start.x + (startRight ? GRID.step : -GRID.step),
+    x: start.x + (startRight ? startStubLen : -startStubLen),
     y: start.y,
   };
-  const endStubLen = edgeHasEndMarker(info.edge) ? ARROW_MARKER_LENGTH + LABEL_TO_ARROW_GAP + 15 : GRID.step;
   const endStub = {
     x: end.x + (startRight ? -endStubLen : endStubLen),
     y: end.y,
   };
-  if (Math.abs(start.y - end.y) < 1) return cleanPts([start, end]);
+  if (Math.abs(start.y - end.y) < 1) return cleanPtsPreservingTerminals([start, startStub, endStub, end]);
   return cleanPtsPreservingTerminals([start, startStub, { x: startStub.x, y: endStub.y }, endStub, end]);
 }
 
@@ -285,7 +286,8 @@ function centerOrthogonalPts(info) {
 
 function pathResult(pts, edge, options = {}) {
   const clean = options.preserveTerminals ? cleanPtsPreservingTerminals(pts) : cleanPts(pts);
-  const segments = routeSegments(clean);
+  const textPts = options.preserveTerminals ? cleanPts(clean) : clean;
+  const segments = routeSegments(textPts);
   const text = chooseTextPath(segments, edge, options);
   return {
     pts: clean,
@@ -322,6 +324,11 @@ function trimForEndMarker(segment, markerPad) {
     },
     len: segment.len - markerPad,
   };
+}
+
+function terminalStubLength(edge, role) {
+  const hasMarker = role === 'start' ? edgeHasStartMarker(edge) : edgeHasEndMarker(edge);
+  return hasMarker ? ARROW_MARKER_LENGTH + LABEL_TO_ARROW_GAP + 15 : GRID.step;
 }
 
 function textStart(a, b) {
@@ -484,6 +491,11 @@ function rangeOverlap(a1, a2, b1, b2) {
 function edgeHasEndMarker(edge) {
   const type = edge?.connectionType || edge?.arrowType || 'target';
   return type === 'target' || type === 'both' || type === 'arrow';
+}
+
+function edgeHasStartMarker(edge) {
+  const type = edge?.connectionType || edge?.arrowType || 'target';
+  return type === 'reverse' || type === 'both';
 }
 
 export function buildEdgeInfos(edges, allNodes) {

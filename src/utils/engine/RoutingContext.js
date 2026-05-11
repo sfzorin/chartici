@@ -5,7 +5,7 @@ export class RoutingContext {
         this.draggedNodeId = draggedNodeId;
         this.diagramType = diagramType;
         this.rules = rules || {
-            PADDING: 20, STUB_LENGTH: 20,
+            PADDING: 10, STUB_LENGTH: 20,
             LENGTH_PENALTY: 1, BEND_PENALTY: 100, CROSSING_PENALTY: 1500
         };
 

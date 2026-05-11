@@ -10,6 +10,7 @@ const flowchart = getDiagramRules('flowchart');
 assert.equal(flowchart.layout.MIN_GAP_X, 60);
 assert.equal(flowchart.layout.MIN_GAP_Y, 60);
 assert.equal(flowchart.layout.RANKER, 'network-simplex');
+assert.equal(flowchart.routing.PADDING, 10);
 assert.equal(flowchart.routing.CROSSING_PENALTY, 1500);
 
 const erd = getDiagramRules('erd');

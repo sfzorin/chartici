@@ -6,7 +6,7 @@ const DEFAULT_LAYOUT_RULES = {
 };
 
 const DEFAULT_ROUTING_RULES = {
-  PADDING: 20,
+  PADDING: 10,
   STUB_LENGTH: 20,
 
   // A* path cost weights
