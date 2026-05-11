@@ -8,7 +8,7 @@ export function layoutMatrix(nodes, edges, layoutRules) {
   const ITEM_GAP_X = snapGap((layoutRules.MIN_GAP_X || 60) * 0.45);
   const ITEM_GAP_Y = snapGap((layoutRules.MIN_GAP_Y || 60) * 0.42);
   const GROUP_GAP_X = Math.max(100, snapGap((layoutRules.MIN_GAP_X || 60) * 1.7));
-  const GROUP_GAP_Y = Math.max(90, snapGap((layoutRules.MIN_GAP_Y || 60) * 1.45));
+  const GROUP_GAP_Y = Math.max(50, snapGap((layoutRules.MIN_GAP_Y || 60) * 0.85));
   const groupLabelById = new Map((layoutRules.groups || []).map(group => [
     String(group.id),
     String(group.label || group.id || ''),
@@ -61,15 +61,19 @@ export function layoutMatrix(nodes, edges, layoutRules) {
     const maxH = Math.max(...groupNodes.map(nodeHeight));
     const contentW = subCols * maxW + Math.max(0, subCols - 1) * ITEM_GAP_X;
     const contentH = rowCount * maxH + Math.max(0, rowCount - 1) * ITEM_GAP_Y;
-    const labelW = estimateMatrixGroupLabelWidth(groupLabelById.get(String(gid)) || gid);
+    const label = groupLabelById.get(String(gid)) || gid;
+    const labelW = estimateMatrixGroupLabelWidth(label);
+    const overlay = matrixOverlayMetrics(label);
     groupMetrics.set(gid, {
       subCols,
       maxW,
       maxH,
       contentW,
       contentH,
+      overlayTop: overlay.top,
+      overlayBottom: overlay.bottom,
       cellW: snapGap(Math.max(contentW, labelW)),
-      cellH: snapGap(contentH),
+      cellH: snapGap(overlay.top + contentH + overlay.bottom),
     });
   });
 
@@ -92,17 +96,18 @@ export function layoutMatrix(nodes, edges, layoutRules) {
     const cellOriginY = rowHeights.slice(0, row).reduce((sum, height) => sum + height, 0) + row * GROUP_GAP_Y;
     const metric = groupMetrics.get(gid);
     const groupOffsetX = Math.max(0, (colWidths[col] - metric.cellW) / 2);
+    const groupOffsetY = Math.max(0, (rowHeights[row] - metric.cellH) / 2);
 
     const groupNodes = groups.get(gid);
     const contentOffsetX = Math.max(0, (metric.cellW - metric.contentW) / 2);
-    const contentOffsetY = Math.max(0, (metric.cellH - metric.contentH) / 2);
+    const contentOffsetY = metric.overlayTop;
     groupNodes.forEach((n, ni) => {
       const subCol = ni % metric.subCols;
       const subRow = Math.floor(ni / metric.subCols);
       result.push({
         ...n,
         x: cellOriginX + groupOffsetX + contentOffsetX + subCol * (metric.maxW + ITEM_GAP_X) + metric.maxW / 2,
-        y: cellOriginY + contentOffsetY + subRow * (metric.maxH + ITEM_GAP_Y) + metric.maxH / 2
+        y: cellOriginY + groupOffsetY + contentOffsetY + subRow * (metric.maxH + ITEM_GAP_Y) + metric.maxH / 2
       });
     });
   });
@@ -118,21 +123,37 @@ function nodeHeight(node) {
   return node.h || node.height || getNodeDim(node).height || 60;
 }
 
-function estimateMatrixGroupLabelWidth(label) {
+function matrixOverlayMetrics(label) {
+  const lines = wrapMatrixGroupLabel(label);
+  const groupPad = 30;
+  const labelTopExtra = lines.length > 1 ? 26 : 10;
+  const labelH = lines.length === 1 ? 30 : 52;
+  return {
+    top: groupPad + labelTopExtra + labelH / 2,
+    bottom: groupPad,
+  };
+}
+
+function wrapMatrixGroupLabel(label) {
   const words = String(label || '').replace(/_/g, ' ').trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return 160;
+  if (words.length === 0) return [''];
   const lines = [];
   let current = '';
   words.forEach(word => {
     const next = current ? `${current} ${word}` : word;
     if (next.length <= 22 || !current) {
       current = next;
-    } else {
+    } else if (lines.length < 1) {
       lines.push(current);
       current = word;
     }
   });
-  if (current) lines.push(current);
+  if (current && lines.length < 2) lines.push(current);
+  return lines.slice(0, 2);
+}
+
+function estimateMatrixGroupLabelWidth(label) {
+  const lines = wrapMatrixGroupLabel(label);
   const longest = Math.max(...lines.slice(0, 2).map(line => line.length), 1);
   const desiredTabW = longest * 12 + 40;
   return Math.min(520, Math.max(180, Math.ceil(desiredTabW / 0.8) - 56));

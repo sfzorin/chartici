@@ -103,4 +103,86 @@ test('Snaps to 20px grid perfectly', () => {
   });
 }
 
+{
+  const grouped = [
+    makeNode('A', 0, 0, 'process', 'M', { groupId: 'topLeft' }),
+    makeNode('B', 0, 0, 'process', 'M', { groupId: 'topRight' }),
+    makeNode('C', 0, 0, 'process', 'M', { groupId: 'bottomLeft' }),
+    makeNode('D', 0, 0, 'process', 'M', { groupId: 'bottomRight' }),
+  ];
+  const groups = [
+    { id: 'topLeft', label: 'Low Strength / Low Heat' },
+    { id: 'topRight', label: 'High Strength / Low Heat' },
+    { id: 'bottomLeft', label: 'Low Strength / High Heat' },
+    { id: 'bottomRight', label: 'High Strength / High Heat' },
+  ];
+  const out = layoutMatrix(grouped, [], {
+    PADDING: 40,
+    MIN_GAP_X: 40,
+    MIN_GAP_Y: 40,
+    groups,
+  });
+  const byGroup = new Map(groups.map(group => [group.id, out.filter(node => node.groupId === group.id)]));
+
+  test('Reserves vertical room for matrix group labels between rows', () => {
+    const topBoxBottom = Math.max(
+      renderedMatrixGroupBox(byGroup.get('topLeft'), groups[0].label).bottom,
+      renderedMatrixGroupBox(byGroup.get('topRight'), groups[1].label).bottom,
+    );
+    const lowerLabelTop = Math.min(
+      renderedMatrixGroupLabelBox(byGroup.get('bottomLeft'), groups[2].label).top,
+      renderedMatrixGroupLabelBox(byGroup.get('bottomRight'), groups[3].label).top,
+    );
+    if (lowerLabelTop - topBoxBottom < 10) {
+      throw new Error(`expected lower label to clear upper boxes by >=10px, got ${lowerLabelTop - topBoxBottom}px`);
+    }
+  });
+}
+
+function renderedMatrixGroupBox(nodes, label) {
+  const dims = nodes.map(node => ({ x: node.x, y: node.y, w: getNodeW(node), h: getNodeH(node) }));
+  const labelLines = wrapMatrixLabel(label);
+  const labelTopExtra = labelLines.length > 1 ? 26 : 10;
+  const groupPad = 30;
+  return {
+    top: Math.min(...dims.map(d => d.y - d.h / 2)) - groupPad - labelTopExtra,
+    bottom: Math.max(...dims.map(d => d.y + d.h / 2)) + groupPad,
+  };
+}
+
+function renderedMatrixGroupLabelBox(nodes, label) {
+  const box = renderedMatrixGroupBox(nodes, label);
+  const labelH = wrapMatrixLabel(label).length === 1 ? 30 : 52;
+  return {
+    top: box.top - labelH / 2,
+    bottom: box.top + labelH / 2,
+  };
+}
+
+function wrapMatrixLabel(label) {
+  const words = String(label || '').replace(/_/g, ' ').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [''];
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= 22 || !current) {
+      current = next;
+    } else if (lines.length < 1) {
+      lines.push(current);
+      current = word;
+    }
+  });
+  if (current && lines.length < 2) lines.push(current);
+  return lines.slice(0, 2);
+}
+
+function getNodeW(node) {
+  return node.w || node.width || 160;
+}
+
+function getNodeH(node) {
+  return node.h || node.height || 80;
+}
+
 summary('engine.matrix.test.mjs');

@@ -127,4 +127,37 @@ test('Tree orthogonal branches keep square bends', () => {
   });
 }
 
+{
+  const compactNodes = [
+    makeNode('root', 0, 0),
+    makeNode('a', 0, 0),
+    makeNode('b', 0, 0),
+    makeNode('c', 0, 0),
+    makeNode('a1', 0, 0),
+    makeNode('a2', 0, 0),
+    makeNode('b1', 0, 0),
+    makeNode('b2', 0, 0),
+    makeNode('c1', 0, 0),
+    makeNode('c2', 0, 0),
+  ];
+  const compactEdges = [
+    makeEdge('root_a', 'root', 'a'),
+    makeEdge('root_b', 'root', 'b'),
+    makeEdge('root_c', 'root', 'c'),
+    makeEdge('a_1', 'a', 'a1'),
+    makeEdge('a_2', 'a', 'a2'),
+    makeEdge('b_1', 'b', 'b1'),
+    makeEdge('b_2', 'b', 'b2'),
+    makeEdge('c_1', 'c', 'c1'),
+    makeEdge('c_2', 'c', 'c2'),
+  ];
+  const laidOut = layoutNodesHeuristically(compactNodes, compactEdges, { diagramType: 'tree' });
+  const leaves = laidOut.filter(node => /[abc][12]/.test(String(node.id)));
+  const span = Math.max(...leaves.map(node => node.x)) - Math.min(...leaves.map(node => node.x));
+
+  test('Tree layout keeps sibling subtrees compact horizontally', () => {
+    if (span > 900) throw new Error(`expected compact leaf span <=900px, got ${span}px`);
+  });
+}
+
 summary('engine.tree.test.mjs');

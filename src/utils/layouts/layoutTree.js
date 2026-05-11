@@ -6,6 +6,9 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
 
   const MIN_GAP_X = layoutRules.MIN_GAP_X;
   const MIN_GAP_Y = layoutRules.MIN_GAP_Y;
+  const SIBLING_GAP_X = Math.max(20, Math.round(MIN_GAP_X * 0.35));
+  const STACK_GAP_X = Math.max(40, Math.round(MIN_GAP_X * 0.7));
+  const FOREST_GAP_X = Math.max(80, Math.round(MIN_GAP_X * 1.25));
   
   // Trees specifically use inverted directional logic.
   // If isHorizontalFlow == false (meaning vertical, like 16:9 screen), Tree flows top-to-bottom.
@@ -104,10 +107,10 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
                       h += allowedKids[idx].h + MIN_GAP_Y * 0.5;
                   }
               }
-              totalColW += w + MIN_GAP_X; // Full gap for routing trunk
+              totalColW += w + STACK_GAP_X; // Keep a clear routing trunk between stacked columns.
               maxColH = Math.max(maxColH, h);
           }
-          if (numCols > 0) totalColW -= MIN_GAP_X;
+          if (numCols > 0) totalColW -= STACK_GAP_X;
           if (maxColH > 0) maxColH -= MIN_GAP_Y * 0.5;
 
           data.subW = Math.max(data.w, totalColW);
@@ -131,16 +134,16 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
           let row2W = 0, row2MaxH = 0;
 
           row1.forEach(c => {
-              row1W += c.subW + MIN_GAP_X;
+              row1W += c.subW + SIBLING_GAP_X;
               row1MaxH = Math.max(row1MaxH, c.subH);
           });
-          if (row1.length > 0) row1W -= MIN_GAP_X;
+          if (row1.length > 0) row1W -= SIBLING_GAP_X;
 
           row2.forEach(c => {
-             row2W += c.subW + MIN_GAP_X;
+             row2W += c.subW + SIBLING_GAP_X;
              row2MaxH = Math.max(row2MaxH, c.subH);
           });
-          if (row2.length > 0) row2W -= MIN_GAP_X;
+          if (row2.length > 0) row2W -= SIBLING_GAP_X;
 
           data.subW = Math.max(data.w, row1W, row2W);
           data.subH = data.h + MIN_GAP_Y + row1MaxH + (row2.length > 0 ? MIN_GAP_Y + row2MaxH : 0);
@@ -167,9 +170,9 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
                   if (idx < data.kids.length) mx = Math.max(mx, data.kids[idx].w);
               }
               colWidths.push(mx);
-              totalKidsW += mx + MIN_GAP_X;
+              totalKidsW += mx + STACK_GAP_X;
           }
-          if (numCols > 0) totalKidsW -= MIN_GAP_X;
+          if (numCols > 0) totalKidsW -= STACK_GAP_X;
           
           let currX = cx - (totalKidsW / 2);
           
@@ -191,13 +194,13 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
                   const visualBottom = targetY + kid.h/2;
                   currY = visualBottom + MIN_GAP_Y * 0.5;
               }
-              currX += colWidths[c] + MIN_GAP_X;
+              currX += colWidths[c] + STACK_GAP_X;
           }
       } else {
           // Row 1
           let row1W = 0;
-          data.kids.forEach(k => row1W += k.subW + MIN_GAP_X);
-          if (data.kids.length > 0) row1W -= MIN_GAP_X;
+          data.kids.forEach(k => row1W += k.subW + SIBLING_GAP_X);
+          if (data.kids.length > 0) row1W -= SIBLING_GAP_X;
           
           let currX = startX + (data.subW / 2) - (row1W / 2);
           let currY = startY + data.h + MIN_GAP_Y;
@@ -205,22 +208,22 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
 
           data.kids.forEach(k => {
               placeSubTree(k, currX, currY);
-              currX += k.subW + MIN_GAP_X;
+              currX += k.subW + SIBLING_GAP_X;
               r1MaxH = Math.max(r1MaxH, k.subH);
           });
 
           // Row 2
           if (data.secondRowKids.length > 0) {
               let row2W = 0;
-              data.secondRowKids.forEach(k => row2W += k.subW + MIN_GAP_X);
-              row2W -= MIN_GAP_X;
+              data.secondRowKids.forEach(k => row2W += k.subW + SIBLING_GAP_X);
+              row2W -= SIBLING_GAP_X;
               
               let currX2 = startX + (data.subW / 2) - (row2W / 2);
               let currY2 = currY + r1MaxH + MIN_GAP_Y;
               
               data.secondRowKids.forEach(k => {
                   placeSubTree(k, currX2, currY2);
-                  currX2 += k.subW + MIN_GAP_X;
+                  currX2 += k.subW + SIBLING_GAP_X;
               });
           }
       }
@@ -231,12 +234,12 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
   trueRoots.forEach(r => {
       const treeData = calcSubTree(r);
       placeSubTree(treeData, currentForestX, 0);
-      currentForestX += treeData.subW + MIN_GAP_X * 2;
+      currentForestX += treeData.subW + FOREST_GAP_X;
   });
 
   // Layout Orphans in a neat grid beside the forest
   if (orphans.length > 0) {
-      if (trueRoots.length > 0) currentForestX += MIN_GAP_X; // Extra spacing
+      if (trueRoots.length > 0) currentForestX += SIBLING_GAP_X; // Extra spacing
       const cols = Math.ceil(Math.sqrt(orphans.length));
       let oIdx = 0;
       let gridX = currentForestX;
@@ -259,7 +262,7 @@ export function layoutTree(nodes, edges, layoutRules, isHorizontalFlow) {
               gridY += maxHInRow + MIN_GAP_Y;
               maxHInRow = 0;
           } else {
-              gridX += w + MIN_GAP_X;
+              gridX += w + SIBLING_GAP_X;
           }
       });
   }
