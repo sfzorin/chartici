@@ -28,7 +28,7 @@ export const DIAGRAM_DESIGN = {
     labelFontSize: 14,
     labelWeight: 680,
     labelCharWidth: 7.9,
-    labelHaloWidth: 5,
+    labelHaloWidth: 2.5,
     labelOffsetY: -9,
   },
   overlay: {

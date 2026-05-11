@@ -3,6 +3,7 @@ import { GRID } from '../../diagram/canvas.js';
 
 const ARROW_MARKER_LENGTH = 20;
 const LABEL_TO_ARROW_GAP = 5;
+const DETERMINISTIC_CORNER_RADIUS = 8;
 
 export function routeSequenceDeterministic(edgeInfos) {
   const result = {};
@@ -27,7 +28,7 @@ export function routeTreeDeterministic(edgeInfos, allNodes = [], routingRules = 
     group.items.forEach(info => {
       const trunkX = columnTrunks.get(treeStackColumnKey(info)) ?? snap(info.endBox.left - padding - GRID.step);
       const pts = buildTreeStackPts(info, sharedY, trunkX);
-      result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true });
+      result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true, roundCorners: false });
     });
   });
 
@@ -35,7 +36,7 @@ export function routeTreeDeterministic(edgeInfos, allNodes = [], routingRules = 
     const sharedY = chooseTreeSharedY(group.items, obstacles, padding, buildTreeFanoutPts);
     group.items.forEach(info => {
       const pts = buildTreeFanoutPts(info, sharedY);
-      result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true });
+      result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true, roundCorners: false });
     });
   });
   return result;
@@ -291,7 +292,7 @@ function pathResult(pts, edge, options = {}) {
   const text = chooseTextPath(segments, edge, options);
   return {
     pts: clean,
-    pathD: pathFromPts(clean),
+    pathD: pathFromPts(clean, options),
     textPathD: text.d,
     textPathLen: text.len,
   };
@@ -368,9 +369,42 @@ function stubPoint(point, side, len) {
   return { x: point.x, y: point.y + len };
 }
 
-function pathFromPts(pts) {
+function pathFromPts(pts, options = {}) {
   if (!pts.length) return '';
-  return pts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+  if (options.roundCorners === false) {
+    return pts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+  }
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  let cursor = pts[0];
+
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p1 = pts[i - 1];
+    const p2 = pts[i];
+    const p3 = pts[i + 1];
+    const d1 = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const d2 = Math.hypot(p3.x - p2.x, p3.y - p2.y);
+    const prevH = Math.abs(p1.y - p2.y) < 0.01;
+    const nextH = Math.abs(p2.y - p3.y) < 0.01;
+    const prevV = Math.abs(p1.x - p2.x) < 0.01;
+    const nextV = Math.abs(p2.x - p3.x) < 0.01;
+    const isTurn = (prevH && nextV) || (prevV && nextH);
+    if (!isTurn || d1 < 0.01 || d2 < 0.01) continue;
+    const r = Math.min(DETERMINISTIC_CORNER_RADIUS, d1 / 2, d2 / 2);
+    const qStart = {
+      x: p2.x + ((p1.x - p2.x) / d1) * r,
+      y: p2.y + ((p1.y - p2.y) / d1) * r,
+    };
+    const qEnd = {
+      x: p2.x + ((p3.x - p2.x) / d2) * r,
+      y: p2.y + ((p3.y - p2.y) / d2) * r,
+    };
+    d += ` L ${qStart.x} ${qStart.y} Q ${p2.x} ${p2.y} ${qEnd.x} ${qEnd.y}`;
+    cursor = qEnd;
+  }
+
+  d += ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
+  return d;
 }
 
 function cleanPts(pts) {

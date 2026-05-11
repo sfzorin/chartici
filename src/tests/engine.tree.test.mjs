@@ -30,6 +30,9 @@ test('All tree branches exit from Bottom', () => {
 test('All tree branches enter Top', () => {
   expect(r1.entryPort, 'Top', 'e1'); expect(r2.entryPort, 'Top', 'e2'); expect(r3.entryPort, 'Top', 'e3');
 });
+test('Tree orthogonal branches keep square bends', () => {
+  if (/ Q /.test(paths.e1?.pathD || '')) throw new Error(`tree bends should not be rounded: ${paths.e1?.pathD}`);
+});
 
 {
   const stackedNodes = [

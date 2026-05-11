@@ -96,6 +96,9 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
   const r = analyzeEdge(paths, 'e1', nodes);
   test('Diagonal A→B chooses the minimal-bend clear route', () => expect(r.bends, 1, 'bends'));
+  test('Bent flowchart routes render rounded corners', () => {
+    if (!/ Q /.test(paths.e1?.pathD || '')) throw new Error(`expected rounded corner command in ${paths.e1?.pathD || 'missing path'}`);
+  });
 }
 
 {
@@ -159,6 +162,14 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
   const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
   test('Multiple inputs to a decision share one grouped entry side', () => {
     assertSingleDecisionFanIn(paths, edges, nodes, 'Left');
+  });
+  test('Grouped decision fan-in renders rounded merge bends', () => {
+    edges.forEach(edge => {
+      const pts = paths[edge.id]?.pts || [];
+      if (countBendsForTest(pts) > 0 && !/ Q /.test(paths[edge.id]?.pathD || '')) {
+        throw new Error(`${edge.id} grouped fan-in path is not rounded: ${paths[edge.id]?.pathD || 'missing'}`);
+      }
+    });
   });
 }
 
@@ -421,6 +432,42 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 
 {
   const nodes = [
+    makeNode('control', 0, 0, 'process'),
+    makeNode('materials', 0, 0, 'process'),
+    makeNode('data', 0, 0, 'process'),
+    makeNode('join', 0, 0, 'process'),
+    makeNode('product', 0, 0, 'process'),
+  ];
+  const edges = [
+    makeEdge('e_control', 'control', 'join'),
+    makeEdge('e_materials', 'materials', 'join'),
+    makeEdge('e_data', 'data', 'join'),
+    makeEdge('e_product', 'join', 'product'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+  const byId = new Map(laidOut.map(node => [String(node.id), node]));
+
+  test('Flowchart gravity layout centers multi-input joins between their sources', () => {
+    const sources = ['control', 'materials', 'data'].map(id => byId.get(id));
+    const join = byId.get('join');
+    const product = byId.get('product');
+    if (sources.some(node => !node) || !join || !product) throw new Error('missing laid-out nodes');
+    const sourceYs = sources.map(node => node.y).sort((a, b) => a - b);
+    if (!(sourceYs[0] < join.y && sourceYs[sourceYs.length - 1] > join.y)) {
+      throw new Error(`join should sit between source lanes, sources=${sourceYs.join(',')}, join=${join.y}`);
+    }
+    if (product.y !== join.y) throw new Error(`single child should stay on join axis, join=${join.y}, product=${product.y}`);
+    if (sourceYs[sourceYs.length - 1] - sourceYs[0] > 360) {
+      throw new Error(`source lanes are too spread out: ${sourceYs.join(',')}`);
+    }
+    const sourceRight = Math.max(...sources.map(node => node.x + getNodeDim(node).width / 2));
+    const joinLeft = join.x - getNodeDim(join).width / 2;
+    if (joinLeft - sourceRight > 130) throw new Error(`join is too far from sources: gap=${joinLeft - sourceRight}`);
+  });
+}
+
+{
+  const nodes = [
     makeNode('start', 0, 0, 'oval'),
     makeNode('split', 0, 0, 'circle'),
     makeNode('topTask', 0, 0, 'process'),
@@ -495,6 +542,88 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
       return pt ? `${Math.round(pt.x)},${Math.round(pt.y)}` : 'missing';
     }));
     if (uniqueStarts.size < 5) throw new Error(`expected at least 5 unique start ports, got ${uniqueStarts.size}`);
+    const dim = getNodeDim(nodes[0]);
+    edges.forEach(edge => {
+      const pt = paths[edge.id]?.pts?.[0];
+      if (!pt) throw new Error(`missing start point for ${edge.id}`);
+      const diamondEquation = Math.abs(pt.x - nodes[0].x) / (dim.width / 2)
+        + Math.abs(pt.y - nodes[0].y) / (dim.height / 2);
+      if (Math.abs(diamondEquation - 1) > 0.02) {
+        throw new Error(`${edge.id} starts from shifted non-diamond port ${pt.x},${pt.y}`);
+      }
+    });
+  });
+}
+
+{
+  const nodes = [
+    makeNode('D', 0, 0, 'rhombus'),
+    makeNode('A', 360, -180),
+    makeNode('B', 360, -60),
+    makeNode('C', 360, 60),
+    makeNode('E', 360, 180),
+  ];
+  const edges = [
+    makeEdge('e1', 'D', 'A'),
+    makeEdge('e2', 'D', 'B'),
+    makeEdge('e3', 'D', 'C'),
+    makeEdge('e4', 'D', 'E'),
+  ];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  test('Decision outputs use only main ports until degree exceeds four', () => {
+    const dim = getNodeDim(nodes[0]);
+    const mainPorts = new Set([
+      `${nodes[0].x - dim.width / 2},${nodes[0].y}`,
+      `${nodes[0].x + dim.width / 2},${nodes[0].y}`,
+      `${nodes[0].x},${nodes[0].y - dim.height / 2}`,
+      `${nodes[0].x},${nodes[0].y + dim.height / 2}`,
+    ]);
+    edges.forEach(edge => {
+      const pt = paths[edge.id]?.pts?.[0];
+      if (!pt) throw new Error(`missing start point for ${edge.id}`);
+      const key = `${Math.round(pt.x)},${Math.round(pt.y)}`;
+      if (!mainPorts.has(key)) throw new Error(`${edge.id} used auxiliary port ${key}`);
+    });
+  });
+}
+
+{
+  const nodes = [
+    makeNode('T1', -300, -180),
+    makeNode('T2', -300, 0),
+    makeNode('T3', -300, 180),
+    makeNode('D', 0, 0, 'rhombus'),
+    makeNode('A', 360, -180),
+    makeNode('B', 360, 0),
+    makeNode('C', 360, 180),
+  ];
+  const edges = [
+    makeEdge('in1', 'T1', 'D'),
+    makeEdge('in2', 'T2', 'D'),
+    makeEdge('in3', 'T3', 'D'),
+    makeEdge('out1', 'D', 'A'),
+    makeEdge('out2', 'D', 'B'),
+    makeEdge('out3', 'D', 'C'),
+  ];
+  const paths = calculateAllPaths(edges, nodes, { diagramType: 'flowchart' });
+  test('Decision fan-in counts as one port slot for auxiliary output policy', () => {
+    const dim = getNodeDim(nodes[3]);
+    const mainPorts = new Set([
+      `${nodes[3].x - dim.width / 2},${nodes[3].y}`,
+      `${nodes[3].x + dim.width / 2},${nodes[3].y}`,
+      `${nodes[3].x},${nodes[3].y - dim.height / 2}`,
+      `${nodes[3].x},${nodes[3].y + dim.height / 2}`,
+    ]);
+    ['out1', 'out2', 'out3'].forEach(edgeId => {
+      const pt = paths[edgeId]?.pts?.[0];
+      if (!pt) throw new Error(`missing start point for ${edgeId}`);
+      const key = `${Math.round(pt.x)},${Math.round(pt.y)}`;
+      if (!mainPorts.has(key)) throw new Error(`${edgeId} used auxiliary port ${key}`);
+    });
+    ['out1', 'out3'].forEach(edgeId => {
+      const bends = countBendsForTest(paths[edgeId]?.pts || []);
+      if (bends > 1) throw new Error(`${edgeId} should route as a simple L after fan-in, got ${bends} bends`);
+    });
   });
 }
 

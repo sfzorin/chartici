@@ -18,6 +18,7 @@ const MAX_ROUTE_OPTIMIZATION_PASSES = 1;
 const PREFERRED_CLEARANCE = 40;
 const TIGHT_CLEARANCE = 20;
 const COMFORT_CLEARANCE_LENGTH_BUDGET = 60;
+const FLOWCHART_CORNER_RADIUS = 8;
 
 export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   const ctx = buildFlowchartCtx(edgeInfos, allNodes, routingRules);
@@ -29,7 +30,7 @@ export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   for (const info of directInfos) {
     const route = chooseRoute(info, ctx, occupiedPorts, occupiedLines, { directOnly: true });
     if (!route) continue;
-    commitRoute(route, routes, occupiedPorts, occupiedLines);
+    commitRoute(route, routes, occupiedPorts, occupiedLines, ctx);
   }
 
   const remaining = edgeInfos
@@ -38,7 +39,7 @@ export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   for (const info of remaining) {
     const route = chooseRoute(info, ctx, occupiedPorts, occupiedLines, { directOnly: false });
     if (route) {
-      commitRoute(route, routes, occupiedPorts, occupiedLines);
+      commitRoute(route, routes, occupiedPorts, occupiedLines, ctx);
       continue;
     }
     routes.set(String(info.edge.id), buildCenterFallback(info, 'no-negotiated-route'));
@@ -65,10 +66,21 @@ function buildFlowchartCtx(edgeInfos, allNodes, routingRules) {
   const obstacles = [];
   const padding = routingRules.PADDING || NODE_BODY_CLEARANCE;
   const degree = new Map();
+  const incomingDegree = new Map();
+  const outgoingDegree = new Map();
 
   for (const info of edgeInfos) {
     degree.set(String(info.edge.from), (degree.get(String(info.edge.from)) || 0) + 1);
     degree.set(String(info.edge.to), (degree.get(String(info.edge.to)) || 0) + 1);
+    outgoingDegree.set(String(info.edge.from), (outgoingDegree.get(String(info.edge.from)) || 0) + 1);
+    incomingDegree.set(String(info.edge.to), (incomingDegree.get(String(info.edge.to)) || 0) + 1);
+  }
+  const effectiveDegree = new Map(degree);
+  for (const node of allNodes) {
+    if (node.type !== 'rhombus') continue;
+    const id = String(node.id);
+    const incomingFanInSlot = (incomingDegree.get(id) || 0) > 0 ? 1 : 0;
+    effectiveDegree.set(id, (outgoingDegree.get(id) || 0) + incomingFanInSlot);
   }
 
   for (const node of allNodes) {
@@ -89,6 +101,7 @@ function buildFlowchartCtx(edgeInfos, allNodes, routingRules) {
     }
   }
 
+  const fanInPlans = buildDecisionFanInPlans(edgeInfos);
   const bounds = obstacles.length > 0
     ? {
       left: Math.min(...obstacles.map(box => box.left)),
@@ -98,7 +111,30 @@ function buildFlowchartCtx(edgeInfos, allNodes, routingRules) {
     }
     : { left: 0, right: 0, top: 0, bottom: 0 };
 
-  return { nodeMap, boxes, obstacles, bounds, degree, routingRules };
+  return { nodeMap, boxes, obstacles, bounds, degree, effectiveDegree, fanInPlans, routingRules };
+}
+
+function buildDecisionFanInPlans(edgeInfos) {
+  const incoming = new Map();
+  for (const info of edgeInfos) {
+    if (info.endNode?.type !== 'rhombus') continue;
+    const key = decisionFanInKey(info.edge.to, info.edge);
+    if (!incoming.has(key)) incoming.set(key, []);
+    incoming.get(key).push(info);
+  }
+  const plans = new Map();
+  for (const [key, infos] of incoming) {
+    if (infos.length < 2) continue;
+    const dir = chooseDecisionFanInDir(infos, infos[0].endBox);
+    const entry = sidePoint(infos[0].endBox, dir);
+    const merge = mergePoint(entry, dir);
+    plans.set(key, { dir, entry, merge });
+  }
+  return plans;
+}
+
+function decisionFanInKey(nodeId, edge) {
+  return `${nodeId}:${edgeStyleKey(edge)}`;
 }
 
 function chooseRoute(info, ctx, occupiedPorts, occupiedLines, options) {
@@ -137,11 +173,12 @@ function chooseRoute(info, ctx, occupiedPorts, occupiedLines, options) {
 function availablePorts(node, box, ctx, occupiedPorts, role) {
   const policy = getRoutingPolicy('flowchart');
   const allPorts = getNodePorts(node, box, policy.portPenalty, { cardinalOnly: false })
-    .filter(port => !port.isDiagonal);
-  const needsOffset = (ctx.degree.get(String(node.id)) || 0) > 4;
-  const ports = needsOffset
+    .filter(port => !(node.type === 'oval' && port.isDiagonal))
+    .filter(port => !(node.type === 'rhombus' && isOffsetPort(port)));
+  const needsOffset = ((ctx.effectiveDegree || ctx.degree).get(String(node.id)) || 0) > 4;
+  const ports = needsOffset && role === 'start'
     ? allPorts
-    : allPorts.filter(port => !isOffsetPort(port));
+    : allPorts.filter(port => !isAuxiliaryPort(port));
   const used = occupiedPorts.get(String(node.id)) || new Set();
   const allowDecisionFanIn = role === 'end' && node.type === 'rhombus';
   return ports
@@ -163,14 +200,19 @@ function directCandidates(startPort, endPort, info) {
     ? endStub.x - startStub.x
     : endStub.y - startStub.y;
   if (Math.sign(axisDelta) !== startPort.sign) return [];
-  return [cleanPathPreservingTerminalStubs([startAnchor(startPort), startStub, endStub, endAnchor(endPort)])];
+  return [cleanPathPreservingTerminalStubs([
+    ...startAnchorPoints(startPort),
+    startStub,
+    endStub,
+    ...endAnchorPoints(endPort),
+  ])];
 }
 
 function orthogonalCandidates(startPort, endPort, info, ctx, extraLanes = null) {
   const startStub = stubPoint(startPort, terminalStubLength(info.edge, 'start'));
   const endStub = stubPoint(endPort, terminalStubLength(info.edge, 'end'));
-  const prefix = [startAnchor(startPort), startStub];
-  const suffix = [endStub, endAnchor(endPort)];
+  const prefix = [...startAnchorPoints(startPort), startStub];
+  const suffix = [endStub, ...endAnchorPoints(endPort)];
   const candidates = [];
 
   candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: endStub.x, y: startStub.y }, ...suffix]));
@@ -321,11 +363,11 @@ function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options
     clearancePenalty += nodeClearancePenalty(a, b, info, ctx, i, pts.length - 1);
     for (const line of occupiedLines) {
       if (segmentsOverlap(a, b, line.a, line.b)) {
-        if (!canMergeDecisionFanIn(info, line)) return null;
+        if (!canMergeDecisionFanIn(info, line, i, pts.length - 1)) return null;
         overlaps += 1;
       }
       if (segmentsTouchAtInteriorPoint(a, b, line.a, line.b)) {
-        if (!canMergeDecisionFanIn(info, line)) return null;
+        if (!canMergeDecisionFanIn(info, line, i, pts.length - 1)) return null;
       }
       if (segmentsCross(a, b, line.a, line.b)) {
         crossings += 1;
@@ -351,8 +393,8 @@ function compareRouteMetrics(a, b) {
   return a.crossings - b.crossings
     || a.overlaps - b.overlaps
     || a.bends - b.bends
-    || compareLengthAndClearance(a, b)
-    || a.portPenalty - b.portPenalty;
+    || a.portPenalty - b.portPenalty
+    || compareLengthAndClearance(a, b);
 }
 
 function compareLengthAndClearance(a, b) {
@@ -397,9 +439,10 @@ function applyDecisionFanInGrouping(result, edgeInfos) {
       result[info.edge.id] = {
         ...path,
         pts: groupedPts,
-        pathD: pathFromPts(groupedPts),
+        pathD: pathFromPts(groupedPts, { fanInJoinDir: dir }),
         groupedFanIn: true,
         fanInCarrier: isCarrier,
+        fanInJoinDir: dir,
         suppressMarkerEnd: !isCarrier,
       };
     }
@@ -428,7 +471,9 @@ function applyVisualBreaks(result, edgeInfos) {
   for (const info of edgeInfos) {
     const path = result[info.edge.id];
     if (!path?.pts?.length || path.isFallback) continue;
-    path.pathD = pathFromPtsWithBreakPlan(path.pts, String(info.edge.id), breakPlan);
+    path.pathD = pathFromPtsWithBreakPlan(path.pts, String(info.edge.id), breakPlan, {
+      fanInJoinDir: path.groupedFanIn ? path.fanInJoinDir : null,
+    });
   }
 }
 
@@ -498,7 +543,7 @@ function improveSharedNodeCrossings(routes, edgeInfos, ctx, occupiedPorts, occup
       if (!nextRoutes) continue;
       routes.set(String(conflict.a.edge.id), nextRoutes.a);
       routes.set(String(conflict.b.edge.id), nextRoutes.b);
-      rebuildOccupancy(routes, occupiedPorts, occupiedLines);
+      rebuildOccupancy(routes, occupiedPorts, occupiedLines, ctx);
       changed = true;
     }
     if (!changed) break;
@@ -516,7 +561,7 @@ function trySwapSharedNodePorts(routeA, routeB, routes, edgeInfos, ctx) {
   const portB = routeB[shared.roleB === 'start' ? 'startPort' : 'endPort'];
   if (!portA || !portB || portKey(portA) === portKey(portB)) return null;
 
-  const otherLines = linesExcept(routes, routeA, routeB);
+  const otherLines = linesExcept(routes, routeA, routeB, ctx);
   const occupiedWithoutPair = occupiedPortsExcept(routes, routeA, routeB);
   const oldPair = scoreRoutePair(routeA, routeB, ctx, otherLines);
   if (!oldPair) return null;
@@ -563,7 +608,7 @@ function improveNonDirectRoutes(routes, edgeInfos, ctx, occupiedPorts, occupiedL
 
       routes.set(routeId, next);
       seenRouteStates.get(routeId).add(routeSignature(next));
-      rebuildOccupancy(routes, occupiedPorts, occupiedLines);
+      rebuildOccupancy(routes, occupiedPorts, occupiedLines, ctx);
       changed = true;
       break;
     }
@@ -590,7 +635,7 @@ function routeOptimizationQueue(routes) {
 function improveRouteClearance(routes, ctx) {
   for (const route of routes.values()) {
     if (route.isFallback || isStraightRoute(route)) continue;
-    const otherLines = linesExceptOne(routes, route);
+    const otherLines = linesExceptOne(routes, route, ctx);
     const currentScore = measureRoute(route.pts, route.info, route.startPort, route.endPort, ctx, otherLines);
     if (!currentScore) continue;
     const extraLanes = comfortLanesForRoute(otherLines, ctx);
@@ -627,7 +672,7 @@ function comfortLanesForRoute(otherLines, ctx) {
 }
 
 function bestAlternativeForRoute(info, currentRoute, routes, ctx, currentScore, seenRouteStates) {
-  const otherLines = linesExceptOne(routes, currentRoute);
+  const otherLines = linesExceptOne(routes, currentRoute, ctx);
   const extraLanes = lanesForRouteOptimization(currentRoute, otherLines, ctx);
   const occupiedWithoutRoute = occupiedPortsExceptOne(routes, currentRoute);
   const startPorts = availablePorts(info.startNode, info.startBox, ctx, occupiedWithoutRoute, 'start');
@@ -727,7 +772,7 @@ function bestSwappedRoutePair(infoA, routeA, roleA, portA, infoB, routeB, roleB,
         const nextA = makeRouteForPorts(infoA, ptsA, startPortA, endPortA);
         const metricsA = measureRoute(nextA.pts, nextA.info, nextA.startPort, nextA.endPort, ctx, otherLines);
         if (!metricsA) continue;
-        const linesAfterA = [...otherLines, ...collectLines(nextA)];
+        const linesAfterA = [...otherLines, ...collectRoutingLines(nextA, ctx)];
 
         for (const startPortB of choicesB.startPorts) {
           for (const endPortB of choicesB.endPorts) {
@@ -794,22 +839,22 @@ function sharedNodePortRoles(routeA, routeB) {
   return null;
 }
 
-function linesExcept(routes, routeA, routeB) {
+function linesExcept(routes, routeA, routeB, ctx) {
   const skip = new Set([String(routeA.edge.id), String(routeB.edge.id)]);
   const out = [];
   for (const route of routes.values()) {
     if (skip.has(String(route.edge.id)) || route.isFallback) continue;
-    collectLines(route).forEach(line => out.push(line));
+    collectRoutingLines(route, ctx).forEach(line => out.push(line));
   }
   return out;
 }
 
-function linesExceptOne(routes, skipRoute) {
+function linesExceptOne(routes, skipRoute, ctx) {
   const out = [];
   const skipId = String(skipRoute.edge.id);
   for (const route of routes.values()) {
     if (String(route.edge.id) === skipId || route.isFallback) continue;
-    collectLines(route).forEach(line => out.push(line));
+    collectRoutingLines(route, ctx).forEach(line => out.push(line));
   }
   return out;
 }
@@ -819,8 +864,7 @@ function occupiedPortsExcept(routes, routeA, routeB) {
   const occupied = new Map();
   for (const route of routes.values()) {
     if (skip.has(String(route.edge.id)) || route.isFallback) continue;
-    reservePort(occupied, route.sourceId, route.startPort);
-    reservePort(occupied, route.targetId, route.endPort);
+    reserveRoutePorts(occupied, route);
   }
   return occupied;
 }
@@ -830,8 +874,7 @@ function occupiedPortsExceptOne(routes, skipRoute) {
   const skipId = String(skipRoute.edge.id);
   for (const route of routes.values()) {
     if (String(route.edge.id) === skipId || route.isFallback) continue;
-    reservePort(occupied, route.sourceId, route.startPort);
-    reservePort(occupied, route.targetId, route.endPort);
+    reserveRoutePorts(occupied, route);
   }
   return occupied;
 }
@@ -863,7 +906,7 @@ function canShareRoutePort(a, b) {
 function scoreRoutePair(routeA, routeB, ctx, otherLines) {
   const first = measureRoute(routeA.pts, routeA.info, routeA.startPort, routeA.endPort, ctx, otherLines);
   if (!first) return null;
-  const second = measureRoute(routeB.pts, routeB.info, routeB.startPort, routeB.endPort, ctx, [...otherLines, ...collectLines(routeA)]);
+  const second = measureRoute(routeB.pts, routeB.info, routeB.startPort, routeB.endPort, ctx, [...otherLines, ...collectRoutingLines(routeA, ctx)]);
   if (!second) return null;
   return addRouteMetrics(first, second);
 }
@@ -880,21 +923,19 @@ function addRouteMetrics(a, b) {
   };
 }
 
-function commitRoute(route, routes, occupiedPorts, occupiedLines) {
+function commitRoute(route, routes, occupiedPorts, occupiedLines, ctx) {
   routes.set(String(route.edge.id), route);
-  reservePort(occupiedPorts, route.sourceId, route.startPort);
-  reservePort(occupiedPorts, route.targetId, route.endPort);
-  collectLines(route).forEach(line => occupiedLines.push(line));
+  reserveRoutePorts(occupiedPorts, route);
+  collectRoutingLines(route, ctx).forEach(line => occupiedLines.push(line));
 }
 
-function rebuildOccupancy(routes, occupiedPorts, occupiedLines) {
+function rebuildOccupancy(routes, occupiedPorts, occupiedLines, ctx) {
   occupiedPorts.clear();
   occupiedLines.length = 0;
   for (const route of routes.values()) {
     if (route.isFallback) continue;
-    reservePort(occupiedPorts, route.sourceId, route.startPort);
-    reservePort(occupiedPorts, route.targetId, route.endPort);
-    collectLines(route).forEach(line => occupiedLines.push(line));
+    reserveRoutePorts(occupiedPorts, route);
+    collectRoutingLines(route, ctx).forEach(line => occupiedLines.push(line));
   }
 }
 
@@ -916,11 +957,56 @@ function collectLines(route) {
   return out;
 }
 
+function collectRoutingLines(route, ctx) {
+  const pts = normalizedRoutingPts(route, ctx) || route.pts || [];
+  return collectLines({ ...route, pts });
+}
+
+function normalizedRoutingPts(route, ctx) {
+  const plan = decisionFanInPlanForRoute(route, ctx);
+  if (!plan) return null;
+  const pts = route.pts || [];
+  if (pts.length < 2) return pts;
+  const start = pts[0];
+  const sourceTerminal = pts[1] || start;
+  return cleanDuplicatePoints([
+    start,
+    sourceTerminal,
+    axisFirstPoint(sourceTerminal, plan.merge),
+    plan.merge,
+  ]);
+}
+
+function decisionFanInPlanForRoute(route, ctx) {
+  if (route.info?.endNode?.type !== 'rhombus') return null;
+  return ctx?.fanInPlans?.get(decisionFanInKey(route.targetId, route.edge)) || null;
+}
+
 function reservePort(occupiedPorts, nodeId, port) {
   if (!port) return;
   const key = String(nodeId);
   if (!occupiedPorts.has(key)) occupiedPorts.set(key, new Set());
   occupiedPorts.get(key).add(portKey(port));
+}
+
+function reserveRoutePorts(occupiedPorts, route) {
+  reservePort(occupiedPorts, route.sourceId, route.startPort);
+  if (route.info?.endNode?.type === 'rhombus') {
+    reserveDecisionFanInPort(occupiedPorts, route);
+    return;
+  }
+  reservePort(occupiedPorts, route.targetId, route.endPort);
+}
+
+function reserveDecisionFanInPort(occupiedPorts, route) {
+  if (!route.endPort) return;
+  const key = String(route.targetId);
+  if (!occupiedPorts.has(key)) occupiedPorts.set(key, new Set());
+  const used = occupiedPorts.get(key);
+  const fanInKey = `__decision_fanin:${edgeStyleKey(route.edge)}`;
+  if (used.has(fanInKey)) return;
+  used.add(fanInKey);
+  used.add(portKey(route.endPort));
 }
 
 function buildCenterFallback(info, reason) {
@@ -960,9 +1046,9 @@ function toPathResult(route, info, edgeInfos, routes) {
   return result;
 }
 
-function pathFromPts(pts) {
+function pathFromPts(pts, options = {}) {
   if (!pts.length) return '';
-  return pts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+  return roundedPathFromPts(pts, () => '', options);
 }
 
 function pathFromPtsWithBreaks(pts, edgeId, routes, edgeInfos) {
@@ -975,12 +1061,10 @@ function pathFromPtsWithBreaks(pts, edgeId, routes, edgeInfos) {
       ...line,
       routeOrder: routeOrder.get(String(route.edge.id)) ?? 0,
     })));
-  let d = `M ${pts[0].x} ${pts[0].y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
+  return roundedPathFromPts(pts, (a, b, i) => {
     const currentProtectedArrow = segmentIsProtectedArrow(routes.get(String(edgeId))?.edge, i, pts.length - 1);
-    d += segmentPathWithBreaks(pts[i], pts[i + 1], otherLines, currentOrder, currentProtectedArrow);
-  }
-  return d;
+    return segmentPathWithBreaks(a, b, otherLines, currentOrder, currentProtectedArrow);
+  });
 }
 
 function buildBreakPlan(routes, routeOrder) {
@@ -1187,13 +1271,94 @@ function addBreakCut(plan, edgeId, index, point, gaps, otherEdgeId) {
   plan.get(key).push({ point, ...gaps, otherEdgeId });
 }
 
-function pathFromPtsWithBreakPlan(pts, edgeId, breakPlan) {
+function pathFromPtsWithBreakPlan(pts, edgeId, breakPlan, options = {}) {
   if (!pts.length) return '';
+  return roundedPathFromPts(pts, (a, b, i) => (
+    segmentPathWithPlannedBreaks(a, b, breakPlan.get(`${edgeId}:${i}`) || [])
+  ), options);
+}
+
+function roundedPathFromPts(pts, drawSegment, options = {}) {
+  if (!pts.length) return '';
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
   let d = `M ${pts[0].x} ${pts[0].y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    d += segmentPathWithPlannedBreaks(pts[i], pts[i + 1], breakPlan.get(`${edgeId}:${i}`) || []);
+  let cursor = pts[0];
+
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p1 = pts[i - 1];
+    const p2 = pts[i];
+    const p3 = pts[i + 1];
+    const d1 = euclideanDistance(p1, p2);
+    const d2 = euclideanDistance(p2, p3);
+    const prevH = Math.abs(p1.y - p2.y) < EPS;
+    const nextH = Math.abs(p2.y - p3.y) < EPS;
+    const prevV = Math.abs(p1.x - p2.x) < EPS;
+    const nextV = Math.abs(p2.x - p3.x) < EPS;
+    const isTurn = (prevH && nextV) || (prevV && nextH);
+    if (!isTurn || d1 < EPS || d2 < EPS) continue;
+
+    const r = Math.min(FLOWCHART_CORNER_RADIUS, d1 / 2, d2 / 2);
+    const qStart = {
+      x: p2.x + ((p1.x - p2.x) / d1) * r,
+      y: p2.y + ((p1.y - p2.y) / d1) * r,
+    };
+    const qEnd = {
+      x: p2.x + ((p3.x - p2.x) / d2) * r,
+      y: p2.y + ((p3.y - p2.y) / d2) * r,
+    };
+    d += drawSegment(cursor, qStart, i - 1) || ` L ${qStart.x} ${qStart.y}`;
+    d += ` Q ${p2.x} ${p2.y} ${qEnd.x} ${qEnd.y}`;
+    cursor = qEnd;
   }
+
+  const terminalJoin = terminalFanInJoinCurve(pts, options.fanInJoinDir);
+  if (terminalJoin) {
+    d += drawSegment(cursor, terminalJoin.start, pts.length - 2) || ` L ${terminalJoin.start.x} ${terminalJoin.start.y}`;
+    d += ` Q ${terminalJoin.control.x} ${terminalJoin.control.y} ${terminalJoin.end.x} ${terminalJoin.end.y}`;
+    return d;
+  }
+
+  d += drawSegment(cursor, pts[pts.length - 1], pts.length - 2) || ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
   return d;
+}
+
+function terminalFanInJoinCurve(pts, dir) {
+  if (!dir || pts.length < 3) return null;
+  const join = fanInJoinUnit(dir);
+  if (!join) return null;
+  const merge = pts[pts.length - 1];
+  const prev = pts[pts.length - 2];
+  const incomingLen = euclideanDistance(prev, merge);
+  if (incomingLen < EPS) return null;
+  const incoming = {
+    x: (merge.x - prev.x) / incomingLen,
+    y: (merge.y - prev.y) / incomingLen,
+  };
+  if (Math.abs(incoming.x * join.x + incoming.y * join.y) > 1 - EPS) return null;
+  const r = Math.min(FLOWCHART_CORNER_RADIUS, incomingLen / 2);
+  return {
+    start: {
+      x: merge.x - incoming.x * r,
+      y: merge.y - incoming.y * r,
+    },
+    control: merge,
+    end: {
+      x: merge.x + join.x * r,
+      y: merge.y + join.y * r,
+    },
+  };
+}
+
+function fanInJoinUnit(dir) {
+  if (dir === 'Left') return { x: 1, y: 0 };
+  if (dir === 'Right') return { x: -1, y: 0 };
+  if (dir === 'Top') return { x: 0, y: 1 };
+  if (dir === 'Bottom') return { x: 0, y: -1 };
+  return null;
+}
+
+function euclideanDistance(a, b) {
+  return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
 function segmentPathWithPlannedBreaks(a, b, cuts) {
@@ -1333,6 +1498,18 @@ function endAnchor(port) {
   return Array.isArray(port.anchorPt) ? port.anchorPt[0] : (port.anchorPt || port.pt);
 }
 
+function startAnchorPoints(port) {
+  return Array.isArray(port.anchorPt)
+    ? port.anchorPt.map(pt => ({ x: pt.x, y: pt.y }))
+    : [startAnchor(port)];
+}
+
+function endAnchorPoints(port) {
+  return Array.isArray(port.anchorPt)
+    ? [...port.anchorPt].reverse().map(pt => ({ x: pt.x, y: pt.y }))
+    : [endAnchor(port)];
+}
+
 function stubPoint(port, len) {
   return {
     x: port.pt.x + (port.axis === 'H' ? port.sign * len : 0),
@@ -1342,6 +1519,10 @@ function stubPoint(port, len) {
 
 function isOffsetPort(port) {
   return String(port.dir || '').startsWith('Bif');
+}
+
+function isAuxiliaryPort(port) {
+  return isOffsetPort(port) || Boolean(port.isDiagonal);
 }
 
 function portKey(port) {
@@ -1386,17 +1567,67 @@ function nodeBodyClearanceBox(obstacle) {
 }
 
 function segmentTouchesBox(a, b, box) {
+  if (!segmentBBoxOverlapsBox(a, b, box)) return false;
   if (Math.abs(a.y - b.y) < EPS) {
     const minX = Math.min(a.x, b.x);
     const maxX = Math.max(a.x, b.x);
-    return a.y >= box.top - EPS && a.y <= box.bottom + EPS && Math.max(minX, box.left) <= Math.min(maxX, box.right);
+    return a.y >= box.top - EPS && a.y <= box.bottom + EPS && Math.max(minX, box.left) <= Math.min(maxX, box.right) + EPS;
   }
   if (Math.abs(a.x - b.x) < EPS) {
     const minY = Math.min(a.y, b.y);
     const maxY = Math.max(a.y, b.y);
-    return a.x >= box.left - EPS && a.x <= box.right + EPS && Math.max(minY, box.top) <= Math.min(maxY, box.bottom);
+    return a.x >= box.left - EPS && a.x <= box.right + EPS && Math.max(minY, box.top) <= Math.min(maxY, box.bottom) + EPS;
   }
-  return true;
+  if (pointInsideBox(a, box) || pointInsideBox(b, box)) return true;
+  const topLeft = { x: box.left, y: box.top };
+  const topRight = { x: box.right, y: box.top };
+  const bottomRight = { x: box.right, y: box.bottom };
+  const bottomLeft = { x: box.left, y: box.bottom };
+  return lineSegmentsIntersect(a, b, topLeft, topRight)
+    || lineSegmentsIntersect(a, b, topRight, bottomRight)
+    || lineSegmentsIntersect(a, b, bottomRight, bottomLeft)
+    || lineSegmentsIntersect(a, b, bottomLeft, topLeft);
+}
+
+function segmentBBoxOverlapsBox(a, b, box) {
+  return Math.max(a.x, b.x) >= box.left - EPS
+    && Math.min(a.x, b.x) <= box.right + EPS
+    && Math.max(a.y, b.y) >= box.top - EPS
+    && Math.min(a.y, b.y) <= box.bottom + EPS;
+}
+
+function pointInsideBox(point, box) {
+  return point.x >= box.left - EPS
+    && point.x <= box.right + EPS
+    && point.y >= box.top - EPS
+    && point.y <= box.bottom + EPS;
+}
+
+function lineSegmentsIntersect(a, b, c, d) {
+  const o1 = orientation(a, b, c);
+  const o2 = orientation(a, b, d);
+  const o3 = orientation(c, d, a);
+  const o4 = orientation(c, d, b);
+  if (o1 !== o2 && o3 !== o4) return true;
+  if (o1 === 0 && pointOnClosedSegment(c, a, b)) return true;
+  if (o2 === 0 && pointOnClosedSegment(d, a, b)) return true;
+  if (o3 === 0 && pointOnClosedSegment(a, c, d)) return true;
+  if (o4 === 0 && pointOnClosedSegment(b, c, d)) return true;
+  return false;
+}
+
+function orientation(a, b, c) {
+  const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  if (Math.abs(cross) < EPS) return 0;
+  return cross > 0 ? 1 : -1;
+}
+
+function pointOnClosedSegment(point, a, b) {
+  return point.x >= Math.min(a.x, b.x) - EPS
+    && point.x <= Math.max(a.x, b.x) + EPS
+    && point.y >= Math.min(a.y, b.y) - EPS
+    && point.y <= Math.max(a.y, b.y) + EPS
+    && orientation(a, b, point) === 0;
 }
 
 function lineClearancePenalty(a, b, line) {
@@ -1540,9 +1771,13 @@ function segmentsOverlap(a, b, c, d) {
   return rangeOverlap(a.y, b.y, c.y, d.y) > 0.5;
 }
 
-function canMergeDecisionFanIn(info, line) {
+function canMergeDecisionFanIn(info, line, segmentIndex, lastSegmentIndex) {
   if (String(info.edge.to) !== String(line.targetId)) return false;
-  return info.endNode.type === 'rhombus';
+  if (info.endNode.type !== 'rhombus') return false;
+  const currentIsTargetApproach = segmentIndex === lastSegmentIndex - 1;
+  const linePts = line.route?.pts || [];
+  const lineIsTargetApproach = line.index === linePts.length - 2;
+  return currentIsTargetApproach && lineIsTargetApproach;
 }
 
 function rangeOverlap(a1, a2, b1, b2) {
@@ -1569,7 +1804,8 @@ function countBends(pts) {
 
 function isOrthogonal(pts) {
   for (let i = 0; i < pts.length - 1; i++) {
-    if (Math.abs(pts[i].x - pts[i + 1].x) > EPS && Math.abs(pts[i].y - pts[i + 1].y) > EPS) return false;
+    const isTerminalStub = i === 0 || i === pts.length - 2;
+    if (!isTerminalStub && Math.abs(pts[i].x - pts[i + 1].x) > EPS && Math.abs(pts[i].y - pts[i + 1].y) > EPS) return false;
   }
   return true;
 }

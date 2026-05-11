@@ -155,7 +155,9 @@ export function getNodePorts(node, box, penaltyFn = defaultPortPenalty, options 
     const swoopDefs = nodeDef.diagonalPorts[sz] || nodeDef.diagonalPorts.M || [];
     swoopDefs.forEach(d => {
       const anchor = { x: box.cx + d.anchor.dx, y: box.cy + d.anchor.dy };
-      const snappedExit = d.axis === 'H'
+      const snappedExit = d.exit
+        ? { x: box.cx + d.exit.dx, y: box.cy + d.exit.dy }
+        : d.axis === 'H'
         ? {
             x: d.sign === 1 ? gxRight : gxLeft,
             y: Math.round(anchor.y / 20) * 20,

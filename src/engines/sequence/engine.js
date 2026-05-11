@@ -75,7 +75,7 @@ export default {
             charWidth: 6.9,
             basePadding: 14,
             arrowPadding: 18,
-            haloWidth: 3.5,
+            haloWidth: 1.75,
             offsetY: -9,
         },
     },

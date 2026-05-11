@@ -643,11 +643,9 @@ function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
 }
 
 function layoutFlowchartGravity(nodes, edges, layoutRules) {
-  if (nodes.some(node => node.lockPos)) return layoutFlowchartDagre(nodes, edges, layoutRules, true, 'flowchart');
-
   const graph = buildForwardFlowGraph(nodes, edges);
   const backbone = chooseBackbonePath(graph);
-  if (backbone.length < 2) return layoutFlowchartDagre(nodes, edges, layoutRules, true, 'flowchart');
+  if (backbone.length < 2) return layoutSimpleFlowchart(nodes, layoutRules);
 
   const backboneIndex = new Map(backbone.map((id, index) => [id, index]));
   const tierMap = assignGravityTiers(graph, backbone, backboneIndex);
@@ -655,10 +653,12 @@ function layoutFlowchartGravity(nodes, edges, layoutRules) {
   laneMap = balanceParallelJoinLanes(graph, backboneIndex, tierMap, laneMap);
   laneMap = compactGravityLanes(graph, backboneIndex, tierMap, laneMap);
   laneMap = centerMultiParentJoins(graph, backboneIndex, tierMap, laneMap);
+  laneMap = optimizeGravityLanes(graph, backboneIndex, tierMap, laneMap);
   let result = placeGravityNodes(nodes, tierMap, laneMap, layoutRules);
 
   result = separateGravityTierCollisions(result, tierMap, layoutRules);
   result = reserveDecisionFanInPockets(result, edges, true);
+  result = centerGravityLayout(result);
   return result;
 }
 
@@ -1002,6 +1002,104 @@ function centerMultiParentJoins(graph, backboneIndex, tierMap, laneMap) {
   return next;
 }
 
+function optimizeGravityLanes(graph, backboneIndex, tierMap, laneMap) {
+  const next = new Map(laneMap);
+  const occupied = () => {
+    const set = new Set();
+    for (const id of graph.nodeIds) set.add(`${tierMap.get(id) || 0}:${next.get(id) || 0}`);
+    return set;
+  };
+
+  const movable = [...graph.nodeIds]
+    .filter(id => !backboneIndex.has(id))
+    .sort((a, b) => gravityLanePriority(b, graph) - gravityLanePriority(a, graph)
+      || (tierMap.get(a) || 0) - (tierMap.get(b) || 0)
+      || (graph.order.get(a) ?? 0) - (graph.order.get(b) ?? 0));
+
+  for (let pass = 0; pass < 8; pass++) {
+    let changed = false;
+    const used = occupied();
+
+    for (const id of movable) {
+      const tier = tierMap.get(id) || 0;
+      const current = next.get(id) || 0;
+      const currentKey = `${tier}:${current}`;
+      const candidates = gravityLaneCandidates(id, graph, next, current);
+      let bestLane = current;
+      let bestScore = gravityLaneObjective(id, current, graph, next);
+
+      for (const candidate of candidates) {
+        if (candidate !== current && used.has(`${tier}:${candidate}`)) continue;
+        const score = gravityLaneObjective(id, candidate, graph, next);
+        if (score >= bestScore - 0.01) continue;
+        bestScore = score;
+        bestLane = candidate;
+      }
+
+      if (bestLane === current) continue;
+      used.delete(currentKey);
+      used.add(`${tier}:${bestLane}`);
+      next.set(id, bestLane);
+      changed = true;
+    }
+
+    if (!changed) break;
+  }
+
+  return next;
+}
+
+function gravityLanePriority(id, graph) {
+  const incoming = (graph.incoming.get(id) || []).length;
+  const outgoing = (graph.adj.get(id) || []).length;
+  return incoming * 3 + outgoing + (incoming >= 2 ? 8 : 0);
+}
+
+function gravityLaneCandidates(id, graph, laneMap, current) {
+  const neighborLanes = [
+    ...(graph.incoming.get(id) || []).map(edge => laneMap.get(edge.from) || 0),
+    ...(graph.adj.get(id) || []).map(edge => laneMap.get(edge.to) || 0),
+    current,
+    0,
+  ];
+  const avg = neighborLanes.reduce((sum, lane) => sum + lane, 0) / Math.max(1, neighborLanes.length);
+  const center = Math.round(avg);
+  const candidates = new Set([current, 0, center, Math.floor(avg), Math.ceil(avg)]);
+  for (const lane of neighborLanes) {
+    candidates.add(lane);
+    candidates.add(lane - 1);
+    candidates.add(lane + 1);
+  }
+  for (let lane = -4; lane <= 4; lane++) candidates.add(lane);
+  return [...candidates].sort((a, b) => Math.abs(a - center) - Math.abs(b - center) || Math.abs(a) - Math.abs(b) || a - b);
+}
+
+function gravityLaneObjective(id, lane, graph, laneMap) {
+  const incoming = graph.incoming.get(id) || [];
+  const outgoing = graph.adj.get(id) || [];
+  let score = Math.abs(lane) * 0.35;
+
+  incoming.forEach(edge => {
+    const parentLane = laneMap.get(edge.from) || 0;
+    const span = Math.max(1, Math.abs((graph.order.get(edge.to) ?? 0) - (graph.order.get(edge.from) ?? 0)));
+    score += Math.abs(lane - parentLane) * (incoming.length >= 2 ? 2.4 : 1.5);
+    score += Math.abs(lane - parentLane) * Math.min(1.5, span * 0.08);
+  });
+
+  outgoing.forEach(edge => {
+    const childLane = laneMap.get(edge.to) || 0;
+    const positive = positiveFlowLabel(edge.edge);
+    score += Math.abs(lane - childLane) * (positive ? 1.4 : 1.1);
+  });
+
+  if (incoming.length >= 2) {
+    const parentAvg = incoming.reduce((sum, edge) => sum + (laneMap.get(edge.from) || 0), 0) / incoming.length;
+    score += Math.abs(lane - parentAvg) * 2.2;
+  }
+
+  return score;
+}
+
 function gravityLaneScore(id, lane, graph, laneMap) {
   const neighbors = [
     ...(graph.incoming.get(id) || []).map(edge => edge.from),
@@ -1042,14 +1140,14 @@ function placeGravityNodes(nodes, tierMap, laneMap, layoutRules) {
       cursor = width / 2;
     } else {
       const prevWidth = tierWidths.get(tiers[index - 1]) || 80;
-      cursor += prevWidth / 2 + width / 2 + Math.max(180, (layoutRules.MIN_GAP_X || 60) + 120);
+      cursor += prevWidth / 2 + width / 2 + Math.max(110, (layoutRules.MIN_GAP_X || 60) + 50);
     }
     xByTier.set(tier, snap(cursor));
   });
 
   const maxH = Math.max(...nodes.map(node => nodeHeight(node)), 80);
-  const collisionGap = Math.max(120, (layoutRules.MIN_GAP_Y || 60) + 80);
-  const laneGap = snap(Math.max(maxH + collisionGap, 180));
+  const collisionGap = Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
+  const laneGap = snap(Math.max(maxH + collisionGap, 160));
   return nodes.map(node => {
     const id = String(node.id);
     return {
@@ -1062,7 +1160,7 @@ function placeGravityNodes(nodes, tierMap, laneMap, layoutRules) {
 
 function separateGravityTierCollisions(nodes, tierMap, layoutRules) {
   let result = nodes.map(node => ({ ...node }));
-  const minGap = Math.max(120, (layoutRules.MIN_GAP_Y || 60) + 80);
+  const minGap = Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
   const tiers = new Map();
   result.forEach(node => {
     const tier = tierMap.get(String(node.id)) || 0;
@@ -1089,8 +1187,41 @@ function separateGravityTierCollisions(nodes, tierMap, layoutRules) {
   });
 }
 
-function layoutFlowchartDagre(nodes, edges, layoutRules, isHorizontalFlow, dt) {
-  return layoutSugiyamaDAG(nodes, edges, { ...layoutRules, FLOWCHART_LAYOUT: 'dagre' }, isHorizontalFlow, dt);
+function centerGravityLayout(nodes) {
+  if (nodes.length === 0) return nodes;
+  const top = Math.min(...nodes.map(node => (node.y || 0) - nodeHeight(node) / 2));
+  const bottom = Math.max(...nodes.map(node => (node.y || 0) + nodeHeight(node) / 2));
+  const shift = snap((top + bottom) / 2);
+  if (!shift) return nodes;
+  return nodes.map(node => ({
+    ...node,
+    y: node.lockPos ? node.y : snap((node.y || 0) - shift),
+  }));
+}
+
+function layoutSimpleFlowchart(nodes, layoutRules) {
+  if (nodes.length === 0) return nodes;
+  const maxW = Math.max(...nodes.map(node => nodeWidth(node)), 80);
+  const maxH = Math.max(...nodes.map(node => nodeHeight(node)), 80);
+  const gapX = Math.max(110, (layoutRules.MIN_GAP_X || 60) + 50);
+  const gapY = Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
+  const columns = Math.max(1, Math.ceil(Math.sqrt(nodes.length)));
+  const stepX = snap(maxW + gapX);
+  const stepY = snap(maxH + gapY);
+  const centerOffset = (columns - 1) / 2;
+
+  const laidOut = nodes.map((node, index) => {
+    if (node.lockPos) return node;
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    return {
+      ...node,
+      x: snap((col - centerOffset) * stepX),
+      y: snap(row * stepY),
+    };
+  });
+
+  return centerGravityLayout(laidOut);
 }
 
 export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, dt = 'flowchart') {
@@ -1118,7 +1249,7 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
     return layoutFeedbackFlow(nodes, edges);
   }
 
-  if (dt === 'flowchart' && isHorizontalFlow && layoutRules.FLOWCHART_LAYOUT === 'gravity') {
+  if (dt === 'flowchart' && isHorizontalFlow) {
     return layoutFlowchartGravity(nodes, edges, layoutRules);
   }
   

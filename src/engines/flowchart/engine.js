@@ -38,7 +38,6 @@ export default {
         edgeStyle: 'deterministic_flowchart',
         rules: {
             RANKER: 'network-simplex',
-            FLOWCHART_LAYOUT: 'gravity',
         },
     },
 
@@ -51,6 +50,7 @@ export default {
             if (portId === 'BifTop'  || portId === 'BifBottom') return w * 5;
             if (portId === 'BifLeft' || portId === 'BifRight')  return h * 5;
             if (portId === 'DiagRhombus') return Math.max(w, h) * 0.7;
+            if (portId === 'DiagCircle') return Math.max(w, h) * 0.7;
             return 0;
         },
     },

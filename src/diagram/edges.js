@@ -53,7 +53,7 @@ export const LINE_STYLE_REGISTRY = {
 export const PATH_STYLE_REGISTRY = {
   orthogonal_astar: {
     label: 'Orthogonal',
-    cornerRadius: 4,
+    cornerRadius: 8,
     jumpRadius: 6,
   },
   straight: {
