@@ -14,6 +14,10 @@ const OFFSET_PORT_PENALTY = 260;
 const ARROW_MARKER_LENGTH = 20;
 const LABEL_TO_ARROW_GAP = 5;
 const NODE_BODY_CLEARANCE = 10;
+const MAX_ROUTE_OPTIMIZATION_PASSES = 1;
+const PREFERRED_CLEARANCE = 40;
+const TIGHT_CLEARANCE = 20;
+const COMFORT_CLEARANCE_LENGTH_BUDGET = 60;
 
 export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   const ctx = buildFlowchartCtx(edgeInfos, allNodes, routingRules);
@@ -41,7 +45,9 @@ export function routeFlowchartNegotiated(edgeInfos, allNodes, routingRules) {
   }
 
   improveSharedNodeCrossings(routes, edgeInfos, ctx, occupiedPorts, occupiedLines);
+  improveNonDirectRoutes(routes, edgeInfos, ctx, occupiedPorts, occupiedLines);
   rotateNodePortsIfBetter(routes, edgeInfos, ctx, occupiedPorts, occupiedLines);
+  improveRouteClearance(routes, ctx);
 
   const result = {};
   for (const info of edgeInfos) {
@@ -83,7 +89,16 @@ function buildFlowchartCtx(edgeInfos, allNodes, routingRules) {
     }
   }
 
-  return { nodeMap, boxes, obstacles, degree, routingRules };
+  const bounds = obstacles.length > 0
+    ? {
+      left: Math.min(...obstacles.map(box => box.left)),
+      right: Math.max(...obstacles.map(box => box.right)),
+      top: Math.min(...obstacles.map(box => box.top)),
+      bottom: Math.max(...obstacles.map(box => box.bottom)),
+    }
+    : { left: 0, right: 0, top: 0, bottom: 0 };
+
+  return { nodeMap, boxes, obstacles, bounds, degree, routingRules };
 }
 
 function chooseRoute(info, ctx, occupiedPorts, occupiedLines, options) {
@@ -95,7 +110,7 @@ function chooseRoute(info, ctx, occupiedPorts, occupiedLines, options) {
     for (const endPort of endPorts) {
       const candidates = options.directOnly
         ? directCandidates(startPort, endPort, info)
-        : orthogonalCandidates(startPort, endPort, info);
+        : orthogonalCandidates(startPort, endPort, info, ctx);
       for (const pts of candidates) {
         const metrics = measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options);
         if (!metrics) continue;
@@ -151,7 +166,7 @@ function directCandidates(startPort, endPort, info) {
   return [cleanPathPreservingTerminalStubs([startAnchor(startPort), startStub, endStub, endAnchor(endPort)])];
 }
 
-function orthogonalCandidates(startPort, endPort, info) {
+function orthogonalCandidates(startPort, endPort, info, ctx, extraLanes = null) {
   const startStub = stubPoint(startPort, terminalStubLength(info.edge, 'start'));
   const endStub = stubPoint(endPort, terminalStubLength(info.edge, 'end'));
   const prefix = [startAnchor(startPort), startStub];
@@ -161,16 +176,135 @@ function orthogonalCandidates(startPort, endPort, info) {
   candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: endStub.x, y: startStub.y }, ...suffix]));
   candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: startStub.x, y: endStub.y }, ...suffix]));
 
-  const xs = [startStub.x, endStub.x, info.startBox.left - 40, info.startBox.right + 40, info.endBox.left - 40, info.endBox.right + 40];
-  const ys = [startStub.y, endStub.y, info.startBox.top - 40, info.startBox.bottom + 40, info.endBox.top - 40, info.endBox.bottom + 40];
-  for (const x of uniqueSnapped(xs)) {
+  const globalLanes = globalEscapeLanes(ctx);
+  const xs = [
+    startStub.x,
+    endStub.x,
+    info.startBox.left - 40,
+    info.startBox.right + 40,
+    info.endBox.left - 40,
+    info.endBox.right + 40,
+    ...globalLanes.xs,
+    ...(extraLanes?.xs || []),
+  ];
+  const ys = [
+    startStub.y,
+    endStub.y,
+    info.startBox.top - 40,
+    info.startBox.bottom + 40,
+    info.endBox.top - 40,
+    info.endBox.bottom + 40,
+    ...globalLanes.ys,
+    ...(extraLanes?.ys || []),
+  ];
+  const xLanes = uniqueSnapped(xs);
+  const yLanes = uniqueSnapped(ys);
+  const xRouteLanes = extraLanes?.detour ? xLanes : nearestLanes(xLanes, [startStub.x, endStub.x], 8);
+  const yRouteLanes = extraLanes?.detour ? yLanes : nearestLanes(yLanes, [startStub.y, endStub.y], 8);
+  const xDetourLanes = nearestLanes(xLanes, [startStub.x, endStub.x], 6);
+  const yDetourLanes = nearestLanes(yLanes, [startStub.y, endStub.y], 6);
+  for (const x of xRouteLanes) {
     candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x, y: startStub.y }, { x, y: endStub.y }, ...suffix]));
   }
-  for (const y of uniqueSnapped(ys)) {
+  for (const y of yRouteLanes) {
     candidates.push(cleanPathPreservingTerminalStubs([...prefix, { x: startStub.x, y }, { x: endStub.x, y }, ...suffix]));
+  }
+  if (extraLanes?.detour) {
+    for (const x of xDetourLanes) {
+      for (const y of yDetourLanes) {
+        candidates.push(cleanPathPreservingTerminalStubs([
+          ...prefix,
+          { x, y: startStub.y },
+          { x, y },
+          { x: endStub.x, y },
+          ...suffix,
+        ]));
+        candidates.push(cleanPathPreservingTerminalStubs([
+          ...prefix,
+          { x: startStub.x, y },
+          { x, y },
+          { x, y: endStub.y },
+          ...suffix,
+        ]));
+      }
+    }
   }
 
   return candidates.filter(pts => pts.length >= 2 && isOrthogonal(pts));
+}
+
+function globalEscapeLanes(ctx) {
+  const b = ctx?.bounds || { left: 0, right: 0, top: 0, bottom: 0 };
+  return {
+    xs: [b.left - 60, b.left - 100, b.right + 60, b.right + 100],
+    ys: [b.top - 60, b.top - 100, b.bottom + 60, b.bottom + 100],
+  };
+}
+
+function lanesFromLines(lines, ctx) {
+  const xs = [];
+  const ys = [];
+  const verticalXs = [];
+  const horizontalYs = [];
+
+  for (const line of lines || []) {
+    if (Math.abs(line.a.x - line.b.x) < EPS) {
+      verticalXs.push(line.a.x);
+      xs.push(line.a.x - 40, line.a.x + 40);
+    }
+    if (Math.abs(line.a.y - line.b.y) < EPS) {
+      horizontalYs.push(line.a.y);
+      ys.push(line.a.y - 40, line.a.y + 40);
+    }
+  }
+
+  if (verticalXs.length > 0) {
+    const minX = Math.min(...verticalXs);
+    const maxX = Math.max(...verticalXs);
+    xs.push(minX - 40, minX - 80, maxX + 40, maxX + 80);
+  }
+  if (horizontalYs.length > 0) {
+    const minY = Math.min(...horizontalYs);
+    const maxY = Math.max(...horizontalYs);
+    ys.push(minY - 40, minY - 80, maxY + 40, maxY + 80);
+  }
+
+  const global = globalEscapeLanes(ctx);
+  return {
+    xs: [...xs, ...global.xs],
+    ys: [...ys, ...global.ys],
+  };
+}
+
+function nodeComfortLanes(ctx) {
+  const xs = [];
+  const ys = [];
+  for (const obstacle of ctx?.obstacles || []) {
+    xs.push(obstacle.vLeft - PREFERRED_CLEARANCE, obstacle.vRight + PREFERRED_CLEARANCE);
+    ys.push(obstacle.vTop - PREFERRED_CLEARANCE, obstacle.vBottom + PREFERRED_CLEARANCE);
+  }
+  return { xs, ys };
+}
+
+function lanesForRouteOptimization(route, otherLines, ctx) {
+  const base = lanesFromLines(otherLines, ctx);
+  const xs = [...base.xs];
+  const ys = [...base.ys];
+  const currentLines = collectLines(route);
+  for (const current of currentLines) {
+    xs.push(current.a.x, current.b.x);
+    ys.push(current.a.y, current.b.y);
+    for (const other of otherLines) {
+      const point = segmentIntersectionPoint(current.a, current.b, other.a, other.b);
+      if (!point) continue;
+      xs.push(point.x - 40, point.x + 40);
+      ys.push(point.y - 40, point.y + 40);
+      if (Math.abs(other.a.x - other.b.x) < EPS) xs.push(other.a.x - 40, other.a.x + 40);
+      if (Math.abs(other.a.y - other.b.y) < EPS) ys.push(other.a.y - 40, other.a.y + 40);
+    }
+  }
+  const global = globalEscapeLanes(ctx);
+  return { xs: [...xs, ...global.xs], ys: [...ys, ...global.ys], detour: true };
 }
 
 function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options = {}) {
@@ -179,10 +313,12 @@ function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options
   if (!terminalSegmentsFit(pts, info.edge)) return null;
   let crossings = 0;
   let overlaps = 0;
+  let clearancePenalty = 0;
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i];
     const b = pts[i + 1];
     if (segmentViolatesNodeClearance(a, b, info, ctx, i, pts.length - 1)) return null;
+    clearancePenalty += nodeClearancePenalty(a, b, info, ctx, i, pts.length - 1);
     for (const line of occupiedLines) {
       if (segmentsOverlap(a, b, line.a, line.b)) {
         if (!canMergeDecisionFanIn(info, line)) return null;
@@ -194,6 +330,7 @@ function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options
       if (segmentsCross(a, b, line.a, line.b)) {
         crossings += 1;
       }
+      clearancePenalty += lineClearancePenalty(a, b, line);
     }
   }
   const bends = countBends(pts);
@@ -202,10 +339,11 @@ function measureRoute(pts, info, startPort, endPort, ctx, occupiedLines, options
   return {
     crossings,
     overlaps,
+    clearancePenalty,
     bends,
     length,
     portPenalty,
-    scalar: crossings * 1000000 + overlaps * 100000 + bends * 10000 + length + portPenalty,
+    scalar: crossings * 1000000 + overlaps * 100000 + clearancePenalty * 100 + bends * 10000 + length + portPenalty,
   };
 }
 
@@ -213,8 +351,17 @@ function compareRouteMetrics(a, b) {
   return a.crossings - b.crossings
     || a.overlaps - b.overlaps
     || a.bends - b.bends
-    || a.length - b.length
+    || compareLengthAndClearance(a, b)
     || a.portPenalty - b.portPenalty;
+}
+
+function compareLengthAndClearance(a, b) {
+  const lengthDelta = a.length - b.length;
+  const clearanceDelta = (a.clearancePenalty || 0) - (b.clearancePenalty || 0);
+  if (clearanceDelta && Math.abs(lengthDelta) <= COMFORT_CLEARANCE_LENGTH_BUDGET) {
+    return clearanceDelta;
+  }
+  return lengthDelta || clearanceDelta;
 }
 
 function applyDecisionFanInGrouping(result, edgeInfos) {
@@ -388,9 +535,167 @@ function rotateNodePortsIfBetter(routes, edgeInfos, ctx, occupiedPorts, occupied
   // expose a concrete profitable rotation case.
 }
 
+function improveNonDirectRoutes(routes, edgeInfos, ctx, occupiedPorts, occupiedLines) {
+  const seenRouteStates = new Map();
+
+  for (let pass = 0; pass < MAX_ROUTE_OPTIMIZATION_PASSES; pass++) {
+    let changed = false;
+    const queue = routeOptimizationQueue(routes).slice(0, 1);
+
+    for (const item of queue) {
+      const currentRoute = routes.get(String(item.route.edge.id));
+      if (!currentRoute || currentRoute.isFallback || isStraightRoute(currentRoute)) continue;
+      const currentStats = routeCrossingStats(routes).get(String(currentRoute.edge.id));
+      const currentScore = {
+        route: currentRoute,
+        crossings: currentStats?.crossings || 0,
+        clearancePenalty: currentRoute.metrics?.clearancePenalty || 0,
+        bends: countBends(currentRoute.pts || []),
+        length: pathLength(currentRoute.pts || []),
+      };
+      const info = edgeInfos.find(edgeInfo => String(edgeInfo.edge.id) === String(currentRoute.edge.id));
+      if (!info) continue;
+
+      const routeId = String(currentRoute.edge.id);
+      if (!seenRouteStates.has(routeId)) seenRouteStates.set(routeId, new Set([routeSignature(currentRoute)]));
+      const next = bestAlternativeForRoute(info, currentRoute, routes, ctx, currentScore, seenRouteStates.get(routeId));
+      if (!next) continue;
+
+      routes.set(routeId, next);
+      seenRouteStates.get(routeId).add(routeSignature(next));
+      rebuildOccupancy(routes, occupiedPorts, occupiedLines);
+      changed = true;
+      break;
+    }
+
+    if (!changed) break;
+  }
+}
+
+function routeOptimizationQueue(routes) {
+  const stats = routeCrossingStats(routes);
+  return [...routes.values()]
+    .filter(route => !route.isFallback)
+    .map(route => ({
+      route,
+      crossings: stats.get(String(route.edge.id))?.crossings || 0,
+      bends: countBends(route.pts || []),
+      length: pathLength(route.pts || []),
+    }))
+    .filter(item => !isStraightRoute(item.route))
+    .filter(item => item.crossings > 0)
+    .sort((a, b) => b.crossings - a.crossings || b.bends - a.bends || b.length - a.length);
+}
+
+function improveRouteClearance(routes, ctx) {
+  for (const route of routes.values()) {
+    if (route.isFallback || isStraightRoute(route)) continue;
+    const otherLines = linesExceptOne(routes, route);
+    const currentScore = measureRoute(route.pts, route.info, route.startPort, route.endPort, ctx, otherLines);
+    if (!currentScore) continue;
+    const extraLanes = comfortLanesForRoute(otherLines, ctx);
+    let best = null;
+
+    for (const pts of candidatePathsForPorts(route.info, route.startPort, route.endPort, ctx, extraLanes)) {
+      const metrics = measureRoute(pts, route.info, route.startPort, route.endPort, ctx, otherLines);
+      if (!metrics) continue;
+      if (!routeKeepsHardQuality(metrics, currentScore)) continue;
+      if (compareLengthAndClearance(metrics, currentScore) >= 0) continue;
+      if (!best || compareRouteMetrics(metrics, best.metrics) < 0) {
+        best = { ...route, pts, metrics, score: metrics.scalar };
+      }
+    }
+
+    if (best) routes.set(String(route.edge.id), best);
+  }
+}
+
+function routeKeepsHardQuality(metrics, currentScore) {
+  if (metrics.crossings > currentScore.crossings) return false;
+  if (metrics.overlaps > currentScore.overlaps) return false;
+  if (metrics.bends > currentScore.bends) return false;
+  return true;
+}
+
+function comfortLanesForRoute(otherLines, ctx) {
+  const nodeLanes = nodeComfortLanes(ctx);
+  const lineLanes = lanesFromLines(otherLines, ctx);
+  return {
+    xs: [...nodeLanes.xs, ...lineLanes.xs],
+    ys: [...nodeLanes.ys, ...lineLanes.ys],
+  };
+}
+
+function bestAlternativeForRoute(info, currentRoute, routes, ctx, currentScore, seenRouteStates) {
+  const otherLines = linesExceptOne(routes, currentRoute);
+  const extraLanes = lanesForRouteOptimization(currentRoute, otherLines, ctx);
+  const occupiedWithoutRoute = occupiedPortsExceptOne(routes, currentRoute);
+  const startPorts = availablePorts(info.startNode, info.startBox, ctx, occupiedWithoutRoute, 'start');
+  const endPorts = availablePorts(info.endNode, info.endBox, ctx, occupiedWithoutRoute, 'end');
+  let best = null;
+
+  for (const startPort of startPorts) {
+    for (const endPort of endPorts) {
+      for (const pts of candidatePathsForPorts(info, startPort, endPort, ctx, extraLanes)) {
+        const candidate = makeRouteForPorts(info, pts, startPort, endPort);
+        const metrics = measureRoute(candidate.pts, candidate.info, candidate.startPort, candidate.endPort, ctx, otherLines);
+        if (!metrics) continue;
+        const next = { ...candidate, metrics, score: metrics.scalar };
+        if (seenRouteStates?.has(routeSignature(next))) continue;
+        if (!best || compareWorstRouteAlternative(next.metrics, best.metrics, currentScore) < 0) {
+          best = next;
+        }
+      }
+    }
+  }
+
+  if (!best) return null;
+  return routeImprovesWorstScore(best.metrics, currentScore) ? best : null;
+}
+
+function compareWorstRouteAlternative(a, b, currentScore) {
+  if ((currentScore?.crossings || 0) > 0) {
+    return a.crossings - b.crossings
+      || compareLengthAndClearance(a, b)
+      || a.bends - b.bends
+      || a.overlaps - b.overlaps
+      || a.portPenalty - b.portPenalty;
+  }
+  return a.crossings - b.crossings
+    || a.bends - b.bends
+    || compareLengthAndClearance(a, b)
+    || a.overlaps - b.overlaps
+    || a.portPenalty - b.portPenalty;
+}
+
+function routeImprovesWorstScore(metrics, currentScore) {
+  if (metrics.crossings < currentScore.crossings) return true;
+  if (metrics.crossings > currentScore.crossings) return false;
+  if (currentScore.crossings <= 0) {
+    if (metrics.bends < currentScore.bends) return true;
+    if (metrics.bends > currentScore.bends) return false;
+    if (compareLengthAndClearance(metrics, currentScore) < 0) return true;
+    if (compareLengthAndClearance(metrics, currentScore) > 0) return false;
+    return metrics.clearancePenalty < (currentScore.clearancePenalty || 0);
+  }
+  if (compareLengthAndClearance(metrics, currentScore) < 0) return true;
+  if (compareLengthAndClearance(metrics, currentScore) > 0) return false;
+  return metrics.bends < currentScore.bends;
+}
+
+function isStraightRoute(route) {
+  return countBends(route?.pts || []) === 0;
+}
+
+function routeSignature(route) {
+  return (route.pts || [])
+    .map(pt => `${Math.round(pt.x * 10) / 10},${Math.round(pt.y * 10) / 10}`)
+    .join(';');
+}
+
 function bestRouteWithPorts(info, startPort, endPort, ctx, occupiedLines) {
   let best = null;
-  const candidates = candidatePathsForPorts(info, startPort, endPort);
+  const candidates = candidatePathsForPorts(info, startPort, endPort, ctx);
   for (const pts of candidates) {
     const metrics = measureRoute(pts, info, startPort, endPort, ctx, occupiedLines);
     if (!metrics) continue;
@@ -418,7 +723,7 @@ function bestSwappedRoutePair(infoA, routeA, roleA, portA, infoB, routeB, roleB,
 
   for (const startPortA of choicesA.startPorts) {
     for (const endPortA of choicesA.endPorts) {
-      for (const ptsA of candidatePathsForPorts(infoA, startPortA, endPortA)) {
+      for (const ptsA of candidatePathsForPorts(infoA, startPortA, endPortA, ctx)) {
         const nextA = makeRouteForPorts(infoA, ptsA, startPortA, endPortA);
         const metricsA = measureRoute(nextA.pts, nextA.info, nextA.startPort, nextA.endPort, ctx, otherLines);
         if (!metricsA) continue;
@@ -426,7 +731,7 @@ function bestSwappedRoutePair(infoA, routeA, roleA, portA, infoB, routeB, roleB,
 
         for (const startPortB of choicesB.startPorts) {
           for (const endPortB of choicesB.endPorts) {
-            for (const ptsB of candidatePathsForPorts(infoB, startPortB, endPortB)) {
+            for (const ptsB of candidatePathsForPorts(infoB, startPortB, endPortB, ctx)) {
               const nextB = makeRouteForPorts(infoB, ptsB, startPortB, endPortB);
               if (routesHavePortConflict(nextA, nextB)) continue;
               const metricsB = measureRoute(nextB.pts, nextB.info, nextB.startPort, nextB.endPort, ctx, linesAfterA);
@@ -462,10 +767,10 @@ function swappedRoutePortChoices(info, fixedRole, fixedPort, ctx, occupiedPorts)
   };
 }
 
-function candidatePathsForPorts(info, startPort, endPort) {
+function candidatePathsForPorts(info, startPort, endPort, ctx, extraLanes = null) {
   return [
     ...directCandidates(startPort, endPort, info),
-    ...orthogonalCandidates(startPort, endPort, info),
+    ...orthogonalCandidates(startPort, endPort, info, ctx, extraLanes),
   ];
 }
 
@@ -499,11 +804,32 @@ function linesExcept(routes, routeA, routeB) {
   return out;
 }
 
+function linesExceptOne(routes, skipRoute) {
+  const out = [];
+  const skipId = String(skipRoute.edge.id);
+  for (const route of routes.values()) {
+    if (String(route.edge.id) === skipId || route.isFallback) continue;
+    collectLines(route).forEach(line => out.push(line));
+  }
+  return out;
+}
+
 function occupiedPortsExcept(routes, routeA, routeB) {
   const skip = new Set([String(routeA.edge.id), String(routeB.edge.id)]);
   const occupied = new Map();
   for (const route of routes.values()) {
     if (skip.has(String(route.edge.id)) || route.isFallback) continue;
+    reservePort(occupied, route.sourceId, route.startPort);
+    reservePort(occupied, route.targetId, route.endPort);
+  }
+  return occupied;
+}
+
+function occupiedPortsExceptOne(routes, skipRoute) {
+  const occupied = new Map();
+  const skipId = String(skipRoute.edge.id);
+  for (const route of routes.values()) {
+    if (String(route.edge.id) === skipId || route.isFallback) continue;
     reservePort(occupied, route.sourceId, route.startPort);
     reservePort(occupied, route.targetId, route.endPort);
   }
@@ -546,6 +872,7 @@ function addRouteMetrics(a, b) {
   return {
     crossings: a.crossings + b.crossings,
     overlaps: a.overlaps + b.overlaps,
+    clearancePenalty: (a.clearancePenalty || 0) + (b.clearancePenalty || 0),
     bends: a.bends + b.bends,
     length: a.length + b.length,
     portPenalty: a.portPenalty + b.portPenalty,
@@ -1025,6 +1352,17 @@ function segmentViolatesNodeClearance(a, b, info, ctx, segmentIndex, lastSegment
   return false;
 }
 
+function nodeClearancePenalty(a, b, info, ctx, segmentIndex, lastSegmentIndex) {
+  let penalty = 0;
+  for (const obstacle of ctx.obstacles) {
+    const isOwnNode = obstacle.id === String(info.edge.from) || obstacle.id === String(info.edge.to);
+    if (isOwnNode && isAllowedTerminalStub(obstacle.id, info, segmentIndex, lastSegmentIndex)) continue;
+    const box = isOwnNode ? nodeBodyClearanceBox(obstacle) : obstacle;
+    penalty += clearanceGapPenalty(segmentBoxDistance(a, b, box));
+  }
+  return penalty;
+}
+
 function isAllowedTerminalStub(obstacleId, info, segmentIndex, lastSegmentIndex) {
   if (obstacleId === String(info.edge.from) && segmentIndex === 0) return true;
   if (obstacleId === String(info.edge.to) && segmentIndex === lastSegmentIndex - 1) return true;
@@ -1054,6 +1392,60 @@ function segmentTouchesBox(a, b, box) {
   return true;
 }
 
+function lineClearancePenalty(a, b, line) {
+  const dist = parallelSegmentDistance(a, b, line.a, line.b);
+  return dist == null ? 0 : clearanceGapPenalty(dist);
+}
+
+function clearanceGapPenalty(distance) {
+  if (distance >= PREFERRED_CLEARANCE) return 0;
+  const preferredGap = PREFERRED_CLEARANCE - Math.max(0, distance);
+  const tightGap = Math.max(0, TIGHT_CLEARANCE - distance);
+  return preferredGap + tightGap * 4;
+}
+
+function parallelSegmentDistance(a, b, c, d) {
+  const abH = Math.abs(a.y - b.y) < EPS;
+  const cdH = Math.abs(c.y - d.y) < EPS;
+  if (abH !== cdH) return null;
+  if (abH) {
+    if (rangeOverlap(a.x, b.x, c.x, d.x) <= 0.5) return null;
+    return Math.abs(a.y - c.y);
+  }
+  if (rangeOverlap(a.y, b.y, c.y, d.y) <= 0.5) return null;
+  return Math.abs(a.x - c.x);
+}
+
+function segmentBoxDistance(a, b, box) {
+  if (segmentTouchesBox(a, b, box)) return 0;
+  if (Math.abs(a.y - b.y) < EPS) {
+    const minX = Math.min(a.x, b.x);
+    const maxX = Math.max(a.x, b.x);
+    if (maxX >= box.left && minX <= box.right) {
+      if (a.y < box.top) return box.top - a.y;
+      if (a.y > box.bottom) return a.y - box.bottom;
+    }
+  }
+  if (Math.abs(a.x - b.x) < EPS) {
+    const minY = Math.min(a.y, b.y);
+    const maxY = Math.max(a.y, b.y);
+    if (maxY >= box.top && minY <= box.bottom) {
+      if (a.x < box.left) return box.left - a.x;
+      if (a.x > box.right) return a.x - box.right;
+    }
+  }
+  return Math.min(
+    pointBoxDistance(a, box),
+    pointBoxDistance(b, box)
+  );
+}
+
+function pointBoxDistance(pt, box) {
+  const dx = pt.x < box.left ? box.left - pt.x : (pt.x > box.right ? pt.x - box.right : 0);
+  const dy = pt.y < box.top ? box.top - pt.y : (pt.y > box.bottom ? pt.y - box.bottom : 0);
+  return Math.hypot(dx, dy);
+}
+
 function findCrossings(routes) {
   const lines = routes.filter(route => !route.isFallback).flatMap(collectLines);
   const out = [];
@@ -1066,6 +1458,23 @@ function findCrossings(routes) {
     }
   }
   return out;
+}
+
+function routeCrossingStats(routes) {
+  const list = [...routes.values()].filter(route => !route.isFallback);
+  const lines = list.flatMap(collectLines);
+  const stats = new Map(list.map(route => [String(route.edge.id), { crossings: 0 }]));
+
+  for (let i = 0; i < lines.length; i++) {
+    for (let j = i + 1; j < lines.length; j++) {
+      if (lines[i].edgeId === lines[j].edgeId) continue;
+      if (!segmentsCross(lines[i].a, lines[i].b, lines[j].a, lines[j].b)) continue;
+      stats.get(lines[i].edgeId).crossings += 1;
+      stats.get(lines[j].edgeId).crossings += 1;
+    }
+  }
+
+  return stats;
 }
 
 function segmentsCross(a, b, c, d) {
@@ -1212,4 +1621,14 @@ function cleanDuplicatePoints(pts) {
 
 function uniqueSnapped(values) {
   return [...new Set(values.map(value => Math.round(value / GRID.step) * GRID.step))];
+}
+
+function nearestLanes(lanes, anchors, limit) {
+  return [...lanes]
+    .sort((a, b) => laneDistance(a, anchors) - laneDistance(b, anchors) || a - b)
+    .slice(0, limit);
+}
+
+function laneDistance(lane, anchors) {
+  return Math.min(...anchors.map(anchor => Math.abs(lane - anchor)));
 }

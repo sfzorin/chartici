@@ -38,6 +38,7 @@ export default {
         edgeStyle: 'deterministic_flowchart',
         rules: {
             RANKER: 'network-simplex',
+            FLOWCHART_LAYOUT: 'gravity',
         },
     },
 

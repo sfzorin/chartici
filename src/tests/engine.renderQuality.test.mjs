@@ -326,6 +326,53 @@ function assertNoFlowchartBacktracks(file, visibleEdges, paths) {
   }
 }
 
+function assertFlowchartWorstCrossingBudget(file, visibleEdges, paths) {
+  const segments = visibleEdges.flatMap(edge => pathSegments(edge, paths[edge.id]));
+  const counts = new Map(visibleEdges.map(edge => [String(edge.id), 0]));
+  for (let i = 0; i < segments.length; i++) {
+    for (let j = i + 1; j < segments.length; j++) {
+      const a = segments[i];
+      const b = segments[j];
+      if (String(a.edge.id) === String(b.edge.id)) continue;
+      const point = segmentIntersection(a.p1, a.p2, b.p1, b.p2);
+      if (!point) continue;
+      counts.set(String(a.edge.id), (counts.get(String(a.edge.id)) || 0) + 1);
+      counts.set(String(b.edge.id), (counts.get(String(b.edge.id)) || 0) + 1);
+    }
+  }
+
+  for (const [edgeId, crossings] of counts) {
+    assert.ok(crossings <= 2, `${file}: edge ${edgeId} keeps ${crossings} crossings after worst-route optimization`);
+  }
+}
+
+function assertLocalCrossingRoutesDoNotEscapeTooFar(file, nodes, visibleEdges, paths) {
+  const segments = visibleEdges.flatMap(edge => pathSegments(edge, paths[edge.id]));
+  const crossingEdges = new Set();
+  for (let i = 0; i < segments.length; i++) {
+    for (let j = i + 1; j < segments.length; j++) {
+      const a = segments[i];
+      const b = segments[j];
+      if (String(a.edge.id) === String(b.edge.id)) continue;
+      if (!segmentIntersection(a.p1, a.p2, b.p1, b.p2)) continue;
+      crossingEdges.add(String(a.edge.id));
+      crossingEdges.add(String(b.edge.id));
+    }
+  }
+
+  for (const edge of visibleEdges) {
+    if (!crossingEdges.has(String(edge.id))) continue;
+    const src = nodes.find(n => String(n.id) === String(edgeFrom(edge)));
+    const dst = nodes.find(n => String(n.id) === String(edgeTo(edge)));
+    if (!src || !dst) continue;
+    const direct = Math.abs((src.x || 0) - (dst.x || 0)) + Math.abs((src.y || 0) - (dst.y || 0));
+    if (direct > 1200) continue;
+    const len = pathLength(paths[edge.id]?.pts || []);
+    const allowed = direct * 2.2 + 240;
+    assert.ok(len <= allowed, `${file}: local crossing edge ${edge.id} escapes too far (${len}px for ${direct}px direct distance)`);
+  }
+}
+
 function assertFlowchartLabelsRender(file, visibleEdges, paths) {
   for (const edge of visibleEdges) {
     if (!edge.label) continue;
@@ -351,6 +398,14 @@ function parseLinePath(pathD) {
     a: { x: Number(match[1]), y: Number(match[2]) },
     b: { x: Number(match[3]), y: Number(match[4]) },
   };
+}
+
+function pathLength(pts) {
+  let sum = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    sum += Math.abs(pts[i + 1].x - pts[i].x) + Math.abs(pts[i + 1].y - pts[i].y);
+  }
+  return sum;
 }
 
 function assertWideCrossingBreaksOnlyCoverLabels(file, visibleEdges, paths) {
@@ -512,12 +567,17 @@ for (const file of files) {
   }
 
   if (type === 'flowchart') {
+    visibleEdges.forEach(edge => {
+      assert.ok(!paths[edge.id]?.isFallback, `${file}: flowchart edge ${edge.id} fell back to diagnostic center route`);
+    });
     assertNoForeignNodeZoneCrossings(file, type, nodes, strictVisibleEdges, paths);
     assertNoLineMerging(file, nodes, strictVisibleEdges, paths);
     assertNoArrowApproachCrossings(file, strictVisibleEdges, paths);
     assertNoFlowchartBacktracks(file, strictVisibleEdges, paths);
     assertFlowchartLabelsRender(file, strictVisibleEdges, paths);
     assertWideCrossingBreaksOnlyCoverLabels(file, strictVisibleEdges, paths);
+    assertFlowchartWorstCrossingBudget(file, strictVisibleEdges, paths);
+    assertLocalCrossingRoutesDoNotEscapeTooFar(file, nodes, strictVisibleEdges, paths);
     // Ordinary line crossings are allowed as a scored compromise in the new
     // flowchart router. Arrow-approach crossings remain forbidden.
 

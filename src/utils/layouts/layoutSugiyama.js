@@ -555,6 +555,7 @@ function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
     .map(node => String(node.id));
 
   const minPocket = isHorizontalFlow ? 100 : 90;
+  const maxPocket = isHorizontalFlow ? 140 : 130;
 
   decisionIds.forEach(decisionId => {
     const byId = new Map(result.map(node => [String(node.id), node]));
@@ -573,6 +574,15 @@ function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
       if (avgSourceX <= (target.x || 0)) {
         const sourceRight = Math.max(...sources.map(node => (node.x || 0) + nodeWidth(node) / 2));
         const targetLeft = (target.x || 0) - nodeWidth(target) / 2;
+        const excess = snap(Math.max(0, (targetLeft - sourceRight) - maxPocket));
+        if (excess > 0) {
+          result = result.map(node => {
+            const id = String(node.id);
+            const shouldShift = id === decisionId || reachable.has(id) || (node.x || 0) >= (target.x || 0) - 1;
+            return shouldShift ? shiftNode(node, -excess, 0) : node;
+          });
+          return;
+        }
         const delta = snap(Math.max(0, minPocket - (targetLeft - sourceRight)));
         if (delta <= 0) return;
         result = result.map(node => {
@@ -585,6 +595,15 @@ function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
 
       const sourceLeft = Math.min(...sources.map(node => (node.x || 0) - nodeWidth(node) / 2));
       const targetRight = (target.x || 0) + nodeWidth(target) / 2;
+      const excess = snap(Math.max(0, (sourceLeft - targetRight) - maxPocket));
+      if (excess > 0) {
+        result = result.map(node => {
+          const id = String(node.id);
+          const shouldShift = id === decisionId || reachable.has(id) || (node.x || 0) <= (target.x || 0) + 1;
+          return shouldShift ? shiftNode(node, excess, 0) : node;
+        });
+        return;
+      }
       const delta = snap(Math.max(0, minPocket - (sourceLeft - targetRight)));
       if (delta <= 0) return;
       result = result.map(node => {
@@ -623,6 +642,293 @@ function reserveDecisionFanInPockets(nodes, edges, isHorizontalFlow) {
   return result;
 }
 
+function layoutFlowchartGravity(nodes, edges, layoutRules) {
+  if (nodes.some(node => node.lockPos)) return layoutFlowchartDagre(nodes, edges, layoutRules, true, 'flowchart');
+
+  const graph = buildForwardFlowGraph(nodes, edges);
+  const backbone = chooseBackbonePath(graph);
+  if (backbone.length < 2) return layoutFlowchartDagre(nodes, edges, layoutRules, true, 'flowchart');
+
+  const backboneIndex = new Map(backbone.map((id, index) => [id, index]));
+  const tierMap = assignGravityTiers(graph, backbone, backboneIndex);
+  const laneMap = assignGravityLanes(graph, backboneIndex, tierMap);
+  let result = placeGravityNodes(nodes, tierMap, laneMap, layoutRules);
+
+  result = separateGravityTierCollisions(result, tierMap, layoutRules);
+  result = reserveDecisionFanInPockets(result, edges, true);
+  return result;
+}
+
+function buildForwardFlowGraph(nodes, edges) {
+  const nodeIds = new Set(nodes.map(node => String(node.id)));
+  const byId = new Map(nodes.map(node => [String(node.id), node]));
+  const allEdges = edges
+    .map(edge => ({ edge, from: edgeFrom(edge), to: edgeTo(edge) }))
+    .filter(edge => nodeIds.has(edge.from) && nodeIds.has(edge.to));
+
+  const adjAll = new Map(nodes.map(node => [String(node.id), []]));
+  const inAll = new Map(nodes.map(node => [String(node.id), []]));
+  allEdges.forEach(edge => {
+    adjAll.get(edge.from)?.push(edge);
+    inAll.get(edge.to)?.push(edge);
+  });
+
+  const roots = [...nodeIds].filter(id => (inAll.get(id) || []).length === 0);
+  const startIds = roots.length > 0 ? roots : [String(nodes[0]?.id)];
+  const color = new Map([...nodeIds].map(id => [id, 0]));
+  const forwardKeys = new Set();
+
+  const visit = (id) => {
+    color.set(id, 1);
+    for (const edge of adjAll.get(id) || []) {
+      if (color.get(edge.to) === 1) continue;
+      forwardKeys.add(`${edge.from}->${edge.to}`);
+      if (color.get(edge.to) === 0) visit(edge.to);
+    }
+    color.set(id, 2);
+  };
+
+  startIds.forEach(id => {
+    if (id && color.get(id) === 0) visit(id);
+  });
+  [...nodeIds].forEach(id => {
+    if (color.get(id) === 0) visit(id);
+  });
+
+  const forwardEdges = allEdges.filter(edge => forwardKeys.has(`${edge.from}->${edge.to}`));
+  const adj = new Map(nodes.map(node => [String(node.id), []]));
+  const incoming = new Map(nodes.map(node => [String(node.id), []]));
+  forwardEdges.forEach(edge => {
+    adj.get(edge.from)?.push(edge);
+    incoming.get(edge.to)?.push(edge);
+  });
+
+  return { nodes, nodeIds, byId, edges: allEdges, forwardEdges, adj, incoming, roots: startIds.filter(Boolean) };
+}
+
+function chooseBackbonePath(graph) {
+  const memo = new Map();
+  const next = new Map();
+  const downstream = new Map();
+
+  const visit = (id, seen = new Set()) => {
+    if (memo.has(id)) return memo.get(id);
+    if (seen.has(id)) return -100000;
+    seen.add(id);
+    const edges = graph.adj.get(id) || [];
+    if (edges.length === 0) {
+      memo.set(id, 1);
+      downstream.set(id, 1);
+      seen.delete(id);
+      return 1;
+    }
+
+    let best = 1;
+    let bestNext = null;
+    let reach = 1;
+    edges.forEach(edge => {
+      const childLen = visit(edge.to, seen);
+      const childReach = downstream.get(edge.to) || 1;
+      reach += childReach;
+      const semanticBonus = positiveFlowLabel(edge.edge) ? 0.35 : 0;
+      const score = 1 + childLen + semanticBonus;
+      if (score > best) {
+        best = score;
+        bestNext = edge.to;
+      }
+    });
+
+    next.set(id, bestNext);
+    memo.set(id, best);
+    downstream.set(id, reach);
+    seen.delete(id);
+    return best;
+  };
+
+  const starts = graph.roots.length > 0 ? graph.roots : [...graph.nodeIds];
+  let bestRoot = starts[0];
+  let bestScore = -Infinity;
+  starts.forEach(id => {
+    const score = visit(id);
+    if (score > bestScore) {
+      bestScore = score;
+      bestRoot = id;
+    }
+  });
+
+  const path = [];
+  const seen = new Set();
+  let current = bestRoot;
+  while (current && !seen.has(current)) {
+    path.push(current);
+    seen.add(current);
+    current = next.get(current);
+  }
+  return path;
+}
+
+function positiveFlowLabel(edge) {
+  const label = String(edge?.label || '').toLowerCase();
+  if (!label) return true;
+  if (/(yes|success|done|ok|valid|complete|approved|pass)/.test(label)) return true;
+  if (/(no|fail|failed|error|reject|rollback|invalid|timeout)/.test(label)) return false;
+  return true;
+}
+
+function assignGravityTiers(graph, backbone, backboneIndex) {
+  const tier = new Map();
+  backbone.forEach((id, index) => tier.set(id, index));
+
+  const inCount = new Map([...graph.nodeIds].map(id => [id, 0]));
+  graph.forwardEdges.forEach(edge => inCount.set(edge.to, (inCount.get(edge.to) || 0) + 1));
+  const queue = [...graph.nodeIds].filter(id => (inCount.get(id) || 0) === 0);
+  if (queue.length === 0) queue.push(...backbone);
+
+  while (queue.length > 0) {
+    const id = queue.shift();
+    if (!tier.has(id)) tier.set(id, 0);
+    for (const edge of graph.adj.get(id) || []) {
+      const proposed = (tier.get(id) || 0) + 1;
+      if (!backboneIndex.has(edge.to)) {
+        tier.set(edge.to, Math.max(tier.get(edge.to) ?? 0, proposed));
+      }
+      inCount.set(edge.to, (inCount.get(edge.to) || 0) - 1);
+      if ((inCount.get(edge.to) || 0) <= 0) queue.push(edge.to);
+    }
+  }
+
+  [...graph.nodeIds].forEach(id => {
+    if (!tier.has(id)) tier.set(id, backboneIndex.get(id) ?? backbone.length);
+  });
+
+  graph.forwardEdges.forEach(edge => {
+    if (backboneIndex.has(edge.to)) return;
+    const sourceTier = tier.get(edge.from) ?? 0;
+    if ((tier.get(edge.to) ?? 0) <= sourceTier) tier.set(edge.to, sourceTier + 1);
+  });
+
+  return tier;
+}
+
+function assignGravityLanes(graph, backboneIndex, tierMap) {
+  const lane = new Map([...graph.nodeIds].map(id => [id, 0]));
+  const sourceBranchCounts = new Map();
+  const occupied = new Set();
+
+  const nodesByTier = [...graph.nodeIds]
+    .sort((a, b) => (tierMap.get(a) || 0) - (tierMap.get(b) || 0));
+
+  nodesByTier.forEach(id => {
+    if (backboneIndex.has(id)) {
+      lane.set(id, 0);
+      occupied.add(`${tierMap.get(id) || 0}:0`);
+      return;
+    }
+
+    const incoming = graph.incoming.get(id) || [];
+    const semanticDown = incoming.some(edge => negativeFlowLabel(edge.edge));
+    const parentLanes = incoming.map(edge => lane.get(edge.from) || 0).filter(value => value !== 0);
+    let preferred = parentLanes.length > 0
+      ? Math.round(parentLanes.reduce((sum, value) => sum + value, 0) / parentLanes.length)
+      : 0;
+
+    if (preferred === 0) {
+      const source = incoming.find(edge => backboneIndex.has(edge.from))?.from || incoming[0]?.from || id;
+      const count = sourceBranchCounts.get(source) || 0;
+      sourceBranchCounts.set(source, count + 1);
+      preferred = semanticDown ? count + 1 : -(count + 1);
+      if (!semanticDown && count % 2 === 1) preferred = count + 1;
+    }
+
+    if (semanticDown && preferred < 0) preferred = Math.abs(preferred);
+    preferred = chooseFreeLane(occupied, tierMap.get(id) || 0, preferred);
+    lane.set(id, preferred);
+    occupied.add(`${tierMap.get(id) || 0}:${preferred}`);
+  });
+
+  return lane;
+}
+
+function negativeFlowLabel(edge) {
+  return /(no|fail|failed|error|reject|rollback|invalid|timeout)/i.test(String(edge?.label || ''));
+}
+
+function chooseFreeLane(occupied, tier, preferred) {
+  if (!occupied.has(`${tier}:${preferred}`)) return preferred;
+  for (let radius = 1; radius < 12; radius++) {
+    const candidates = preferred <= 0 ? [preferred - radius, preferred + radius] : [preferred + radius, preferred - radius];
+    const found = candidates.find(lane => !occupied.has(`${tier}:${lane}`));
+    if (found !== undefined) return found;
+  }
+  return preferred;
+}
+
+function placeGravityNodes(nodes, tierMap, laneMap, layoutRules) {
+  const tiers = [...new Set([...tierMap.values()])].sort((a, b) => a - b);
+  const tierWidths = new Map();
+  tiers.forEach(tier => {
+    const members = nodes.filter(node => (tierMap.get(String(node.id)) || 0) === tier);
+    tierWidths.set(tier, Math.max(...members.map(node => nodeWidth(node)), 80));
+  });
+
+  const xByTier = new Map();
+  let cursor = 0;
+  tiers.forEach((tier, index) => {
+    const width = tierWidths.get(tier) || 80;
+    if (index === 0) {
+      cursor = width / 2;
+    } else {
+      const prevWidth = tierWidths.get(tiers[index - 1]) || 80;
+      cursor += prevWidth / 2 + width / 2 + Math.max(180, (layoutRules.MIN_GAP_X || 60) + 120);
+    }
+    xByTier.set(tier, snap(cursor));
+  });
+
+  const maxH = Math.max(...nodes.map(node => nodeHeight(node)), 80);
+  const laneGap = snap(Math.max(maxH + (layoutRules.MIN_GAP_Y || 60), 160));
+  return nodes.map(node => {
+    const id = String(node.id);
+    return {
+      ...node,
+      x: xByTier.get(tierMap.get(id) || 0) || 0,
+      y: snap((laneMap.get(id) || 0) * laneGap),
+    };
+  });
+}
+
+function separateGravityTierCollisions(nodes, tierMap, layoutRules) {
+  let result = nodes.map(node => ({ ...node }));
+  const minGap = Math.max(120, (layoutRules.MIN_GAP_Y || 60) + 80);
+  const tiers = new Map();
+  result.forEach(node => {
+    const tier = tierMap.get(String(node.id)) || 0;
+    if (!tiers.has(tier)) tiers.set(tier, []);
+    tiers.get(tier).push(node);
+  });
+
+  tiers.forEach(members => {
+    const sorted = members.sort((a, b) => (a.y || 0) - (b.y || 0));
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1];
+      const curr = sorted[i];
+      const required = (nodeHeight(prev) + nodeHeight(curr)) / 2 + minGap;
+      const gap = (curr.y || 0) - (prev.y || 0);
+      if (gap >= required) continue;
+      const dy = snap(required - gap);
+      curr.y = snap((curr.y || 0) + dy);
+    }
+  });
+
+  return result.map(node => {
+    const adjusted = [...tiers.values()].flat().find(item => String(item.id) === String(node.id));
+    return adjusted || node;
+  });
+}
+
+function layoutFlowchartDagre(nodes, edges, layoutRules, isHorizontalFlow, dt) {
+  return layoutSugiyamaDAG(nodes, edges, { ...layoutRules, FLOWCHART_LAYOUT: 'dagre' }, isHorizontalFlow, dt);
+}
+
 export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, dt = 'flowchart') {
   const applyHappyPath = dt !== 'sequence' && dt !== 'erd';
   const g = new dagre.graphlib.Graph();
@@ -646,6 +952,10 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
 
   if (isHorizontalFlow && shouldUseFeedbackFlowLayout(nodes, edges, dt)) {
     return layoutFeedbackFlow(nodes, edges);
+  }
+
+  if (dt === 'flowchart' && isHorizontalFlow && layoutRules.FLOWCHART_LAYOUT === 'gravity') {
+    return layoutFlowchartGravity(nodes, edges, layoutRules);
   }
   
   edges.forEach(e => {

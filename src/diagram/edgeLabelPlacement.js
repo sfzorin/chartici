@@ -33,7 +33,8 @@ export function getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, label
   if (labelPolicy?.strategy !== 'source-near') return displayLabel;
   const best = getFlowchartLabelCandidate(displayLabel, pts, labelStyle);
   if (!best) return null;
-  const maxTextWidth = Math.max(0, best.len - best.minGap * 2);
+  const labelExtraWidth = flowchartLabelWidth(displayLabel, labelStyle) - flowchartTextWidth(displayLabel, labelStyle);
+  const maxTextWidth = Math.max(0, best.len - best.minGap * 2 - labelExtraWidth);
   return truncateLabelToWidth(displayLabel, maxTextWidth, labelStyle.charWidth);
 }
 
@@ -86,21 +87,26 @@ function getFlowchartLabelCandidate(displayLabel, pts, labelStyle) {
     if (len < 1) continue;
 
     const horizontal = Math.abs(dx) >= Math.abs(dy);
-    const gap = labelGapForSegment(len, textWidth, minGap, preferredGap);
-    const readableLen = textWidth + gap * 2;
+    const axisPad = labelAdvancePad(labelStyle);
+    const gap = labelGapForSegment(len, labelWidth, minGap + axisPad, preferredGap + axisPad);
+    const readableLen = labelWidth + gap * 2;
     if (len >= readableLen) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap: minGap + axisPad };
       break;
     }
 
     const tooShortPenalty = (readableLen - len) * 8;
     const score = -i * 220 + Math.min(len, 240) + (horizontal ? 80 : 0) - tooShortPenalty;
     if (!best || score > best.score) {
-      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap, score };
+      best = { a, dx, dy, len, horizontal, labelWidth, labelHeight, gap, minGap: minGap + axisPad, score };
     }
   }
 
   return best;
+}
+
+function labelAdvancePad(labelStyle) {
+  return Math.ceil((labelStyle.fontSize || EDGE_LABEL_STYLE.fontSize || 12) / 2);
 }
 
 function flowchartTextWidth(displayLabel, labelStyle) {
@@ -113,7 +119,7 @@ function flowchartLabelWidth(displayLabel, labelStyle) {
 
 function textAnchorForFlowchartSegment(segment) {
   if (segment.horizontal) return segment.dx < 0 ? 'end' : 'start';
-  return segment.dy < 0 ? 'end' : 'start';
+  return segment.dy > 0 ? 'end' : 'start';
 }
 
 function labelGapForSegment(len, labelWidth, minGap, preferredGap) {

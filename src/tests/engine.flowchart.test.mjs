@@ -59,9 +59,9 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     const pts = paths.e1?.pts || [];
     const placement = paths.e1?.manualLabelPlacement;
     if (!placement) throw new Error('missing manual label placement');
-    const expectedX = pts[0].x + 20;
-    if (placement.x !== expectedX) {
-      throw new Error(`expected label x ${expectedX} from node boundary, got ${placement.x}; path ${formatPts(pts)}`);
+    const minX = pts[0].x + 20;
+    if (placement.x < minX) {
+      throw new Error(`expected label x at least ${minX} from node boundary, got ${placement.x}; path ${formatPts(pts)}`);
     }
     if (placement.y >= pts[0].y) {
       throw new Error(`expected label above horizontal route, got y=${placement.y} for route y=${pts[0].y}`);
@@ -381,6 +381,41 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     const pocket = decisionLeft - sourceRight;
     if (pocket < 80) throw new Error(`expected pocket >=80px, got ${pocket}px`);
     if (pocket > 140) throw new Error(`expected pocket <=140px, got ${pocket}px`);
+  });
+}
+
+{
+  const nodes = [
+    makeNode('start', 0, 0, 'oval'),
+    makeNode('a', 0, 0, 'process'),
+    makeNode('b', 0, 0, 'process'),
+    makeNode('c', 0, 0, 'process'),
+    makeNode('end', 0, 0, 'oval'),
+    makeNode('side', 0, 0, 'process'),
+  ];
+  const edges = [
+    makeEdge('main_1', 'start', 'a'),
+    makeEdge('main_2', 'a', 'b'),
+    makeEdge('main_3', 'b', 'c'),
+    makeEdge('main_4', 'c', 'end'),
+    makeEdge('branch_1', 'a', 'side', { label: 'No' }),
+    makeEdge('branch_2', 'side', 'c'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+  const byId = new Map(laidOut.map(node => [String(node.id), node]));
+
+  test('Flowchart gravity layout keeps the longest path on the main axis', () => {
+    const main = ['start', 'a', 'b', 'c', 'end'].map(id => byId.get(id));
+    const side = byId.get('side');
+    if (main.some(node => !node) || !side) throw new Error('missing laid-out nodes');
+    const axisY = main[0].y;
+    main.forEach(node => {
+      if (node.y !== axisY) throw new Error(`main path node ${node.id} left the axis: ${node.x},${node.y}`);
+    });
+    for (let i = 1; i < main.length; i++) {
+      if (main[i].x <= main[i - 1].x) throw new Error(`main path is not left-to-right at ${main[i - 1].id}->${main[i].id}`);
+    }
+    if (side.y === axisY) throw new Error('side branch should leave the main axis');
   });
 }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getNodeDim, NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/nodes.jsx';
 import { calculateAllPaths } from '../utils/engine/index.js';
-import { getTrueBox, checkCollision } from '../utils/engine/geometry';
+import { getTrueBox, checkCollision, getClipDist } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
 import { getCanvasColors } from '../diagram/colors.js';
 import { DIAGRAM_DESIGN } from '../diagram/design.js';
@@ -27,6 +27,49 @@ const normalizeEdgeEndpoints = (edge) => {
     targetId: edge.targetId ?? to,
   };
 };
+
+function buildDragPreviewPaths(edges, nodes, draggedNodeId, prevPaths = {}) {
+  const result = { ...(prevPaths || {}) };
+  for (const edge of edges) {
+    if (String(edge.from) !== String(draggedNodeId) && String(edge.to) !== String(draggedNodeId)) continue;
+    if (edge.style === 'invisible' || edge.logical || edge.isBlank || edge.lineStyle === 'none') continue;
+    const startNode = nodes.find(n => String(n.id) === String(edge.from));
+    const endNode = nodes.find(n => String(n.id) === String(edge.to));
+    if (!startNode || !endNode) continue;
+
+    const sx = startNode.x || 0;
+    const sy = startNode.y || 0;
+    const ex = endNode.x || 0;
+    const ey = endNode.y || 0;
+    const dx = ex - sx;
+    const dy = ey - sy;
+    const len = Math.hypot(dx, dy);
+    if (len < 1) {
+      result[edge.id] = { pathD: '', textPathD: '', textPathLen: 0, pts: [] };
+      continue;
+    }
+
+    const ux = dx / len;
+    const uy = dy / len;
+    const startDist = getClipDist(startNode, sx, sy, ux, uy);
+    const endDist = getClipDist(endNode, ex, ey, -ux, -uy);
+    const sp = { x: sx + ux * startDist, y: sy + uy * startDist };
+    const ep = { x: ex - ux * endDist, y: ey - uy * endDist };
+    const pathD = `M ${sp.x} ${sp.y} L ${ep.x} ${ep.y}`;
+    const textPathD = Math.abs(sp.x - ep.x) < Math.abs(sp.y - ep.y)
+      ? (sp.y <= ep.y ? pathD : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`)
+      : (sp.x <= ep.x ? pathD : `M ${ep.x} ${ep.y} L ${sp.x} ${sp.y}`);
+
+    result[edge.id] = {
+      pathD,
+      textPathD,
+      textPathLen: Math.hypot(ep.x - sp.x, ep.y - sp.y),
+      pts: [sp, ep],
+      isDragPreview: true,
+    };
+  }
+  return result;
+}
 
 function wrapOverlayLabel(label, maxChars = 16, maxLines = 2) {
   const words = String(label || '').replace(/_/g, ' ').trim().split(/\s+/).filter(Boolean);
@@ -592,10 +635,11 @@ export default function DiagramRenderer({
   }, [edges, computedNodes, diagramType]);
 
   const computedPaths = useMemo(() => {
-    const newPaths = calculateAllPaths(engineEdges, computedNodes, { diagramType }, dragState?.id, prevPathsRef.current);
-    if (!dragState?.id) {
-       prevPathsRef.current = newPaths;
+    if (dragState?.id) {
+      return buildDragPreviewPaths(engineEdges, computedNodes, dragState.id, prevPathsRef.current);
     }
+    const newPaths = calculateAllPaths(engineEdges, computedNodes, { diagramType }, null, prevPathsRef.current);
+    prevPathsRef.current = newPaths;
     return newPaths;
   }, [engineEdges, computedNodes, dragState, diagramType]);
 
