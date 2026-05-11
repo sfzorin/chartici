@@ -33,8 +33,7 @@ export function getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, label
   if (labelPolicy?.strategy !== 'source-near') return displayLabel;
   const best = getFlowchartLabelCandidate(displayLabel, pts, labelStyle);
   if (!best) return null;
-  const labelExtraWidth = flowchartLabelWidth(displayLabel, labelStyle) - flowchartTextWidth(displayLabel, labelStyle);
-  const maxTextWidth = Math.max(0, best.len - best.minGap * 2 - labelExtraWidth);
+  const maxTextWidth = Math.max(0, best.len - best.minGap * 2);
   return truncateLabelToWidth(displayLabel, maxTextWidth, labelStyle.charWidth);
 }
 

@@ -103,6 +103,24 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 }
 
 {
+  const labelPolicy = getEdgeLabelPolicy('flowchart');
+  const labelStyle = getEdgeLabelStyle(labelPolicy);
+  const pts = [{ x: 0, y: 0 }, { x: 80, y: 0 }];
+  const fitted = getFittedManualEdgeLabel({
+    labelPolicy,
+    displayLabel: 'ABCDEFGHIJKLM',
+    pts,
+    labelStyle: { ...labelStyle, charWidth: 10 },
+  });
+
+  test('Flowchart tight labels use the full 5px end gap before arrows', () => {
+    if (fitted !== 'ABCDEFG') {
+      throw new Error(`expected 70px of text in an 80px tight segment, got ${fitted}`);
+    }
+  });
+}
+
+{
   const nodes = [
     makeNode('P', 0, 0, 'process', 'M'),
     makeNode('A', 220, -80, 'process', 'M'),
@@ -459,6 +477,32 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
       if (main[i].x <= main[i - 1].x) throw new Error(`main path is not left-to-right at ${main[i - 1].id}->${main[i].id}`);
     }
     if (side.y === axisY) throw new Error('side branch should leave the main axis');
+  });
+}
+
+{
+  const nodes = [
+    makeNode('A', 0, 0, 'process'),
+    makeNode('B', 0, 0, 'process'),
+    makeNode('C', 0, 0, 'process'),
+  ];
+  const compactEdges = [
+    makeEdge('e1', 'A', 'B', { label: 'Yes' }),
+    makeEdge('e2', 'B', 'C', { label: 'No' }),
+  ];
+  const roomyEdges = [
+    makeEdge('e1', 'A', 'B', { label: 'Requires Review' }),
+    makeEdge('e2', 'B', 'C', { label: 'Proceed With Changes' }),
+  ];
+  const compact = new Map(layoutNodesHeuristically(nodes, compactEdges, { diagramType: 'flowchart' }).map(node => [String(node.id), node]));
+  const roomy = new Map(layoutNodesHeuristically(nodes, roomyEdges, { diagramType: 'flowchart' }).map(node => [String(node.id), node]));
+  const compactGap = compact.get('B').x - compact.get('A').x;
+  const roomyGap = roomy.get('B').x - roomy.get('A').x;
+
+  test('Flowchart layout uses denser tiers when labels are absent or short', () => {
+    if (compactGap >= roomyGap) throw new Error(`expected short labels to be denser than long labels: compact=${compactGap}, roomy=${roomyGap}`);
+    if (compactGap > 260) throw new Error(`short-label tiers are too loose: ${compactGap}`);
+    if (roomyGap < 300) throw new Error(`long-label tiers are too tight: ${roomyGap}`);
   });
 }
 
