@@ -8,6 +8,8 @@ Each branch heading specifies Parent ID to auto-connect nodes.
 Keep depth to 2-5 levels. Prefer 2-6 children per parent. Use 14-34 nodes when the hierarchy needs real categories and examples. Hard maximum 40 nodes. Avoid long labels.
 If the user gives named branches, categories, families, or "Branch N" sections, those branch names MUST become visible intermediate nodes.
 Do not flatten a two-level hierarchy into root → leaves. Model it as root → category nodes → leaf nodes, even when the user asks for a compact node count.
+When major peer branches have their own children or consequences, give each major branch its own ### group/color instead of putting all branch roots into one generic group.
+Group labels must explain the local relationship to their parent, not broad buckets like "Roles", "Items", or "Categories" when each branch has a different meaning.
 The tree should teach a taxonomy: each level must mean something different (domain → category → example, problem → cause → symptom, concept → subtype → use case).
 Sibling labels must be comparable. Do not mix category names, examples, and properties at the same level.
 If the user asks for "key properties", show properties as leaves under the relevant category or item, not as a separate flat list.

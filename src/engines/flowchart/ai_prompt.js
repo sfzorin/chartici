@@ -6,6 +6,10 @@ Transform the user's concept into Markdown Tables for a FLOWCHART.
 Node types: terminal (start/end only), decision (branching), process (action), event (connector).
 Connections go in the "Next Steps" column: target_id or target_id[Label].
 Group nodes by visual stage using ### headings. For recipes, tutorials, kids, learning, or other instructional flows, prefer one short stage per step so the diagram gets useful color variety.
+Use node types truthfully but do not default everything to process: terminal for start/end/final states, decision for real branching questions, event for consequences/alerts/failures/connectors, process for actions/checks.
+If the concept has only same-role stages, make each stage a meaningful visual group with distinct colors, or compress it into a stronger fork/merge, cause/effect, or layered model instead of a row of identical blocks.
+For cause/effect chains, groups must be contiguous stages in the chain. Do not put non-adjacent or mixed-role nodes into one group just because they share a broad category.
+Do not merge mechanism and final outcome into one vague group; split cause, trigger, mechanism, and symptom/outcome when that reads better.
 Build around the central insight: show what changes the outcome, not just what happens next.
 For casual tasks, include at least one quality check, choice point, or recovery path when it helps the reader make better decisions.
 Use branch labels as meaningful outcomes (Safe / Messy / Too Dry / Ready), not vague Yes/No unless the decision is genuinely binary.

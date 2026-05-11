@@ -4,7 +4,9 @@ export default {
 Transform the user's concept into Markdown Tables for a MATRIX diagram.
 
 Group nodes by zone/quadrant using ### headings.
-Use 2-4 zones. Put 2-5 items in each zone. Labels should be comparable, not sentences.
+Use 2-4 zones. Prefer an even number of zones when the concept allows it, especially 4-zone/2x2 structures.
+Put 2-4 items in each zone when possible. Prefer an even number of items per zone unless the source material naturally has an odd count.
+Labels should be comparable, not sentences.
 Choose zones that reveal a tradeoff, priority, fit, risk, maturity, effort, impact, audience, or use case.
 Do not make arbitrary buckets. Every zone label should answer "why does this item belong here?"
 Keep zone headings short: 1-3 words, 18 characters preferred, 24 characters maximum.

@@ -27,8 +27,10 @@ STRICT RULES:
 - Condense labels to 1-4 words each.
 - Choose one main message that teaches an idea, not just a list of steps.
 - Make the result interesting for a curious first-time visitor: reveal a pattern, tension, choice, tradeoff, cycle, failure mode, hierarchy, or before/after transformation.
+- Prefer diagrams with an honest second dimension when useful: option vs consequence, role vs responsibility, layer vs failure mode, stage vs cost, risk vs control, or cause vs symptom.
 - Prefer a "smart angle" over a literal restatement. For mundane topics, add a useful twist that makes the reader think: what can go wrong, how choices affect outcomes, how categories converge, or what separates good from bad.
 - Do not produce a trivial straight checklist when the topic contains choices, categories, tradeoffs, outcomes, or audience context.
+- Avoid the default "five boxes in a row" diagram. Use it only when sequence itself is the lesson and a second dimension would be artificial.
 - For simple everyday topics, add one useful explanatory dimension: choices, safety, quality, outcomes, categories, feedback, or decision points.
 - If the user's request is broad or casual, infer a concrete audience and purpose, then make the diagram teach that purpose.
 - Use groups only when they clarify the reader's mental model.
@@ -37,7 +39,7 @@ STRICT RULES:
 - For tree and radial diagrams, preserve hierarchy levels from the request: named categories/branches/clusters must be visible intermediate nodes, not just group colors.
 
 TYPE-SPECIFIC SEMANTIC STRATEGIES:
-- Flowchart: show decisions, checks, branches, merges, feedback, and recovery. Avoid a plain procedure unless the request is strictly linear.
+- Flowchart: show decisions, checks, branches, merges, feedback, and recovery. Avoid a plain procedure unless the request is strictly linear. If the idea is mainly comparison, hierarchy, ownership, layers, or roles, choose matrix/tree/radial/sequence instead.
 - Tree: build a taxonomy with real abstraction levels. Preserve categories as intermediate nodes and include enough representative leaves to feel complete.
 - Matrix: choose meaningful axes that reveal tradeoffs, fit, risk, priority, or comparison. Do not use weak labels like "high/low" unless the dimensions are clear.
 - Timeline: show an arc: setup, turning points, consequences, and current/future state. Prefer causality over a flat list of dates.
@@ -71,10 +73,14 @@ export function getSystemPromptPhase2(diagramType) {
 - Prefer 8-18 visible nodes for most diagrams. Flowcharts may use up to 30 nodes when meaningful branches, checks, or recovery paths are needed. Timelines and sequences may use up to 28 nodes when the arc or handoffs need room. Radial diagrams may use up to 32 nodes when category and leaf levels are meaningful. Trees may use up to 40 nodes when they preserve real hierarchy. ERD should stay under 18 entities and piechart under 10 slices unless explicitly requested.
 - Labels must be short noun/verb phrases, ideally 1-4 words.
 - Edge labels must be short, usually 1-3 words. Prefer verbs or outcomes.
-- Avoid duplicate labels, orphan nodes, decorative filler, and custom black/gray colors.
+- Avoid duplicate labels, orphan nodes, decorative filler, floating notes, detached callouts, legend-only nodes, and custom black/gray colors.
+- Every visible node must belong to the main conceptual structure. Do not turn side facts, annotations, examples, or explanatory notes into disconnected nodes.
 - Use groups semantically: primary actors/concepts first, supporting concepts second, risks/errors later, neutral context last.
+- Prefer multiple meaningful groups when the diagram has distinct roles, stages, causes, checks, outcomes, or risk levels. Avoid one generic group that makes everything the same color.
 - Assign group/color roles intentionally so the diagram has visual contrast: main path, choices/categories, cautions, outcomes, and supporting context should not all share one group.
 - Build the diagram from the central insight in the plan. Every node should either support the idea, create a meaningful choice, explain a consequence, or clarify a category.
+- Avoid same-shape repetition. If the concept would produce a row of same-role blocks, choose or express a stronger structure: comparison, layered model, fork/merge, decision, cause/effect, or before/after contrast.
+- Use node types truthfully but actively: terminal for start/end or final states, decision for real branching questions, event for consequences/alerts/failures/connectors, process for actions or checks.
 - If the topic is casual or broad, honor the inferred audience/purpose from the plan instead of producing a generic encyclopedia entry.
 - Make all connections explicit and valid: every source/target ID must exist.
 - For instructional flowcharts, create visual stage groups instead of one all-purpose group, so sequential steps do not render as one color.
