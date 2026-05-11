@@ -651,7 +651,10 @@ function layoutFlowchartGravity(nodes, edges, layoutRules) {
 
   const backboneIndex = new Map(backbone.map((id, index) => [id, index]));
   const tierMap = assignGravityTiers(graph, backbone, backboneIndex);
-  const laneMap = assignGravityLanes(graph, backboneIndex, tierMap);
+  let laneMap = assignGravityLanes(graph, backboneIndex, tierMap);
+  laneMap = balanceParallelJoinLanes(graph, backboneIndex, tierMap, laneMap);
+  laneMap = compactGravityLanes(graph, backboneIndex, tierMap, laneMap);
+  laneMap = centerMultiParentJoins(graph, backboneIndex, tierMap, laneMap);
   let result = placeGravityNodes(nodes, tierMap, laneMap, layoutRules);
 
   result = separateGravityTierCollisions(result, tierMap, layoutRules);
@@ -662,6 +665,7 @@ function layoutFlowchartGravity(nodes, edges, layoutRules) {
 function buildForwardFlowGraph(nodes, edges) {
   const nodeIds = new Set(nodes.map(node => String(node.id)));
   const byId = new Map(nodes.map(node => [String(node.id), node]));
+  const order = new Map(nodes.map((node, index) => [String(node.id), index]));
   const allEdges = edges
     .map(edge => ({ edge, from: edgeFrom(edge), to: edgeTo(edge) }))
     .filter(edge => nodeIds.has(edge.from) && nodeIds.has(edge.to));
@@ -703,7 +707,7 @@ function buildForwardFlowGraph(nodes, edges) {
     incoming.get(edge.to)?.push(edge);
   });
 
-  return { nodes, nodeIds, byId, edges: allEdges, forwardEdges, adj, incoming, roots: startIds.filter(Boolean) };
+  return { nodes, nodeIds, byId, order, edges: allEdges, forwardEdges, adj, incoming, roots: startIds.filter(Boolean) };
 }
 
 function chooseBackbonePath(graph) {
@@ -849,6 +853,165 @@ function assignGravityLanes(graph, backboneIndex, tierMap) {
   return lane;
 }
 
+function balanceParallelJoinLanes(graph, backboneIndex, tierMap, laneMap) {
+  const clusters = new Map();
+
+  for (const id of graph.nodeIds) {
+    const incoming = graph.incoming.get(id) || [];
+    if (incoming.length !== 1) continue;
+    const positiveOutgoing = (graph.adj.get(id) || []).filter(edge => positiveFlowLabel(edge.edge));
+    if (positiveOutgoing.length !== 1) continue;
+    const source = incoming[0].from;
+    const join = positiveOutgoing[0].to;
+    if (source === join) continue;
+    const key = `${source}->${join}:${tierMap.get(id) || 0}`;
+    if (!clusters.has(key)) clusters.set(key, []);
+    clusters.get(key).push(id);
+  }
+
+  const balancedIds = new Set();
+  for (const ids of clusters.values()) {
+    if (ids.length < 3) continue;
+    ids.forEach(id => balancedIds.add(id));
+  }
+  if (balancedIds.size === 0) return laneMap;
+
+  const next = new Map(laneMap);
+  const occupied = new Set();
+  for (const id of graph.nodeIds) {
+    if (balancedIds.has(id)) continue;
+    occupied.add(`${tierMap.get(id) || 0}:${next.get(id) || 0}`);
+  }
+
+  for (const ids of clusters.values()) {
+    if (ids.length < 3) continue;
+    const tier = tierMap.get(ids[0]) || 0;
+    const center = chooseParallelJoinCenter(ids, graph, laneMap);
+    const ordered = [
+      center,
+      ...ids
+        .filter(id => id !== center)
+        .sort((a, b) => parallelBranchWeight(b, graph) - parallelBranchWeight(a, graph)
+          || (graph.order.get(a) ?? 0) - (graph.order.get(b) ?? 0)),
+    ];
+    const slots = [0, 1, -1, 2, -2, 3, -3];
+
+    ordered.forEach((id, index) => {
+      const preferred = slots[index] ?? index;
+      const chosen = chooseFreeLane(occupied, tier, preferred);
+      next.set(id, chosen);
+      occupied.add(`${tier}:${chosen}`);
+      pullSingleChildBranchToLane(id, chosen, graph, tierMap, next, occupied);
+    });
+  }
+
+  return next;
+}
+
+function chooseParallelJoinCenter(ids, graph, laneMap) {
+  const clean = ids.filter(id => parallelBranchWeight(id, graph) === 0);
+  if (clean.length > 0) {
+    return clean.sort((a, b) => Math.abs(laneMap.get(a) || 0) - Math.abs(laneMap.get(b) || 0)
+      || String(a).localeCompare(String(b)))[0];
+  }
+  return [...ids].sort((a, b) => Math.abs(laneMap.get(a) || 0) - Math.abs(laneMap.get(b) || 0)
+    || String(a).localeCompare(String(b)))[0];
+}
+
+function parallelBranchWeight(id, graph) {
+  return (graph.adj.get(id) || []).filter(edge => !positiveFlowLabel(edge.edge)).length;
+}
+
+function pullSingleChildBranchToLane(parentId, parentLane, graph, tierMap, laneMap, occupied) {
+  const sideChildren = (graph.adj.get(parentId) || [])
+    .filter(edge => !positiveFlowLabel(edge.edge))
+    .map(edge => edge.to)
+    .filter(id => !occupied.has(`${tierMap.get(id) || 0}:${parentLane}`));
+
+  sideChildren.forEach(childId => {
+    const tier = tierMap.get(childId) || 0;
+    if ((graph.incoming.get(childId) || []).length !== 1) return;
+    if ((graph.adj.get(childId) || []).length > 1) return;
+    const key = `${tier}:${parentLane}`;
+    if (occupied.has(key)) return;
+    laneMap.set(childId, parentLane);
+    occupied.add(key);
+  });
+}
+
+function compactGravityLanes(graph, backboneIndex, tierMap, laneMap) {
+  const next = new Map(laneMap);
+  const occupied = () => {
+    const set = new Set();
+    for (const id of graph.nodeIds) set.add(`${tierMap.get(id) || 0}:${next.get(id) || 0}`);
+    return set;
+  };
+
+  for (let pass = 0; pass < 6; pass++) {
+    let changed = false;
+    const used = occupied();
+    const movable = [...graph.nodeIds]
+      .filter(id => !backboneIndex.has(id))
+      .sort((a, b) => Math.abs(next.get(b) || 0) - Math.abs(next.get(a) || 0));
+
+    for (const id of movable) {
+      const lane = next.get(id) || 0;
+      if (lane === 0) continue;
+      const tier = tierMap.get(id) || 0;
+      const candidate = lane + (lane > 0 ? -1 : 1);
+      const currentKey = `${tier}:${lane}`;
+      const candidateKey = `${tier}:${candidate}`;
+      if (used.has(candidateKey)) continue;
+      if (gravityLaneScore(id, candidate, graph, next) > gravityLaneScore(id, lane, graph, next)) continue;
+      used.delete(currentKey);
+      used.add(candidateKey);
+      next.set(id, candidate);
+      changed = true;
+    }
+    if (!changed) break;
+  }
+
+  return next;
+}
+
+function centerMultiParentJoins(graph, backboneIndex, tierMap, laneMap) {
+  const next = new Map(laneMap);
+  const occupied = new Set();
+  for (const id of graph.nodeIds) occupied.add(`${tierMap.get(id) || 0}:${next.get(id) || 0}`);
+
+  const joins = [...graph.nodeIds]
+    .filter(id => (graph.incoming.get(id) || []).length >= 2)
+    .sort((a, b) => (graph.incoming.get(b) || []).length - (graph.incoming.get(a) || []).length);
+
+  joins.forEach(id => {
+    const parentLanes = (graph.incoming.get(id) || []).map(edge => next.get(edge.from) || 0);
+    if (parentLanes.length < 2) return;
+    const preferred = Math.round(parentLanes.reduce((sum, value) => sum + value, 0) / parentLanes.length);
+    const current = next.get(id) || 0;
+    if (current === preferred) return;
+    const tier = tierMap.get(id) || 0;
+    const currentKey = `${tier}:${current}`;
+    const preferredKey = `${tier}:${preferred}`;
+    if (occupied.has(preferredKey)) return;
+    if (gravityLaneScore(id, preferred, graph, next) > gravityLaneScore(id, current, graph, next)) return;
+    occupied.delete(currentKey);
+    occupied.add(preferredKey);
+    next.set(id, preferred);
+  });
+
+  return next;
+}
+
+function gravityLaneScore(id, lane, graph, laneMap) {
+  const neighbors = [
+    ...(graph.incoming.get(id) || []).map(edge => edge.from),
+    ...(graph.adj.get(id) || []).map(edge => edge.to),
+  ];
+  if (neighbors.length === 0) return Math.abs(lane) * 0.5;
+  return neighbors.reduce((sum, neighbor) => sum + Math.abs(lane - (laneMap.get(neighbor) || 0)), 0)
+    + Math.abs(lane) * 0.15;
+}
+
 function negativeFlowLabel(edge) {
   return /(no|fail|failed|error|reject|rollback|invalid|timeout)/i.test(String(edge?.label || ''));
 }
@@ -885,7 +1048,8 @@ function placeGravityNodes(nodes, tierMap, laneMap, layoutRules) {
   });
 
   const maxH = Math.max(...nodes.map(node => nodeHeight(node)), 80);
-  const laneGap = snap(Math.max(maxH + (layoutRules.MIN_GAP_Y || 60), 160));
+  const collisionGap = Math.max(120, (layoutRules.MIN_GAP_Y || 60) + 80);
+  const laneGap = snap(Math.max(maxH + collisionGap, 180));
   return nodes.map(node => {
     const id = String(node.id);
     return {

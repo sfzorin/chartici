@@ -1004,7 +1004,8 @@ function buildBreakPlan(routes, routeOrder) {
       const breaker = chooseBreakLine(a, b, aHasLabelHere, bHasLabelHere);
       if (!breaker) continue;
       const labelLine = aHasLabelHere ? a : (bHasLabelHere ? b : null);
-      const gaps = breakGapsForCrossing(breaker, labelLine, point);
+      const protectedLine = a.protectedArrow ? a : (b.protectedArrow ? b : null);
+      const gaps = breakGapsForCrossing(breaker, labelLine, point, protectedLine);
       addBreakCut(plan, breaker.edgeId, breaker.index, point, gaps, breaker === a ? b.edgeId : a.edgeId);
     }
   }
@@ -1137,17 +1138,23 @@ function parseLinePath(pathD) {
   };
 }
 
-function breakGapsForCrossing(breaker, labelLine, point) {
+function breakGapsForCrossing(breaker, labelLine, point, protectedLine = null) {
   const tiny = 6;
-  if (!labelLine) return { beforeGap: tiny, afterGap: tiny };
+  const arrowClearance = 16;
+  if (!labelLine) {
+    return protectedLine
+      ? { beforeGap: arrowClearance, afterGap: arrowClearance }
+      : { beforeGap: tiny, afterGap: tiny };
+  }
 
   const labelVector = labelSideVector(labelLine, point);
   const breakerVector = segmentUnitVector(breaker.a, breaker.b);
   const labelClearance = Math.max(18, Math.ceil((EDGE_LABEL_STYLE.fontSize + EDGE_LABEL_STYLE.haloWidth * 2) / 2) + 6);
+  const farClearance = protectedLine ? Math.max(labelClearance, arrowClearance) : labelClearance;
   const labelIsAfter = breakerVector.x * labelVector.x + breakerVector.y * labelVector.y > 0;
   return labelIsAfter
-    ? { beforeGap: tiny, afterGap: labelClearance }
-    : { beforeGap: labelClearance, afterGap: tiny };
+    ? { beforeGap: tiny, afterGap: farClearance }
+    : { beforeGap: farClearance, afterGap: tiny };
 }
 
 function labelSideVector(labelLine, point) {

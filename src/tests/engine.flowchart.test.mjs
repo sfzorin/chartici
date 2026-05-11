@@ -421,6 +421,57 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 
 {
   const nodes = [
+    makeNode('start', 0, 0, 'oval'),
+    makeNode('split', 0, 0, 'circle'),
+    makeNode('topTask', 0, 0, 'process'),
+    makeNode('cleanTask', 0, 0, 'process'),
+    makeNode('bottomTask', 0, 0, 'process'),
+    makeNode('join', 0, 0, 'process'),
+    makeNode('topComp', 0, 0, 'process'),
+    makeNode('bottomComp', 0, 0, 'process'),
+    makeNode('rollback', 0, 0, 'process'),
+    makeNode('commit', 0, 0, 'process'),
+    makeNode('end', 0, 0, 'oval'),
+  ];
+  const edges = [
+    makeEdge('e_start', 'start', 'split'),
+    makeEdge('e_top', 'split', 'topTask'),
+    makeEdge('e_clean', 'split', 'cleanTask'),
+    makeEdge('e_bottom', 'split', 'bottomTask'),
+    makeEdge('e_top_join', 'topTask', 'join', { label: 'Done' }),
+    makeEdge('e_clean_join', 'cleanTask', 'join', { label: 'Wait' }),
+    makeEdge('e_bottom_join', 'bottomTask', 'join', { label: 'Done' }),
+    makeEdge('e_top_fail', 'topTask', 'topComp', { label: 'Failed' }),
+    makeEdge('e_bottom_fail', 'bottomTask', 'bottomComp', { label: 'Failed' }),
+    makeEdge('e_top_comp', 'topComp', 'rollback'),
+    makeEdge('e_bottom_comp', 'bottomComp', 'rollback'),
+    makeEdge('e_join_commit', 'join', 'commit'),
+    makeEdge('e_commit_end', 'commit', 'end'),
+    makeEdge('e_rollback_end', 'rollback', 'end', { label: 'Error' }),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+  const byId = new Map(laidOut.map(node => [String(node.id), node]));
+
+  test('Flowchart parallel fan-in keeps the clean branch on the main axis', () => {
+    const split = byId.get('split');
+    const clean = byId.get('cleanTask');
+    const join = byId.get('join');
+    const top = byId.get('topTask');
+    const bottom = byId.get('bottomTask');
+    const topComp = byId.get('topComp');
+    const bottomComp = byId.get('bottomComp');
+    const rollback = byId.get('rollback');
+    if (!split || !clean || !join || !top || !bottom || !topComp || !bottomComp || !rollback) throw new Error('missing laid-out nodes');
+    if (clean.y !== split.y || join.y !== split.y) throw new Error(`clean branch left axis: split=${split.y}, clean=${clean.y}, join=${join.y}`);
+    const branchYs = [top.y, bottom.y].sort((a, b) => a - b);
+    if (!(branchYs[0] < clean.y && branchYs[1] > clean.y)) throw new Error(`compensating branches should surround the clean axis: branches=${branchYs.join(',')}, clean=${clean.y}`);
+    if (topComp.y !== top.y || bottomComp.y !== bottom.y) throw new Error('compensation children should inherit their parent branch lane');
+    if (rollback.y !== top.y && rollback.y !== bottom.y) throw new Error(`rollback should compact onto a compensation lane, got ${rollback.y}, branches ${top.y}/${bottom.y}`);
+  });
+}
+
+{
+  const nodes = [
     makeNode('D', 0, 0, 'rhombus'),
     makeNode('A', 360, -240),
     makeNode('B', 360, -120),
