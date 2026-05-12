@@ -25,7 +25,7 @@
             "type": "oval"
           }
         ],
-        "color": "4",
+        "color": "green",
         "label": "Client Origin"
       },
       {
@@ -45,7 +45,7 @@
             "nextSteps": "c_res[No (401)], o_start[Yes]"
           }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "API Gateway"
       },
       {
@@ -71,7 +71,7 @@
             "nextSteps": "c_res[200 OK]"
           }
         ],
-        "color": "6",
+        "color": "red",
         "label": "Orchestrator"
       },
       {
@@ -97,7 +97,7 @@
             "nextSteps": "o_wait[Wait]"
           }
         ],
-        "color": "7",
+        "color": "purple",
         "label": "Services"
       },
       {
@@ -123,7 +123,7 @@
             "nextSteps": "c_res[Error (500)]"
           }
         ],
-        "color": "3",
+        "color": "yellow",
         "label": "Compensation"
       }
     ]

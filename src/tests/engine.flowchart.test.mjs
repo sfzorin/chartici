@@ -309,6 +309,92 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
 
 {
   const nodes = [
+    makeNode('density', 0, 0, 'process', 'M', { label: 'Talent Density' }),
+    makeNode('aplayers', 0, 0, 'process', 'M', { label: 'A-Players' }),
+    makeNode('bplayers', 0, 0, 'circle', 'M', { label: 'B-Players >30%' }),
+    makeNode('leave', 0, 0, 'circle', 'S', { label: 'A-Players Leave' }),
+    makeNode('standards', 0, 0, 'process', 'M', { label: 'Standards Drop' }),
+    makeNode('hires', 0, 0, 'process', 'M', { label: 'Hires A-Players' }),
+  ];
+  const edges = [
+    makeEdge('density_a', 'density', 'aplayers'),
+    makeEdge('a_b', 'aplayers', 'bplayers'),
+    makeEdge('b_density', 'bplayers', 'density', { label: 'reduces' }),
+    makeEdge('b_leave', 'bplayers', 'leave', { label: 'causes' }),
+    makeEdge('leave_standards', 'leave', 'standards'),
+    makeEdge('standards_b', 'standards', 'bplayers'),
+    makeEdge('density_hires', 'density', 'hires'),
+    makeEdge('hires_density', 'hires', 'density'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+
+  test('Feedback flowchart layout keeps small cycles vertically compact', () => {
+    const bounds = boundsForTest(laidOut);
+    if (bounds.maxY - bounds.minY > 520) {
+      throw new Error(`feedback cycle vertical spread is too large: ${bounds.maxY - bounds.minY}px`);
+    }
+  });
+}
+
+{
+  const nodes = [
+    makeNode('feeder', 0, 0, 'circle', 'M', { label: 'Feeder Jam' }),
+    makeNode('stall', 0, 0, 'circle', 'M', { label: 'Line Stall' }),
+    makeNode('slow', 0, 0, 'process', 'M', { label: 'Slow Machine' }),
+    makeNode('fast', 0, 0, 'process', 'M', { label: 'Fast Machine' }),
+    makeNode('buffer', 0, 0, 'process', 'M', { label: 'Buffer Zone' }),
+  ];
+  const edges = [
+    makeEdge('feeder_slow', 'feeder', 'slow'),
+    makeEdge('stall_slow', 'stall', 'slow'),
+    makeEdge('fast_buffer', 'fast', 'buffer'),
+    makeEdge('buffer_slow', 'buffer', 'slow'),
+    makeEdge('slow_fast', 'slow', 'fast'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+
+  test('Sparse feedback flowchart layout compresses empty vertical lanes', () => {
+    const bounds = boundsForTest(laidOut);
+    if (bounds.maxY - bounds.minY > 300) {
+      throw new Error(`sparse feedback layout is too tall: ${bounds.maxY - bounds.minY}px`);
+    }
+  });
+}
+
+{
+  const nodes = [
+    makeNode('seed', 0, 0, 'oval'),
+    makeNode('run', 0, 0, 'rhombus'),
+    makeNode('belt', 0, 0, 'process'),
+    makeNode('soak', 0, 0, 'process'),
+    makeNode('reflow', 0, 0, 'process'),
+    makeNode('lock', 0, 0, 'oval'),
+  ];
+  const edges = [
+    makeEdge('seed_run', 'seed', 'run'),
+    makeEdge('run_belt', 'run', 'belt'),
+    makeEdge('run_soak', 'run', 'soak'),
+    makeEdge('run_reflow', 'run', 'reflow'),
+    makeEdge('run_lock', 'run', 'lock', { label: 'All in' }),
+    makeEdge('belt_run', 'belt', 'run'),
+    makeEdge('soak_run', 'soak', 'run'),
+    makeEdge('reflow_run', 'reflow', 'run'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+
+  test('Flowchart final layout pass prevents node box overlaps across tiers', () => {
+    for (let i = 0; i < laidOut.length; i++) {
+      for (let j = i + 1; j < laidOut.length; j++) {
+        if (nodeBoxesOverlap(laidOut[i], laidOut[j], 10)) {
+          throw new Error(`nodes overlap after layout: ${laidOut[i].id}(${laidOut[i].x},${laidOut[i].y}) and ${laidOut[j].id}(${laidOut[j].x},${laidOut[j].y})`);
+        }
+      }
+    }
+  });
+}
+
+{
+  const nodes = [
     makeNode('D', 0, 0, 'rhombus'),
     makeNode('A', 360, -80),
     makeNode('B', 360, 80),
@@ -590,6 +676,41 @@ console.log('\n📐 Flowchart Engine: Horizontal & Vertical Routing');
     if (!(branchYs[0] < clean.y && branchYs[1] > clean.y)) throw new Error(`compensating branches should surround the clean axis: branches=${branchYs.join(',')}, clean=${clean.y}`);
     if (topComp.y !== top.y || bottomComp.y !== bottom.y) throw new Error('compensation children should inherit their parent branch lane');
     if (rollback.y !== top.y && rollback.y !== bottom.y) throw new Error(`rollback should compact onto a compensation lane, got ${rollback.y}, branches ${top.y}/${bottom.y}`);
+  });
+}
+
+{
+  const nodes = [
+    makeNode('source', 0, 0, 'oval'),
+    makeNode('top', 0, 0, 'process'),
+    makeNode('middle', 0, 0, 'process'),
+    makeNode('bottom', 0, 0, 'process'),
+    makeNode('join', 0, 0, 'process'),
+    makeNode('end', 0, 0, 'oval'),
+  ];
+  const edges = [
+    makeEdge('e_top', 'source', 'top'),
+    makeEdge('e_middle', 'source', 'middle'),
+    makeEdge('e_bottom', 'source', 'bottom'),
+    makeEdge('e_top_join', 'top', 'join'),
+    makeEdge('e_middle_join', 'middle', 'join'),
+    makeEdge('e_bottom_join', 'bottom', 'join'),
+    makeEdge('e_end', 'join', 'end'),
+  ];
+  const laidOut = layoutNodesHeuristically(nodes, edges, { diagramType: 'flowchart' });
+  const byId = new Map(laidOut.map(node => [String(node.id), node]));
+
+  test('Flowchart compact horizontal tracks use a tighter vertical lane gap', () => {
+    const tracks = ['top', 'middle', 'bottom'].map(id => byId.get(id));
+    const join = byId.get('join');
+    if (tracks.some(node => !node) || !join) throw new Error('missing compact track nodes');
+    const ys = tracks.map(node => node.y).sort((a, b) => a - b);
+    if (!(ys[0] < join.y && ys[2] > join.y)) {
+      throw new Error(`parallel tracks should surround the join lane: tracks=${ys.join(',')}, join=${join.y}`);
+    }
+    if (ys[2] - ys[0] > 280) {
+      throw new Error(`compact tracks are too vertically spread: ${ys.join(',')}`);
+    }
   });
 }
 
@@ -996,6 +1117,15 @@ function countBendsForTest(pts) {
     if (prevH !== nextH) bends++;
   }
   return bends;
+}
+
+function nodeBoxesOverlap(a, b, pad = 0) {
+  const aw = getNodeDim(a).width;
+  const ah = getNodeDim(a).height;
+  const bw = getNodeDim(b).width;
+  const bh = getNodeDim(b).height;
+  return Math.abs((a.x || 0) - (b.x || 0)) < (aw + bw) / 2 + pad
+    && Math.abs((a.y || 0) - (b.y || 0)) < (ah + bh) / 2 + pad;
 }
 
 function segmentsCrossForTest(a, b, c, d) {

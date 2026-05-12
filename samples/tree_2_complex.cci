@@ -1,17 +1,30 @@
 {
-  "meta": { "type": "tree", "version": "3.0.0" },
+  "meta": {
+    "type": "tree",
+    "version": "3.0.0"
+  },
   "theme": "basic",
-  "title": { "text": "Corporate Org Chart" },
+  "title": {
+    "text": "Corporate Org Chart"
+  },
   "data": {
     "groups": [
       {
         "type": "process",
         "size": "L",
         "nodes": [
-          { "id": "board", "label": "Board", "type": "process" },
-          { "id": "ceo", "label": "CEO", "type": "process" }
+          {
+            "id": "board",
+            "label": "Board",
+            "type": "process"
+          },
+          {
+            "id": "ceo",
+            "label": "CEO",
+            "type": "process"
+          }
         ],
-        "color": "1",
+        "color": "navy",
         "label": "Executive",
         "parentId": "board"
       },
@@ -19,9 +32,13 @@
         "type": "process",
         "size": "M",
         "nodes": [
-          { "id": "vp_eng", "label": "VP Engineering", "type": "process" }
+          {
+            "id": "vp_eng",
+            "label": "VP Engineering",
+            "type": "process"
+          }
         ],
-        "color": "2",
+        "color": "teal",
         "label": "Engineering",
         "parentId": "ceo"
       },
@@ -29,12 +46,28 @@
         "type": "process",
         "size": "S",
         "nodes": [
-          { "id": "eng1", "label": "Frontend", "type": "process" },
-          { "id": "eng2", "label": "Backend", "type": "process" },
-          { "id": "eng3", "label": "DevOps", "type": "process" },
-          { "id": "eng4", "label": "Data", "type": "process" }
+          {
+            "id": "eng1",
+            "label": "Frontend",
+            "type": "process"
+          },
+          {
+            "id": "eng2",
+            "label": "Backend",
+            "type": "process"
+          },
+          {
+            "id": "eng3",
+            "label": "DevOps",
+            "type": "process"
+          },
+          {
+            "id": "eng4",
+            "label": "Data",
+            "type": "process"
+          }
         ],
-        "color": "2",
+        "color": "teal",
         "label": "Engineering Teams",
         "parentId": "vp_eng"
       },
@@ -42,9 +75,13 @@
         "type": "process",
         "size": "M",
         "nodes": [
-          { "id": "vp_sales", "label": "VP Sales", "type": "process" }
+          {
+            "id": "vp_sales",
+            "label": "VP Sales",
+            "type": "process"
+          }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "Sales",
         "parentId": "ceo"
       },
@@ -52,11 +89,23 @@
         "type": "process",
         "size": "S",
         "nodes": [
-          { "id": "sales1", "label": "North America", "type": "process" },
-          { "id": "sales2", "label": "EMEA", "type": "process" },
-          { "id": "sales3", "label": "APAC", "type": "process" }
+          {
+            "id": "sales1",
+            "label": "North America",
+            "type": "process"
+          },
+          {
+            "id": "sales2",
+            "label": "EMEA",
+            "type": "process"
+          },
+          {
+            "id": "sales3",
+            "label": "APAC",
+            "type": "process"
+          }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "Sales Regions",
         "parentId": "vp_sales"
       },
@@ -64,9 +113,13 @@
         "type": "process",
         "size": "M",
         "nodes": [
-          { "id": "vp_hr", "label": "VP People", "type": "process" }
+          {
+            "id": "vp_hr",
+            "label": "VP People",
+            "type": "process"
+          }
         ],
-        "color": "3",
+        "color": "yellow",
         "label": "People",
         "parentId": "ceo"
       },
@@ -74,10 +127,18 @@
         "type": "process",
         "size": "S",
         "nodes": [
-          { "id": "hr1", "label": "Hiring", "type": "process" },
-          { "id": "hr2", "label": "Compliance", "type": "process" }
+          {
+            "id": "hr1",
+            "label": "Hiring",
+            "type": "process"
+          },
+          {
+            "id": "hr2",
+            "label": "Compliance",
+            "type": "process"
+          }
         ],
-        "color": "3",
+        "color": "yellow",
         "label": "People Ops",
         "parentId": "vp_hr"
       }

@@ -14,7 +14,7 @@
       {
         "id": "g_root",
         "label": "Root",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           { "id": "ceo_1", "label": "CEO", "size": "L" }
         ]
@@ -23,7 +23,7 @@
         "id": "g_eng",
         "label": "Engineering",
         "parentId": "ceo_1",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           { "id": "vp_1", "label": "VP Engineering" },
           { "id": "cto_1", "label": "CTO" }
@@ -33,7 +33,7 @@
         "id": "g_design",
         "label": "Design",
         "parentId": "ceo_1",
-        "color": 3,
+        "color": "yellow",
         "nodes": [
           { "id": "head_1", "label": "Head of Design" }
         ]
@@ -66,7 +66,7 @@
 | `id` | String | Уникальный ID |
 | `parentId` | String | ID родительской ноды |
 | `label` | String | Заголовок ветки |
-| `color` | Number | Индекс палитры 1–9 |
+| `color` | String | Semantic color name: `blue`, `green`, `yellow`, `red`, `gray`, `purple`, `brown`, `navy`, `teal`, `orange` |
 
 ## data.config (опционально)
 

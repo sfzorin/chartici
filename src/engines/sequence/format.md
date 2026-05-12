@@ -14,7 +14,7 @@
       {
         "id": "g_client",
         "label": "Client",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           { "id": "c_1", "label": "Send Login" },
           { "id": "c_2", "label": "Show Result" }
@@ -23,7 +23,7 @@
       {
         "id": "g_server",
         "label": "API Server",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           { "id": "s_1", "label": "Validate Auth" },
           { "id": "s_2", "label": "Query DB" }

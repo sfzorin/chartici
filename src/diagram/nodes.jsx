@@ -1,5 +1,6 @@
 import React from 'react';
 import { DIAGRAM_DESIGN } from './design.js';
+import { colorVar } from './colors.js';
 
 /**
  * NODE_REGISTRY — единственный источник истины для всех типов нод.
@@ -404,7 +405,7 @@ export const NODE_REGISTRY = {
         const laf = end - start <= Math.PI ? '0' : '1';
         pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${laf} 1 ${x2} ${y2} Z`;
       }
-      const actualFill = node?.color ? `var(--color-${node.color})` : fill;
+      const actualFill = node?.color ? colorVar(node.color) : fill;
       return <path d={pathD} fill={actualFill} stroke={node?._canvasBg} strokeWidth="2" strokeDasharray="none" filter={filter} />;
     },
   },

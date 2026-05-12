@@ -12,7 +12,7 @@
       {
         "type": "process",
         "size": "M",
-        "color": "1",
+        "color": "navy",
         "label": "Identity",
         "nodes": [
           {
@@ -30,7 +30,7 @@
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Learning",
         "nodes": [
           {
@@ -53,7 +53,7 @@
       {
         "type": "process",
         "size": "M",
-        "color": "5",
+        "color": "gray",
         "label": "Progress",
         "nodes": [
           {

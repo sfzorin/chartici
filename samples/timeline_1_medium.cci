@@ -15,42 +15,75 @@
       {
         "type": "chevron",
         "size": "L",
-        "color": "1",
+        "color": "navy",
         "label": "Phases",
         "nodes": [
-          { "id": "p1", "label": "Discover" },
-          { "id": "p2", "label": "Build" },
-          { "id": "p3", "label": "Launch" }
+          {
+            "id": "p1",
+            "label": "Discover"
+          },
+          {
+            "id": "p2",
+            "label": "Build"
+          },
+          {
+            "id": "p3",
+            "label": "Launch"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Discovery",
         "nodes": [
-          { "id": "e1", "label": "Research", "spineId": "p1" },
-          { "id": "e2", "label": "Scope MVP", "spineId": "p1" }
+          {
+            "id": "e1",
+            "label": "Research",
+            "spineId": "p1"
+          },
+          {
+            "id": "e2",
+            "label": "Scope MVP",
+            "spineId": "p1"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "5",
+        "color": "gray",
         "label": "Build",
         "nodes": [
-          { "id": "e3", "label": "Prototype", "spineId": "p2" },
-          { "id": "e4", "label": "Beta Test", "spineId": "p2" }
+          {
+            "id": "e3",
+            "label": "Prototype",
+            "spineId": "p2"
+          },
+          {
+            "id": "e4",
+            "label": "Beta Test",
+            "spineId": "p2"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "4",
+        "color": "green",
         "label": "Launch",
         "nodes": [
-          { "id": "e5", "label": "Release", "spineId": "p3" },
-          { "id": "e6", "label": "Measure", "spineId": "p3" }
+          {
+            "id": "e5",
+            "label": "Release",
+            "spineId": "p3"
+          },
+          {
+            "id": "e6",
+            "label": "Measure",
+            "spineId": "p3"
+          }
         ]
       }
     ]

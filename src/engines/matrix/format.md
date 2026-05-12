@@ -14,7 +14,7 @@
       {
         "id": "g_high_high",
         "label": "Critical",
-        "color": 9,
+        "color": "blue",
         "nodes": [
           { "id": "r_1", "label": "Security breach",   "size": "M" },
           { "id": "r_2", "label": "Data loss",         "size": "M" }
@@ -23,7 +23,7 @@
       {
         "id": "g_high_low",
         "label": "Monitor",
-        "color": 4,
+        "color": "green",
         "nodes": [
           { "id": "r_3", "label": "Slow response",     "size": "M" }
         ]
@@ -31,7 +31,7 @@
       {
         "id": "g_low_low",
         "label": "Acceptable",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           { "id": "r_4", "label": "Minor UI glitch",   "size": "S" }
         ]

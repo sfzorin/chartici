@@ -22,7 +22,7 @@ STRICT RULES:
 - Do NOT explain your choices. Just output the three XML tags below.
 - Keep <prompt> under 160 words. Be dense and structural, not narrative.
 - Prefer the core book-figure types: flowchart, timeline, tree, matrix, sequence, ERD. Use piechart only for real proportions and radial only for a true hub-and-spoke model.
-- Prefer 8-18 visible nodes for most diagrams. Flowcharts, timelines, sequences, radial diagrams, and trees may be larger when the structure genuinely benefits from it.
+- Prefer 7-16 visible nodes for most diagrams. Flowcharts, timelines, sequences, radial diagrams, and trees may be larger only when the structure genuinely benefits from it.
 - Complexity budget is generous but not unlimited: if the topic has many examples, compress long lists into 3-6 categories instead of listing every item.
 - Condense labels to 1-4 words each.
 - Choose one main message that teaches an idea, not just a list of steps.
@@ -70,9 +70,9 @@ export function getSystemPromptPhase2(diagramType) {
 - Preserve the user's language for ALL labels exactly.
 - Size: ${sMap.L}(emphasized) / ${sMap.M}(default) / ${sMap.S || 'minor'}(de-emphasized).
 - Make this suitable for a book figure: compact, readable, and not crowded.
-- Prefer 8-18 visible nodes for most diagrams. Flowcharts may use up to 30 nodes when meaningful branches, checks, or recovery paths are needed. Timelines and sequences may use up to 28 nodes when the arc or handoffs need room. Radial diagrams may use up to 32 nodes when category and leaf levels are meaningful. Trees may use up to 40 nodes when they preserve real hierarchy. ERD should stay under 18 entities and piechart under 10 slices unless explicitly requested.
+- Prefer 7-16 visible nodes for most diagrams. Flowcharts may use up to 22 nodes when meaningful branches, checks, or recovery paths are needed. Timelines and sequences may use up to 24 nodes when the arc or handoffs need room. Radial diagrams may use up to 28 nodes when category and leaf levels are meaningful. Trees may use up to 34 nodes when they preserve real hierarchy. ERD should stay under 16 entities and piechart under 8 slices unless explicitly requested.
 - Labels must be short noun/verb phrases, ideally 1-4 words.
-- Edge labels must be short, usually 1-3 words. Prefer verbs or outcomes.
+- Edge labels must be short routing cues, usually 1-3 words, 18 characters preferred and 24 max. Never use ellipsis/dots to shorten edge labels; either write the full short label or make it shorter. Put explanation into node labels, not arrows.
 - Avoid duplicate labels, orphan nodes, decorative filler, floating notes, detached callouts, legend-only nodes, and custom black/gray colors.
 - Every visible node must belong to the main conceptual structure. Do not turn side facts, annotations, examples, or explanatory notes into disconnected nodes.
 - Use groups semantically: primary actors/concepts first, supporting concepts second, risks/errors later, neutral context last.

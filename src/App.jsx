@@ -11,7 +11,7 @@ import WelcomeScreenModal from './components/WelcomeScreenModal';
 import { downloadCharticiFile, parseCharticiFile } from './utils/charticiFormat';
 import { downloadSVG } from './utils/exportSVG';
 
-import { PALETTES } from './diagram/colors.js';
+import { PALETTES, SEMANTIC_COLOR_ORDER } from './diagram/colors.js';
 import { getNodeDim } from './diagram/nodes.jsx';
 import { DIAGRAM_SCHEMAS, DIAGRAM_TYPES } from './utils/diagramSchemas';
 import { smartAlign } from './utils/layout';
@@ -198,7 +198,7 @@ function App() {
       totalElements = layedOutNodes.length;
     }
     
-    const safeIndices = PALETTES[activeTheme].rules[totalElements] || [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const safeIndices = PALETTES[activeTheme].rules[totalElements] || SEMANTIC_COLOR_ORDER;
     
     const sharedColorMap = {};
     setDiagramData({
@@ -388,11 +388,11 @@ function App() {
     }
 
     let inheritedSize = 'M';
-    let inheritedColor = 1;
+    let inheritedColor = 'navy';
     if (activeSchema?.features?.autoIncrementColors && diagramData.nodes.length > 0) {
-        let lastColor = diagramData.nodes[diagramData.nodes.length - 1].color;
-        if (typeof lastColor !== 'number') lastColor = 0;
-        inheritedColor = (lastColor % 9) + 1;
+        const lastColor = diagramData.nodes[diagramData.nodes.length - 1].color;
+        const lastIndex = SEMANTIC_COLOR_ORDER.indexOf(String(lastColor || '').toLowerCase());
+        inheritedColor = SEMANTIC_COLOR_ORDER[(Math.max(0, lastIndex) + 1) % SEMANTIC_COLOR_ORDER.length];
     }
     
     // Find highest 'New Group N' to increment, or just create a unique one

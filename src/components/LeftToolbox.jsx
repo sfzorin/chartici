@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { PALETTES } from '../diagram/colors.js';
+import { COLOR_SWATCH_ORDER, paletteColorInfo, PALETTES, resolveColorIndex } from '../diagram/colors.js';
 import { LINE_STYLE_REGISTRY, ARROW_TYPE_REGISTRY } from '../diagram/edges.js';
 import { NODE_REGISTRY } from '../diagram/nodes.jsx';
 import { BG_OPTIONS, ASPECT_OPTIONS } from '../diagram/canvas.js';
@@ -170,7 +170,7 @@ export default function LeftToolbox({
   // Иконка формы ноды — берётся из NODE_REGISTRY
   const getShapeIcon = (type) => NODE_REGISTRY[type]?.icon || 'shape-rect';
 
-  const mockNode = { type: 'process', size: 'M', color: 1, lockPos: false, id: '' };
+  const mockNode = { type: 'process', size: 'M', color: 'navy', lockPos: false, id: '' };
   const mockEdge = { lineStyle: 'solid', connectionType: 'target', label: '' };
   const nContext = selectedNode || mockNode;
   const eContext = selectedEdge || mockEdge;
@@ -309,36 +309,42 @@ export default function LeftToolbox({
             <PopoverMenu isOpen={activePopover === 'color'} onClose={() => setActivePopover(null)} anchorRef={colorBtnRef}>
               <div className="popover-title">Color Palette</div>
               <div className="popover-color-grid">
-                {[1,2,3,4,5,6,7,8,9].map(t => (
+                {COLOR_SWATCH_ORDER.map(colorName => {
+                   const colorInfo = paletteColorInfo(currentPaletteInfo, colorName);
+                   return (
                     <button 
-                       key={`color-${t}`}
-                       className={`color-swatch ${nContext.color === t ? 'selected' : ''}`}
+                       key={`color-${colorName}`}
+                       className={`color-swatch ${resolveColorIndex(nContext.color) === resolveColorIndex(colorName) ? 'selected' : ''}`}
                        style={{ 
-                          background: isOutlined ? 'transparent' : (currentPaletteInfo?.colors?.[t]?.bg || '#ccc'),
-                          border: `2px solid ${currentPaletteInfo?.colors?.[t]?.bg || '#ccc'}`
+                          background: isOutlined ? 'transparent' : (colorInfo?.bg || '#ccc'),
+                          border: `2px solid ${colorInfo?.bg || '#ccc'}`
                        }}
-                       onClick={() => updateSelectedNode('color', t)}
+                       onClick={() => updateSelectedNode('color', colorName)}
                     />
-                ))}
+                   );
+                })}
               </div>
               <div className="toolbox-divider" style={{ margin: '8px 0' }} />
-              
-              {/* Custom hex color */}
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', marginTop: '4px' }}>
-                 <input 
-                    type="color" 
-                    value={typeof nContext.color === 'string' && nContext.color.startsWith('#') ? nContext.color : (currentPaletteInfo?.colors?.[nContext.color]?.bg || '#333333')} 
+                 <input
+                    type="color"
+                    value={typeof nContext.color === 'string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(nContext.color) ? nContext.color : (paletteColorInfo(currentPaletteInfo, nContext.color)?.bg || '#333333')}
                     onChange={(e) => updateSelectedNode('color', e.target.value)}
                     style={{ width: '32px', height: '32px', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: 0, outline: 'none', background: 'transparent' }}
                  />
                  <input
                      type="text"
-                     value={typeof nContext.color === 'string' ? nContext.color : (currentPaletteInfo?.colors?.[nContext.color]?.bg || '#333333')}
-                     onChange={(e) => updateSelectedNode('color', e.target.value)}
-                     style={{ 
-                         flex: 1, height: '32px', fontSize: '13px', fontFamily: 'monospace', padding: '0 8px', 
-                         border: '1px solid var(--border-color-soft)', borderRadius: '6px', 
-                         outline: 'none', background: 'var(--bg-panel)', color: 'var(--color-text-main)' 
+                     value={typeof nContext.color === 'string' && nContext.color.startsWith('#') ? nContext.color : ''}
+                     placeholder="#RRGGBB"
+                     onChange={(e) => {
+                       const value = e.target.value.trim();
+                       if (/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)) updateSelectedNode('color', value);
+                     }}
+                     style={{
+                         flex: 1, height: '32px', fontSize: '13px', fontFamily: 'monospace', padding: '0 8px',
+                         border: '1px solid var(--border-color-soft)', borderRadius: '6px',
+                         outline: 'none', background: 'var(--bg-panel)', color: 'var(--color-text-main)'
                      }}
                  />
               </div>
@@ -416,7 +422,7 @@ export default function LeftToolbox({
                  <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                      {groupsList.map(g => {
                         const isCurrent = nContext.groupId === g.id;
-                        const colorValue = currentPaletteInfo?.colors?.[g.color || 1]?.bg || '#ccc';
+                        const colorValue = paletteColorInfo(currentPaletteInfo, g.color || 'navy')?.bg || '#ccc';
                         
                         if (g.type === 'text') {
                            return (

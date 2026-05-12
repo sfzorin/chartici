@@ -30,22 +30,27 @@ export function getFittedText(text, maxWidth, maxHeight, baseFontSize, fontStyle
     return { lines, fontSize: size, textWidth: maxW, textHeight: lines.length * (size * 1.2) };
   };
 
-  while (currentSize >= minSize) {
-    const words = text.split(/\s+/);
+  const wrapLines = (size) => {
+    const words = tokenizeWrapWords(text);
     let lines = [];
-    let currentLine = words[0] || '';
+    let currentLine = words[0]?.text || '';
 
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
-      const testLine = currentLine + " " + word;
-      if (measure(testLine, currentSize) < maxWidth - paddingX) {
+      const testLine = joinWrapToken(currentLine, word);
+      if (measure(testLine, size) < maxWidth - paddingX) {
         currentLine = testLine;
       } else {
-        lines.push(currentLine);
-        currentLine = word;
+        if (currentLine) lines.push(currentLine);
+        currentLine = word.text;
       }
     }
     if (currentLine) lines.push(currentLine);
+    return lines;
+  };
+
+  while (currentSize >= minSize) {
+    const lines = wrapLines(currentSize);
 
     const totalHeight = lines.length * (currentSize * 1.2);
     const allLinesFit = lines.every(l => measure(l, currentSize) <= maxWidth - paddingX);
@@ -55,20 +60,37 @@ export function getFittedText(text, maxWidth, maxHeight, baseFontSize, fontStyle
     currentSize -= 1;
   }
   
-  const words = text.split(/\s+/);
-  let lines = [];
-  let currentLine = words[0] || '';
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    if (measure(currentLine + " " + word, minSize) < maxWidth - paddingX) {
-      currentLine += " " + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
+  const lines = wrapLines(minSize);
 
   const maxAllowedLines = Math.max(1, Math.floor((maxHeight - paddingY) / (minSize * 1.2)));
   return finish(lines.slice(0, maxAllowedLines), minSize);
+}
+
+export function tokenizeWrapWords(text) {
+  return String(text || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap(word => splitHyphenatedWord(word));
+}
+
+function splitHyphenatedWord(word) {
+  if (!word.includes('-') || /^-+$/.test(word)) return [{ text: word, noSpaceBefore: false }];
+  const parts = word.split(/(-)/).filter(Boolean);
+  const tokens = [];
+  let buffer = '';
+  parts.forEach(part => {
+    buffer += part;
+    if (part === '-') {
+      tokens.push({ text: buffer, noSpaceBefore: tokens.length > 0 });
+      buffer = '';
+    }
+  });
+  if (buffer) tokens.push({ text: buffer, noSpaceBefore: tokens.length > 0 });
+  return tokens.length > 0 ? tokens : [{ text: word, noSpaceBefore: false }];
+}
+
+function joinWrapToken(line, token) {
+  if (!line) return token.text;
+  return token.noSpaceBefore ? `${line}${token.text}` : `${line} ${token.text}`;
 }

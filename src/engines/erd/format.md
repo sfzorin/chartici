@@ -15,7 +15,7 @@
       {
         "id": "g_users",
         "label": "Users",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           { "id": "t_users",  "label": "Users",   "type": "process", "size": "M" },
           { "id": "t_sessions", "label": "Sessions", "type": "process", "size": "M" }
@@ -24,7 +24,7 @@
       {
         "id": "g_orders",
         "label": "Orders",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           { "id": "t_orders", "label": "Orders",   "type": "process", "size": "M" },
           { "id": "t_payments", "label": "Payments", "type": "process", "size": "M" }

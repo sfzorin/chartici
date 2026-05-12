@@ -3,7 +3,7 @@ import { getNodeDim, NODE_REGISTRY, PIE_CONSTS, LEGEND_SIZES } from '../diagram/
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { getTrueBox, checkCollision, getClipDist } from '../utils/engine/geometry';
 import { getGroupId } from '../utils/groupUtils';
-import { getCanvasColors } from '../diagram/colors.js';
+import { colorVar, getCanvasColors } from '../diagram/colors.js';
 import { DIAGRAM_DESIGN } from '../diagram/design.js';
 import { GRID, EMPTY_CANVAS } from '../diagram/canvas.js';
 import DiagramNode from './shapes/DiagramNode';
@@ -15,6 +15,7 @@ import { computeBindings, getAxisDir } from '../utils/layout';
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas';
 import { getEngine } from '../engines/index.js';
 import { layoutPiechart } from '../utils/layouts/layoutPiechart.js';
+import { estimateMatrixGroupLabelTabWidth, wrapMatrixGroupLabel } from '../utils/layouts/layoutMatrix.js';
 
 const normalizeEdgeEndpoints = (edge) => {
   const from = edge.from ?? edge.sourceId;
@@ -72,6 +73,7 @@ function buildDragPreviewPaths(edges, nodes, draggedNodeId, prevPaths = {}) {
 }
 
 function wrapOverlayLabel(label, maxChars = 16, maxLines = 2) {
+  if (maxChars === 22 && maxLines === 2) return wrapMatrixGroupLabel(label);
   const words = String(label || '').replace(/_/g, ' ').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [''];
 
@@ -95,6 +97,13 @@ function wrapOverlayLabel(label, maxChars = 16, maxLines = 2) {
     ? `${overflow.slice(0, Math.max(4, maxChars - 1)).trim()}...`
     : overflow;
   return kept;
+}
+
+export function resolveRenderedNodeColor(node, matchedGroup, diagramType) {
+  if (diagramType === 'piechart' || node.type === 'pie_slice') {
+    return node.color || matchedGroup?.color || 'navy';
+  }
+  return matchedGroup?.color || node.color || 'navy';
 }
 
 export default function DiagramRenderer({ 
@@ -678,6 +687,7 @@ export default function DiagramRenderer({
      // Expand boundaries by Matrix/Sequence Groups
      if ((diagramType === 'matrix' || diagramType === 'sequence') && initialData?.groups?.length > 1) {
         const realNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title');
+        const boxesForBounds = [];
         initialData.groups.forEach(g => {
            const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
            if (gNodes.length === 0) return;
@@ -686,17 +696,24 @@ export default function DiagramRenderer({
            const matrixTopPad = diagramType === 'matrix'
               ? (matrixLabelLines.length > 1 ? 82 : 52)
               : pad + 8;
-           gNodes.forEach(n => {
+           const dims = gNodes.map(n => {
               const dim = getNodeDim(n);
-              const nw = n.w || dim.width;
-              const nh = n.h || dim.height;
-              const l = n.x - nw / 2 - pad - 60; // Extra left padding for Sequence labels
-              const r = n.x + nw / 2 + pad + 8;
-              const t = n.y - nh / 2 - matrixTopPad;
-              const b = n.y + nh / 2 + pad + 8;
-              if (l < minX) minX = l; if (r > maxX) maxX = r;
-              if (t < minY) minY = t; if (b > maxY) maxY = b;
+              return { x: n.x, y: n.y, w: n.w || dim.width, h: n.h || dim.height };
            });
+           boxesForBounds.push({
+             left: Math.min(...dims.map(d => d.x - d.w / 2)) - pad - (diagramType === 'sequence' ? 60 : 0),
+             right: Math.max(...dims.map(d => d.x + d.w / 2)) + pad + 8,
+             top: Math.min(...dims.map(d => d.y - d.h / 2)) - matrixTopPad,
+             bottom: Math.max(...dims.map(d => d.y + d.h / 2)) + pad + 8,
+             label: String(g.label || g.id || ''),
+           });
+        });
+        const normalizedBounds = diagramType === 'matrix'
+          ? normalizeEqualMatrixBoxes(boxesForBounds.map(box => expandMatrixBoxForLabel(box, box.label)))
+          : boxesForBounds;
+        normalizedBounds.forEach(box => {
+          if (box.left < minX) minX = box.left; if (box.right > maxX) maxX = box.right;
+          if (box.top < minY) minY = box.top; if (box.bottom > maxY) maxY = box.bottom;
         });
      }
      if (minX === Infinity) {
@@ -1009,12 +1026,12 @@ export default function DiagramRenderer({
             initialData.groups.forEach(g => {
               const gNodes = realNodes.filter(n => getGroupId(n) === g.id);
               if (gNodes.length === 0) return;
-              const dims = gNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
+              const dims = gNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: n.w || d.width, h: n.h || d.height }; });
               const labelLines = diagramType === 'matrix' ? wrapOverlayLabel(g.label || g.id || '', 22, 2) : [''];
               const labelTopExtra = diagramType === 'matrix'
                 ? (labelLines.length > 1 ? 26 : 10)
                 : 0;
-              groupBoxes[g.id] = {
+              groupBoxes[g.id] = expandMatrixBoxForLabel({
                 id: String(g.id || ''),
                 left: Math.min(...dims.map(d => d.x - d.w/2)) - groupPad,
                 right: Math.max(...dims.map(d => d.x + d.w/2)) + groupPad,
@@ -1022,10 +1039,11 @@ export default function DiagramRenderer({
                 bottom: Math.max(...dims.map(d => d.y + d.h/2)) + groupPad,
                 label: String(g.label || g.id || ''),
                 color: g.color
-              };
+              }, String(g.label || g.id || ''), mLabelFs);
             });
-            const boxes = Object.values(groupBoxes);
+            let boxes = Object.values(groupBoxes);
             if (boxes.length < 2) return null;
+            if (diagramType === 'matrix') boxes = normalizeEqualMatrixBoxes(boxes);
             
             const globalLeft = Math.min(...boxes.map(b => b.left)) - globalLeftMargin;
             const globalRight = Math.max(...boxes.map(b => b.right)) + globalRightMargin;
@@ -1034,15 +1052,15 @@ export default function DiagramRenderer({
               <g className="matrix-grid">
                 {boxes.map((box, i) => {
                   const labelLines = wrapOverlayLabel(box.label, diagramType === 'matrix' ? 22 : 18, 2);
-                  const longestLabelLine = Math.max(...labelLines.map(line => line.length), 1);
-                  const matrixLabelGap = Math.min((box.right - box.left - 16) / 2, longestLabelLine * 5.8 + 18);
                   const matrixLineGap = Math.round(mLabelFs * 1.08);
                   const matrixLabelY = box.top - ((labelLines.length - 1) * matrixLineGap) / 2 + 1;
-                  const matrixLabelW = Math.min((box.right - box.left) * 0.8, Math.max(92, longestLabelLine * 12 + 40));
+                  const matrixLabelW = Math.min(
+                    Math.max(92, box.right - box.left - 32),
+                    estimateMatrixGroupLabelTabWidth(box.label, mLabelFs)
+                  );
+                  const matrixLabelGap = Math.min((box.right - box.left - 16) / 2, matrixLabelW / 2 + 8);
                   const matrixLabelH = labelLines.length === 1 ? 30 : 52;
-                  const matrixTone = box.color
-                    ? (String(box.color).startsWith('#') ? box.color : `var(--color-${box.color})`)
-                    : 'var(--diagram-group)';
+                  const matrixTone = box.color ? colorVar(box.color) : 'var(--diagram-group)';
 
                   return (
                   <g key={`mbox-${i}`}>
@@ -1092,8 +1110,8 @@ export default function DiagramRenderer({
                         <rect
                           x={box.left} y={box.top}
                           width={box.right - box.left} height={box.bottom - box.top}
-                          fill={matrixTone}
-                          fillOpacity={isCanvasDark ? 0.09 : 0.045}
+                          fill="var(--diagram-group)"
+                          fillOpacity={isCanvasDark ? 0.08 : 0.04}
                           stroke="none"
                           rx="8" ry="8"
                         />
@@ -1229,7 +1247,7 @@ export default function DiagramRenderer({
                  />
                  {slices.map((slice, i) => (
                     <g key={i} transform={`translate(${sz.padX}, ${sz.padY + i * sz.rowH + sz.rowH / 2})`}>
-                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={`var(--color-${slice.color || 5})`} rx={DIAGRAM_DESIGN.legend.swatchRadius} />
+                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH} fill={colorVar(slice.color || 'gray')} rx={DIAGRAM_DESIGN.legend.swatchRadius} />
                        <text x={sz.textOff} y={0} fontSize={sz.fontSize} fontWeight={DIAGRAM_DESIGN.legend.textWeight} fill="var(--diagram-text)" dominantBaseline="central">
                          {`${slice.label || 'Item'}${(slice.value !== undefined && slice.value !== null) ? ` (${slice.value})` : ''}`}
                        </text>
@@ -1367,9 +1385,7 @@ export default function DiagramRenderer({
                   rx={DIAGRAM_DESIGN.legend.radius} opacity={DIAGRAM_DESIGN.legend.opacity}
                 />
                 {legendGroups.map((g, i) => {
-                  const color = g.color || 1;
-                  const isHex = String(color).startsWith('#');
-                  const fill  = isHex ? color : `var(--color-${color})`;
+                  const fill = colorVar(g.color || 'navy');
                   return (
                     <g key={g.id} transform={`translate(${PAD_X}, ${PAD_Y + i * ROW_H + ROW_H / 2})`}>
                       <rect x={0} y={-sz.swH/2} width={sz.swW} height={sz.swH}
@@ -1408,7 +1424,11 @@ export default function DiagramRenderer({
         <g>
             {computedNodes.filter(n => n.type !== 'text').map(node => {
               const matchedGroup = initialData.groups?.find(gx => gx.id === getGroupId(node));
-              const injectedNode = { ...node, color: matchedGroup?.color || node.color || 1, outlined: matchedGroup?.outlined };
+              const injectedNode = {
+                ...node,
+                color: resolveRenderedNodeColor(node, matchedGroup, diagramType),
+                outlined: matchedGroup?.outlined,
+              };
               return (
                 <DiagramNode
                   key={injectedNode.id}
@@ -1435,7 +1455,11 @@ export default function DiagramRenderer({
         <g>
             {computedNodes.filter(n => n.type === 'text').map(node => {
               const matchedGroup = initialData.groups?.find(gx => gx.id === getGroupId(node));
-              const injectedNode = { ...node, color: matchedGroup?.color || node.color || 1, outlined: matchedGroup?.outlined };
+              const injectedNode = {
+                ...node,
+                color: resolveRenderedNodeColor(node, matchedGroup, diagramType),
+                outlined: matchedGroup?.outlined,
+              };
               return (
                 <DiagramNode
                   key={injectedNode.id}
@@ -1616,7 +1640,7 @@ export default function DiagramRenderer({
         const groupNodes = computedNodes.filter(n => n.type !== 'text' && n.type !== 'title' && getGroupId(n) === editingGroupId);
         if (groupNodes.length === 0) return null;
         
-        const dims = groupNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: d.width, h: d.height }; });
+        const dims = groupNodes.map(n => { const d = getNodeDim(n); return { x: n.x||0, y: n.y||0, w: n.w || d.width, h: n.h || d.height }; });
         const overlay = activeSchema?.engineManifest?.overlay || {};
         const pad = overlay.groupPad ?? 30;
         const labelCfg = overlay.label || {};
@@ -1625,10 +1649,13 @@ export default function DiagramRenderer({
         const labelTopExtra = diagramType === 'matrix'
           ? (labelLines.length > 1 ? 26 : 10)
           : 0;
-        const leftBox = Math.min(...dims.map(d => d.x - d.w/2)) - pad;
-        const rightBox = Math.max(...dims.map(d => d.x + d.w/2)) + pad;
-        const topBox = Math.min(...dims.map(d => d.y - d.h/2)) - pad - labelTopExtra;
-        const bottomBox = Math.max(...dims.map(d => d.y + d.h/2)) + pad;
+        const rawBox = expandMatrixBoxForLabel({
+          left: Math.min(...dims.map(d => d.x - d.w/2)) - pad,
+          right: Math.max(...dims.map(d => d.x + d.w/2)) + pad,
+          top: Math.min(...dims.map(d => d.y - d.h/2)) - pad - labelTopExtra,
+          bottom: Math.max(...dims.map(d => d.y + d.h/2)) + pad,
+        }, group.label || group.id || '', groupLabelFontSize);
+        const { left: leftBox, right: rightBox, top: topBox, bottom: bottomBox } = rawBox;
         
         let pt = svg.createSVGPoint();
         let editorSvgRect = null;
@@ -1639,8 +1666,10 @@ export default function DiagramRenderer({
             pt.x = globalLeft + 30; // Centered on the title rotated vertically
             pt.y = (topBox + bottomBox) / 2;
         } else {
-            const longestLabelLine = Math.max(...labelLines.map(line => line.length), 1);
-            const matrixLabelW = Math.min((rightBox - leftBox) * 0.8, Math.max(92, longestLabelLine * 12 + 40));
+            const matrixLabelW = Math.min(
+              Math.max(92, rightBox - leftBox - 32),
+              estimateMatrixGroupLabelTabWidth(group.label || group.id || '', groupLabelFontSize)
+            );
             const matrixLabelH = labelLines.length === 1 ? 30 : 52;
             editorSvgRect = {
               x: (leftBox + rightBox) / 2 - matrixLabelW / 2,
@@ -1723,4 +1752,34 @@ export default function DiagramRenderer({
 
     </>
   );
+}
+
+function normalizeEqualMatrixBoxes(boxes) {
+  if (!boxes || boxes.length === 0) return boxes || [];
+  const maxW = Math.max(...boxes.map(box => box.right - box.left));
+  const maxH = Math.max(...boxes.map(box => box.bottom - box.top));
+  return boxes.map(box => {
+    const cx = (box.left + box.right) / 2;
+    const cy = (box.top + box.bottom) / 2;
+    return {
+      ...box,
+      left: cx - maxW / 2,
+      right: cx + maxW / 2,
+      top: cy - maxH / 2,
+      bottom: cy + maxH / 2,
+    };
+  });
+}
+
+function expandMatrixBoxForLabel(box, label, fontSize = 20) {
+  if (!box) return box;
+  const minWidth = estimateMatrixGroupLabelTabWidth(label, fontSize) + 32;
+  const width = box.right - box.left;
+  if (width >= minWidth) return box;
+  const cx = (box.left + box.right) / 2;
+  return {
+    ...box,
+    left: cx - minWidth / 2,
+    right: cx + minWidth / 2,
+  };
 }

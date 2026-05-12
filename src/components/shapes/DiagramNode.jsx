@@ -3,6 +3,7 @@ import { getNodeDim, NODE_REGISTRY } from '../../diagram/nodes.jsx';
 import { getFittedText } from '../../utils/textUtils';
 import { DIAGRAM_SCHEMAS } from '../../utils/diagramSchemas.js';
 import { DIAGRAM_DESIGN } from '../../diagram/design.js';
+import { borderColorVar, colorVar, textColorVar } from '../../diagram/colors.js';
 
 
 const DiagramNode = React.memo(({ 
@@ -40,6 +41,8 @@ const DiagramNode = React.memo(({
     'data-logical-y': node.y || 0
   };
 
+  const isOutlined = node.outlined && !node.isPieSlice;
+
   const getContrastYIQ = (hexcolor) => {
     hexcolor = hexcolor.replace("#", "");
     if (hexcolor.length === 3) {
@@ -51,54 +54,31 @@ const DiagramNode = React.memo(({
     const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
     return (yiq >= 128) ? '#1a1a1a' : '#ffffff';
   };
-
-  const isOutlined = node.outlined && !node.isPieSlice;
   
   const resolveColor = (c, type) => {
     if (c === undefined || c === null) return 'transparent';
-    const isHex = String(c).startsWith('#');
+    const isHex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(c).trim());
     
     if (isOutlined) {
-       // Outline Mode Logic
-       if (isHex) {
-          if (type === 'text') return c; 
-          if (type === 'bg') return 'transparent';
-          if (type === 'border') return c;
-       } else {
-          // Standard Palette Outline
-          if (type === 'bg') return 'transparent';
-          if (type === 'text') return 'var(--diagram-text)';
-          if (type === 'border') return `var(--color-${c})`;
-       }
-    } else {
-       // Solid Mode Logic (Default)
-       if (isHex) {
-          if (type === 'text') return getContrastYIQ(String(c));
-          if (type === 'border') return 'transparent'; 
-          return c; // bg
-       }
-       if (type === 'bg') return `var(--color-${c})`;
-       if (type === 'text') return `var(--text-color-${c})`;
-       if (type === 'border') return `var(--border-color-${c})`;
-       return `var(--color-${c})`;
+      if (type === 'bg') return 'transparent';
+      if (type === 'text') return isHex ? String(c).trim() : 'var(--diagram-text)';
+      if (type === 'border') return colorVar(c);
     }
+
+    if (type === 'bg') return colorVar(c);
+    if (type === 'text') return isHex ? getContrastYIQ(String(c)) : (textColorVar(c) || 'var(--diagram-text)');
+    if (type === 'border') return borderColorVar(c);
+    return colorVar(c);
   };
   const isPrintTheme = theme === 'print-book';
   
-  const isTransp = (node.color === 'transparent');
-  const baseColorToken = (node.color !== undefined && node.color !== 'transparent') ? node.color : 5;
+  const baseColorToken = node.color !== undefined ? node.color : 'gray';
 
   let panelFill, strokeColor, textColor;
 
-  if (isTransp) {
-    panelFill = 'transparent';
-    strokeColor = resolveColor(baseColorToken, 'bg'); 
-    textColor = 'var(--unfilled-text-color)'; 
-  } else {
-    panelFill = resolveColor(baseColorToken, 'bg');
-    strokeColor = resolveColor(baseColorToken, 'border'); 
-    textColor = resolveColor(baseColorToken, 'text');
-  }
+  panelFill = resolveColor(baseColorToken, 'bg');
+  strokeColor = resolveColor(baseColorToken, 'border'); 
+  textColor = resolveColor(baseColorToken, 'text');
   const isTextOnly = node.type === 'text' || node.type === 'title';
   const fontWeight = node.fontStyle === 'bold'
     ? 700
@@ -117,15 +97,9 @@ const DiagramNode = React.memo(({
     strokeW = '4';
   }
 
-  const numColor = Number(baseColorToken);
-
   // Override for Text Only nodes
   if (isTextOnly) {
     textColor = 'var(--diagram-text)';
-  }
-
-  if (!isNaN(numColor) && numColor >= 11 && numColor <= 19) {
-    strokeW = isPrintTheme ? '2' : '4';
   }
   const shadowFilter = (!isPrintTheme && !isTextOnly && !node.isPieSlice)
     ? 'url(#node-depth)'

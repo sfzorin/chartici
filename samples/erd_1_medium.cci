@@ -15,45 +15,117 @@
       {
         "type": "process",
         "size": "M",
-        "color": "1",
+        "color": "navy",
         "label": "People",
         "nodes": [
-          { "id": "user", "label": "User" },
-          { "id": "profile", "label": "Profile" },
-          { "id": "enrollment", "label": "Enrollment" }
+          {
+            "id": "user",
+            "label": "User"
+          },
+          {
+            "id": "profile",
+            "label": "Profile"
+          },
+          {
+            "id": "enrollment",
+            "label": "Enrollment"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Learning",
         "nodes": [
-          { "id": "course", "label": "Course" },
-          { "id": "lesson", "label": "Lesson" },
-          { "id": "exercise", "label": "Exercise" }
+          {
+            "id": "course",
+            "label": "Course"
+          },
+          {
+            "id": "lesson",
+            "label": "Lesson"
+          },
+          {
+            "id": "exercise",
+            "label": "Exercise"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "5",
+        "color": "gray",
         "label": "Progress",
         "nodes": [
-          { "id": "attempt", "label": "Attempt" },
-          { "id": "badge", "label": "Badge" }
+          {
+            "id": "attempt",
+            "label": "Attempt"
+          },
+          {
+            "id": "badge",
+            "label": "Badge"
+          }
         ]
       }
     ],
     "relationships": [
-      { "sourceId": "user", "targetId": "profile", "label": "owns", "connectionType": "1:1", "lineStyle": "solid" },
-      { "sourceId": "user", "targetId": "enrollment", "label": "starts", "connectionType": "1:N", "lineStyle": "solid" },
-      { "sourceId": "enrollment", "targetId": "course", "label": "for", "connectionType": "N:1", "lineStyle": "solid" },
-      { "sourceId": "course", "targetId": "lesson", "label": "contains", "connectionType": "1:N", "lineStyle": "solid" },
-      { "sourceId": "lesson", "targetId": "exercise", "label": "includes", "connectionType": "1:N", "lineStyle": "solid" },
-      { "sourceId": "user", "targetId": "attempt", "label": "submits", "connectionType": "1:N", "lineStyle": "solid" },
-      { "sourceId": "attempt", "targetId": "exercise", "label": "answers", "connectionType": "N:1", "lineStyle": "solid" },
-      { "sourceId": "user", "targetId": "badge", "label": "earns", "connectionType": "1:N", "lineStyle": "dashed" }
+      {
+        "sourceId": "user",
+        "targetId": "profile",
+        "label": "owns",
+        "connectionType": "1:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "enrollment",
+        "label": "starts",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "enrollment",
+        "targetId": "course",
+        "label": "for",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "course",
+        "targetId": "lesson",
+        "label": "contains",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "lesson",
+        "targetId": "exercise",
+        "label": "includes",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "attempt",
+        "label": "submits",
+        "connectionType": "1:N",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "attempt",
+        "targetId": "exercise",
+        "label": "answers",
+        "connectionType": "N:1",
+        "lineStyle": "solid"
+      },
+      {
+        "sourceId": "user",
+        "targetId": "badge",
+        "label": "earns",
+        "connectionType": "1:N",
+        "lineStyle": "dashed"
+      }
     ]
   }
 }

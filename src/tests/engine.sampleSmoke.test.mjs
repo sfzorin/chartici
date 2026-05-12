@@ -27,8 +27,12 @@ function countOverlaps(nodes) {
       const b = realNodes[j];
       const ad = getNodeDim(a);
       const bd = getNodeDim(b);
-      const overlapX = Math.abs((a.x || 0) - (b.x || 0)) < (ad.width + bd.width) / 2 + 8;
-      const overlapY = Math.abs((a.y || 0) - (b.y || 0)) < (ad.height + bd.height) / 2 + 8;
+      const aw = a.w || ad.width;
+      const ah = a.h || ad.height;
+      const bw = b.w || bd.width;
+      const bh = b.h || bd.height;
+      const overlapX = Math.abs((a.x || 0) - (b.x || 0)) < (aw + bw) / 2 + 8;
+      const overlapY = Math.abs((a.y || 0) - (b.y || 0)) < (ah + bh) / 2 + 8;
       if (overlapX && overlapY) overlaps++;
     }
   }

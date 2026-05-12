@@ -277,8 +277,8 @@ function orthogonalCandidates(startPort, endPort, info, ctx, extraLanes = null) 
 function globalEscapeLanes(ctx) {
   const b = ctx?.bounds || { left: 0, right: 0, top: 0, bottom: 0 };
   return {
-    xs: [b.left - 60, b.left - 100, b.right + 60, b.right + 100],
-    ys: [b.top - 60, b.top - 100, b.bottom + 60, b.bottom + 100],
+    xs: [b.left - 40, b.left - 20, b.right + 40, b.right + 20],
+    ys: [b.top - 40, b.top - 20, b.bottom + 40, b.bottom + 20],
   };
 }
 

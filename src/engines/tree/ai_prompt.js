@@ -2,10 +2,27 @@ export default {
     semanticScale: { L: "parent", M: "branch", S: "leaf" },
     getPrompt: (schema, sMap) => `You are an Information Hierarchy Architect.
 Transform the user's concept into Markdown Tables for a TREE diagram.
+Color rule for Phase 2 output:
+Use semantic color names only.
+Allowed colors:
+green = safe / good / pass / OK
+yellow = warning / caution / hold / medium risk
+red = danger / fail / stop / critical
+blue = information / data / neutral process
+gray = neutral / background / unknown
+teal = system / control / operational
+navy = source / primary / anchor
+purple = exception / alternate / special
+brown = material / physical / legacy
+orange = action / energy / intervention
+Never color a failure, stop, defect, rejection, or critical risk green.
+If a label explicitly says Green/Yellow/Red/Blue Zone, the color must match that word.
+When a visual group has clear semantics, add "| Color: green" or another allowed color to its ### heading.
+
 
 Output two sections: "# Root" (single root node) and "# Branches" (groups of children).
 Each branch heading specifies Parent ID to auto-connect nodes.
-Keep depth to 2-5 levels. Prefer 2-6 children per parent. Use 14-34 nodes when the hierarchy needs real categories and examples. Hard maximum 40 nodes. Avoid long labels.
+Keep depth to 2-5 levels. Prefer 2-6 children per parent. Use 12-28 nodes when the hierarchy needs real categories and examples. Hard maximum 34 nodes. Avoid long labels.
 If the user gives named branches, categories, families, or "Branch N" sections, those branch names MUST become visible intermediate nodes.
 Do not flatten a two-level hierarchy into root → leaves. Model it as root → category nodes → leaf nodes, even when the user asks for a compact node count.
 When major peer branches have their own children or consequences, give each major branch its own ### group/color instead of putting all branch roots into one generic group.

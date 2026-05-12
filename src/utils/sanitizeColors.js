@@ -1,19 +1,20 @@
 import { getGroupId } from './groupUtils.js';
+import { resolveColorIndex } from '../diagram/colors.js';
 
 /**
  * Sanitize and normalize color assignments for nodes and edges.
- * - Nodes: resolves color from group, auto-assigns sequential palette indices
+ * - Nodes: resolves color from group, auto-assigns sequential semantic colors
  * - Edges: strips color property (edges inherit from CSS)
  * 
  * @param {Array} elements - Nodes or edges to sanitize
  * @param {boolean} isNode - true for nodes, false for edges
  * @param {Array} groups - Group definitions for color resolution
- * @param {Array} safeIndices - Allowed palette token indices
+ * @param {Array} safeIndices - Allowed semantic color tokens
  * @param {Object} sharedMap - Shared hex→index map for consistent mapping
  * @param {Object} autoIndexTracker - Mutable counter for auto-assignment
- * @returns {Array} Sanitized elements with valid color indices
+ * @returns {Array} Sanitized elements with valid semantic color tokens
  */
-export function sanitizeColors(elements, isNode, groups = [], safeIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9], sharedMap = {}, autoIndexTracker = { current: 0 }) {
+export function sanitizeColors(elements, isNode, groups = [], safeIndices = ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple', 'brown', 'blue', 'orange'], sharedMap = {}, autoIndexTracker = { current: 0 }) {
     return elements.map(el => {
 
       if (!isNode) {
@@ -34,7 +35,7 @@ export function sanitizeColors(elements, isNode, groups = [], safeIndices = [1, 
           }
       }
 
-      if (resolvedColor === undefined || resolvedColor === null || String(resolvedColor).toLowerCase() === 'transparent') {
+      if (resolvedColor === undefined || resolvedColor === null) {
          const chosen = safeIndices[autoIndexTracker.current % safeIndices.length];
          autoIndexTracker.current += 1;
          return { ...el, color: chosen };
@@ -42,11 +43,13 @@ export function sanitizeColors(elements, isNode, groups = [], safeIndices = [1, 
 
       const c = resolvedColor;
 
-      if (typeof c === 'number' && c >= 0 && c <= 19) return { ...el, color: c };
       if (typeof c === 'string') {
-        const parsed = parseInt(c, 10);
-        if (!isNaN(parsed) && parsed >= 0 && parsed <= 19) {
-          return { ...el, color: parsed };
+        const resolved = resolveColorIndex(c);
+        if (typeof resolved === 'string' && resolved.startsWith('#')) {
+          return { ...el, color: resolved };
+        }
+        if (typeof resolved === 'number') {
+          return { ...el, color: c.trim().toLowerCase() };
         }
       }
       

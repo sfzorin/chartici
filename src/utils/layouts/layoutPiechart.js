@@ -1,4 +1,5 @@
 import { PIE_CONSTS } from '../../diagram/nodes.jsx';
+import { SEMANTIC_COLOR_ORDER } from '../../diagram/colors.js';
 
 export function layoutPiechart(nodes, edges, layoutRules) {
   if (nodes.length === 0) return [];
@@ -29,7 +30,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
 
   const specifiedColors = sortedNodes
     .map(n => n.color)
-    .filter(color => color !== undefined && color !== null && String(color).toLowerCase() !== 'transparent');
+    .filter(color => color !== undefined && color !== null);
   const shouldAutoColorSlices = specifiedColors.length === 0;
 
   let currentAngle = 0;
@@ -52,7 +53,7 @@ export function layoutPiechart(nodes, edges, layoutRules) {
       type: 'pie_slice',
       x: explodeX,
       y: explodeY,
-      color: shouldAutoColorSlices ? (idx % 9) + 1 : n.color,
+      color: shouldAutoColorSlices ? SEMANTIC_COLOR_ORDER[idx % SEMANTIC_COLOR_ORDER.length] : n.color,
       pieStartAngle: startAngle,
       pieEndAngle: endAngle,
       piePercent: totalSize > 0 ? (val / totalSize) * 100 : 0,

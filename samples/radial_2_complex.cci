@@ -19,7 +19,7 @@
             "type": "process"
           }
         ],
-        "color": "4",
+        "color": "green",
         "label": "Core Service"
       },
       {
@@ -42,7 +42,7 @@
             "type": "process"
           }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "Ingress Orbit",
         "parentId": "hub"
       },
@@ -66,7 +66,7 @@
             "type": "process"
           }
         ],
-        "color": "6",
+        "color": "red",
         "label": "Mesh Nodes",
         "parentId": "in3"
       },
@@ -85,7 +85,7 @@
             "type": "process"
           }
         ],
-        "color": "7",
+        "color": "purple",
         "label": "Observability Orbit",
         "parentId": "hub"
       }

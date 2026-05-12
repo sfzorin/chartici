@@ -1,4 +1,5 @@
 import { DIAGRAM_SCHEMAS } from '../utils/diagramSchemas.js';
+import { SEMANTIC_COLOR_ORDER } from '../diagram/colors.js';
 
 const DEFAULT_PALETTE = 'basic';
 
@@ -22,6 +23,23 @@ function parseNextStepIds(nextSteps) {
     .filter(Boolean);
 }
 
+function parseNextStepLabels(nextSteps) {
+  if (!nextSteps || nextSteps === '-') return [];
+  return String(nextSteps)
+    .split(',')
+    .map(step => step.trim().match(/\[([^\]]+)\]/)?.[1]?.trim())
+    .filter(Boolean);
+}
+
+function edgeLabelQualityError(label, diagramType) {
+  const text = String(label || '').trim();
+  if (!text) return null;
+  const words = text.split(/\s+/).filter(Boolean).length;
+  if (/(?:\.{3,}|…)$/u.test(text)) return `${diagramType} edge label uses ellipsis; write the full short label without dots: ${text}`;
+  if (text.length > 24 || words > 3) return `${diagramType} edge label too long; use 1-3 short words instead: ${text}`;
+  return null;
+}
+
 function promptSuggestsChoices(extendedPrompt) {
   const text = String(extendedPrompt || '').toLowerCase();
   return /\([^)]*[,;/][^)]*\)/.test(text) || /\b(choose|pick|choice|choices|option|options|either|or)\b/.test(text);
@@ -29,28 +47,28 @@ function promptSuggestsChoices(extendedPrompt) {
 
 function describeNodeCountBudget(diagramType) {
   const dt = String(diagramType || '').toLowerCase();
-  if (dt === 'tree') return '40 nodes max; preserve useful category levels and summarize only repetitive leaves';
-  if (dt === 'flowchart') return '30 nodes max; compress repeated options into 3-5 category nodes';
-  if (dt === 'timeline') return '28 nodes max; summarize only repetitive minor events';
-  if (dt === 'sequence') return '28 nodes max; keep actors and handoffs readable';
-  if (dt === 'radial') return '32 nodes max; preserve category and leaf levels';
-  if (dt === 'erd') return '18 entities max; keep only meaningful domain entities';
-  if (dt === 'piechart') return '10 slices max; merge tiny slices into an Other slice';
+  if (dt === 'tree') return '34 nodes max; preserve useful category levels and summarize only repetitive leaves';
+  if (dt === 'flowchart') return '22 nodes max; aim for 8-18 nodes and compress repeated options into 3-5 category nodes';
+  if (dt === 'timeline') return '24 nodes max; summarize only repetitive minor events';
+  if (dt === 'sequence') return '24 nodes max; keep actors and handoffs readable';
+  if (dt === 'radial') return '28 nodes max; preserve category and leaf levels';
+  if (dt === 'erd') return '16 entities max; keep only meaningful domain entities';
+  if (dt === 'piechart') return '8 slices max; merge tiny slices into an Other slice';
   if (dt === 'matrix') return 'keep matrix zones compact; summarize repeated items';
-  return '26 nodes max; compress long option lists into category nodes';
+  return '22 nodes max; compress long option lists into category nodes';
 }
 
 function getMaxReadableNodes(diagramType) {
   const dt = String(diagramType || '').toLowerCase();
   if (dt === 'matrix') return Infinity;
-  if (dt === 'tree') return 40;
-  if (dt === 'flowchart') return 30;
-  if (dt === 'timeline') return 28;
-  if (dt === 'sequence') return 28;
-  if (dt === 'radial') return 32;
-  if (dt === 'erd') return 18;
-  if (dt === 'piechart') return 10;
-  return 26;
+  if (dt === 'tree') return 34;
+  if (dt === 'flowchart') return 22;
+  if (dt === 'timeline') return 24;
+  if (dt === 'sequence') return 24;
+  if (dt === 'radial') return 28;
+  if (dt === 'erd') return 16;
+  if (dt === 'piechart') return 8;
+  return 22;
 }
 
 function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
@@ -107,6 +125,10 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
       errors.push('flowchart branches arrive too late; introduce a meaningful decision/check earlier in the flow');
     }
     for (const node of realNodes) {
+      for (const label of parseNextStepLabels(node.nextSteps)) {
+        const error = edgeLabelQualityError(label, 'flowchart arrow');
+        if (error) errors.push(error);
+      }
       const outgoing = parseNextStepIds(node.nextSteps);
       if (node.type === 'rhombus' && outgoing.length > 6) {
         errors.push(`decision "${node.label || node.id}" has ${outgoing.length} outgoing links; split choices into category nodes`);
@@ -139,8 +161,11 @@ function validateGeneratedCci(cci, diagramType, extendedPrompt = '') {
     for (const edge of explicitEdges) {
       const sourceId = String(edge.sourceId || edge.from || '').trim();
       const targetId = String(edge.targetId || edge.to || '').trim();
+      const label = String(edge.label || '').trim();
       if (!ids.has(sourceId)) errors.push(`unknown relationship source: ${sourceId}`);
       if (!ids.has(targetId)) errors.push(`unknown relationship target: ${targetId}`);
+      const error = edgeLabelQualityError(label, dt);
+      if (error) errors.push(error);
     }
   }
 
@@ -157,7 +182,7 @@ function applyGeneratedPieSliceColors(parsed, diagramType) {
     .flatMap(group => group.nodes || [])
     .filter(node => node.type === 'pie_slice');
   slices.forEach((slice, index) => {
-    slice.color = (index % 9) + 1;
+    slice.color = SEMANTIC_COLOR_ORDER[index % SEMANTIC_COLOR_ORDER.length];
   });
 }
 
@@ -304,6 +329,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
   let currentGroupSize = 'M';
   let currentGroupType = 'process';
   let currentGroupParentId = null;
+  let currentGroupColor = null;
   
   const groupsMap = new Map();
   const inferNodeModeFromGroupHeading = () => {
@@ -314,7 +340,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
     return mode;
   };
   
-  const getOrCreateGroup = (gLabel, gSize, gType) => {
+  const getOrCreateGroup = (gLabel, gSize, gType, gColor = null) => {
     let lbl = gLabel.trim();
     if (!lbl || lbl === '-' || lbl.toLowerCase() === 'orphans') lbl = '';
     
@@ -323,7 +349,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         label: lbl || undefined, 
         type: gType, 
         size: gSize,
-        color: Math.floor(Math.random() * 8), // Random palette index [0-7]
+        color: gColor || SEMANTIC_COLOR_ORDER[parsed.data.groups.length % SEMANTIC_COLOR_ORDER.length],
         nodes: [] 
       };
       parsed.data.groups.push(newGroup);
@@ -375,11 +401,13 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
       currentGroupSize = 'M';
       currentGroupType = 'process';
       currentGroupParentId = null;
+      currentGroupColor = null;
       
       parts.slice(1).forEach(p => {
         if (p.toLowerCase().startsWith('size:')) currentGroupSize = matchSize(p.substring(5));
         if (p.toLowerCase().startsWith('type:')) currentGroupType = p.substring(5).trim();
         if (p.toLowerCase().startsWith('parent id:')) currentGroupParentId = p.substring(10).trim();
+        if (p.toLowerCase().startsWith('color:')) currentGroupColor = p.substring(6).trim().toLowerCase();
       });
       continue;
     }
@@ -428,7 +456,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
             val = cols[2] ? Number(cols[2]) : undefined;
         }
 
-        const group = getOrCreateGroup(currentGroupLabel, currentGroupSize, currentGroupType);
+        const group = getOrCreateGroup(currentGroupLabel, currentGroupSize, currentGroupType, currentGroupColor);
         const nodeObj = { id, label, type: nodeType, size: currentGroupSize };
         if (val !== undefined && !isNaN(val)) nodeObj.value = val;
         group.nodes.push(nodeObj);
@@ -442,7 +470,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const id = cols[0];
         const label = cols[1];
         const rawSize = cols[2];
-        const group = getOrCreateGroup('Root', 'L', 'process');
+        const group = getOrCreateGroup('Root', 'L', 'process', currentGroupColor);
         group.nodes.push({ id, label, type: 'process', size: matchSize(rawSize) });
       }
 
@@ -450,7 +478,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const id = cols[0];
         const label = cols[1];
         
-        const group = getOrCreateGroup(currentGroupLabel || 'Branch', currentGroupSize || 'M', 'process');
+        const group = getOrCreateGroup(currentGroupLabel || 'Branch', currentGroupSize || 'M', 'process', currentGroupColor);
         group.nodes.push({ id, label, type: 'process', size: currentGroupSize || 'M' });
         
         if (currentGroupParentId) {
@@ -463,7 +491,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const rawSize = cols[1];
         const val = cols[2] ? Number(cols[2]) : undefined;
         
-        const group = getOrCreateGroup('Data', 'M', 'pie_slice');
+        const group = getOrCreateGroup('Data', 'M', 'pie_slice', currentGroupColor);
         const nodeObj = { 
            id: `pie_${Math.random().toString(36).substr(2, 9)}`, 
            label: title, 
@@ -479,10 +507,10 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const label = cols[1];
         const rawColor = cols[2];
         
-        const group = getOrCreateGroup('Spine', 'L', 'chevron');
+        const group = getOrCreateGroup('Spine', 'L', 'chevron', currentGroupColor);
         const nodeObj = { id, label, type: 'chevron', size: 'L' };
-        if (rawColor && rawColor !== '-' && !isNaN(Number(rawColor))) {
-            nodeObj.color = Number(rawColor);
+        if (rawColor && rawColor !== '-') {
+            nodeObj.color = rawColor.trim().toLowerCase();
         }
         group.nodes.push(nodeObj);
       }
@@ -494,7 +522,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
         const type = 'process';
         
         // Relies on the standard currentGroupLabel parsed just above!
-        const group = getOrCreateGroup(currentGroupLabel || 'Events', currentGroupSize || 'M', 'process');
+        const group = getOrCreateGroup(currentGroupLabel || 'Events', currentGroupSize || 'M', 'process', currentGroupColor);
         group.nodes.push({ id, label, type, size: currentGroupSize || 'M' });
         
         // Link event to spine inherently
@@ -558,7 +586,7 @@ export async function buildDiagram(title, diagramType, extendedPrompt) {
 
   // Assign sequential colors to groups
   parsed.data.groups.forEach((group, index) => {
-    group.color = (index % 9) + 1; // Maps 0-8 to 1-9
+    if (!group.color) group.color = SEMANTIC_COLOR_ORDER[index % SEMANTIC_COLOR_ORDER.length];
   });
 
   const explicitEdgeKey = getExplicitEdgeKey(diagramType);

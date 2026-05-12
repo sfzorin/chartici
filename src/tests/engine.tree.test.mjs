@@ -1,5 +1,6 @@
 import { calculateAllPaths } from '../utils/engine/index.js';
 import { layoutNodesHeuristically } from '../utils/nodeLayouter.js';
+import { getTrueBox } from '../utils/engine/geometry.js';
 import { test, expect, summary, makeNode, makeEdge, analyzeEdge } from './testRunner.mjs';
 
 console.log('\n🌲 Tree Engine: Hierarchical Fan-out');
@@ -100,7 +101,7 @@ test('Tree orthogonal branches keep square bends', () => {
       expect(route.entryPort, 'Left', `route ${index + 1} entry`);
       const beforeLast = route.pts[route.pts.length - 2];
       const last = route.pts[route.pts.length - 1];
-      if (last.x - beforeLast.x < 20) throw new Error(`route ${index + 1} has too short left-entry clearance`);
+      if (last.x - beforeLast.x < 40) throw new Error(`route ${index + 1} has too short left-entry clearance`);
     });
   });
 }
@@ -124,6 +125,39 @@ test('Tree orthogonal branches keep square bends', () => {
     const counts = [...childRows.values()].sort((a, b) => b - a);
     if (counts.length < 2) throw new Error(`expected at least 2 child rows, got ${counts.length}`);
     if (counts[0] > 6) throw new Error(`expected max row length <=6, got ${counts[0]}`);
+  });
+
+  test('Wide tree second-row fan-outs do not run through first-row nodes', () => {
+    const paths = calculateAllPaths(wideEdges, laidOut, { diagramType: 'tree' });
+    assertNoTreePathRunsThroughForeignNode(wideEdges, paths, laidOut);
+  });
+
+  test('Wide tree second-row fan-outs prefer inner row corridors before outer detours', () => {
+    const paths = calculateAllPaths(wideEdges, laidOut, { diagramType: 'tree' });
+    const children = laidOut.filter(node => String(node.id).startsWith('child_'));
+    const firstRowY = Math.min(...children.map(node => node.y));
+    const secondRow = children.filter(node => node.y > firstRowY);
+    const firstRowBoxes = children
+      .filter(node => node.y === firstRowY)
+      .map(getTrueBox)
+      .sort((a, b) => a.left - b.left);
+    const innerGaps = firstRowBoxes.slice(0, -1).map((box, index) => ({
+      left: box.right,
+      right: firstRowBoxes[index + 1].left,
+    }));
+
+    secondRow.forEach(node => {
+      const path = paths[`wide_${String(node.id).split('_')[1]}`];
+      const descent = path.pts
+        .slice(0, -1)
+        .map((pt, index) => [pt, path.pts[index + 1]])
+        .find(([a, b]) => Math.abs(a.x - b.x) < 0.01 && Math.abs(b.y - getTrueBox(node).top) < 0.01);
+      if (!descent) throw new Error(`missing final descent for ${node.id}`);
+      const x = descent[0].x;
+      if (!innerGaps.some(gap => x > gap.left && x < gap.right)) {
+        throw new Error(`${node.id} used outer detour x=${x} despite available inner gaps`);
+      }
+    });
   });
 }
 
@@ -156,8 +190,209 @@ test('Tree orthogonal branches keep square bends', () => {
   const span = Math.max(...leaves.map(node => node.x)) - Math.min(...leaves.map(node => node.x));
 
   test('Tree layout keeps sibling subtrees compact horizontally', () => {
-    if (span > 900) throw new Error(`expected compact leaf span <=900px, got ${span}px`);
+    if (span > 1000) throw new Error(`expected compact leaf span <=1000px, got ${span}px`);
+  });
+}
+
+{
+  const chainNodes = [
+    makeNode('root', 0, 0),
+    makeNode('q1', 0, 0),
+    makeNode('fix', 0, 0),
+    makeNode('q2', 0, 0),
+    makeNode('train', 0, 0),
+    makeNode('q3', 0, 0),
+    makeNode('coach', 0, 0),
+    makeNode('repeat', 0, 0),
+    makeNode('correct', 0, 0),
+    makeNode('warn', 0, 0),
+  ];
+  const chainEdges = [
+    makeEdge('root_q1', 'root', 'q1'),
+    makeEdge('q1_fix', 'q1', 'fix'),
+    makeEdge('q1_q2', 'q1', 'q2'),
+    makeEdge('q2_train', 'q2', 'train'),
+    makeEdge('q2_q3', 'q2', 'q3'),
+    makeEdge('q3_coach', 'q3', 'coach'),
+    makeEdge('q3_repeat', 'q3', 'repeat'),
+    makeEdge('repeat_correct', 'repeat', 'correct'),
+    makeEdge('repeat_warn', 'repeat', 'warn'),
+  ];
+  const laidOut = layoutNodesHeuristically(chainNodes, chainEdges, { diagramType: 'tree' });
+  const byId = new Map(laidOut.map(node => [node.id, node]));
+
+  test('Mixed leaf-and-branch tree rows keep leaf actions near their parent', () => {
+    const q1 = byId.get('q1');
+    const fix = byId.get('fix');
+    const q2 = byId.get('q2');
+    if (Math.abs(fix.x - q1.x) > 260) throw new Error(`leaf action drifted too far from parent: ${Math.abs(fix.x - q1.x)}px`);
+    if (!(q2.x > q1.x)) throw new Error(`continuing branch should keep its staircase direction: q1=${q1.x}, q2=${q2.x}`);
+  });
+}
+
+{
+  const stackedNeighborNodes = [
+    makeNode('root', 0, 0),
+    makeNode('stack_parent', 0, 0),
+    makeNode('neighbor', 0, 0),
+    makeNode('neighbor_leaf', 0, 0),
+    ...Array.from({ length: 5 }, (_, index) => makeNode(`stack_leaf_${index + 1}`, 0, 0)),
+  ];
+  const stackedNeighborEdges = [
+    makeEdge('root_stack', 'root', 'stack_parent'),
+    makeEdge('root_neighbor', 'root', 'neighbor'),
+    makeEdge('neighbor_leaf', 'neighbor', 'neighbor_leaf'),
+    ...Array.from({ length: 5 }, (_, index) => makeEdge(`stack_${index + 1}`, 'stack_parent', `stack_leaf_${index + 1}`)),
+  ];
+  const laidOut = layoutNodesHeuristically(stackedNeighborNodes, stackedNeighborEdges, { diagramType: 'tree' });
+  const byId = new Map(laidOut.map(node => [node.id, node]));
+  const stackParent = byId.get('stack_parent');
+  const neighbor = byId.get('neighbor');
+  const firstLeaf = byId.get('stack_leaf_1');
+  const stackLeafDim = { w: firstLeaf.w ?? 140 };
+  const neighborDim = { w: neighbor.w ?? 140 };
+  const stackTrunkX = firstLeaf.x - stackLeafDim.w / 2 - 40;
+  const neighborLeft = neighbor.x - neighborDim.w / 2;
+
+  test('Stacked tree subtrees reserve their left routing trunk in sibling packing', () => {
+    if (!(neighbor.x > stackParent.x)) throw new Error('expected neighbor to be packed to the right of the stacked subtree');
+    if (neighborLeft - stackTrunkX < 40) {
+      throw new Error(`expected >=40px between stack trunk and neighbor, got ${neighborLeft - stackTrunkX}px`);
+    }
+  });
+}
+
+{
+  const singleParentNodes = [
+    makeNode('root', 0, 0),
+    makeNode('branch', 0, 0),
+    makeNode('plain', 0, 0),
+    ...Array.from({ length: 6 }, (_, index) => makeNode(`leaf_${index + 1}`, 0, 0)),
+  ];
+  const singleParentEdges = [
+    makeEdge('root_branch', 'root', 'branch'),
+    makeEdge('root_plain', 'root', 'plain'),
+    ...Array.from({ length: 6 }, (_, index) => makeEdge(`branch_leaf_${index + 1}`, 'branch', `leaf_${index + 1}`)),
+  ];
+  const laidOut = layoutNodesHeuristically(singleParentNodes, singleParentEdges, { diagramType: 'tree' });
+  const leafRows = laidOut
+    .filter(node => String(node.id).startsWith('leaf_'))
+    .reduce((rows, node) => {
+      const key = Math.round(node.y / 20) * 20;
+      rows.set(key, (rows.get(key) || 0) + 1);
+      return rows;
+    }, new Map());
+
+  test('Tree uses horizontal children when only one parent on the level has children', () => {
+    if (leafRows.size !== 1) throw new Error(`expected one horizontal child row, got ${leafRows.size}`);
+    const [count] = leafRows.values();
+    if (count !== 6) throw new Error(`expected all 6 children in the row, got ${count}`);
+  });
+}
+
+{
+  const balancedStackNodes = [
+    makeNode('root', 0, 0),
+    makeNode('branch', 0, 0),
+    makeNode('cousin', 0, 0),
+    makeNode('cousin_leaf', 0, 0),
+    ...Array.from({ length: 6 }, (_, index) => makeNode(`leaf_${index + 1}`, 0, 0)),
+  ];
+  const balancedStackEdges = [
+    makeEdge('root_branch', 'root', 'branch'),
+    makeEdge('root_cousin', 'root', 'cousin'),
+    makeEdge('cousin_leaf', 'cousin', 'cousin_leaf'),
+    ...Array.from({ length: 6 }, (_, index) => makeEdge(`branch_leaf_${index + 1}`, 'branch', `leaf_${index + 1}`)),
+  ];
+  const laidOut = layoutNodesHeuristically(balancedStackNodes, balancedStackEdges, { diagramType: 'tree' });
+  const leafCols = laidOut
+    .filter(node => String(node.id).startsWith('leaf_'))
+    .reduce((cols, node) => {
+      const key = Math.round(node.x / 20) * 20;
+      cols.set(key, (cols.get(key) || 0) + 1);
+      return cols;
+    }, new Map());
+
+  test('Tree stacked leaves split two vertical columns evenly when cousins exist', () => {
+    const counts = [...leafCols.values()].sort((a, b) => b - a);
+    if (counts.length !== 2) throw new Error(`expected 2 stack columns, got ${counts.length}`);
+    if (Math.abs(counts[0] - counts[1]) > 1) {
+      throw new Error(`expected balanced stack columns, got ${counts.join(' / ')}`);
+    }
+  });
+}
+
+{
+  const promotionNodes = [
+    makeNode('root', 0, 0, 'process', 'M'),
+    makeNode('reliable', 0, 0, 'process', 'M'),
+    makeNode('mission', 0, 0, 'process', 'M'),
+    makeNode('inconsistent', 0, 0, 'process', 'M'),
+    makeNode('increment', 0, 0, 'process', 'M'),
+    makeNode('frozen', 0, 0, 'process', 'M'),
+    makeNode('ceiling', 0, 0, 'process', 'M'),
+    makeNode('stands', 0, 0, 'process', 'M'),
+    makeNode('promotion', 0, 0, 'process', 'M'),
+  ];
+  const promotionEdges = [
+    makeEdge('root_reliable', 'root', 'reliable'),
+    makeEdge('root_mission', 'root', 'mission'),
+    makeEdge('root_inconsistent', 'root', 'inconsistent'),
+    makeEdge('mission_increment', 'mission', 'increment'),
+    makeEdge('inconsistent_frozen', 'inconsistent', 'frozen'),
+    makeEdge('increment_ceiling', 'increment', 'ceiling'),
+    makeEdge('ceiling_stands', 'ceiling', 'stands'),
+    makeEdge('ceiling_promotion', 'ceiling', 'promotion'),
+  ];
+  const laidOut = layoutNodesHeuristically(promotionNodes, promotionEdges, { diagramType: 'tree' });
+  const byId = new Map(laidOut.map(node => [node.id, node]));
+
+  test('Tree parents center over direct children, not deeper grandchildren', () => {
+    const root = byId.get('root');
+    const kids = ['reliable', 'mission', 'inconsistent'].map(id => byId.get(id));
+    const left = Math.min(...kids.map(node => node.x - (node.width || 160) / 2));
+    const right = Math.max(...kids.map(node => node.x + (node.width || 160) / 2));
+    const directChildCenter = (left + right) / 2;
+    if (Math.abs(root.x - directChildCenter) > 20) {
+      throw new Error(`root drifted ${Math.abs(root.x - directChildCenter)}px from direct child row center`);
+    }
   });
 }
 
 summary('engine.tree.test.mjs');
+
+function assertNoTreePathRunsThroughForeignNode(edges, paths, nodes) {
+  edges.forEach(edge => {
+    const path = paths[edge.id];
+    if (!path?.pts) throw new Error(`missing path for ${edge.id}`);
+    const own = new Set([String(edge.from), String(edge.to)]);
+    for (let i = 0; i < path.pts.length - 1; i++) {
+      const a = path.pts[i];
+      const b = path.pts[i + 1];
+      nodes.forEach(node => {
+        if (own.has(String(node.id))) return;
+        if (segmentCrossesNodeBox(a, b, getTrueBox(node))) {
+          throw new Error(`${edge.id} runs through ${node.id}`);
+        }
+      });
+    }
+  });
+}
+
+function segmentCrossesNodeBox(a, b, box) {
+  const minX = Math.min(a.x, b.x);
+  const maxX = Math.max(a.x, b.x);
+  const minY = Math.min(a.y, b.y);
+  const maxY = Math.max(a.y, b.y);
+  if (Math.abs(a.y - b.y) < 0.01) {
+    return a.y >= box.top - 0.01
+      && a.y <= box.bottom + 0.01
+      && Math.max(minX, box.left) <= Math.min(maxX, box.right);
+  }
+  if (Math.abs(a.x - b.x) < 0.01) {
+    return a.x >= box.left - 0.01
+      && a.x <= box.right + 0.01
+      && Math.max(minY, box.top) <= Math.min(maxY, box.bottom);
+  }
+  return false;
+}

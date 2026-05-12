@@ -13,7 +13,6 @@ const labelStyle = {
   fontSize: 12,
   charWidth: 7.4,
 };
-const visualPad = Math.ceil(labelStyle.fontSize / 2);
 
 const horizontalPath = [
   { x: 0, y: 0 },
@@ -34,7 +33,7 @@ const flowchartPlacement = getManualEdgeLabelPlacement({
   labelStyle,
 });
 assert.ok(flowchartPlacement, 'flowchart labels should use manual source-biased placement');
-assert.equal(flowchartPlacement.x, 20 + visualPad, 'flowchart labels should keep a visual source-side 20px gap');
+assert.equal(flowchartPlacement.x, 20, 'flowchart labels should keep a source-side 20px gap');
 assert.equal(flowchartPlacement.textAnchor, 'start', 'rightward flowchart labels should start at the gap');
 
 const roomyFlowchartPlacement = getManualEdgeLabelPlacement({
@@ -43,7 +42,7 @@ const roomyFlowchartPlacement = getManualEdgeLabelPlacement({
   pts: [{ x: 0, y: 0 }, { x: 200, y: 0 }],
   labelStyle,
 });
-assert.equal(roomyFlowchartPlacement.x, 20 + visualPad, 'roomy flowchart labels should keep a visual 20px source gap');
+assert.equal(roomyFlowchartPlacement.x, 20, 'roomy flowchart labels should keep a 20px source gap');
 
 const tightFlowchartPlacement = getManualEdgeLabelPlacement({
   labelPolicy: flowchartPolicy,
@@ -51,7 +50,7 @@ const tightFlowchartPlacement = getManualEdgeLabelPlacement({
   pts: [{ x: 0, y: 0 }, { x: 46, y: 0 }],
   labelStyle,
 });
-assert.equal(tightFlowchartPlacement.x, 5 + visualPad, 'tight flowchart labels should keep a visual 5px source gap');
+assert.equal(tightFlowchartPlacement.x, 5, 'tight flowchart labels should keep a 5px source gap');
 assert.equal(tightFlowchartPlacement.y, -7, 'horizontal flowchart labels should stay above the line');
 
 const tinyFlowchartLabel = getFittedManualEdgeLabel({
@@ -68,7 +67,7 @@ const leftwardFlowchartPlacement = getManualEdgeLabelPlacement({
   pts: [{ x: 100, y: 0 }, { x: 0, y: 0 }],
   labelStyle,
 });
-assert.equal(leftwardFlowchartPlacement.x, 80 - visualPad, 'leftward flowchart labels should keep the near edge at the visual gap');
+assert.equal(leftwardFlowchartPlacement.x, 80, 'leftward flowchart labels should keep the near edge at the visual gap');
 assert.equal(leftwardFlowchartPlacement.y, -7, 'leftward horizontal flowchart labels should stay above the line');
 assert.equal(leftwardFlowchartPlacement.textAnchor, 'end', 'leftward flowchart labels should end at the source-side gap');
 
@@ -79,7 +78,7 @@ const downwardFlowchartPlacement = getManualEdgeLabelPlacement({
   labelStyle,
 });
 assert.equal(downwardFlowchartPlacement.x, -7, 'vertical flowchart labels should stay left of the line');
-assert.equal(downwardFlowchartPlacement.y, 20 + visualPad, 'downward flowchart labels should keep the visual source-side 20px gap');
+assert.equal(downwardFlowchartPlacement.y, 20, 'downward flowchart labels should keep the source-side 20px gap');
 assert.equal(downwardFlowchartPlacement.textAnchor, 'end', 'downward labels should anchor by the text end');
 
 const tightDownwardLabel = getFittedManualEdgeLabel({
@@ -94,9 +93,9 @@ const tightDownwardPlacement = getManualEdgeLabelPlacement({
   pts: [{ x: 0, y: 0 }, { x: 0, y: 92 }],
   labelStyle,
 });
-assert.equal(tightDownwardPlacement.y, 5 + visualPad, 'tight downward labels should still keep a visual 5px source gap');
+assert.equal(tightDownwardPlacement.y, 5, 'tight downward labels should still keep a 5px source gap');
 assert.ok(
-  tightDownwardPlacement.y + tightDownwardPlacement.labelWidth <= 87 - visualPad,
+  tightDownwardPlacement.y + tightDownwardLabel.length * labelStyle.charWidth <= 87,
   'tight downward labels should preserve the 5px target-side gap using the rendered label width'
 );
 
@@ -107,7 +106,7 @@ const upwardFlowchartPlacement = getManualEdgeLabelPlacement({
   labelStyle,
 });
 assert.equal(upwardFlowchartPlacement.x, -7, 'upward vertical flowchart labels should stay left of the line');
-assert.equal(upwardFlowchartPlacement.y, 180 - visualPad, 'upward flowchart labels should keep the visual source-side 20px gap');
+assert.equal(upwardFlowchartPlacement.y, 180, 'upward flowchart labels should keep the source-side 20px gap');
 assert.equal(upwardFlowchartPlacement.textAnchor, 'start', 'upward labels should anchor by the text start');
 
 assert.equal(
@@ -117,7 +116,7 @@ assert.equal(
     pts: [{ x: 0, y: 0 }, { x: 70, y: 0 }],
     labelStyle,
   }),
-  'V...',
+  'Very Lon',
   'flowchart labels should truncate at the end when even the 5px gap is tight'
 );
 
@@ -133,9 +132,9 @@ const tightUpwardPlacement = getManualEdgeLabelPlacement({
   pts: [{ x: 0, y: 92 }, { x: 0, y: 0 }],
   labelStyle,
 });
-assert.equal(tightUpwardPlacement.y, 87 - visualPad, 'tight upward labels should still keep a visual 5px source gap');
+assert.equal(tightUpwardPlacement.y, 87, 'tight upward labels should still keep a 5px source gap');
 assert.ok(
-  tightUpwardPlacement.y - tightUpwardPlacement.labelWidth >= 5 + visualPad,
+  tightUpwardPlacement.y - tightUpwardLabel.length * labelStyle.charWidth >= 5,
   'tight upward labels should preserve the 5px target-side gap using the rendered label width'
 );
 
@@ -157,8 +156,14 @@ assert.equal(
 
 assert.equal(
   truncateLabelToWidth('Token Received', 34, labelStyle.charWidth),
-  'T...',
+  'Toke',
   'path labels should truncate at the end instead of disappearing'
+);
+
+assert.equal(
+  truncateLabelToWidth('Traceabili...', 120, labelStyle.charWidth),
+  'Traceabili',
+  'edge labels should never display ellipsis dots'
 );
 
 const erdPolicy = getEdgeLabelPolicy('erd');

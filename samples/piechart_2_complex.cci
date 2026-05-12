@@ -12,7 +12,7 @@
       {
         "id": "os1",
         "type": "pie_slice",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           {
             "id": "os1",
@@ -24,7 +24,7 @@
       {
         "id": "os2",
         "type": "pie_slice",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           {
             "id": "os2",
@@ -36,7 +36,7 @@
       {
         "id": "os3",
         "type": "pie_slice",
-        "color": 3,
+        "color": "yellow",
         "nodes": [
           {
             "id": "os3",
@@ -48,7 +48,7 @@
       {
         "id": "os4",
         "type": "pie_slice",
-        "color": 4,
+        "color": "green",
         "nodes": [
           {
             "id": "os4",
@@ -60,7 +60,7 @@
       {
         "id": "os5",
         "type": "pie_slice",
-        "color": 5,
+        "color": "gray",
         "nodes": [
           {
             "id": "os5",
@@ -72,7 +72,7 @@
       {
         "id": "os6",
         "type": "pie_slice",
-        "color": 6,
+        "color": "red",
         "nodes": [
           {
             "id": "os6",
@@ -84,7 +84,7 @@
       {
         "id": "os7",
         "type": "pie_slice",
-        "color": 7,
+        "color": "purple",
         "nodes": [
           {
             "id": "os7",

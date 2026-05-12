@@ -78,37 +78,106 @@ export const EXPORT_DEFAULTS = CANVAS_THEMES.light;
 
 // ─── Palette helpers ──────────────────────────────────────────────────────────
 /**
- * rules: маппинг "кол-во нод с цветом → какие слоты использовать".
- * Индексы 1-based (1..9 — слоты solid цветов).
- * При авто-назначении система берёт rules[n] и циклически назначает слоты.
+ * rules: маппинг "кол-во нод с цветом → какие семантические цвета использовать".
+ * При авто-назначении система берёт rules[n] и циклически назначает цвета.
  */
 const paletteRules = {
-  1: [1],
-  2: [1, 2],
-  3: [1, 2, 5],
-  4: [1, 2, 5, 3],
-  5: [1, 2, 5, 3, 4],
-  6: [1, 2, 5, 3, 4, 6],
-  7: [1, 2, 5, 3, 4, 6, 7],
-  8: [1, 2, 5, 3, 4, 6, 7, 8],
-  9: [1, 2, 5, 3, 4, 6, 7, 8, 9],
+  1: ['navy'],
+  2: ['navy', 'teal'],
+  3: ['navy', 'teal', 'gray'],
+  4: ['navy', 'teal', 'gray', 'yellow'],
+  5: ['navy', 'teal', 'gray', 'yellow', 'green'],
+  6: ['navy', 'teal', 'gray', 'yellow', 'green', 'red'],
+  7: ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple'],
+  8: ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple', 'brown'],
+  9: ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple', 'brown', 'blue'],
+  10: ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple', 'brown', 'blue', 'orange'],
 };
+
+export const COLOR_NAME_TO_INDEX = {
+  navy: 1,
+  teal: 2,
+  yellow: 3,
+  green: 4,
+  gray: 5,
+  grey: 5,
+  red: 6,
+  purple: 7,
+  brown: 8,
+  blue: 9,
+  orange: 10,
+
+  success: 4,
+  safe: 4,
+  ok: 4,
+  pass: 4,
+  warning: 3,
+  caution: 3,
+  hold: 3,
+  danger: 6,
+  error: 6,
+  fail: 6,
+  failure: 6,
+  critical: 6,
+  info: 9,
+  data: 9,
+  neutral: 5,
+  unknown: 5,
+};
+
+export const SEMANTIC_COLOR_ORDER = ['navy', 'teal', 'gray', 'yellow', 'green', 'red', 'purple', 'brown', 'blue', 'orange'];
+export const COLOR_SWATCH_ORDER = ['red', 'orange', 'yellow', 'green', 'teal', 'blue', 'navy', 'purple', 'brown', 'gray'];
+
+export function resolveColorIndex(color) {
+  if (color === undefined || color === null) return null;
+  const token = String(color).trim();
+  if (!token) return null;
+  if (/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(token)) return token;
+  return COLOR_NAME_TO_INDEX[token.toLowerCase()] ?? null;
+}
+
+export function colorVar(color, fallback = 'navy') {
+  const resolved = resolveColorIndex(color);
+  if (typeof resolved === 'string' && resolved.startsWith('#')) return resolved;
+  const fallbackResolved = resolveColorIndex(fallback) || COLOR_NAME_TO_INDEX.navy;
+  return `var(--color-${resolved ?? fallbackResolved})`;
+}
+
+export function textColorVar(color, fallback = 'navy') {
+  const resolved = resolveColorIndex(color);
+  if (typeof resolved === 'string' && resolved.startsWith('#')) return null;
+  const fallbackResolved = resolveColorIndex(fallback) || COLOR_NAME_TO_INDEX.navy;
+  return `var(--text-color-${resolved ?? fallbackResolved})`;
+}
+
+export function borderColorVar(color, fallback = 'navy') {
+  const resolved = resolveColorIndex(color);
+  if (typeof resolved === 'string' && resolved.startsWith('#')) return resolved;
+  const fallbackResolved = resolveColorIndex(fallback) || COLOR_NAME_TO_INDEX.navy;
+  return `var(--border-color-${resolved ?? fallbackResolved})`;
+}
+
+export function paletteColorInfo(paletteInfo, color, fallback = 'navy') {
+  const resolved = resolveColorIndex(color);
+  if (typeof resolved === 'number') return paletteInfo?.colors?.[resolved] || paletteInfo?.colors?.[fallback];
+  if (typeof resolved === 'string' && resolved.startsWith('#')) return { bg: resolved, text: '#ffffff', border: resolved };
+  const fallbackResolved = resolveColorIndex(fallback) || COLOR_NAME_TO_INDEX.navy;
+  return paletteInfo?.colors?.[fallbackResolved];
+}
 
 /**
  * @param {string} name — отображаемое название палитры
- * @param {{ c: string, t: string }[]} solids — 9 solid цветов: c=bg, t=text
+ * @param {{ c: string, t: string }[]} solids — 10 solid цветов: c=bg, t=text
  * @param {object} rules — авто-назначение слотов
  * @returns {{ name, colors, unfilledText, rules }}
  *
  * colors layout:
  *   [0]  = black  { bg:'#000000', text:'#ffffff' }
- *   [1-9] = solids
- *   [10] = transparent (пустой/spacer)
+ *   [1-10] = solids
  */
 function makePalette(name, solids, rules) {
   const colors = [{ bg: '#000000', text: '#ffffff' }];
   for (const s of solids) colors.push({ bg: s.c, text: s.t, border: s.b || shadeHex(s.c, -14) });
-  colors.push({ bg: 'transparent', text: '#1f2937' });
   return { name, unfilledText: '#1f2937', colors, rules };
 }
 
@@ -134,7 +203,8 @@ export const PALETTES = {
     { c: '#B24C4C', t: '#ffffff' },
     { c: '#7C6A9E', t: '#ffffff' },
     { c: '#A67C52', t: '#ffffff' },
-    { c: '#D1D5DB', t: '#1f2937' },
+    { c: '#5B7EA6', t: '#ffffff' },
+    { c: '#D07A3C', t: '#1f2937' },
   ], paletteRules),
   ink: makePalette('Ink', [
     { c: '#1F3446', t: '#ffffff' },
@@ -145,7 +215,8 @@ export const PALETTES = {
     { c: '#9E4F45', t: '#ffffff' },
     { c: '#725D8C', t: '#ffffff' },
     { c: '#8B7355', t: '#ffffff' },
-    { c: '#D6D0C4', t: '#1f2937' },
+    { c: '#4F7896', t: '#ffffff' },
+    { c: '#C77A3A', t: '#1f2937' },
   ], paletteRules),
   library: makePalette('Library', [
     { c: '#274C43', t: '#ffffff' },
@@ -156,7 +227,8 @@ export const PALETTES = {
     { c: '#A6533D', t: '#ffffff' },
     { c: '#6A5F91', t: '#ffffff' },
     { c: '#9C7854', t: '#ffffff' },
-    { c: '#D8D6CC', t: '#1f2937' },
+    { c: '#5B789A', t: '#ffffff' },
+    { c: '#C67B34', t: '#1f2937' },
   ], paletteRules),
   copper: makePalette('Copper', [
     { c: '#2B4050', t: '#ffffff' },
@@ -167,7 +239,8 @@ export const PALETTES = {
     { c: '#A64E4E', t: '#ffffff' },
     { c: '#816C9B', t: '#ffffff' },
     { c: '#B08A57', t: '#1f2937' },
-    { c: '#D9D1C7', t: '#1f2937' },
+    { c: '#5D7E9A', t: '#ffffff' },
+    { c: '#C56F36', t: '#1f2937' },
   ], paletteRules),
   atlas: makePalette('Atlas', [
     { c: '#24405A', t: '#ffffff' },
@@ -178,7 +251,8 @@ export const PALETTES = {
     { c: '#B15A4C', t: '#ffffff' },
     { c: '#7166A0', t: '#ffffff' },
     { c: '#A47E4B', t: '#ffffff' },
-    { c: '#D7DEE2', t: '#1f2937' },
+    { c: '#557FA9', t: '#ffffff' },
+    { c: '#D37A35', t: '#1f2937' },
   ], paletteRules),
 };
 

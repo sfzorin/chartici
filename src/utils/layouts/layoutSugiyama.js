@@ -10,6 +10,13 @@ function labelRequiredPx(label, extra = 56) {
   return Math.ceil(String(label).length * LABEL_CHAR_WIDTH + extra);
 }
 
+function flowLabelLayoutWidth(label) {
+  const text = String(label || '').trim();
+  if (!text) return 0;
+  const effectiveChars = Math.min(text.length, 14);
+  return Math.ceil(effectiveChars * LABEL_CHAR_WIDTH);
+}
+
 function snap(value) {
   return Math.round(value / GRID_STEP) * GRID_STEP;
 }
@@ -422,11 +429,11 @@ function layoutFeedbackFlow(nodes, edges) {
   const result = new Map();
   const maxW = Math.max(...nodes.map(node => nodeWidth(node)));
   const maxH = Math.max(...nodes.map(node => nodeHeight(node)));
-  const radiusX = snap(Math.max(300, maxW * 1.8));
-  const radiusY = snap(Math.max(190, maxH * 1.8));
+  const radiusX = snap(Math.max(260, maxW * 1.65));
+  const radiusY = snap(Math.max(130, maxH * 1.35));
 
   if (centerCandidate) {
-    result.set(centerId, { ...centerCandidate, x: 0, y: snap(radiusY + maxH * 1.2) });
+    result.set(centerId, { ...centerCandidate, x: 0, y: snap(radiusY + maxH * 0.85) });
   }
 
   const coreNodes = [...coreIds]
@@ -466,9 +473,9 @@ function layoutFeedbackFlow(nodes, edges) {
 
   const hubY = centerId && result.get(centerId) ? result.get(centerId).y : 0;
   const interventionY = snap(hubY * 0.55);
-  placeSideNodes(result, left, -radiusX - maxW * 1.4, interventionY, maxH + 90);
-  placeSideNodes(result, right, radiusX + maxW * 1.4, 0, maxH + 90);
-  placeBottomNodes(result, bottom, radiusY + maxH * 3.2, maxW + 90);
+  placeSideNodes(result, left, -radiusX - maxW * 1.15, interventionY, maxH + 60);
+  placeSideNodes(result, right, radiusX + maxW * 1.15, 0, maxH + 60);
+  placeBottomNodes(result, bottom, radiusY + maxH * 2.4, maxW + 70);
 
   return nodes.map(node => result.get(String(node.id)) || node);
 }
@@ -657,8 +664,10 @@ function layoutFlowchartGravity(nodes, edges, layoutRules) {
   laneMap = optimizeGravityLanes(graph, backboneIndex, tierMap, laneMap);
   let result = placeGravityNodes(nodes, tierMap, laneMap, layoutRules, density);
 
-  result = separateGravityTierCollisions(result, tierMap, layoutRules);
+  result = separateGravityTierCollisions(result, tierMap, layoutRules, density);
   result = reserveDecisionFanInPockets(result, edges, true);
+  result = separateNodeBoxCollisions(result, density);
+  result = compressSparseFlowchartVerticalGaps(result, edges, density);
   result = centerGravityLayout(result);
   return result;
 }
@@ -1132,12 +1141,20 @@ function flowchartDensityProfile(edges, layoutRules) {
   const baseGap = layoutRules.MIN_GAP_X || 60;
   const compactGap = Math.max(80, baseGap + 20);
   if (labels.length === 0 || labels.every(isCompactFlowLabel)) {
-    return { tierGap: compactGap };
+    return {
+      tierGap: compactGap,
+      laneGapExtra: 20,
+      laneGapMin: 120,
+      tierCollisionGap: 40,
+    };
   }
 
-  const maxTextWidth = Math.max(...labels.map(label => label.length * LABEL_CHAR_WIDTH), 0);
+  const maxTextWidth = Math.max(...labels.map(flowLabelLayoutWidth), 0);
   return {
-    tierGap: Math.max(110, Math.min(240, snap(maxTextWidth + 40))),
+    tierGap: Math.max(90, Math.min(160, snap(maxTextWidth + 30))),
+    laneGapExtra: 80,
+    laneGapMin: 160,
+    tierCollisionGap: Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20),
   };
 }
 
@@ -1170,8 +1187,9 @@ function placeGravityNodes(nodes, tierMap, laneMap, layoutRules, density = flowc
   });
 
   const maxH = Math.max(...nodes.map(node => nodeHeight(node)), 80);
-  const collisionGap = Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
-  const laneGap = snap(Math.max(maxH + collisionGap, 160));
+  const laneGapExtra = density.laneGapExtra ?? Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
+  const laneGapMin = density.laneGapMin ?? 160;
+  const laneGap = snap(Math.max(maxH + laneGapExtra, laneGapMin));
   return nodes.map(node => {
     const id = String(node.id);
     return {
@@ -1182,9 +1200,9 @@ function placeGravityNodes(nodes, tierMap, laneMap, layoutRules, density = flowc
   });
 }
 
-function separateGravityTierCollisions(nodes, tierMap, layoutRules) {
+function separateGravityTierCollisions(nodes, tierMap, layoutRules, density = flowchartDensityProfile([], layoutRules)) {
   let result = nodes.map(node => ({ ...node }));
-  const minGap = Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
+  const minGap = density.tierCollisionGap ?? Math.max(70, (layoutRules.MIN_GAP_Y || 60) + 20);
   const tiers = new Map();
   result.forEach(node => {
     const tier = tierMap.get(String(node.id)) || 0;
@@ -1209,6 +1227,94 @@ function separateGravityTierCollisions(nodes, tierMap, layoutRules) {
     const adjusted = [...tiers.values()].flat().find(item => String(item.id) === String(node.id));
     return adjusted || node;
   });
+}
+
+function separateNodeBoxCollisions(nodes, density = flowchartDensityProfile([], {})) {
+  let result = nodes.map(node => ({ ...node }));
+  const minGap = Math.max(20, Math.min(40, density.tierCollisionGap ?? 40));
+
+  for (let pass = 0; pass < 8; pass++) {
+    let changed = false;
+    const sorted = [...result].sort((a, b) => (a.y || 0) - (b.y || 0) || (a.x || 0) - (b.x || 0));
+
+    for (let i = 0; i < sorted.length; i++) {
+      for (let j = i + 1; j < sorted.length; j++) {
+        const a = sorted[i];
+        const b = sorted[j];
+        const requiredX = (nodeWidth(a) + nodeWidth(b)) / 2 + minGap;
+        const dx = Math.abs((b.x || 0) - (a.x || 0));
+        if (dx >= requiredX) continue;
+
+        const requiredY = (nodeHeight(a) + nodeHeight(b)) / 2 + minGap;
+        const dy = (b.y || 0) - (a.y || 0);
+        if (Math.abs(dy) >= requiredY) continue;
+
+        const push = Math.max(GRID_STEP, Math.ceil((requiredY - Math.abs(dy)) / GRID_STEP) * GRID_STEP);
+        if (push <= 0) continue;
+        const direction = dy >= 0 ? 1 : -1;
+        result = result.map(node => {
+          if (String(node.id) !== String(b.id) || node.lockPos) return node;
+          return { ...node, y: snap((node.y || 0) + direction * push) };
+        });
+        changed = true;
+      }
+    }
+
+    if (!changed) break;
+  }
+
+  return result;
+}
+
+function compressSparseFlowchartVerticalGaps(nodes, edges, density = flowchartDensityProfile([], {})) {
+  if (nodes.length < 4 || nodes.length > 9) return nodes;
+  if (edges.length > nodes.length + 3) return nodes;
+
+  const rows = groupFlowchartRows(nodes);
+  if (rows.length < 2) return nodes;
+
+  const gaps = [];
+  for (let i = 1; i < rows.length; i++) gaps.push(rows[i].y - rows[i - 1].y);
+  const roomyGap = Math.max(...gaps);
+  if (roomyGap < 170) return nodes;
+
+  const clearance = Math.max(40, Math.min(70, density.tierCollisionGap ?? 50));
+  const yByRow = new Map();
+  let cursor = rows[0].y;
+  yByRow.set(rows[0].key, snap(cursor));
+
+  for (let i = 1; i < rows.length; i++) {
+    const prev = rows[i - 1];
+    const row = rows[i];
+    const required = snap((prev.height + row.height) / 2 + clearance);
+    const originalGap = row.y - prev.y;
+    cursor += Math.min(originalGap, required);
+    yByRow.set(row.key, snap(cursor));
+  }
+
+  const compacted = nodes.map(node => {
+    if (node.lockPos) return node;
+    const key = rowKey(node.y || 0);
+    return { ...node, y: yByRow.get(key) ?? node.y };
+  });
+
+  return separateNodeBoxCollisions(compacted, density);
+}
+
+function groupFlowchartRows(nodes) {
+  const rows = new Map();
+  nodes.forEach(node => {
+    const key = rowKey(node.y || 0);
+    if (!rows.has(key)) rows.set(key, { key, y: snap(node.y || 0), nodes: [], height: 0 });
+    const row = rows.get(key);
+    row.nodes.push(node);
+    row.height = Math.max(row.height, nodeHeight(node));
+  });
+  return [...rows.values()].sort((a, b) => a.y - b.y);
+}
+
+function rowKey(y) {
+  return String(snap(y));
 }
 
 function centerGravityLayout(nodes) {
@@ -1269,7 +1375,12 @@ export function layoutSugiyamaDAG(nodes, edges, layoutRules, isHorizontalFlow, d
   const childMap = new Map();
 
   if (isHorizontalFlow && shouldUseFeedbackFlowLayout(nodes, edges, dt)) {
-    return layoutFeedbackFlow(nodes, edges);
+    const density = flowchartDensityProfile(edges, layoutRules);
+    return centerGravityLayout(compressSparseFlowchartVerticalGaps(
+      separateNodeBoxCollisions(layoutFeedbackFlow(nodes, edges), density),
+      edges,
+      density
+    ));
   }
 
   if (dt === 'flowchart' && isHorizontalFlow) {

@@ -24,7 +24,7 @@
             "type": "process"
           }
         ],
-        "color": "4",
+        "color": "green",
         "label": "Producer"
       },
       {
@@ -47,7 +47,7 @@
             "type": "process"
           }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "Message Broker"
       },
       {
@@ -65,7 +65,7 @@
             "type": "process"
           }
         ],
-        "color": "6",
+        "color": "red",
         "label": "Consumer A"
       },
       {
@@ -83,7 +83,7 @@
             "type": "process"
           }
         ],
-        "color": "7",
+        "color": "purple",
         "label": "Consumer B"
       }
     ],

@@ -15,40 +15,88 @@
       {
         "type": "process",
         "size": "M",
-        "color": "1",
+        "color": "navy",
         "label": "Buyer",
         "nodes": [
-          { "id": "b1", "label": "Place Order" },
-          { "id": "b2", "label": "Show Receipt" }
+          {
+            "id": "b1",
+            "label": "Place Order"
+          },
+          {
+            "id": "b2",
+            "label": "Show Receipt"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Store",
         "nodes": [
-          { "id": "s1", "label": "Create Order" },
-          { "id": "s2", "label": "Confirm Order" }
+          {
+            "id": "s1",
+            "label": "Create Order"
+          },
+          {
+            "id": "s2",
+            "label": "Confirm Order"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "5",
+        "color": "gray",
         "label": "Payment",
         "nodes": [
-          { "id": "p1", "label": "Authorize Card" },
-          { "id": "p2", "label": "Return Result" }
+          {
+            "id": "p1",
+            "label": "Authorize Card"
+          },
+          {
+            "id": "p2",
+            "label": "Return Result"
+          }
         ]
       }
     ],
     "messages": [
-      { "sourceId": "b1", "targetId": "s1", "connectionType": "target", "lineStyle": "solid", "label": "Submit Cart" },
-      { "sourceId": "s1", "targetId": "p1", "connectionType": "target", "lineStyle": "solid", "label": "Authorize" },
-      { "sourceId": "p1", "targetId": "p2", "connectionType": "target", "lineStyle": "dashed", "label": "Approved" },
-      { "sourceId": "p2", "targetId": "s2", "connectionType": "target", "lineStyle": "solid", "label": "Payment OK" },
-      { "sourceId": "s2", "targetId": "b2", "connectionType": "target", "lineStyle": "solid", "label": "Receipt" }
+      {
+        "sourceId": "b1",
+        "targetId": "s1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Submit Cart"
+      },
+      {
+        "sourceId": "s1",
+        "targetId": "p1",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Authorize"
+      },
+      {
+        "sourceId": "p1",
+        "targetId": "p2",
+        "connectionType": "target",
+        "lineStyle": "dashed",
+        "label": "Approved"
+      },
+      {
+        "sourceId": "p2",
+        "targetId": "s2",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Payment OK"
+      },
+      {
+        "sourceId": "s2",
+        "targetId": "b2",
+        "connectionType": "target",
+        "lineStyle": "solid",
+        "label": "Receipt"
+      }
     ]
   }
 }

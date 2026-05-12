@@ -44,14 +44,19 @@ export function downloadSVG(svgElement, paletteTheme, diagramTitle, generationTi
        paperY = parseFloat(canvasPaperRect.getAttribute('y'));
        paperW = parseFloat(canvasPaperRect.getAttribute('width'));
        paperH = parseFloat(canvasPaperRect.getAttribute('height'));
-       const paperStrokeW = parseFloat(canvasPaperRect.getAttribute('stroke-width') || canvasPaperRect.style.strokeWidth || '0') || 0;
-       const paperStrokePad = Math.ceil(paperStrokeW / 2);
+       const paperStrokePad = 0;
        
        svgClone.setAttribute('viewBox', `${paperX - paperStrokePad} ${paperY - paperStrokePad} ${paperW + paperStrokePad * 2} ${paperH + paperStrokePad * 2}`);
        svgClone.removeAttribute('width');
        svgClone.removeAttribute('height');
 
-       // Remove shadow from the paper for clean export without dropping its fill/stroke attrs
+       // Keep the paper fill as the exported background, but do not export the
+       // editor paper outline as a visible SVG frame.
+       canvasPaperRect.setAttribute('stroke', 'none');
+       canvasPaperRect.removeAttribute('stroke-width');
+       canvasPaperRect.style.removeProperty('stroke');
+       canvasPaperRect.style.removeProperty('stroke-width');
+       // Remove shadow from the paper for clean export.
        canvasPaperRect.style.filter = 'none';
     }
 

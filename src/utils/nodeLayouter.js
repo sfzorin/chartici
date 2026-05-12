@@ -92,7 +92,7 @@ export function layoutNodesHeuristically(nodes, edges, config = {}) {
           });
       } else {
           const out = { ...n };
-          if (out.type !== 'pie_slice') {
+          if (out.type !== 'pie_slice' && dt !== 'matrix') {
               delete out.w;
               delete out.h;
           }

@@ -13,6 +13,7 @@ import {
   getFittedManualEdgeLabel,
   getManualEdgeLabelPlacement,
   getTextPathStartOffset,
+  normalizeEdgeLabelText,
   truncateLabelToWidth,
   usesManualEdgeLabels,
 } from '../../diagram/edgeLabelPlacement.js';
@@ -70,7 +71,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   // ── Label ──────────────────────────────────────────────────────────────────
   const L = getEdgeLabelStyle(labelPolicy);
   const useManualLabels = usesManualEdgeLabels(labelPolicy);
-  let displayLabel = edge.label;
+  let displayLabel = normalizeEdgeLabelText(edge.label);
   let effectiveLabelFontSize = L.fontSize;
   const effectiveCharWidth = Math.max(8, L.charWidth || 0);
   if (manifest.suppressEdgeLabels) {
@@ -105,7 +106,8 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
   const manualLabelPlacement = !isLogical
     ? (pathData.manualLabelPlacement ?? getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, labelStyle: L }))
     : null;
-  const textPathStartOffset = getTextPathStartOffset(labelPolicy);
+  const textPathStartOffset = pathData.textPathStartOffset ?? getTextPathStartOffset(labelPolicy);
+  const textPathTextAnchor = pathData.textPathTextAnchor || 'middle';
   const terminalMasks = masksStandardArrow
     ? buildTerminalStrokeMasks({ pts, markerStart: mStart === markerId, markerEnd: mEnd === markerId })
     : [];
@@ -199,7 +201,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
             letterSpacing="0"
             dy={L.offsetY}
           >
-            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor="middle">
+            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor={textPathTextAnchor}>
               {displayLabel}
             </textPath>
           </text>
@@ -211,7 +213,7 @@ const DiagramEdge = React.memo(({ edge, pathData, isSelected, theme, diagramType
             letterSpacing="0"
             dy={L.offsetY}
           >
-            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor="middle">
+            <textPath href={`#${edge.id}_path`} startOffset={textPathStartOffset} textAnchor={textPathTextAnchor}>
               {displayLabel}
             </textPath>
           </text>

@@ -15,7 +15,7 @@
       {
         "type": "oval",
         "size": "M",
-        "color": "1",
+        "color": "navy",
         "label": "Entry",
         "nodes": [
           {
@@ -28,7 +28,7 @@
       {
         "type": "rhombus",
         "size": "M",
-        "color": "3",
+        "color": "yellow",
         "label": "Decisions",
         "nodes": [
           {
@@ -46,7 +46,7 @@
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Auth",
         "nodes": [
           {
@@ -79,7 +79,7 @@
       {
         "type": "oval",
         "size": "M",
-        "color": "4",
+        "color": "green",
         "label": "Exit",
         "nodes": [
           {

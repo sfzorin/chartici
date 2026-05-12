@@ -39,7 +39,7 @@
             "type": "chevron"
           }
         ],
-        "color": "2",
+        "color": "teal",
         "label": "Era"
       },
       {
@@ -59,7 +59,7 @@
             "spineId": "m1"
           }
         ],
-        "color": "3",
+        "color": "yellow",
         "label": "Pioneers"
       },
       {
@@ -79,7 +79,7 @@
             "spineId": "m2"
           }
         ],
-        "color": "4",
+        "color": "green",
         "label": "Apollo"
       },
       {
@@ -99,7 +99,7 @@
             "spineId": "m3"
           }
         ],
-        "color": "5",
+        "color": "gray",
         "label": "Stations"
       },
       {
@@ -119,7 +119,7 @@
             "spineId": "m4"
           }
         ],
-        "color": "6",
+        "color": "red",
         "label": "Deep Space"
       },
       {
@@ -139,7 +139,7 @@
             "spineId": "m5"
           }
         ],
-        "color": "7",
+        "color": "purple",
         "label": "New Age"
       }
     ]

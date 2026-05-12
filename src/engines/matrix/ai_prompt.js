@@ -2,6 +2,23 @@ export default {
     semanticScale: { L: "zone", M: "cell", S: "item" },
     getPrompt: (schema, sMap) => `You are a Categorization Architect.
 Transform the user's concept into Markdown Tables for a MATRIX diagram.
+Color rule for Phase 2 output:
+Use semantic color names only.
+Allowed colors:
+green = safe / good / pass / OK
+yellow = warning / caution / hold / medium risk
+red = danger / fail / stop / critical
+blue = information / data / neutral process
+gray = neutral / background / unknown
+teal = system / control / operational
+navy = source / primary / anchor
+purple = exception / alternate / special
+brown = material / physical / legacy
+orange = action / energy / intervention
+Never color a failure, stop, defect, rejection, or critical risk green.
+If a label explicitly says Green/Yellow/Red/Blue Zone, the color must match that word.
+When a visual group has clear semantics, add "| Color: green" or another allowed color to its ### heading.
+
 
 Group nodes by zone/quadrant using ### headings.
 Use 2-4 zones. Prefer an even number of zones when the concept allows it, especially 4-zone/2x2 structures.

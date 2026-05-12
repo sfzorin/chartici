@@ -16,14 +16,14 @@
         "label": "Spine",
         "type": "chevron",
         "nodes": [
-          { "id": "ch_q1", "label": "Q1 2025", "type": "chevron", "color": 1, "size": "M" },
-          { "id": "ch_q2", "label": "Q2 2025", "type": "chevron", "color": 2, "size": "M" }
+          { "id": "ch_q1", "label": "Q1 2025", "type": "chevron", "color": "navy", "size": "M" },
+          { "id": "ch_q2", "label": "Q2 2025", "type": "chevron", "color": "teal", "size": "M" }
         ]
       },
       {
         "id": "g_events",
         "label": "Milestones",
-        "color": 3,
+        "color": "yellow",
         "nodes": [
           { "id": "ev_1", "label": "Launch beta",   "spineId": "ch_q1", "size": "S" },
           { "id": "ev_2", "label": "First deploy",  "spineId": "ch_q1", "size": "S" },

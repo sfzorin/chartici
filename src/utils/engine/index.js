@@ -167,7 +167,7 @@ export function calculateAllPaths(edges, allNodes, config = {}, draggedNodeId = 
     return routeFlowchartNegotiated(edgeInfos, allNodes, routingRules);
   }
   if (diagramType === 'sequence' && config.sequenceRouter !== 'astar') {
-    return routeSequenceDeterministic(edgeInfos);
+    return routeSequenceDeterministic(edgeInfos, allNodes, routingRules);
   }
   if ((diagramType === 'tree' || diagramType === 'org_chart') && config.treeRouter !== 'astar') {
     return routeTreeDeterministic(edgeInfos, allNodes, routingRules);

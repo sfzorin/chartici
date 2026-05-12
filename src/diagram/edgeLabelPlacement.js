@@ -29,6 +29,7 @@ export function getManualEdgeLabelPlacement({ labelPolicy, displayLabel, pts, la
 }
 
 export function getFittedManualEdgeLabel({ labelPolicy, displayLabel, pts, labelStyle }) {
+  displayLabel = normalizeEdgeLabelText(displayLabel);
   if (!displayLabel || !pts || pts.length < 2) return displayLabel || null;
   if (labelPolicy?.strategy !== 'source-near') return displayLabel;
   const best = getFlowchartLabelCandidate(displayLabel, pts, labelStyle);
@@ -123,13 +124,17 @@ function labelGapForSegment(len, labelWidth, minGap, preferredGap) {
 }
 
 export function truncateLabelToWidth(label, maxTextWidth, charWidth) {
-  const text = String(label || '');
+  const text = normalizeEdgeLabelText(label);
   if (!text) return null;
   const width = Math.max(1, charWidth || EDGE_LABEL_STYLE.charWidth || 7.4);
   if (text.length * width <= maxTextWidth) return text;
   if (maxTextWidth < width) return text.slice(0, 1);
   const chars = Math.max(1, Math.floor(maxTextWidth / width));
   return text.slice(0, chars);
+}
+
+export function normalizeEdgeLabelText(label) {
+  return String(label || '').replace(/\s*(?:\.{3,}|…)\s*$/u, '').trim();
 }
 
 function getErdLabelPlacement(displayLabel, pts, labelStyle) {

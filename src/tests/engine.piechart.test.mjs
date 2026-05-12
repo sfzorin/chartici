@@ -1,4 +1,5 @@
 import { layoutPiechart } from '../utils/layouts/layoutPiechart.js';
+import { resolveRenderedNodeColor } from '../components/DiagramRenderer.jsx';
 import { test, expect, summary, makeNode } from './testRunner.mjs';
 
 console.log('\n🍕 Piechart Engine: Distribution Logic');
@@ -33,11 +34,16 @@ test('Auto-assigns distinct slice colors when input is uncolored', () => {
   expect(colors.size, 3, 'distinct color count');
 });
 
+test('Pie slices keep their own colors instead of inheriting the data group color', () => {
+  const color = resolveRenderedNodeColor({ type: 'pie_slice', color: 'red' }, { color: 'navy' }, 'piechart');
+  expect(color, 'red', 'rendered slice color');
+});
+
 test('Preserves intentionally repeated slice colors', () => {
   const sameColorNodes = [
-    makeNode('A', 0, 0, 'pie_slice', 'M', { value: 40, color: 1 }),
-    makeNode('B', 0, 0, 'pie_slice', 'M', { value: 35, color: 1 }),
-    makeNode('C', 0, 0, 'pie_slice', 'M', { value: 25, color: 1 })
+    makeNode('A', 0, 0, 'pie_slice', 'M', { value: 40, color: 'red' }),
+    makeNode('B', 0, 0, 'pie_slice', 'M', { value: 35, color: 'red' }),
+    makeNode('C', 0, 0, 'pie_slice', 'M', { value: 25, color: 'red' })
   ];
   const sameColorSlices = layoutPiechart(sameColorNodes, [], { PADDING: 0 });
   const colors = new Set(sameColorSlices.map(slice => slice.color));

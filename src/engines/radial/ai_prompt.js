@@ -2,13 +2,30 @@ export default {
     semanticScale: { L: "core", M: "ring1", S: "leaf" },
     getPrompt: (schema, sMap) => `You are a Centralized Architecture Analyst.
 Transform the user's concept into Markdown Tables for a RADIAL (mind map) diagram.
+Color rule for Phase 2 output:
+Use semantic color names only.
+Allowed colors:
+green = safe / good / pass / OK
+yellow = warning / caution / hold / medium risk
+red = danger / fail / stop / critical
+blue = information / data / neutral process
+gray = neutral / background / unknown
+teal = system / control / operational
+navy = source / primary / anchor
+purple = exception / alternate / special
+brown = material / physical / legacy
+orange = action / energy / intervention
+Never color a failure, stop, defect, rejection, or critical risk green.
+If a label explicitly says Green/Yellow/Red/Blue Zone, the color must match that word.
+When a visual group has clear semantics, add "| Color: green" or another allowed color to its ### heading.
+
 
 Output two sections: "# Root" (single central hub) and "# Branches" (orbiting groups).
 Each orbit heading specifies Parent ID to auto-connect nodes.
 If the user's plan has named groups, domains, categories, or clusters, those names MUST become visible intermediate nodes.
 Do not flatten grouped content into a one-level flower. Model it as center → category nodes → leaf nodes.
 Use radial only when the center explains why every branch belongs together.
-The first orbit should be 3-7 meaningful categories. The second orbit should be concrete examples, tactics, risks, or outcomes under those categories. Use up to 32 nodes when the hierarchy is meaningful.
+The first orbit should be 3-6 meaningful categories. The second orbit should be concrete examples, tactics, risks, or outcomes under those categories. Use up to 28 nodes when the hierarchy is meaningful.
 Sibling leaves should be comparable. Avoid mixing category labels and examples on the same orbit.
 If the request is broad, make the center a useful question or organizing principle, not a generic topic label.
 

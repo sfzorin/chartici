@@ -1,13 +1,40 @@
 import { getTrueBox } from './geometry.js';
 import { GRID } from '../../diagram/canvas.js';
+import { addPortUsage, canUsePort } from './portUsage.js';
 
 const ARROW_MARKER_LENGTH = 20;
 const LABEL_TO_ARROW_GAP = 5;
-export function routeSequenceDeterministic(edgeInfos) {
+const SEQUENCE_LABEL_CHAR_WIDTH = 8;
+const SEQUENCE_LABEL_BASE_PADDING = 14;
+const SEQUENCE_LABEL_ARROW_PADDING = 18;
+const SEQUENCE_LABEL_PREFERRED_GAP = 20;
+const SEQUENCE_LABEL_TIGHT_GAP = 5;
+export function routeSequenceDeterministic(edgeInfos, allNodes = [], routingRules = {}) {
   const result = {};
+  const occupied = [];
+  const obstacles = erdObstacles(allNodes, routingRules.PADDING ?? 10);
+  const portCtx = { usedPorts: new Map() };
+  const routes = [];
   edgeInfos.forEach(info => {
-    const pts = sequencePts(info);
-    result[info.edge.id] = pathResult(pts, info.edge, { preferLongest: true, preserveTerminals: true });
+    const route = sequenceRoute(info, portCtx, occupied, obstacles);
+    const pts = route.pts;
+    if (route.startPort) {
+      addPortUsage(portCtx, info.startNode?.id ?? info.edge.from, route.startPort, pts[0], route.edgeType, 'start');
+    }
+    if (route.endPort) {
+      addPortUsage(portCtx, info.endNode?.id ?? info.edge.to, route.endPort, pts[pts.length - 1], route.edgeType, 'end');
+    }
+    routes.push({ ...route, info });
+    collectSegments(pts).forEach(segment => occupied.push({
+      ...segment,
+      edgeId: info.edge.id,
+      edgeType: route.edgeType,
+      direction: `${info.edge.from ?? info.edge.sourceId}->${info.edge.to ?? info.edge.targetId}`,
+    }));
+  });
+  optimizeSequenceSharedNodePortSwaps(routes, obstacles);
+  routes.forEach(route => {
+    result[route.info.edge.id] = pathResult(route.pts, route.info.edge, { sequenceLabelWindow: true, preserveTerminals: true });
   });
   return result;
 }
@@ -24,7 +51,7 @@ export function routeTreeDeterministic(edgeInfos, allNodes = [], routingRules = 
     const columnTrunks = treeStackColumnTrunks(group, padding);
 
     group.items.forEach(info => {
-      const trunkX = columnTrunks.get(treeStackColumnKey(info)) ?? snap(info.endBox.left - padding - GRID.step);
+      const trunkX = columnTrunks.get(treeStackColumnKey(info)) ?? snapLeft(info.endBox.left - padding - GRID.step);
       const pts = buildTreeStackPts(info, sharedY, trunkX);
       result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true });
     });
@@ -33,7 +60,7 @@ export function routeTreeDeterministic(edgeInfos, allNodes = [], routingRules = 
   collectTreeSourceGroups(edgeInfos.filter(info => !result[info.edge.id])).forEach(group => {
     const sharedY = chooseTreeSharedY(group.items, obstacles, padding, buildTreeFanoutPts);
     group.items.forEach(info => {
-      const pts = buildTreeFanoutPts(info, sharedY);
+      const pts = chooseTreeFanoutPts(info, sharedY, obstacles, padding);
       result[info.edge.id] = pathResult(cleanPts(pts), info.edge, { preferLongest: true });
     });
   });
@@ -82,9 +109,25 @@ function treeStackColumnTrunks(group, padding) {
     columns.get(key).push(info);
   });
   const out = new Map();
-  columns.forEach((items, key) => {
-    const left = Math.min(...items.map(info => info.endBox.left));
-    out.set(key, snap(left - padding - GRID.step));
+  const sortedColumns = [...columns.entries()]
+    .map(([key, items]) => ({
+      key,
+      items,
+      left: Math.min(...items.map(info => info.endBox.left)),
+      right: Math.max(...items.map(info => info.endBox.right)),
+    }))
+    .sort((a, b) => a.left - b.left);
+
+  let previousRight = null;
+  sortedColumns.forEach(column => {
+    const { key, left } = column;
+    let trunkX = snapLeft(left - padding - GRID.step);
+    if (previousRight !== null && trunkX <= previousRight) {
+      trunkX = snap((previousRight + left) / 2);
+      if (trunkX <= previousRight || trunkX >= left) trunkX = snapLeft(left - padding - GRID.step);
+    }
+    out.set(key, trunkX);
+    previousRight = Math.max(previousRight ?? -Infinity, column.right);
   });
   return out;
 }
@@ -93,7 +136,7 @@ function treeStackColumnKey(info) {
   return String(snap(info.endBox.left));
 }
 
-function buildTreeStackPts(info, sharedY, trunkX = snap(info.endBox.left - GRID.step * 2)) {
+function buildTreeStackPts(info, sharedY, trunkX = snapLeft(info.endBox.left - GRID.step * 2)) {
   const start = { x: info.startBox.cx, y: info.startBox.bottom };
   const end = { x: info.endBox.left, y: info.endBox.cy };
   return cleanPts([
@@ -110,6 +153,68 @@ function buildTreeFanoutPts(info, sharedY) {
   const end = { x: info.endBox.cx, y: info.endBox.top };
   if (Math.abs(start.x - end.x) < 1) return cleanPts([start, end]);
   return cleanPts([start, { x: start.x, y: sharedY }, { x: end.x, y: sharedY }, end]);
+}
+
+function chooseTreeFanoutPts(info, sharedY, obstacles, padding) {
+  const candidates = buildTreeFanoutCandidates(info, sharedY, obstacles, padding);
+  return candidates
+    .map(pts => ({ pts, score: treeSharedYScore([info], obstacles, sharedY, () => pts) }))
+    .sort((a, b) => a.score - b.score)[0]?.pts || buildTreeFanoutPts(info, sharedY);
+}
+
+function buildTreeFanoutCandidates(info, sharedY, obstacles, padding) {
+  const direct = buildTreeFanoutPts(info, sharedY);
+  const start = { x: info.startBox.cx, y: info.startBox.bottom };
+  const end = { x: info.endBox.cx, y: info.endBox.top };
+  const own = new Set([String(info.edge.from ?? info.edge.sourceId), String(info.edge.to ?? info.edge.targetId)]);
+  const verticalStart = { x: end.x, y: sharedY };
+  const blockers = obstacles.filter(obstacle => (
+    !own.has(obstacle.id) && segmentCrossesBox(verticalStart, end, obstacle)
+  ));
+
+  if (blockers.length === 0) return [direct];
+
+  const highestClearY = end.y - GRID.step;
+  const belowBlockersY = Math.max(...blockers.map(obstacle => obstacle.bottom)) + padding + GRID.step;
+  const betweenY = snap(Math.min(highestClearY, Math.max(sharedY + GRID.step, belowBlockersY)));
+  if (!Number.isFinite(betweenY) || betweenY <= sharedY || betweenY >= end.y) return [direct];
+
+  const rowBlockers = obstacles.filter(obstacle => (
+    !own.has(obstacle.id)
+    && Math.max(sharedY, obstacle.top) <= Math.min(betweenY, obstacle.bottom)
+  ));
+  const corridorBlockers = rowBlockers.length > 0 ? rowBlockers : blockers;
+  const innerCorridorXs = treeInnerCorridorXs(corridorBlockers);
+  const outerCorridorXs = [
+    snapLeft(Math.min(...corridorBlockers.map(obstacle => obstacle.left)) - GRID.step),
+    snapRight(Math.max(...corridorBlockers.map(obstacle => obstacle.right)) + GRID.step),
+  ];
+  const corridorXs = [...new Set([...innerCorridorXs, ...outerCorridorXs])];
+
+  return [
+    direct,
+    ...corridorXs.map(x => cleanPts([
+      start,
+      { x: start.x, y: sharedY },
+      { x, y: sharedY },
+      { x, y: betweenY },
+      { x: end.x, y: betweenY },
+      end,
+    ])),
+  ];
+}
+
+function treeInnerCorridorXs(blockers) {
+  return [...blockers]
+    .sort((a, b) => a.left - b.left)
+    .flatMap((leftBox, index, sorted) => {
+      const rightBox = sorted[index + 1];
+      if (!rightBox) return [];
+      const gap = rightBox.left - leftBox.right;
+      if (gap < GRID.step) return [];
+      const x = snap((leftBox.right + rightBox.left) / 2);
+      return x > leftBox.right && x < rightBox.left ? [x] : [];
+    });
 }
 
 function chooseTreeSharedY(items, obstacles, padding, buildPts) {
@@ -161,22 +266,258 @@ export function routeErdDeterministic(edgeInfos, allNodes = [], routingRules = {
   return result;
 }
 
-function sequencePts(info) {
-  const startRight = info.endBox.cx >= info.startBox.cx;
-  const start = sidePort(info.startBox, startRight ? 'right' : 'left');
-  const end = sidePort(info.endBox, startRight ? 'left' : 'right');
-  const startStubLen = terminalStubLength(info.edge, 'start');
-  const endStubLen = terminalStubLength(info.edge, 'end');
+function sequenceRoute(info, portCtx, occupied, obstacles) {
+  const startSide = 'right';
+  const endSide = 'left';
+  const edgeType = edgeTypeKey(info.edge);
+  const startPorts = freeSequencePorts(info.startBox, startSide, info.startNode?.id ?? info.edge.from, edgeType, 'start', portCtx);
+  const endPorts = freeSequencePorts(info.endBox, endSide, info.endNode?.id ?? info.edge.to, edgeType, 'end', portCtx);
+  const candidates = [];
+
+  for (const startPort of startPorts) {
+    for (const endPort of endPorts) {
+      const routeCandidates = sequencePathCandidates(info.edge, startPort, endPort, info);
+      routeCandidates.forEach(pts => {
+        const clean = cleanPtsPreservingTerminals(pts);
+        candidates.push({
+          pts: clean,
+          startPort,
+          endPort,
+          edgeType,
+          score: sequenceRouteScore(clean, occupied, obstacles, info, startPort, endPort),
+        });
+      });
+    }
+  }
+
+  const best = candidates.sort((a, b) => a.score - b.score)[0];
+  if (best) return best;
+
+  const startPort = sequenceSidePortCandidates(info.startBox, startSide)[0];
+  const endPort = sequenceSidePortCandidates(info.endBox, endSide)[0];
+  return {
+    pts: cleanPtsPreservingTerminals(sequencePathCandidates(info.edge, startPort, endPort, info)[0]),
+    startPort,
+    endPort,
+    edgeType,
+  };
+}
+
+function freeSequencePorts(box, side, nodeId, edgeType, role, portCtx) {
+  const nodeKey = String(nodeId);
+  const used = portCtx.usedPorts.get(nodeKey);
+  const primary = sequenceSidePortCandidates(box, side)
+    .filter(port => canUsePort(used, port, edgeType, role, false));
+  if (primary.length > 0) return primary;
+  const fallbackSide = side === 'right' ? 'left' : 'right';
+  return sequenceSidePortCandidates(box, fallbackSide)
+    .map(port => ({ ...port, sideFallback: true }))
+    .filter(port => canUsePort(used, port, edgeType, role, false));
+}
+
+function sequencePathCandidates(edge, startPort, endPort, info) {
+  const start = startPort.pt;
+  const end = endPort.pt;
+  const startStubLen = terminalStubLength(edge, 'start');
+  const endStubLen = terminalStubLength(edge, 'end');
   const startStub = {
-    x: start.x + (startRight ? startStubLen : -startStubLen),
+    x: start.x + (startPort.sign || 1) * startStubLen,
     y: start.y,
   };
   const endStub = {
-    x: end.x + (startRight ? -endStubLen : endStubLen),
+    x: end.x + (endPort.sign || -1) * endStubLen,
     y: end.y,
   };
-  if (Math.abs(start.y - end.y) < 1) return cleanPtsPreservingTerminals([start, startStub, endStub, end]);
-  return cleanPtsPreservingTerminals([start, startStub, { x: startStub.x, y: endStub.y }, endStub, end]);
+  if (Math.abs(start.y - end.y) < 1) {
+    const direct = [start, startStub, endStub, end];
+    const laneOffsets = [-GRID.step * 3, GRID.step * 3, -GRID.step * 5, GRID.step * 5];
+    return [
+      direct,
+      ...laneOffsets.map(offset => [
+        start,
+        startStub,
+        { x: startStub.x, y: startStub.y + offset },
+        { x: endStub.x, y: endStub.y + offset },
+        endStub,
+        end,
+      ]),
+    ];
+  }
+  const minX = Math.min(info.startBox.left, info.endBox.left);
+  const maxX = Math.max(info.startBox.right, info.endBox.right);
+  const outsideLeft = snapLeft(minX - GRID.step * 2);
+  const outsideRight = snapRight(maxX + GRID.step * 2);
+  const midX = snap((startStub.x + endStub.x) / 2);
+  const insideXs = [startStub.x, endStub.x, midX];
+  const outsideXs = [outsideRight, outsideLeft];
+  return [
+    [start, startStub, { x: startStub.x, y: endStub.y }, endStub, end],
+    [start, startStub, { x: endStub.x, y: startStub.y }, endStub, end],
+    ...outsideXs.map(x => [start, startStub, { x, y: startStub.y }, { x, y: endStub.y }, endStub, end]),
+    ...insideXs.flatMap(x => [
+      [start, startStub, { x, y: startStub.y }, { x, y: endStub.y }, endStub, end],
+      [start, startStub, { x, y: startStub.y }, { x, y: (startStub.y + endStub.y) / 2 }, { x: endStub.x, y: (startStub.y + endStub.y) / 2 }, endStub, end],
+    ]),
+  ];
+}
+
+function sequenceRouteScore(pts, occupied, obstacles, info, startPort, endPort) {
+  return countObstacleCrossings(pts, obstacles, info) * 1000000000
+    + countIncompatibleSequenceOverlaps(pts, occupied, info.edge) * 500000000
+    + countOverlaps(pts, occupied) * 10000000
+    + countCrossings(pts, occupied) * 1000000
+    + countBends(pts) * 10000
+    + sequencePortPenalty(startPort) + sequencePortPenalty(endPort)
+    + pathLength(pts);
+}
+
+function countIncompatibleSequenceOverlaps(pts, occupied, edge) {
+  let count = 0;
+  const edgeType = edgeTypeKey(edge);
+  const direction = `${edge?.from ?? edge?.sourceId}->${edge?.to ?? edge?.targetId}`;
+  for (const segment of collectSegments(pts)) {
+    for (const other of occupied) {
+      if (!segmentsOverlap(segment.a, segment.b, other.a, other.b)) continue;
+      if (other.edgeType !== edgeType || other.direction !== direction) count += 1;
+    }
+  }
+  return count;
+}
+
+function optimizeSequenceSharedNodePortSwaps(routes, obstacles) {
+  const maxPasses = 3;
+  for (let pass = 0; pass < maxPasses; pass++) {
+    let changed = false;
+    for (let i = 0; i < routes.length; i++) {
+      for (let j = i + 1; j < routes.length; j++) {
+        const a = routes[i];
+        const b = routes[j];
+        const role = sharedSequencePortRole(a.info, b.info);
+        if (!role || !routesCross(a.pts, b.pts)) continue;
+        const improved = trySequencePortSwap(routes, i, j, role, obstacles);
+        if (improved) changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+}
+
+function sharedSequencePortRole(a, b) {
+  const aFrom = String(a.edge.from ?? a.edge.sourceId);
+  const bFrom = String(b.edge.from ?? b.edge.sourceId);
+  if (aFrom === bFrom) return 'start';
+  const aTo = String(a.edge.to ?? a.edge.targetId);
+  const bTo = String(b.edge.to ?? b.edge.targetId);
+  if (aTo === bTo) return 'end';
+  return null;
+}
+
+function routesCross(ptsA, ptsB) {
+  for (const a of collectSegments(ptsA || [])) {
+    for (const b of collectSegments(ptsB || [])) {
+      if (segmentsCross(a.a, a.b, b.a, b.b)) return true;
+    }
+  }
+  return false;
+}
+
+function trySequencePortSwap(routes, indexA, indexB, role, obstacles) {
+  const routeA = routes[indexA];
+  const routeB = routes[indexB];
+  const swappedA = {
+    startPort: role === 'start' ? routeB.startPort : routeA.startPort,
+    endPort: role === 'end' ? routeB.endPort : routeA.endPort,
+  };
+  const swappedB = {
+    startPort: role === 'start' ? routeA.startPort : routeB.startPort,
+    endPort: role === 'end' ? routeA.endPort : routeB.endPort,
+  };
+  if (!swappedA.startPort || !swappedA.endPort || !swappedB.startPort || !swappedB.endPort) return false;
+
+  const baseOccupied = buildSequenceOccupied(routes, new Set([routeA.info.edge.id, routeB.info.edge.id]));
+  const currentScore = scoreSequencePair(routeA, routeB, baseOccupied, obstacles);
+  const nextA = bestSequenceRouteForPorts(routeA.info, swappedA.startPort, swappedA.endPort, baseOccupied, obstacles);
+  const occupiedAfterA = [
+    ...baseOccupied,
+    ...sequenceOccupiedSegments(nextA.pts, nextA.info.edge, nextA.edgeType),
+  ];
+  const nextB = bestSequenceRouteForPorts(routeB.info, swappedB.startPort, swappedB.endPort, occupiedAfterA, obstacles);
+  const proposedScore = scoreSequencePair(nextA, nextB, baseOccupied, obstacles);
+
+  if (proposedScore + 0.01 >= currentScore) return false;
+  routes[indexA] = nextA;
+  routes[indexB] = nextB;
+  return true;
+}
+
+function bestSequenceRouteForPorts(info, startPort, endPort, occupied, obstacles) {
+  const edgeType = edgeTypeKey(info.edge);
+  const candidates = sequencePathCandidates(info.edge, startPort, endPort, info)
+    .map(pts => {
+      const clean = cleanPtsPreservingTerminals(pts);
+      return {
+        info,
+        pts: clean,
+        startPort,
+        endPort,
+        edgeType,
+        score: sequenceRouteScore(clean, occupied, obstacles, info, startPort, endPort),
+      };
+    })
+    .sort((a, b) => a.score - b.score);
+  return candidates[0] || { info, pts: [], startPort, endPort, edgeType };
+}
+
+function scoreSequencePair(routeA, routeB, baseOccupied, obstacles) {
+  const scoreA = sequenceRouteScore(routeA.pts, baseOccupied, obstacles, routeA.info, routeA.startPort, routeA.endPort);
+  const occupiedAfterA = [
+    ...baseOccupied,
+    ...sequenceOccupiedSegments(routeA.pts, routeA.info.edge, routeA.edgeType),
+  ];
+  const scoreB = sequenceRouteScore(routeB.pts, occupiedAfterA, obstacles, routeB.info, routeB.startPort, routeB.endPort);
+  return scoreA + scoreB;
+}
+
+function buildSequenceOccupied(routes, excludeEdgeIds = new Set()) {
+  return routes
+    .filter(route => !excludeEdgeIds.has(route.info.edge.id))
+    .flatMap(route => sequenceOccupiedSegments(route.pts, route.info.edge, route.edgeType));
+}
+
+function sequenceOccupiedSegments(pts, edge, edgeType) {
+  const direction = `${edge.from ?? edge.sourceId}->${edge.to ?? edge.targetId}`;
+  return collectSegments(pts || []).map(segment => ({
+    ...segment,
+    edgeId: edge.id,
+    edgeType,
+    direction,
+  }));
+}
+
+function sequencePortPenalty(port) {
+  const offset = Math.abs((port?.pt?.y ?? 0) - (port?.centerY ?? port?.pt?.y ?? 0));
+  return offset * 20 + (port?.dir?.startsWith('Bif') ? 800 : 0) + (port?.sideFallback ? 50000 : 0);
+}
+
+function sequenceSidePortCandidates(box, side) {
+  const sign = side === 'right' ? 1 : -1;
+  const x = side === 'right' ? box.right : box.left;
+  const maxOffset = Math.max(0, (box.bottom - box.top) / 2 - 8);
+  const offsets = [0, -GRID.step, GRID.step, -GRID.step * 2, GRID.step * 2, -GRID.step * 3, GRID.step * 3]
+    .filter(offset => Math.abs(offset) <= maxOffset + 0.01);
+  if (!offsets.includes(0)) offsets.unshift(0);
+  return offsets.map((offset, index) => ({
+    pt: { x, y: box.cy + offset },
+    anchorPt: { x, y: box.cy + offset },
+    centerY: box.cy,
+    axis: 'H',
+    sign,
+    dir: side === 'right' ? (index === 0 ? 'Right' : 'BifRight') : (index === 0 ? 'Left' : 'BifLeft'),
+  }));
+}
+
+function edgeTypeKey(edge) {
+  return `${edge?.lineStyle || 'solid'}-${edge?.arrowType || edge?.connectionType || 'target'}`;
 }
 
 function erdCandidates(info) {
@@ -293,22 +634,75 @@ function pathResult(pts, edge, options = {}) {
     pathD: pathFromPts(clean, options),
     textPathD: text.d,
     textPathLen: text.len,
+    textPathStartOffset: text.startOffset,
+    textPathTextAnchor: text.textAnchor,
   };
 }
 
 function chooseTextPath(segments, edge, options) {
   const markerPad = edgeHasEndMarker(edge) ? ARROW_MARKER_LENGTH + LABEL_TO_ARROW_GAP : 0;
+  const labelWindow = sequenceLabelWindow(edge);
   const candidates = segments
-    .map(segment => trimForEndMarker(segment, markerPad))
+    .map(segment => trimForEndMarker(segment, segment.index === segments.length - 1 ? markerPad : 0))
     .filter(Boolean)
     .sort((a, b) => options.preferLongest
       ? b.len - a.len
       : Math.abs(a.index - (segments.length - 1) / 2) - Math.abs(b.index - (segments.length - 1) / 2) || b.len - a.len);
-  const segment = candidates[0] || segments[0];
+  const segment = options.sequenceLabelWindow
+    ? chooseSequenceLabelSegment(candidates, labelWindow)
+    : (candidates[0] || segments[0]);
   if (!segment) return { d: '', len: 0 };
   const a = textStart(segment.p1, segment.p2);
-  const b = a === segment.p1 ? segment.p2 : segment.p1;
-  return { d: `M ${a.x} ${a.y} L ${b.x} ${b.y}`, len: segment.len };
+  const b = pointsEqual(a, segment.p1) ? segment.p2 : segment.p1;
+  const text = { d: `M ${a.x} ${a.y} L ${b.x} ${b.y}`, len: segment.len };
+  if (options.sequenceLabelWindow) {
+    const sourceAtTextStart = pointsEqual(a, segment.p1);
+    const gap = Math.min(segment.labelGap ?? SEQUENCE_LABEL_TIGHT_GAP, Math.max(0, segment.len));
+    text.startOffset = sourceAtTextStart ? gap : Math.max(0, segment.len - gap);
+    text.textAnchor = sourceAtTextStart ? 'start' : 'end';
+  }
+  return text;
+}
+
+function sequenceLabelWindow(edge) {
+  if (!edge?.label) return { preferredLen: 48, tightLen: 48 };
+  const textWidth = Math.ceil(String(edge.label).length * SEQUENCE_LABEL_CHAR_WIDTH);
+  const renderPadding = SEQUENCE_LABEL_BASE_PADDING
+    + (edgeHasEndMarker(edge) ? SEQUENCE_LABEL_ARROW_PADDING : 0)
+    + (edgeHasStartMarker(edge) ? SEQUENCE_LABEL_ARROW_PADDING : 0);
+  return {
+    preferredLen: textWidth + renderPadding + SEQUENCE_LABEL_PREFERRED_GAP * 2,
+    tightLen: textWidth + renderPadding + SEQUENCE_LABEL_TIGHT_GAP * 2,
+  };
+}
+
+function chooseSequenceLabelSegment(candidates, labelWindow) {
+  if (candidates.length === 0) return null;
+  const preferredLen = Math.max(44, labelWindow.preferredLen);
+  const tightLen = Math.max(44, labelWindow.tightLen);
+  const usable = candidates.find(segment => segment.len >= tightLen);
+  const segment = usable || [...candidates].sort((a, b) => b.len - a.len)[0];
+  if (!segment) return null;
+  const usesPreferredGap = segment.len >= preferredLen;
+  const targetLen = Math.min(segment.len, usesPreferredGap ? preferredLen : tightLen);
+  return cropSegmentFromStart(segment, targetLen, usesPreferredGap ? SEQUENCE_LABEL_PREFERRED_GAP : SEQUENCE_LABEL_TIGHT_GAP);
+}
+
+function cropSegmentFromStart(segment, targetLen, labelGap = SEQUENCE_LABEL_TIGHT_GAP) {
+  if (!segment) return segment;
+  if (segment.len <= targetLen) return { ...segment, labelGap };
+  const dx = segment.p2.x - segment.p1.x;
+  const dy = segment.p2.y - segment.p1.y;
+  const ratio = targetLen / segment.len;
+  return {
+    ...segment,
+    p2: {
+      x: segment.p1.x + dx * ratio,
+      y: segment.p1.y + dy * ratio,
+    },
+    len: targetLen,
+    labelGap,
+  };
 }
 
 function trimForEndMarker(segment, markerPad) {
@@ -333,6 +727,10 @@ function terminalStubLength(edge, role) {
 function textStart(a, b) {
   if (Math.abs(a.x - b.x) >= Math.abs(a.y - b.y)) return a.x <= b.x ? a : b;
   return a.y >= b.y ? a : b;
+}
+
+function pointsEqual(a, b) {
+  return Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01;
 }
 
 function routeSegments(pts) {
@@ -415,6 +813,14 @@ function cleanPtsPreservingTerminals(pts) {
 
 function snap(value) {
   return Math.round(value / GRID.step) * GRID.step;
+}
+
+function snapLeft(value) {
+  return Math.floor(value / GRID.step) * GRID.step;
+}
+
+function snapRight(value) {
+  return Math.ceil(value / GRID.step) * GRID.step;
 }
 
 function clamp(value, min, max) {

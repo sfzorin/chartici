@@ -11,9 +11,9 @@
   "title": { "text": "Market Share", "size": "M" },
   "data": {
     "groups": [
-      { "id": "s_1", "type": "pie_slice", "color": 1, "nodes": [{ "id": "s_1", "label": "Android", "value": 63.3 }] },
-      { "id": "s_2", "type": "pie_slice", "color": 2, "nodes": [{ "id": "s_2", "label": "iOS", "value": 28.7, "size": "L" }] },
-      { "id": "s_3", "type": "pie_slice", "color": 3, "nodes": [{ "id": "s_3", "label": "Other", "value": 8.0 }] }
+      { "id": "s_1", "type": "pie_slice", "color": "navy", "nodes": [{ "id": "s_1", "label": "Android", "value": 63.3 }] },
+      { "id": "s_2", "type": "pie_slice", "color": "teal", "nodes": [{ "id": "s_2", "label": "iOS", "value": 28.7, "size": "L" }] },
+      { "id": "s_3", "type": "pie_slice", "color": "yellow", "nodes": [{ "id": "s_3", "label": "Other", "value": 8.0 }] }
     ]
   }
 }
@@ -25,7 +25,7 @@
 - Если в группе несколько нод — рисуются отдельными секторами, но с одним цветом/размером.
 - `value` — числовое (может быть дробным); нормализуется в проценты автоматически.
 - Максимум **9 секторов** (`enforceMaxNodes: 9`).
-- `color` автоинкрементируется если не задан явно (1, 2, 3…).
+- `color` auto-assigns semantic names if omitted.
 - `type` группы/ноды — всегда `"pie_slice"`.
 - `size: "L"` — сектор визуально **выдвинут наружу** (explode ~36px по mid-angle); `"M"` — стандарт. Только два значения.
 - Рёбра **строго запрещены** (`edgeEncoding: none`).
@@ -36,7 +36,7 @@
 |------|-----|----------|
 | `id` | String | Уникальный ID группы |
 | `type` | `"pie_slice"` | Тип ноды |
-| `color` | Number | Индекс палитры 1–9 |
+| `color` | String | Semantic color name: `blue`, `green`, `yellow`, `red`, `gray`, `purple`, `brown`, `navy`, `teal`, `orange` |
 | `nodes` | Array | Массив нод (обычно 1 нода) |
 
 ## Поля ноды (`nodes[]` внутри группы)

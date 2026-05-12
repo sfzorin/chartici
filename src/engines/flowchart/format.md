@@ -16,7 +16,7 @@
       {
         "id": "g_entry",
         "label": "Entry Point",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           { "id": "p_start", "label": "Request",       "type": "oval",    "size": "M" },
           { "id": "d_check", "label": "Valid token?",  "type": "rhombus", "nextSteps": "p_ok[Yes], p_err[No]" }
@@ -25,7 +25,7 @@
       {
         "id": "g_result",
         "label": "Results",
-        "color": 3,
+        "color": "yellow",
         "nodes": [
           { "id": "p_ok",  "label": "200 OK",     "type": "oval", "size": "S" },
           { "id": "p_err", "label": "401 Denied", "type": "oval", "size": "S" }
@@ -63,7 +63,7 @@
 |------|-----|----------|
 | `id` | String | Уникальный ID |
 | `label` | String | Заголовок подсистемы |
-| `color` | Number | Индекс палитры 1–9 |
+| `color` | String | Semantic color name: `blue`, `green`, `yellow`, `red`, `gray`, `purple`, `brown`, `navy`, `teal`, `orange` |
 | `outlined` | Boolean | Контурный стиль |
 
 ## data.config (опционально)

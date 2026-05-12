@@ -15,39 +15,57 @@
       {
         "type": "process",
         "size": "M",
-        "color": "1",
+        "color": "navy",
         "label": "High Impact / Low Effort",
         "nodes": [
-          { "id": "m_1", "label": "Improve Export" },
-          { "id": "m_2", "label": "Polish Toolbar" }
+          {
+            "id": "m_1",
+            "label": "Improve Export"
+          },
+          {
+            "id": "m_2",
+            "label": "Polish Toolbar"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "High Impact / High Effort",
         "nodes": [
-          { "id": "m_3", "label": "Auto Layout" },
-          { "id": "m_4", "label": "Prompt Repair" }
+          {
+            "id": "m_3",
+            "label": "Auto Layout"
+          },
+          {
+            "id": "m_4",
+            "label": "Prompt Repair"
+          }
         ]
       },
       {
         "type": "process",
         "size": "S",
-        "color": "5",
+        "color": "gray",
         "label": "Low Impact / Low Effort",
         "nodes": [
-          { "id": "m_5", "label": "Rename Presets" }
+          {
+            "id": "m_5",
+            "label": "Rename Presets"
+          }
         ]
       },
       {
         "type": "process",
         "size": "S",
-        "color": "6",
+        "color": "red",
         "label": "Low Impact / High Effort",
         "nodes": [
-          { "id": "m_6", "label": "Legacy Import" }
+          {
+            "id": "m_6",
+            "label": "Legacy Import"
+          }
         ]
       }
     ]

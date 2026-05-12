@@ -75,10 +75,10 @@ const MOCK_RESPONSES = {
   timeline: `
 <thinking>test</thinking>
 # Timeline Spine
-| Spine ID | Phase/Era Label | Color (0-11) |
+| Spine ID | Phase/Era Label | Color |
 |---|---|---|
-| e1 | Q1 Phase 1 | 0 |
-| e2 | Q2 Phase 2 | 2 |
+| e1 | Q1 Phase 1 | navy |
+| e2 | Q2 Phase 2 | teal |
 # Events
 ### Phase: Engineering Tasks | Size: S
 | Spine ID | Label |

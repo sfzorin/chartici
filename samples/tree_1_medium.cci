@@ -15,44 +15,68 @@
       {
         "type": "process",
         "size": "L",
-        "color": "1",
+        "color": "navy",
         "label": "Root",
         "nodes": [
-          { "id": "book", "label": "Book" }
+          {
+            "id": "book",
+            "label": "Book"
+          }
         ]
       },
       {
         "type": "process",
         "size": "M",
-        "color": "2",
+        "color": "teal",
         "label": "Parts",
         "parentId": "book",
         "nodes": [
-          { "id": "part_1", "label": "Foundations" },
-          { "id": "part_2", "label": "Practice" },
-          { "id": "part_3", "label": "Reference" }
+          {
+            "id": "part_1",
+            "label": "Foundations"
+          },
+          {
+            "id": "part_2",
+            "label": "Practice"
+          },
+          {
+            "id": "part_3",
+            "label": "Reference"
+          }
         ]
       },
       {
         "type": "process",
         "size": "S",
-        "color": "5",
+        "color": "gray",
         "label": "Chapters",
         "parentId": "part_1",
         "nodes": [
-          { "id": "ch_1", "label": "Principles" },
-          { "id": "ch_2", "label": "Mental Models" }
+          {
+            "id": "ch_1",
+            "label": "Principles"
+          },
+          {
+            "id": "ch_2",
+            "label": "Mental Models"
+          }
         ]
       },
       {
         "type": "process",
         "size": "S",
-        "color": "4",
+        "color": "green",
         "label": "Tools",
         "parentId": "part_2",
         "nodes": [
-          { "id": "ch_3", "label": "Workflows" },
-          { "id": "ch_4", "label": "Checklists" }
+          {
+            "id": "ch_3",
+            "label": "Workflows"
+          },
+          {
+            "id": "ch_4",
+            "label": "Checklists"
+          }
         ]
       }
     ]

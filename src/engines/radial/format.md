@@ -14,7 +14,7 @@
       {
         "id": "g_hub",
         "label": "Hub",
-        "color": 1,
+        "color": "navy",
         "nodes": [
           { "id": "hub_1", "label": "Core Service", "size": "L" }
         ]
@@ -23,7 +23,7 @@
         "id": "g_auth",
         "label": "Auth",
         "parentId": "hub_1",
-        "color": 2,
+        "color": "teal",
         "nodes": [
           { "id": "auth_1", "label": "OAuth" },
           { "id": "auth_2", "label": "JWT" }
@@ -33,7 +33,7 @@
         "id": "g_db",
         "label": "Storage",
         "parentId": "hub_1",
-        "color": 3,
+        "color": "yellow",
         "nodes": [
           { "id": "db_1", "label": "PostgreSQL" },
           { "id": "db_2", "label": "Redis" }
