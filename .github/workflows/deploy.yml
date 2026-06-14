@@ -11,16 +11,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -T 10 "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
       - name: Deploy files to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: deploy
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "src,public,samples,index.html,package.json,package-lock.json,vite.config.js,Dockerfile,nginx.conf,docker-compose.yml,deploy,.dockerignore,backend"
-          target: /opt/chartici
-          timeout: 2m
-          command_timeout: 20m
+        run: |
+          set -euo pipefail
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            src public samples index.html package.json package-lock.json vite.config.js Dockerfile nginx.conf docker-compose.yml deploy .dockerignore backend \
+            deploy@${{ secrets.VPS_HOST }}:/opt/chartici/
 
       - name: Rebuild & restart containers
         uses: appleboy/ssh-action@v1.2.2
