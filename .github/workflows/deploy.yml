@@ -3,41 +3,83 @@ name: Deploy to VPS
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: chartici-deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, chartici, misc]
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Configure SSH
+      - name: Sync sources to deploy path
         run: |
           set -euo pipefail
-          mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-      - name: Deploy files to VPS
-        run: |
-          set -euo pipefail
+          mkdir -p /opt/chartici
           rsync -az \
-            -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
             src public samples index.html package.json package-lock.json vite.config.js Dockerfile nginx.conf docker-compose.yml deploy .dockerignore backend \
-            deploy@${{ secrets.VPS_HOST }}:/opt/chartici/
+            /opt/chartici/
 
-      - name: Rebuild & restart containers
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: deploy
-          key: ${{ secrets.VPS_SSH_KEY }}
-          timeout: 2m
-          command_timeout: 20m
-          script: |
-            cd /opt/chartici
-            docker compose build --no-cache
-            docker compose up -d chartici api
-            docker network connect chartici_internal caddy-proxy 2>/dev/null || true
-            docker image prune -f
-            echo "✅ Deployed at $(date)"
+      - name: Build, restart, and verify
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cd /opt/chartici
+          echo "==> Deploying commit ${COMMIT_SHA}"
+          echo "${COMMIT_SHA}" > .deployed_sha
+
+          echo "==> docker compose build"
+          docker compose build --no-cache
+
+          echo "==> docker compose up"
+          docker compose up -d chartici api
+          docker network connect chartici_internal caddy-proxy 2>/dev/null || true
+
+          echo "==> docker image prune"
+          docker image prune -f
+
+          echo "==> validate and reload caddy"
+          docker exec caddy-proxy caddy validate --config /etc/caddy/Caddyfile
+          docker exec caddy-proxy caddy reload --config /etc/caddy/Caddyfile
+
+          echo "==> local smoke test"
+          docker exec chartici-web wget -qO- http://127.0.0.1/ >/tmp/chartici-local.html
+          grep -q '<title>' /tmp/chartici-local.html
+
+          echo "==> public HTTPS smoke test"
+          public_title=""
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsSIL --max-time 20 https://chartici.com/ >/tmp/chartici-public-headers.txt \
+              && curl -fsS --max-time 20 https://chartici.com/ >/tmp/chartici-public.html; then
+              public_title="$(sed -n 's/.*<title>\([^<]*\)<\/title>.*/\1/p' /tmp/chartici-public.html | head -n 1)"
+              if [ -n "$public_title" ]; then
+                break
+              fi
+            fi
+            echo "public smoke test did not see title, retry $i/10"
+            sleep 3
+          done
+          if [ -z "$public_title" ]; then
+            cat /tmp/chartici-public-headers.txt || true
+            head -c 500 /tmp/chartici-public.html || true
+            exit 1
+          fi
+
+          {
+            echo "### chartici deploy"
+            echo
+            echo "- Commit: \`${COMMIT_SHA}\`"
+            echo "- URL: https://chartici.com/"
+            echo "- Public title: \`${public_title}\`"
+            echo
+            echo "#### docker compose ps"
+            echo '```'
+            docker compose ps
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
